@@ -25,11 +25,12 @@ dotnet run --project CampionsSystem.API/CampionsSystem.csproj --launch-profile h
 
 Open http://localhost:5236/health/database in development. A working connection
 returns `{"status":"healthy"}`; connection failures return HTTP 503. This route
-is not registered in production. The database currently has no gym tables.
+is not registered in production. InitialCreate has been applied locally:
+61 application tables, seven standard Identity tables, and EF migration history.
 
 ## Manage the connection
 
-The API reads `ConnectionStrings:CampionsDatabase` from .NET user secrets in
+The API reads `ConnectionStrings:DefaultConnection` from .NET user secrets in
 development. No password is stored in repository configuration.
 
 To view the locally stored connection yourself (do not share its output):
@@ -51,7 +52,7 @@ Production must provide its own connection through a secure configuration source
 
 ## Setup details
 
-- `CampionsSystem.DAL/CampionsDbContext.cs` is the EF Core context.
+- `CampionsSystem.DAL/Data/ApplicationDbContext.cs` is the Guid Identity EF context.
 - Npgsql EF Core provider is pinned to 10.0.3; its SQL compatibility is configured
   for the installed PostgreSQL 14 server.
 - The solution includes API, BLL, and DAL. API references BLL, and BLL references
@@ -69,5 +70,30 @@ Production must provide its own connection through a secure configuration source
 - PostgreSQL was reused at its existing version; no server upgrade was performed.
   Keep server patching/upgrades as a separate maintenance task.
 
-Do not run `EnsureCreated` or automatic migrations at startup. Next, agree the
-gym data model and create reviewed EF Core migrations.
+Do not run `EnsureCreated` or automatic migrations at startup. Future schema
+changes need reviewed DAL migrations.
+
+## Migrations and verification
+
+```sh
+dotnet tool restore
+dotnet build CampionsGymSystem.slnx
+dotnet ef migrations list --project CampionsSystem.DAL --startup-project CampionsSystem.API -- --environment Development
+dotnet ef migrations has-pending-model-changes --project CampionsSystem.DAL --startup-project CampionsSystem.API -- --environment Development
+```
+
+For a freshly configured LOCAL database only:
+
+```sh
+dotnet ef database update --project CampionsSystem.DAL --startup-project CampionsSystem.API -- --environment Development
+```
+
+The reviewed SQL and transactional smoke checks are in `docs/database/`.
+Run the smoke checks on development only, entering the password privately:
+
+```sh
+psql -h localhost -U campions_app -d campions_gym -W -v ON_ERROR_STOP=1 -f docs/database/validate-local.sql
+```
+
+Tests insert only synthetic fixtures and roll them back. See `SCHEMA.md` and
+`BUSINESS_RULES_NOT_ENFORCED_BY_DB.md` for model assumptions and BLL obligations.

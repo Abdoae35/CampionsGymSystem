@@ -33,13 +33,15 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-05): added API -> BLL and BLL -> DAL project references.
-  API also references DAL for database registration and the local diagnostic.
-  See `LOCAL_DATABASE.md` for database run instructions and secret handling.
+- Latest operation (2026-10-05): implemented Guid Identity and 61 application
+  persistence tables in DAL, generated InitialCreate, and applied it locally.
+  Context: `CampionsSystem.DAL/Data/ApplicationDbContext.cs`; secret key is now
+  `ConnectionStrings:DefaultConnection`. See `docs/database/` and LOCAL_DATABASE.md.
 - Portable skill source: `skills/project-history-update/SKILL.md`.
 - Installed locally in `~/.codex/skills/project-history-update`; basic manifest
   checks and source/copy comparison passed. The standard validator lacks PyYAML.
-- Verification: solution build passed with zero warnings/errors after reference
-  changes. Earlier database check returned healthy; app role requires a password.
-- Next step: agree gym schema and migrations; payment provider undecided.
+- Verification: build zero warnings/errors; no model drift; local migration and
+  rolled-back constraint checks passed. No cascading business FKs or shadow FKs.
+- Next step: implement authorized BLL workflows against the documented rules;
+  payment provider undecided. No controllers/business services added in this task.
   No commit or push requested. Do not log local credentials.

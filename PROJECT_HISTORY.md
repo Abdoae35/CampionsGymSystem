@@ -15,8 +15,8 @@ it does not replace checking the actual repository.
 - `CampionsSystem.DAL`: class library intended for data access.
 - `CampionsGymSystem.slnx`: solution file.
 - Intended scope includes gym operations, transactions, payments, and leads.
-  PostgreSQL is selected for local development. Payment provider and detailed
-  business schema remain undecided.
+  PostgreSQL is selected; the 26-module EF persistence schema is implemented.
+  Payment provider and business workflows remain to be implemented.
 
 ## User preferences and workflow
 
@@ -44,13 +44,16 @@ it does not replace checking the actual repository.
 - `.gitignore`, `AGENTS.md`, and this file are new files awaiting a commit.
 - No commits or pushes were performed by the assistant.
 - API now connects to local PostgreSQL through EF Core/Npgsql; solution build
-  and a real API/database connectivity check passed. No gym schema exists yet.
+  and real API/database connectivity checks passed. InitialCreate is applied
+  locally with 61 application tables and seven standard Guid Identity tables.
+  Context is DAL/Data/ApplicationDbContext.cs; local connection key is now
+  ConnectionStrings:DefaultConnection. See docs/database for schema/rules/checks.
 - Project references connect API to BLL and BLL to DAL. API also references DAL
   for dependency injection setup and the development connectivity diagnostic.
 - Four approved skills are installed locally in `~/.codex/skills/`:
   `aspnet-core`, `security-threat-model`, `sql-schema-designer`, and
   `scaffold-dotnet-test-project`. See `SKILLS_GUIDE.md` for usage and revisions.
-  Local database setup is complete; no gym business features implemented yet.
+  Local persistence is complete; business workflows remain unimplemented.
 - Custom `project-history-update` is installed locally, with portable source in
   `skills/project-history-update/SKILL.md`. `AGENTS.md` requires its checkpoint
   before final responses after project operations. It is an instruction workflow,
@@ -208,3 +211,60 @@ health diagnostic. Updated `LOCAL_DATABASE.md` and the agent handoff.
 Verification: `dotnet build CampionsGymSystem.slnx` succeeded with zero warnings
 and zero errors. No business services or database schema added. Existing user
 deletions of placeholder Class1.cs files preserved. No commit or push performed.
+
+### 2026-10-05 — Complete EF Code-First persistence layer
+
+Request: implement the supplied 26-module Gym Management persistence model,
+Guid Identity, Fluent configuration, PostgreSQL constraints/indexes, and initial
+migration; preserve N-Tier and existing project names/framework.
+
+Discovery: all three projects target net10.0; API references BLL and DAL, BLL
+references DAL. Existing DAL CampionsDbContext was empty, with no prior entities,
+Identity, or migrations. Existing PostgreSQL development database was confirmed
+local and empty before update. No projects renamed or target framework upgraded.
+
+Completed:
+- Replaced empty context with DAL/Data/ApplicationDbContext.cs inheriting Guid
+  IdentityDbContext. Added ApplicationUser and 61 application entity classes,
+  stable string-backed enums, and 61 separate Fluent configuration classes.
+- Configured explicit restricted business FKs, composite junction keys, named
+  plural tables, required unique/indexes, four current-row partial unique indexes,
+  check constraints, financial/rate precision, date/time types and audit jsonb.
+- Added an ActivitySubscription AccessMode snapshot to preserve package semantics.
+  Guid user IDs are initialized; tracked audit updates/deletes are guarded in
+  synchronous and asynchronous SaveChanges. Raw/bulk SQL remains outside that guard.
+- Added Identity EF 10.0.8 (DAL), EF Design 10.0.8 (private API startup dependency),
+  and local dotnet-ef 10.0.8 tool manifest. Retained Npgsql EF 10.0.3.
+- API registers scoped context and IdentityCore roles/stores. No JWT, controllers,
+  business services, integrations, background jobs, or startup migrations added.
+- Renamed the local secret key to DefaultConnection without exposing its value;
+  updated setup-local-postgres.py and LOCAL_DATABASE.md to the same key/context.
+- Generated DAL/Migrations/20261005185159_InitialCreate.cs, metadata/snapshot,
+  and docs/database/InitialCreate.sql; applied only to local campions_gym.
+- Created docs/database/SCHEMA.md, BUSINESS_RULES_NOT_ENFORCED_BY_DB.md,
+  VALIDATION.md and reusable transactional validate-local.sql.
+- No data seeds: roles/permissions stay dynamic, and default sales commission
+  rules must be created when real branches are configured.
+
+Verification: solution build zero warnings/errors; migration SQL inspected for
+68 tables (61 application/7 Identity), restricted business deletes, financial
+precision, jsonb and required partial indexes; EF reported no pending model
+changes. Local migration history contains InitialCreate. PostgreSQL catalog
+assertions found 61 application tables, 7 Identity, 0 business cascades, 4 partial
+unique indexes, 2 audit jsonb columns and no leftover synthetic users. All 17
+negative constraint tests passed, with positive split-payment/refund, historical
+assignment, unlimited attendance, ledger, JSON and cross-branch fixtures rolled
+back. Isolated C# model checks passed for no shadow FKs/duplicate entities,
+precision and sync/async audit guards without connecting to a database.
+
+Corrected issues: initial secret reader needed BOM support; initial validation
+fixture omitted standard Identity non-null flags. Both corrected and verified.
+Expected migration-history-not-found logs occurred before first schema creation.
+
+Assumptions/limitations: unspecified date fields use DateOnly; same-day schedules
+use DayOfWeek 0=Sunday; event offsets must be UTC. Standard Identity claim keys
+remain integers; users/roles/business keys use Guid. Production runtime grants
+must enforce append-only audit and differ from the local migration owner. BLL
+owns cross-record authorization/branch consistency, borrow limits, access blocking,
+coach transfers, commissions, refund effects, payroll calculations and audit
+redaction. No production connection used and no assistant Git commit or push.
