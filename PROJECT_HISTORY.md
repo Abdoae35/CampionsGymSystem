@@ -20,6 +20,9 @@ it does not replace checking the actual repository.
 
 ## User preferences and workflow
 
+- Work one user-selected task at a time; finish and verify it before advancing.
+  Do not begin the next task or whole-project implementation without direction.
+
 - The user is new to Codex and wants continuity across providers and accounts.
 - Keep this file updated so future assistants can understand previous work
   without needing the full chat history.
@@ -32,6 +35,8 @@ it does not replace checking the actual repository.
   handoff in `AGENTS.md`; group related commands into a single concise entry.
 
 ## Current state
+
+- Awaiting the next specific task under the agreed task-by-task workflow.
 
 - A root `.gitignore` now excludes .NET build/restore output, IDE caches,
   test/coverage reports, logs, temporary files, local secret files, certificates,
@@ -268,3 +273,11 @@ must enforce append-only audit and differ from the local migration owner. BLL
 owns cross-record authorization/branch consistency, borrow limits, access blocking,
 coach transfers, commissions, refund effects, payroll calculations and audit
 redaction. No production connection used and no assistant Git commit or push.
+
+### 2026-10-05 — Task-by-task workflow
+
+User requested working one task at a time rather than implementing the entire
+project at once. Recorded the rule in AGENTS.md and preferences/current state
+here. Each selected task includes relevant verification and a history checkpoint;
+the next task requires user direction. Documentation only; no application tests
+needed. Reviewed changes and Git status. No Linear changes, commit, or push.

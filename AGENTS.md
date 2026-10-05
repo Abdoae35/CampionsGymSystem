@@ -28,10 +28,17 @@ or private environment values. Do not claim checks or actions that were not run.
 
 Preserve existing user changes. Do not commit or push unless requested.
 
+Work one user-selected task at a time. Complete its implementation, relevant
+verification, and history checkpoint before moving on. Do not expand a task into
+whole-project implementation or start the next task without user direction.
+
 For tools that do not automatically read `AGENTS.md`, the user can ask them to
 read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
+
+- Latest workflow decision (2026-10-05): proceed one user-selected task at a time;
+  await the next specific task. No Linear issues created or updated.
 
 - Latest operation (2026-10-05): implemented Guid Identity and 61 application
   persistence tables in DAL, generated InitialCreate, and applied it locally.
