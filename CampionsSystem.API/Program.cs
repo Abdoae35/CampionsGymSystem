@@ -1,4 +1,17 @@
+using CampionsSystem.DAL;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("CampionsDatabase");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Configure ConnectionStrings:CampionsDatabase using user secrets or a production secret provider.");
+}
+
+builder.Services.AddDbContext<CampionsDbContext>(options =>
+    options.UseNpgsql(connectionString, postgres => postgres.SetPostgresVersion(14, 0)));
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -10,6 +23,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    // Local connectivity diagnostic; never expose this in production.
+    app.MapGet("/health/database", async (CampionsDbContext database, CancellationToken cancellationToken) =>
+        await database.Database.CanConnectAsync(cancellationToken)
+            ? Results.Ok(new { status = "healthy" })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 }
 
 app.UseHttpsRedirection();

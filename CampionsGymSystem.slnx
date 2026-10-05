@@ -1,2 +1,7 @@
 <Solution>
+  <Folder Name="/CampionsSystem.API/">
+    <Project Path="CampionsSystem.API/CampionsSystem.csproj" />
+  </Folder>
+  <Project Path="CampionsSystem.BLL/CampionsSystem.BLL.csproj" />
+  <Project Path="CampionsSystem.DAL/CampionsSystem.DAL.csproj" />
 </Solution>

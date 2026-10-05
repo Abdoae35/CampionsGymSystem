@@ -1,0 +1,48 @@
+# .NET build output and NuGet restore artifacts
+[Bb]in/
+[Oo]bj/
+artifacts/
+packages/
+*.nupkg
+*.snupkg
+
+# IDE caches and per-user settings
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# Test results and coverage reports
+TestResults/
+coverage/
+coverage-report/
+*.coverage
+*.coveragexml
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Local secrets (keep shared appsettings and example env files tracked)
+.env
+.env.*
+!.env.example
+!.env.sample
+appsettings.Local.json
+appsettings.*.Local.json
+*.pfx
+*.p12
+*.publishsettings
+
+# Operating system metadata
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
