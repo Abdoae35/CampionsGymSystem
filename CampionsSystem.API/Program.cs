@@ -1,17 +1,28 @@
-using CampionsSystem.DAL;
+using CampionsSystem.DAL.Data;
+using CampionsSystem.DAL.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("CampionsDatabase");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
-        "Configure ConnectionStrings:CampionsDatabase using user secrets or a production secret provider.");
+        "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
 }
 
-builder.Services.AddDbContext<CampionsDbContext>(options =>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString, postgres => postgres.SetPostgresVersion(14, 0)));
+
+builder.Services.AddIdentityCore<ApplicationUser>(options =>
+{
+    options.Password.RequiredLength = 12;
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+})
+    .AddRoles<IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -24,7 +35,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     // Local connectivity diagnostic; never expose this in production.
-    app.MapGet("/health/database", async (CampionsDbContext database, CancellationToken cancellationToken) =>
+    app.MapGet("/health/database", async (ApplicationDbContext database, CancellationToken cancellationToken) =>
         await database.Database.CanConnectAsync(cancellationToken)
             ? Results.Ok(new { status = "healthy" })
             : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));

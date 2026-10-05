@@ -51,7 +51,7 @@ if sql("SELECT pg_reload_conf();") != "t":
 connection = "Host=localhost;Port=5432;Database=campions_gym;Username=campions_app;Password=" + password
 result = subprocess.run(["dotnet", "user-secrets", "set", "--project",
     str(ROOT / "CampionsSystem.API/CampionsSystem.csproj")],
-    input=json.dumps({"ConnectionStrings:CampionsDatabase": connection}),
+    input=json.dumps({"ConnectionStrings:DefaultConnection": connection}),
     text=True, capture_output=True)
 if result.returncode:
     raise RuntimeError("Database created, but user-secret storage failed; credentials not printed. Manual recovery required.")
