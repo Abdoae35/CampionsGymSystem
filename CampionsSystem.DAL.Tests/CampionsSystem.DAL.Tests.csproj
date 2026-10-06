@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CampionsSystem.DAL\CampionsSystem.DAL.csproj" />
+    <ProjectReference Include="..\CampionsSystem.BLL\CampionsSystem.BLL.csproj" />
   </ItemGroup>
 
 </Project>

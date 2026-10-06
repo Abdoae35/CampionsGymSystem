@@ -27,6 +27,8 @@ rather than repeating the whole conversation. Never record secrets, credentials,
 or private environment values. Do not claim checks or actions that were not run.
 
 Preserve existing user changes. Do not commit or push unless requested.
+For the Authentication task (2026-10-06), the user explicitly requested committing
+and pushing each completed, verified small subtask to the current Auth branch.
 
 Work one user-selected task at a time. Complete its implementation, relevant
 verification, and history checkpoint before moving on. Do not expand a task into
@@ -37,18 +39,15 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-06): completed targeted Private/Freelance schema and
-  flow update; see PROJECT_HISTORY.md and docs/database/UPDATE_PRIVATE_AND_FREELANCE.md.
-- New migration: DAL/Migrations/20261006014644_UpdatePrivateAndFreelanceBusinessRules.cs;
-  review SQL in docs/database/. InitialCreate unchanged. NOT applied to the existing
-  local database; local DB still has 61 application tables, updated model has 62.
-- Added session batch/period FKs, batch remaining counter, unique expiry settlements,
-  Freelance plan category/Coach and purchase snapshots. Legacy assignment financial
-  fields preserved/deprecated; migration rejects ambiguous legacy private history.
-- Verification: builds zero warnings/errors; 20 PostgreSQL tests passed through the
-  solution; no model drift, no Up table/column drops or new cascades. Test schemas
-  and data roll back; existing gym database untouched.
-- Next: await user-selected task. BLL flows are documented, not implemented.
-  Require explicit permission before applying to existing development DB; reconcile
-  legacy data if preflight rejects it. No commit/push; do not record credentials.
+- Active task (2026-10-06): Authentication + Authorization + current user/branch
+  only. Implementing in verified small subtasks, then committing/pushing each to
+  Auth as explicitly requested. No unrelated business endpoints or DB rollout.
+- First subtask: BLL services/contracts implemented; Identity password/lockout,
+  optional Employee, date-valid primary Branch and live permission union.
+  Build zero warnings/errors; 10 focused auth and all 30 solution tests passed.
+- Next: verify solution regressions and publish first subtask, then JWT API,
+  dynamic permission policies/tests, and authentication setup documentation.
+- ApplicationUser.IsActive and all persistence needed already exist: no new
+  authentication migration. Previous Private/Freelance work is already committed
+  by user (6c305d2); its pending rollout remains separate.
 - History skill portable source: skills/project-history-update/SKILL.md.

@@ -21,6 +21,8 @@ it does not replace checking the actual repository.
 
 ## User preferences and workflow
 
+- For the Authentication task (2026-10-06), commit and push each completed,
+  verified small subtask to the existing Auth branch as explicitly requested.
 - Work one user-selected task at a time; finish and verify it before advancing.
   Do not begin the next task or whole-project implementation without direction.
 
@@ -37,7 +39,10 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Private/Freelance schema and flow update is complete (2026-10-06). New migration
+- Active task: Authentication + Authorization + current user/branch context only.
+  BLL subtask implemented and focused tests passing; API/policies/docs remain.
+  User requests commit/push after each verified small subtask on Auth.
+- Prior Private/Freelance schema and flow update is complete (2026-10-06). New migration
   UpdatePrivateAndFreelanceBusinessRules and review SQL are generated; NOT applied
   to the existing local database. Await user direction before database rollout or
   the next task. See docs/database/UPDATE_PRIVATE_AND_FREELANCE.md.
@@ -51,7 +56,8 @@ it does not replace checking the actual repository.
   `CampionsSystem.DAL/obj/` were removed from the Git index and remain on disk.
   Their removals are staged.
 - `.gitignore`, `AGENTS.md`, and this file are new files awaiting a commit.
-- No commits or pushes were performed by the assistant.
+- Earlier tasks were not committed/pushed by the assistant; current auth task is
+  explicitly authorized for incremental commits/pushes.
 - API now connects to local PostgreSQL through EF Core/Npgsql; solution build
   and real API/database connectivity checks passed. InitialCreate is applied
   locally with 61 application tables and seven standard Guid Identity tables.
@@ -344,3 +350,30 @@ Decisions/limitations/next:
 - No existing development/production database migration was applied. Obtain explicit
   user permission before applying to the existing development database. No commit,
   push, unrelated module redesign or next-task work performed.
+
+### 2026-10-06 — Auth subtask 1: BLL identity context and permission queries
+
+Inspected the solution, project references, Identity configuration/entities,
+current branch and existing tests/persistence. Auth branch is clean at 6c305d2;
+previous schema work was already committed by user. GitHub Auth access verified.
+No JWT/cookies, service/DTO pattern or seeding mechanism exists. IsActive and
+all employee/branch/permission persistence already exist; no schema change needed.
+
+Plan: (1) BLL services/tests, (2) JWT API/tests, (3) dynamic permission policies/
+HTTP tests, (4) documentation/final verification. User explicitly authorizes
+commit/push after each completed verified small subtask; no unrelated endpoints.
+
+Added BLL AuthenticationService, UserContextService, CurrentUserService,
+PermissionService, DTOs/reusable abstractions and configurable business timezone.
+Identity verifies passwords, counts failures and honors lockout; inactive users/
+employees are rejected. Password-only login refuses MFA-enabled accounts because
+MFA challenge support is out of scope. Employee is optional; branch uses date-valid
+active-branch assignments, primary preferred, then latest start and Id tie-break.
+Default business date uses Africa/Cairo, configurable because schema lacks branch
+timezones. Permissions query live Identity role mappings; active codes are distinct.
+
+Reused existing DAL.Tests project, adding only BLL reference and auth test fixture/
+10 tests. All test schemas/data roll back. Build passed zero warnings/errors;
+10 focused auth tests passed; all 30 solution tests passed (0 failures/skips).
+The verified subtask is ready for the requested commit/push after this checkpoint. Remaining: API tokens/endpoints, policies and docs.
+No database migration/update, real users, roles or privileges seeded.
