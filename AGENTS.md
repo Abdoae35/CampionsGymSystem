@@ -42,7 +42,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 - Latest feature (2026-10-06): Authentication + Authorization + current user/branch
   implemented and verified; stop here, await next user-selected task.
 - User requested incremental commit/push to Auth. Implementation commits dc933b0,
-  e72ff74 and 24ee95b are pushed to origin/Auth; final docs/checkpoint ready to publish.
+  e72ff74 and 24ee95b plus documentation a907b76 are pushed to origin/Auth.
+  Final publication-state handoff accompanies the last history commit/push.
 - Endpoints: POST /api/auth/login; authenticated GET /api/auth/me. Dynamic policy
   syntax [Authorize(Policy = "Permission:Members.View")]; live role/permission checks.
 - Configure JWT key externally (empty in Git). No auth migration, automatic seeding,

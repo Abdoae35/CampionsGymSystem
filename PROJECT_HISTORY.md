@@ -41,7 +41,7 @@ it does not replace checking the actual repository.
 
 - Authentication + Authorization + current user/branch implementation complete.
   Auth BLL dc933b0, JWT/API e72ff74 and permission policies 24ee95b are committed
-  and pushed to origin/Auth. Final docs/checkpoint are ready for requested publish.
+  and pushed to origin/Auth. Documentation a907b76 is also committed/pushed.
 - API exposes POST /api/auth/login and authenticated GET /api/auth/me. JWT validates
   signature/issuer/audience/lifetime and active account/employee state; live Identity
   roles and distinct active DB permissions drive authorization. No business CRUD.
@@ -423,6 +423,8 @@ update or production connection. Whitespace check passed.
 
 A concurrent user edit removing weatherforecast registration from Program.cs was
 detected after the feature commits; preserved, not staged/published by assistant.
-Final documentation/checkpoint commit/push follows this entry, as requested after
-each small verified task. Stop at authentication; no Members CRUD or next task.
-The three implementation commits already pushed are dc933b0, e72ff74 and 24ee95b.
+Final documentation commit a907b76 successfully pushed to origin/Auth, following
+the three verified implementation commits dc933b0, e72ff74 and 24ee95b. This
+publication-state checkpoint accompanies the final history commit/push. Stop at
+authentication; no Members CRUD or next task. Only concurrent user Program.cs
+weather-route removal remains outside assistant commits.
