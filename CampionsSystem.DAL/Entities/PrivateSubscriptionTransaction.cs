@@ -14,6 +14,9 @@ public sealed class PrivateSubscriptionTransaction
     public PrivatePackage PrivatePackage { get; set; } = null!;
     public SubscriptionTransactionType TransactionType { get; set; }
     public int SessionsAdded { get; set; }
+    public int RemainingSessions { get; set; }
+    public ICollection<PrivateSession> Sessions { get; set; } = new List<PrivateSession>();
+    public PrivateExpirySettlement? ExpirySettlement { get; set; }
     public int DurationDaysAdded { get; set; }
     public decimal NetAmount { get; set; }
     public decimal UnitSessionValue { get; set; }

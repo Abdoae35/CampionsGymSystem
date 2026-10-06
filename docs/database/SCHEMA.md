@@ -18,17 +18,18 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 | Leads | Branch CRM prospect and conversion | BranchId → GymBranches, ConvertedMemberId → Members, CreatedByUserId → AspNetUsers |
 | LeadAssignments | Sales ownership history | LeadId → Leads, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
 | LeadInteractions | Contact and follow-up history | LeadId → Leads, EmployeeId → Employees |
-| MembershipPlans | City-configured gym products | CityId → Cities |
+| MembershipPlans | Normal or Coach-specific Freelance gym products | CityId → Cities, optional FreelanceCoachEmployeeId → Employees |
 | MemberSubscriptions | Gym entitlement with access/session snapshot | MemberId → Members, MembershipPlanId → MembershipPlans, CityId → Cities, PurchasedAtBranchId → GymBranches |
-| MembershipSubscriptionTransactions | Initial/renewal purchases and price/date snapshots | MemberSubscriptionId → MemberSubscriptions, SaleTransactionId → SaleTransactions, MembershipPlanId → MembershipPlans |
+| MembershipSubscriptionTransactions | Initial/renewal purchases and price/date snapshots | MemberSubscriptionId → MemberSubscriptions, SaleTransactionId → SaleTransactions, MembershipPlanId → MembershipPlans, optional FreelanceCoachEmployeeIdSnapshot → Employees |
 | SubscriptionFreezes | Approved freeze history | MemberSubscriptionId → MemberSubscriptions, ApprovedByUserId → AspNetUsers |
 | BorrowedGymSessions | Expired-cycle borrowing and settlement | MemberId → Members, ExpiredSubscriptionId → MemberSubscriptions, CheckInId → CheckIns, BranchId → GymBranches, SettledBySubscriptionId → MemberSubscriptions |
 | BranchClosures | Closure dates and extension scope | BranchId → GymBranches, CreatedByUserId → AspNetUsers |
 | PrivatePackages | Branch coaching product | BranchId → GymBranches |
 | PrivateSubscriptions | Private session entitlement | MemberId → Members, BranchId → GymBranches |
 | PrivateSubscriptionTransactions | Private purchase/renewal history | PrivateSubscriptionId → PrivateSubscriptions, SaleTransactionId → SaleTransactions, PrivatePackageId → PrivatePackages |
-| PrivateCoachAssignments | Coach allocation and transfer history | PrivateSubscriptionId → PrivateSubscriptions, CoachEmployeeId → Employees, CreatedByUserId → AspNetUsers |
-| PrivateSessions | Historical coached attendance linked to check-in | PrivateSubscriptionId → PrivateSubscriptions, CoachEmployeeId → Employees, GymCheckInId → CheckIns, CreatedByUserId → AspNetUsers |
+| PrivateCoachAssignments | Assignment history only (legacy financial columns deprecated) | PrivateSubscriptionId → PrivateSubscriptions, CoachEmployeeId → Employees, CreatedByUserId → AspNetUsers |
+| PrivateSessions | Delivered session, immutable batch basis and occurrence period | PrivateSubscriptionTransactionId → PrivateSubscriptionTransactions, CommissionPeriodId → CommissionPeriods, PrivateSubscriptionId → PrivateSubscriptions, CoachEmployeeId → Employees, GymCheckInId → CheckIns, CreatedByUserId → AspNetUsers |
+| PrivateExpirySettlements | Historical unused batch value at final expiry | PrivateSubscriptionId → PrivateSubscriptions, unique PrivateSubscriptionTransactionId → PrivateSubscriptionTransactions, CoachEmployeeId → Employees, CommissionPeriodId → CommissionPeriods, optional CreatedByUserId → AspNetUsers |
 | SportsActivities | Branch activity catalog | BranchId → GymBranches |
 | ActivityPackages | Activity access/pricing configuration | SportsActivityId → SportsActivities |
 | ActivityCoachAssignments | Effective-dated activity coach configuration | SportsActivityId → SportsActivities, CoachEmployeeId → Employees |
@@ -75,7 +76,7 @@ EmployeeSalarySettings. Members: Members, MemberSalesAssignments. CRM: Leads,
 LeadAssignments, LeadInteractions. Gym: MembershipPlans, MemberSubscriptions,
 MembershipSubscriptionTransactions, SubscriptionFreezes, BorrowedGymSessions,
 BranchClosures. Private: PrivatePackages, PrivateSubscriptions,
-PrivateSubscriptionTransactions, PrivateCoachAssignments, PrivateSessions.
+PrivateSubscriptionTransactions, PrivateCoachAssignments, PrivateSessions, PrivateExpirySettlements.
 Activities: SportsActivities, ActivityPackages, ActivityCoachAssignments,
 ActivitySchedules, ActivitySubscriptions, ActivitySubscriptionTransactions.
 Classes: GroupClasses, ClassSchedules. Attendance: CheckIns. Sales: SaleTransactions.
@@ -104,3 +105,25 @@ Authorization: Permissions, RolePermissions and standard Identity tables.
   synthetic rows within a rolled-back transaction; run on development only.
 - EF design dependency is private in the API startup project; migrations/model
   and all schema ownership remain in DAL. dotnet-ef is a local tool (10.0.8).
+
+## Private and Freelance rule update (2026-10-06)
+
+- MembershipPlans add string PlanCategory (Normal/Freelance) and optional restricted
+  FreelanceCoachEmployeeId → Employees; category/Coach consistency is checked.
+  Price retains numeric(18,2), and is fixed gym money for Freelance plans.
+- MembershipSubscriptionTransactions add PlanCategorySnapshot and optional restricted
+  FreelanceCoachEmployeeIdSnapshot → Employees, with matching category check/index.
+- PrivateSubscriptionTransactions add bounded RemainingSessions and FIFO index.
+  Purchase facts are immutable through tracked EF saves; only counter changes remain.
+- PrivateSessions add required batch and CommissionPeriod FKs and Coach/date index.
+- PrivateExpirySettlements (new, 62nd application table) reference subscription,
+  batch (unique, 0..1 per batch), Coach, CommissionPeriod and optional initiating
+  user, all restricted. Snapshot count>0/unit>=0 and count*unit=EligibleAmount
+  are checked; decimal snapshots use numeric(18,2).
+- PrivateCoachAssignments retain the existing unique EndedAt IS NULL index and
+  add subscription/EndedAt lookup. Deprecated financial columns are retained
+  solely to preserve unreconciled legacy data, with zero defaults for new rows.
+- FreelanceAgreement remains metadata; no extra pricing/client/offer tables.
+
+See DATA_FLOWS.md and UPDATE_PRIVATE_AND_FREELANCE.md for flow and rollout details.
+InitialCreate and its SQL remain the historical baseline, not the current schema.

@@ -1,4 +1,5 @@
--- Development-only constraint smoke checks. All fixture data rolls back.
+-- InitialCreate-only historical constraint smoke checks. All fixture data rolls back.
+-- For the updated schema use CampionsSystem.DAL.Tests; this script omits new categories.
 BEGIN;
 CREATE FUNCTION pg_temp.expect_failure(statement text, expected_state text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN

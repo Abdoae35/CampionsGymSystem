@@ -34,3 +34,23 @@ migration created the history table; the completed update succeeded.
 These are schema/persistence checks, not security certification or tests of
 unimplemented business workflows. Audit append-only guards do not intercept
 raw SQL/bulk APIs; production grants and BLL policies remain necessary.
+
+## UpdatePrivateAndFreelanceBusinessRules verification (2026-10-06)
+
+- Pre- and post-migration builds, plus final solution build: zero warnings/errors.
+- Migration and delta SQL generated; EF reports no pending model changes.
+- SQL scope validated: one new settlement table and five existing target tables;
+  no Up table/column drops or new cascades. InitialCreate, designer and archived
+  SQL remain byte-for-byte unchanged from HEAD.
+- `dotnet test CampionsGymSystem.slnx --no-restore`: 20 passed, 0 failed, 0 skipped.
+  Direct DAL test project execution also passed all 20 tests.
+  Real PostgreSQL checks include all requested Private/Freelance cases, checked
+  settlement amounts, immutable tracked batch prices, restricted history deletes,
+  unused legacy backfill and safe rejection of ambiguous legacy financial data.
+- Every test applies real migration SQL in a unique schema inside a rolled-back
+  transaction. No existing gym development or production database was updated.
+- `validate-local.sql` above is an InitialCreate-only historical script; use the
+  DAL test project for the updated schema. See UPDATE_PRIVATE_AND_FREELANCE.md.
+
+Tests construct schema operations directly; BLL workflows, concurrency, authorization,
+closed-history immutability and complete accounting remain documented future work.

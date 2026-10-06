@@ -12,6 +12,10 @@ public sealed class MembershipPlan
     public AccessMode AccessMode { get; set; }
     public int DurationDays { get; set; }
     public int? SessionCount { get; set; }
+    public PlanCategory PlanCategory { get; set; }
+    public Guid? FreelanceCoachEmployeeId { get; set; }
+    public Employee? FreelanceCoachEmployee { get; set; }
+    /// <summary>Normal selling price, or fixed gym amount for a Freelance plan.</summary>
     public decimal Price { get; set; }
     public bool AllowFreeze { get; set; }
     public int IncludedFreezeDays { get; set; }

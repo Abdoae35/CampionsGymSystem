@@ -12,8 +12,11 @@ public sealed class PrivateCoachAssignment
     public Employee CoachEmployee { get; set; } = null!;
     public DateTimeOffset AssignedAt { get; set; }
     public DateTimeOffset? EndedAt { get; set; }
+    [Obsolete("Legacy data only. Use purchased batches, PrivateSessions and PrivateExpirySettlements.")]
     public int SessionsAllocated { get; set; }
+    [Obsolete("Legacy data only. Use purchased batches, PrivateSessions and PrivateExpirySettlements.")]
     public int SessionsConsumed { get; set; }
+    [Obsolete("Legacy data only. Use purchased batches, PrivateSessions and PrivateExpirySettlements.")]
     public decimal CommissionBasisAmount { get; set; }
     public string? TransferReason { get; set; }
     public Guid CreatedByUserId { get; set; }

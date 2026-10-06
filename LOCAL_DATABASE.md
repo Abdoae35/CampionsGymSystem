@@ -97,3 +97,13 @@ psql -h localhost -U campions_app -d campions_gym -W -v ON_ERROR_STOP=1 -f docs/
 
 Tests insert only synthetic fixtures and roll them back. See `SCHEMA.md` and
 `BUSINESS_RULES_NOT_ENFORCED_BY_DB.md` for model assumptions and BLL obligations.
+
+## Pending Private and Freelance update
+
+`UpdatePrivateAndFreelanceBusinessRules` is generated but has NOT been applied to
+this existing local database. It extends the model to 62 application tables and
+adds batch/period session links, expiry settlements and coach-specific membership
+plans. See [rollout and reconciliation notes](docs/database/UPDATE_PRIVATE_AND_FREELANCE.md)
+and [data flows](docs/database/DATA_FLOWS.md). Obtain explicit permission before
+applying to this database; never update production from these validation steps.
+The new PostgreSQL tests use isolated transaction-scoped schemas only.

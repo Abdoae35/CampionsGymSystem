@@ -16,6 +16,25 @@ public sealed class PrivateSubscriptionTransactionConfiguration : IEntityTypeCon
             table.HasCheckConstraint("CK_PrivateSubscriptionTransactions_NetAmount", "\"NetAmount\" >= 0");
             table.HasCheckConstraint("CK_PrivateSubscriptionTransactions_UnitSessionValue", "\"UnitSessionValue\" >= 0");
         });
+        builder.ToTable("PrivateSubscriptionTransactions", table => table.HasCheckConstraint(
+            "CK_PrivateSubscriptionTransactions_RemainingSessions", "\"RemainingSessions\" >= 0 AND \"RemainingSessions\" <= \"SessionsAdded\""));
+        // Purchase facts are immutable; RemainingSessions is the only mutable batch counter.
+        foreach (var name in new[]
+        {
+            nameof(PrivateSubscriptionTransaction.PrivateSubscriptionId),
+            nameof(PrivateSubscriptionTransaction.SaleTransactionId),
+            nameof(PrivateSubscriptionTransaction.PrivatePackageId),
+            nameof(PrivateSubscriptionTransaction.TransactionType),
+            nameof(PrivateSubscriptionTransaction.SessionsAdded),
+            nameof(PrivateSubscriptionTransaction.DurationDaysAdded),
+            nameof(PrivateSubscriptionTransaction.NetAmount),
+            nameof(PrivateSubscriptionTransaction.UnitSessionValue),
+            nameof(PrivateSubscriptionTransaction.PreviousEndDate),
+            nameof(PrivateSubscriptionTransaction.NewEndDate),
+            nameof(PrivateSubscriptionTransaction.CreatedAt)
+        })
+            builder.Property(name).Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Throw);
+        builder.HasIndex(x => new { x.PrivateSubscriptionId, x.CreatedAt, x.Id });
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.PrivateSubscription).WithMany(x => x.Transactions).HasForeignKey(x => x.PrivateSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.SaleTransaction).WithMany().HasForeignKey(x => x.SaleTransactionId).OnDelete(DeleteBehavior.Restrict);

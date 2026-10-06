@@ -16,6 +16,7 @@ it does not replace checking the actual repository.
 - `CampionsGymSystem.slnx`: solution file.
 - Intended scope includes gym operations, transactions, payments, and leads.
   PostgreSQL is selected; the 26-module EF persistence schema is implemented.
+  The current model has 62 application tables; local DB still has InitialCreate.
   Payment provider and business workflows remain to be implemented.
 
 ## User preferences and workflow
@@ -36,7 +37,10 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Awaiting the next specific task under the agreed task-by-task workflow.
+- Private/Freelance schema and flow update is complete (2026-10-06). New migration
+  UpdatePrivateAndFreelanceBusinessRules and review SQL are generated; NOT applied
+  to the existing local database. Await user direction before database rollout or
+  the next task. See docs/database/UPDATE_PRIVATE_AND_FREELANCE.md.
 
 - A root `.gitignore` now excludes .NET build/restore output, IDE caches,
   test/coverage reports, logs, temporary files, local secret files, certificates,
@@ -281,3 +285,62 @@ project at once. Recorded the rule in AGENTS.md and preferences/current state
 here. Each selected task includes relevant verification and a history checkpoint;
 the next task requires user direction. Documentation only; no application tests
 needed. Reviewed changes and Git status. No Linear changes, commit, or push.
+
+### 2026-10-06 — Private session commission and Freelance plan rule update
+
+Request: smallest schema/documentation update for session-based Private commission
+basis, unrestricted Coach transfer, unused-session expiry settlement and dedicated
+Freelance membership plans; create a new migration without touching InitialCreate
+or updating the existing database.
+
+Completed:
+- Added Normal/Freelance PlanCategory, optional restricted Freelance Coach FK on
+  MembershipPlan and category/Coach purchase snapshots with check constraints.
+  Price is the single gym amount source; FreelanceAgreement remains metadata.
+  No extra rate, client ownership or freelance offer tables were introduced.
+- Added purchased-batch RemainingSessions, immutable tracked purchase facts and
+  FIFO index; PrivateSession now links to its purchased batch and CommissionPeriod.
+  Assignment history uses EndedAt and the existing current-row partial unique index;
+  added lookup index. Deprecated legacy financial fields retained to avoid data loss.
+- Added PrivateExpirySettlement with restricted FKs, unique purchased-batch FK,
+  count/unit/eligible snapshots, checked calculation and period lookup.
+- Generated DAL/Migrations/20261006014644_UpdatePrivateAndFreelanceBusinessRules.cs,
+  designer/snapshot and docs/database/UpdatePrivateAndFreelanceBusinessRules.sql.
+  Added safe preflight rejection of unlinked legacy sessions/inconsistent private
+  counters and backfill of pristine unused batches. Legacy plans/purchases become
+  Normal/null because the old model had no Freelance purchase identity.
+- Added one net10.0 xUnit DAL test project and registered it in the actual .slnx;
+  PostgreSQL tests run real migrations in transaction-scoped isolated schemas.
+- Updated business rules/schema/local database guidance and added seven Mermaid
+  flows plus rollout/reconciliation notes and changed-file inventory. Marked the
+  old validate-local.sql as InitialCreate-only. No BLL services/controllers/triggers.
+
+Verification:
+- Pre-migration and post-migration solution builds succeeded with zero warnings
+  and errors; final solution build also passed with zero warnings/errors.
+- Direct test-project and solution-level discovery each ran 20 tests: 20 passed,
+  0 failed, 0 skipped.
+  Covered all requested scenarios plus FK deletes, immutable batch prices,
+  amount checks, unused legacy backfill and safe legacy migration rejection.
+  All test schema/data changes rolled back; existing gym database untouched.
+- EF reported no pending model changes. Reviewed generated SQL scope: only five
+  existing target tables altered and the one new settlement table created; no
+  table/column drops or cascading deletes in Up. InitialCreate, its designer and
+  archived SQL match HEAD byte-for-byte. Git diff whitespace check passed.
+- Sandbox blocked local PostgreSQL access and stalled .NET tooling; approved
+  out-of-sandbox build/migration/test tooling completed the verification. No
+  credentials or connection strings were exposed or recorded.
+
+Decisions/limitations/next:
+- Existing legacy session batch/period links cannot be inferred safely. A rollout
+  with such data must reconcile it explicitly; the migration refuses to guess.
+  Deprecated assignment values are retained until an approved cleanup is safe.
+- BLL still owns FIFO initialization/consumption, branch/member/Coach validation,
+  locking/idempotency, immutable history/closed periods, Coach-at-expiry selection,
+  zeroing live expiry counters, configurable CommissionRule calculations and gym-only
+  Freelance payment/offer accounting. These schema tests do not implement services.
+- DateOnly EndDate is retained; branch-local expiration and monetary rounding need
+  explicit BLL policy. EF purchase immutability does not intercept raw/bulk SQL.
+- No existing development/production database migration was applied. Obtain explicit
+  user permission before applying to the existing development database. No commit,
+  push, unrelated module redesign or next-task work performed.

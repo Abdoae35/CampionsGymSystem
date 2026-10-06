@@ -15,6 +15,9 @@ public sealed class MembershipSubscriptionTransaction
     public SubscriptionTransactionType TransactionType { get; set; }
     public int PurchasedDurationDays { get; set; }
     public int? PurchasedSessions { get; set; }
+    public PlanCategory PlanCategorySnapshot { get; set; }
+    public Guid? FreelanceCoachEmployeeIdSnapshot { get; set; }
+    public Employee? FreelanceCoachEmployeeSnapshot { get; set; }
     public decimal PlanPriceSnapshot { get; set; }
     public decimal NetPriceSnapshot { get; set; }
     public DateOnly? PreviousEndDate { get; set; }

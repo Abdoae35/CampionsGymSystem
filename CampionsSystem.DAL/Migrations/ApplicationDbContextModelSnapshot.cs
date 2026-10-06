@@ -1995,6 +1995,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<int>("DurationDays")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("FreelanceCoachEmployeeId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("IncludedFreezeDays")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -2008,6 +2011,11 @@ namespace CampionsSystem.DAL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("PlanCategory")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -2019,6 +2027,10 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("CityId");
 
+                    b.HasIndex("FreelanceCoachEmployeeId");
+
+                    b.HasIndex("PlanCategory", "FreelanceCoachEmployeeId", "IsActive");
+
                     b.ToTable("MembershipPlans", null, t =>
                         {
                             t.HasCheckConstraint("CK_MembershipPlans_AccessMode", "\"AccessMode\" IN ('Unlimited', 'SessionBased')");
@@ -2028,6 +2040,8 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_MembershipPlans_DurationDays", "\"DurationDays\" > 0");
 
                             t.HasCheckConstraint("CK_MembershipPlans_IncludedFreezeDays", "\"IncludedFreezeDays\" >= 0");
+
+                            t.HasCheckConstraint("CK_MembershipPlans_PlanCategoryCoach", "(\"PlanCategory\" = 'Normal' AND \"FreelanceCoachEmployeeId\" IS NULL) OR (\"PlanCategory\" = 'Freelance' AND \"FreelanceCoachEmployeeId\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_MembershipPlans_Price", "\"Price\" >= 0");
 
@@ -2044,6 +2058,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("FreelanceCoachEmployeeIdSnapshot")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("MemberSubscriptionId")
                         .HasColumnType("uuid");
 
@@ -2056,6 +2073,11 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Property<DateOnly>("NewEndDate")
                         .HasColumnType("date");
+
+                    b.Property<string>("PlanCategorySnapshot")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<decimal>("PlanPriceSnapshot")
                         .HasPrecision(18, 2)
@@ -2080,6 +2102,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FreelanceCoachEmployeeIdSnapshot");
+
                     b.HasIndex("MemberSubscriptionId");
 
                     b.HasIndex("MembershipPlanId");
@@ -2089,6 +2113,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.ToTable("MembershipSubscriptionTransactions", null, t =>
                         {
                             t.HasCheckConstraint("CK_MembershipSubscriptionTransactions_NetPriceSnapshot", "\"NetPriceSnapshot\" >= 0");
+
+                            t.HasCheckConstraint("CK_MembershipSubscriptionTransactions_PlanCategoryCoachSnapshot", "(\"PlanCategorySnapshot\" = 'Normal' AND \"FreelanceCoachEmployeeIdSnapshot\" IS NULL) OR (\"PlanCategorySnapshot\" = 'Freelance' AND \"FreelanceCoachEmployeeIdSnapshot\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_MembershipSubscriptionTransactions_PlanPriceSnapshot", "\"PlanPriceSnapshot\" >= 0");
 
@@ -2512,8 +2538,10 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("CommissionBasisAmount")
+                        .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -2528,7 +2556,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<int>("SessionsAllocated")
-                        .HasColumnType("integer");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("SessionsConsumed")
                         .ValueGeneratedOnAdd()
@@ -2548,6 +2578,8 @@ namespace CampionsSystem.DAL.Migrations
                         .IsUnique()
                         .HasFilter("\"EndedAt\" IS NULL");
 
+                    b.HasIndex("PrivateSubscriptionId", "EndedAt");
+
                     b.ToTable("PrivateCoachAssignments", null, t =>
                         {
                             t.HasCheckConstraint("CK_PrivateCoachAssignments_AssignedAtEndedAt", "\"EndedAt\" >= \"AssignedAt\"");
@@ -2559,6 +2591,67 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_PrivateCoachAssignments_SessionsAllocated", "\"SessionsAllocated\" >= 0");
 
                             t.HasCheckConstraint("CK_PrivateCoachAssignments_SessionsConsumed", "\"SessionsConsumed\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.PrivateExpirySettlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CoachEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CommissionPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("EligibleAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("PrivateSubscriptionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PrivateSubscriptionTransactionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("RemainingSessions")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("SettledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("UnitSessionValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachEmployeeId");
+
+                    b.HasIndex("CommissionPeriodId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("PrivateSubscriptionId");
+
+                    b.HasIndex("PrivateSubscriptionTransactionId")
+                        .IsUnique();
+
+                    b.ToTable("PrivateExpirySettlements", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PrivateExpirySettlements_EligibleAmount", "\"EligibleAmount\" = \"RemainingSessions\" * \"UnitSessionValue\"");
+
+                            t.HasCheckConstraint("CK_PrivateExpirySettlements_RemainingSessions", "\"RemainingSessions\" > 0");
+
+                            t.HasCheckConstraint("CK_PrivateExpirySettlements_UnitSessionValue", "\"UnitSessionValue\" >= 0");
                         });
                 });
 
@@ -2615,6 +2708,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("CoachEmployeeId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("CommissionPeriodId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uuid");
 
@@ -2627,16 +2723,23 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("PrivateSubscriptionId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("PrivateSubscriptionTransactionId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("SessionAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CoachEmployeeId");
+                    b.HasIndex("CommissionPeriodId");
 
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("GymCheckInId");
+
+                    b.HasIndex("PrivateSubscriptionTransactionId");
+
+                    b.HasIndex("CoachEmployeeId", "SessionAt");
 
                     b.HasIndex("PrivateSubscriptionId", "SessionAt");
 
@@ -2723,6 +2826,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("PrivateSubscriptionId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("RemainingSessions")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("SaleTransactionId")
                         .HasColumnType("uuid");
 
@@ -2742,15 +2848,17 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("PrivatePackageId");
 
-                    b.HasIndex("PrivateSubscriptionId");
-
                     b.HasIndex("SaleTransactionId");
+
+                    b.HasIndex("PrivateSubscriptionId", "CreatedAt", "Id");
 
                     b.ToTable("PrivateSubscriptionTransactions", null, t =>
                         {
                             t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_DurationDaysAdded", "\"DurationDaysAdded\" > 0");
 
                             t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_NetAmount", "\"NetAmount\" >= 0");
+
+                            t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_RemainingSessions", "\"RemainingSessions\" >= 0 AND \"RemainingSessions\" <= \"SessionsAdded\"");
 
                             t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_SessionsAdded", "\"SessionsAdded\" > 0");
 
@@ -4128,11 +4236,23 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "FreelanceCoachEmployee")
+                        .WithMany()
+                        .HasForeignKey("FreelanceCoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("City");
+
+                    b.Navigation("FreelanceCoachEmployee");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipSubscriptionTransaction", b =>
                 {
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "FreelanceCoachEmployeeSnapshot")
+                        .WithMany()
+                        .HasForeignKey("FreelanceCoachEmployeeIdSnapshot")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.MemberSubscription", "MemberSubscription")
                         .WithMany()
                         .HasForeignKey("MemberSubscriptionId")
@@ -4150,6 +4270,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("SaleTransactionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("FreelanceCoachEmployeeSnapshot");
 
                     b.Navigation("MemberSubscription");
 
@@ -4380,6 +4502,48 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("PrivateSubscription");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.PrivateExpirySettlement", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
+                        .WithMany()
+                        .HasForeignKey("CoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
+                        .WithMany()
+                        .HasForeignKey("CommissionPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.PrivateSubscription", "PrivateSubscription")
+                        .WithMany("ExpirySettlements")
+                        .HasForeignKey("PrivateSubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.PrivateSubscriptionTransaction", "PrivateSubscriptionTransaction")
+                        .WithOne("ExpirySettlement")
+                        .HasForeignKey("CampionsSystem.DAL.Entities.PrivateExpirySettlement", "PrivateSubscriptionTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachEmployee");
+
+                    b.Navigation("CommissionPeriod");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("PrivateSubscription");
+
+                    b.Navigation("PrivateSubscriptionTransaction");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.PrivatePackage", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
@@ -4396,6 +4560,12 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
                         .WithMany()
                         .HasForeignKey("CoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
+                        .WithMany()
+                        .HasForeignKey("CommissionPeriodId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -4417,13 +4587,23 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.PrivateSubscriptionTransaction", "PrivateSubscriptionTransaction")
+                        .WithMany("Sessions")
+                        .HasForeignKey("PrivateSubscriptionTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("CoachEmployee");
+
+                    b.Navigation("CommissionPeriod");
 
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("GymCheckIn");
 
                     b.Navigation("PrivateSubscription");
+
+                    b.Navigation("PrivateSubscriptionTransaction");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.PrivateSubscription", b =>
@@ -4758,9 +4938,18 @@ namespace CampionsSystem.DAL.Migrations
                 {
                     b.Navigation("CoachAssignments");
 
+                    b.Navigation("ExpirySettlements");
+
                     b.Navigation("Sessions");
 
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.PrivateSubscriptionTransaction", b =>
+                {
+                    b.Navigation("ExpirySettlement");
+
+                    b.Navigation("Sessions");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.Refund", b =>

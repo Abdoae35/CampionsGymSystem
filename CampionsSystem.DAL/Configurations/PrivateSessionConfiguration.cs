@@ -11,6 +11,9 @@ public sealed class PrivateSessionConfiguration : IEntityTypeConfiguration<Priva
         builder.ToTable("PrivateSessions", table =>
         {
         });
+        builder.HasOne(x => x.PrivateSubscriptionTransaction).WithMany(x => x.Sessions).HasForeignKey(x => x.PrivateSubscriptionTransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.CommissionPeriod).WithMany().HasForeignKey(x => x.CommissionPeriodId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => new { x.CoachEmployeeId, x.SessionAt });
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.PrivateSubscription).WithMany(x => x.Sessions).HasForeignKey(x => x.PrivateSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.CoachEmployee).WithMany().HasForeignKey(x => x.CoachEmployeeId).OnDelete(DeleteBehavior.Restrict);

@@ -33,10 +33,51 @@ not controllers, entity methods, or database triggers.
 - House assignment requires no sales employee. Normalize phone numbers before
   storing; uniqueness compares stored values. Only owners may change primary
   phones. Validate and manage phone verification/timestamp consistency.
-- Private coach transfer is allowed only before the relevant commission period
-  closes. Never transfer after closure; preserve consumed sessions and revenue
-  allocation. An assignment may span periods, so it has no CommissionPeriodId.
-- Freelance agreement/payment policy is not finalized; do not invent it.
+- Private coach may transfer at any time, including after a CommissionPeriod
+  closes. End the current assignment and add a new one; EndedAt IS NULL defines
+  current status. Assignments contain history only, not financial ownership.
+- Already delivered sessions remain credited to the delivering Coach, purchased
+  batch and period of occurrence. Future sessions belong to the new current
+  Coach. Closed CommissionPeriods are never recalculated because of a transfer.
+- At final subscription expiration, unused batch value is assigned to the current
+  Coach in the open period at expiration/settlement. See DATA_FLOWS.md.
+- Freelance Coaches have dedicated MembershipPlans. Freelance plan Price is the
+  fixed amount due to the gym; external coach/client money is outside gym accounting.
+  Validate the referenced Employee is currently active and EmploymentType=Freelance.
+- Snapshot PlanCategory and FreelanceCoachEmployeeId on every membership purchase
+  or renewal. Never reconstruct old purchases from the current plan definition.
+- Only system Offers attached through OfferMembershipPlans to the specific plan
+  may affect gym-recorded sale amounts. A coach discount from their external margin
+  is not a system Offer. Never request the coach's external client charge.
+- FreelanceAgreement retains Coach/Branch/dates/notes only; MembershipPlan.Price
+  is the single pricing source. No permanent freelance client assignment is needed.
+
+## Private financial history and concurrency
+
+- Each PrivateSession represents one delivered session. Its basis is the referenced
+  immutable PrivateSubscriptionTransaction.UnitSessionValue, not an assignment amount.
+  Tracked EF saves reject purchase-fact changes after insertion; raw/bulk SQL bypasses
+  this guard and must be prohibited for those facts by service/runtime permissions.
+- Initialize each batch RemainingSessions=SessionsAdded. Consume oldest valid batch
+  first (CreatedAt, then Id); validate batch/subscription ownership and eligibility.
+- Sum delivered-session unit values plus expiry settlement EligibleAmount per Coach
+  and CommissionPeriod, then apply configurable CommissionRules. Basis is not final
+  commission: 1000 basis at 60 percent gives 600; no rate is hardcoded in entities.
+- Preserve all session/settlement history and finalized summaries. Restrict deletes
+  do not make records append-only: BLL must reject history edits/deletes.
+- Lock the subscription consistently for attendance, transfer, renewal and expiry;
+  use row locks or an equivalent concurrency strategy and one transaction per flow.
+  Counter updates must not race, go negative or allow double consumption.
+- Expiry settles each remaining batch once (database unique batch FK), records
+  session count/unit value/eligible amount/current Coach/open period, zeros live
+  batch and subscription counters, and marks Expired atomically. Settlement counts
+  remain historical snapshots. A renewal before final expiry prevents settlement.
+- DateOnly EndDate is retained; BLL must define branch-local end-of-day expiry,
+  convert to UTC and select the appropriate open period. If no current Coach/open
+  period exists, fail/retry without partially expiring or inventing financial history.
+- Legacy PrivateCoachAssignment SessionsAllocated, SessionsConsumed and
+  CommissionBasisAmount are deprecated preserved data only. Never use them for new
+  allocation or commission. Explicit reconciliation is required before removal.
 
 ## Money, commission, and payroll
 

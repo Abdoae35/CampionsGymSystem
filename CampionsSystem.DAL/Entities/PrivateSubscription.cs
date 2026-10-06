@@ -18,5 +18,6 @@ public sealed class PrivateSubscription
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public ICollection<PrivateCoachAssignment> CoachAssignments { get; set; } = new List<PrivateCoachAssignment>();
     public ICollection<PrivateSubscriptionTransaction> Transactions { get; set; } = new List<PrivateSubscriptionTransaction>();
+    public ICollection<PrivateExpirySettlement> ExpirySettlements { get; set; } = new List<PrivateExpirySettlement>();
     public ICollection<PrivateSession> Sessions { get; set; } = new List<PrivateSession>();
 }

@@ -37,18 +37,18 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest workflow decision (2026-10-05): proceed one user-selected task at a time;
-  await the next specific task. No Linear issues created or updated.
-
-- Latest operation (2026-10-05): implemented Guid Identity and 61 application
-  persistence tables in DAL, generated InitialCreate, and applied it locally.
-  Context: `CampionsSystem.DAL/Data/ApplicationDbContext.cs`; secret key is now
-  `ConnectionStrings:DefaultConnection`. See `docs/database/` and LOCAL_DATABASE.md.
-- Portable skill source: `skills/project-history-update/SKILL.md`.
-- Installed locally in `~/.codex/skills/project-history-update`; basic manifest
-  checks and source/copy comparison passed. The standard validator lacks PyYAML.
-- Verification: build zero warnings/errors; no model drift; local migration and
-  rolled-back constraint checks passed. No cascading business FKs or shadow FKs.
-- Next step: implement authorized BLL workflows against the documented rules;
-  payment provider undecided. No controllers/business services added in this task.
-  No commit or push requested. Do not log local credentials.
+- Latest operation (2026-10-06): completed targeted Private/Freelance schema and
+  flow update; see PROJECT_HISTORY.md and docs/database/UPDATE_PRIVATE_AND_FREELANCE.md.
+- New migration: DAL/Migrations/20261006014644_UpdatePrivateAndFreelanceBusinessRules.cs;
+  review SQL in docs/database/. InitialCreate unchanged. NOT applied to the existing
+  local database; local DB still has 61 application tables, updated model has 62.
+- Added session batch/period FKs, batch remaining counter, unique expiry settlements,
+  Freelance plan category/Coach and purchase snapshots. Legacy assignment financial
+  fields preserved/deprecated; migration rejects ambiguous legacy private history.
+- Verification: builds zero warnings/errors; 20 PostgreSQL tests passed through the
+  solution; no model drift, no Up table/column drops or new cascades. Test schemas
+  and data roll back; existing gym database untouched.
+- Next: await user-selected task. BLL flows are documented, not implemented.
+  Require explicit permission before applying to existing development DB; reconcile
+  legacy data if preflight rejects it. No commit/push; do not record credentials.
+- History skill portable source: skills/project-history-update/SKILL.md.

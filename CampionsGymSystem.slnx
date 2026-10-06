@@ -3,5 +3,6 @@
     <Project Path="CampionsSystem.API/CampionsSystem.csproj" />
   </Folder>
   <Project Path="CampionsSystem.BLL/CampionsSystem.BLL.csproj" />
+  <Project Path="CampionsSystem.DAL.Tests/CampionsSystem.DAL.Tests.csproj" />
   <Project Path="CampionsSystem.DAL/CampionsSystem.DAL.csproj" />
 </Solution>

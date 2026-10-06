@@ -16,16 +16,20 @@ public sealed class PrivateCoachAssignmentConfiguration : IEntityTypeConfigurati
             table.HasCheckConstraint("CK_PrivateCoachAssignments_AssignedAtEndedAt", "\"EndedAt\" >= \"AssignedAt\"");
             table.HasCheckConstraint("CK_PrivateCoachAssignments_SessionBounds", "\"SessionsConsumed\" <= \"SessionsAllocated\"");
         });
+        builder.HasIndex(x => new { x.PrivateSubscriptionId, x.EndedAt });
+        // Preserve legacy values until explicitly reconciled; new history rows use zero.
+        builder.Property<int>("SessionsAllocated").HasDefaultValue(0);
+        builder.Property<decimal>("CommissionBasisAmount").HasDefaultValue(0m);
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.PrivateSubscription).WithMany(x => x.CoachAssignments).HasForeignKey(x => x.PrivateSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.CoachEmployee).WithMany().HasForeignKey(x => x.CoachEmployeeId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.AssignedAt).HasColumnType("timestamp with time zone");
         builder.Property(x => x.EndedAt).HasColumnType("timestamp with time zone");
-        builder.Property(x => x.CommissionBasisAmount).HasPrecision(18, 2);
+        builder.Property<decimal>("CommissionBasisAmount").HasPrecision(18, 2);
         builder.Property(x => x.TransferReason).HasColumnType("text");
         builder.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
         builder.HasIndex(x => x.PrivateSubscriptionId).IsUnique().HasFilter("\"EndedAt\" IS NULL");
-        builder.Property(x => x.SessionsConsumed).HasDefaultValue(0);
+        builder.Property<int>("SessionsConsumed").HasDefaultValue(0);
     }
 }

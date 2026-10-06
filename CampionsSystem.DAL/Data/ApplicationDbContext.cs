@@ -30,6 +30,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<PrivateSubscription> PrivateSubscriptions => Set<PrivateSubscription>();
     public DbSet<PrivateSubscriptionTransaction> PrivateSubscriptionTransactions => Set<PrivateSubscriptionTransaction>();
     public DbSet<PrivateCoachAssignment> PrivateCoachAssignments => Set<PrivateCoachAssignment>();
+    public DbSet<PrivateExpirySettlement> PrivateExpirySettlements => Set<PrivateExpirySettlement>();
     public DbSet<PrivateSession> PrivateSessions => Set<PrivateSession>();
     public DbSet<SportsActivity> SportsActivities => Set<SportsActivity>();
     public DbSet<ActivityPackage> ActivityPackages => Set<ActivityPackage>();
