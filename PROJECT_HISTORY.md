@@ -377,3 +377,28 @@ Reused existing DAL.Tests project, adding only BLL reference and auth test fixtu
 10 focused auth tests passed; all 30 solution tests passed (0 failures/skips).
 The verified subtask is ready for the requested commit/push after this checkpoint. Remaining: API tokens/endpoints, policies and docs.
 No database migration/update, real users, roles or privileges seeded.
+
+### 2026-10-06 — Auth subtask 2: JWT login and current-user API
+
+First auth subtask dc933b0 committed and successfully pushed to origin/Auth.
+Added JwtBearer 10.0.8 to API and Mvc.Testing 10.0.8/API reference to existing tests.
+Added JwtOptions/startup validation, JwtTokenIssuer, HTTP claims accessor, active
+user JWT events and DI registration. JWT validates HS256 signature, issuer,
+audience, expiry (30-second clock skew); key must decode from base64 to at least
+32 bytes. Configured 30-minute default (allowed 1..60); committed key is empty.
+No secret/token logging or stored tokens. Access tokens contain sub/name/role,
+jti/iat and expiry metadata, never permission lists or financial data.
+
+AuthController implements POST /api/auth/login and authenticated GET /api/auth/me.
+Login returns generic 401, validation 400; /me uses BLL DB-backed context. Bearer
+requests recheck active account/employee/lockout; role claims are refreshed from
+current Identity membership. Added standard ProblemDetails/exception handling,
+auth middleware and controllers while preserving existing diagnostics/template.
+Connection configuration validation moved after host configuration is complete;
+initial 13 HTTP tests failed at premature connection lookup, corrected run passed
+all 13. Added seven invalid JWT settings tests. Build passed zero warnings/errors.
+
+All 50 solution tests passed (0 failures/skips). JWT/API subtask is ready for
+the requested commit/push. No schema changes or seed mechanism added. Existing optional-email Identity policy
+retained; ambiguous legacy emails are refused safely. Requested commit/push follows this checkpoint, then permission policies and
+documentation.

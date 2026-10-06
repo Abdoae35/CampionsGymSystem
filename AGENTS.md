@@ -39,15 +39,15 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Active task (2026-10-06): Authentication + Authorization + current user/branch
-  only. Implementing in verified small subtasks, then committing/pushing each to
-  Auth as explicitly requested. No unrelated business endpoints or DB rollout.
-- First subtask: BLL services/contracts implemented; Identity password/lockout,
-  optional Employee, date-valid primary Branch and live permission union.
-  Build zero warnings/errors; 10 focused auth and all 30 solution tests passed.
-- Next: verify solution regressions and publish first subtask, then JWT API,
-  dynamic permission policies/tests, and authentication setup documentation.
-- ApplicationUser.IsActive and all persistence needed already exist: no new
-  authentication migration. Previous Private/Freelance work is already committed
-  by user (6c305d2); its pending rollout remains separate.
+- Active task: Authentication + Authorization + current user/branch only.
+  User requests commit/push of each verified small subtask to Auth.
+- BLL/context subtask dc933b0 is committed/pushed to origin/Auth (30 tests passed).
+- JWT/API subtask implemented: /api/auth/login, /api/auth/me, startup JWT validation,
+  active user/employee checks on bearer requests. Build zero warnings/errors;
+  13 HTTP and all 50 solution tests passed after fixing host configuration timing.
+- JWT signing secret must be supplied externally: committed Jwt:Key is empty.
+  No auth migration/data changes or real users/roles seeded.
+- Next: full solution tests and publish JWT/API subtask; dynamic permission
+  policies/tests, then setup/authorization docs. No other business endpoints.
+- Prior Private/Freelance migration rollout remains separate; do not apply it.
 - History skill portable source: skills/project-history-update/SKILL.md.

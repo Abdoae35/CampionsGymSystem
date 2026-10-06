@@ -1,3 +1,4 @@
+using CampionsSystem.API.Authentication;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -5,15 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrWhiteSpace(connectionString))
-{
-    throw new InvalidOperationException(
-        "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
-}
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString, postgres => postgres.SetPostgresVersion(14, 0)));
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrWhiteSpace(connectionString))
+        throw new InvalidOperationException(
+            "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
+    options.UseNpgsql(connectionString, postgres => postgres.SetPostgresVersion(14, 0));
+});
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
 {
@@ -24,11 +24,18 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddGymAuthentication(builder.Configuration);
+builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
+
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
+    throw new InvalidOperationException(
+        "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -41,7 +48,11 @@ if (app.Environment.IsDevelopment())
             : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 }
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 var summaries = new[]
 {
@@ -68,3 +79,6 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+// Entry point for automated API integration tests.
+public partial class Program { }
