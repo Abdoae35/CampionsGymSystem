@@ -41,7 +41,8 @@ it does not replace checking the actual repository.
 
 - Local auth demo setup added and explicitly run: five Identity accounts, six roles,
   37 permissions, two employee assignments and one demo branch. No migrations run.
-  Build clean; 61 tests pass. Postman collection is the next subtask.
+  Build clean; 61 tests pass. Postman collection verified: 12 requests/18 assertions.
+  Seed setup pushed as 8f73967; collection publication checkpoint follows.
 
 - Authentication + Authorization + current user/branch implementation complete.
   Auth BLL dc933b0, JWT/API e72ff74 and permission policies 24ee95b are committed
@@ -50,13 +51,12 @@ it does not replace checking the actual repository.
   signature/issuer/audience/lifetime and active account/employee state; live Identity
   roles and distinct active DB permissions drive authorization. No business CRUD.
 - Configure a real JWT key externally; committed key is empty. No auth migration,
-  automatic users/roles/grants, existing database update or production data access.
-- Build zero warnings/errors; all 58 solution tests passed, 0 failed/skipped;
+  automatic startup seeding or production data access. Explicit local demo seed is available.
+- Build zero warnings/errors; all 61 solution tests passed, 0 failed/skipped;
   no model drift. Existing test project reused; all PostgreSQL fixtures roll back.
 - Model has 62 application tables; prior Private/Freelance rollout remains separate
   from the existing InitialCreate local database. No DAL schema files changed.
-- Concurrent user Program.cs edit removing weather sample route is preserved and
-  excluded from assistant's final docs commit. Do not overwrite it.
+- User weather-route cleanup is committed as c3752e7 and preserved.
 - Docs: docs/authentication/; project-history skill portable source unchanged.
 
 ## Work history
@@ -444,3 +444,18 @@ weather-route removal remains outside assistant commits.
 - Credentials/key stored only in user secrets/private ignored environment, never in Git.
 - User weather cleanup is already committed as c3752e7. Preparing this verified subtask
   for commit/push to Auth as requested; next subtask is the collection and live API verification.
+
+## 2026-10-06 — Postman collection and live API verification
+
+- Created postman/Campions.Auth.postman_collection.json, blank shareable environment
+  and README. Private local environment remains ignored; no secrets/tokens committed.
+- Ran against the actual local seeded API: 12 requests, 18 assertions, zero failures.
+  First run exposed a Postman sandbox variable collision; corrected and reran successfully.
+- Verified successful logins, Owner without branch, employee/branch/permissions,
+  no-permissions user, inactive/suspended rejection, invalid credentials/input/token,
+  and unauthenticated /me. Business permission 200/403 remains covered by automated tests.
+- No backend packages or schema changes added for Postman. Newman used through npx.
+- Seed setup is committed/pushed as 8f73967. Preparing collection/checkpoint commit
+  for push to Auth. API verification process stopped; start it using the README command.
+- Authentication scope complete; await next user-selected task. All 61 solution tests
+  passed and build had zero warnings/errors before collection verification.

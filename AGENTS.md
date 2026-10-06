@@ -39,12 +39,13 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-06): persistent local auth demo seeded explicitly using
-  --seed-auth-demo. Five accounts, six roles, 37 permissions, two employees/assignments,
-  one demo branch; no migration applied. No business CRUD added.
-- Build zero warnings/errors; all 61 tests passed. Secrets are external/private;
-  postman/*.local.postman_environment.json is ignored. See LOCAL_API_TESTING.md.
-- Preparing verified seed subtask for commit/push to Auth per user instruction.
-  Next: create and verify Postman collection against the local API.
-- User weather cleanup is committed as c3752e7. Preserve it.
+- Latest operation (2026-10-06): local auth demo and Postman collection complete.
+  Seed setup pushed to origin/Auth as 8f73967; collection/checkpoint ready for push.
+- Five local demo accounts, six roles, 37 permissions, two employee assignments,
+  one branch. Explicit localhost/Development seed only; no migrations applied.
+- Build zero warnings/errors; all 61 automated tests passed. Actual API collection
+  passed 12 requests/18 assertions after fixing a sandbox variable collision.
+- Import postman/Campions.Auth.postman_collection.json and private ignored local
+  environment. See postman/README.md. Verification API process stopped.
+- No business CRUD implemented; await next specific user task. Preserve user cleanup c3752e7.
 - History skill portable source: skills/project-history-update/SKILL.md.
