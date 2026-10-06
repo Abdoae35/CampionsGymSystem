@@ -39,15 +39,15 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Active task: Authentication + Authorization + current user/branch only.
-  User requests commit/push of each verified small subtask to Auth.
-- BLL/context subtask dc933b0 is committed/pushed to origin/Auth (30 tests passed).
-- JWT/API subtask implemented: /api/auth/login, /api/auth/me, startup JWT validation,
-  active user/employee checks on bearer requests. Build zero warnings/errors;
-  13 HTTP and all 50 solution tests passed after fixing host configuration timing.
-- JWT signing secret must be supplied externally: committed Jwt:Key is empty.
-  No auth migration/data changes or real users/roles seeded.
-- Next: full solution tests and publish JWT/API subtask; dynamic permission
-  policies/tests, then setup/authorization docs. No other business endpoints.
-- Prior Private/Freelance migration rollout remains separate; do not apply it.
+- Active scope: Authentication + Authorization + current user/branch only.
+  Commit/push every verified small subtask to Auth (explicit user instruction).
+- dc933b0 (BLL/context) and e72ff74 (JWT/login/me) are pushed to origin/Auth.
+- Dynamic Permission:<code> policies implemented: requirement, provider/standard
+  policy fallback and DB-backed handler. Added eight HTTP authorization tests,
+  using a test-assembly-only controller. Build zero warnings/errors; all 21 HTTP
+  authentication/authorization tests passed.
+- Next: finish focused permission tests/push, then setup/permission docs and final
+  solution regression checks. No unrelated business endpoints or debug API routes.
+- JWT:Key is intentionally empty in Git; configure externally. No auth migration,
+  seed data or existing database updates. Prior schema rollout remains separate.
 - History skill portable source: skills/project-history-update/SKILL.md.

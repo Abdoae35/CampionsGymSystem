@@ -8,6 +8,7 @@ using CampionsSystem.BLL.Authentication;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -45,6 +46,8 @@ public sealed class AuthenticationApiTests : IAsyncLifetime
             {
                 services.RemoveAll<ApplicationDbContext>();
                 services.AddScoped(_ => database.CreateContext());
+                services.AddControllers().AddApplicationPart(typeof(PermissionProbeController).Assembly);
+                services.AddAuthorization(options => options.AddPolicy("TestAuthenticated", policy => policy.RequireAuthenticatedUser()));
             });
         });
         client = factory.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
@@ -183,6 +186,107 @@ public sealed class AuthenticationApiTests : IAsyncLifetime
         using var response = await client.GetAsync("/api/auth/me");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+    private async Task GrantPermission(string roleName, string code, bool active = true)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+        var role = await roles.FindByNameAsync(roleName);
+        if (role is null)
+        {
+            role = new IdentityRole<Guid>(roleName) { Id = Guid.NewGuid() };
+            Assert.True((await roles.CreateAsync(role)).Succeeded);
+        }
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var user = (await users.FindByIdAsync(userId.ToString()))!;
+        if (!await users.IsInRoleAsync(user, roleName)) Assert.True((await users.AddToRoleAsync(user, roleName)).Succeeded);
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == code);
+        permission ??= new Permission { Code = code, Name = code, Module = code.Split('.')[0], IsActive = active };
+        db.Add(new RolePermission { RoleId = role.Id, Permission = permission });
+        await db.SaveChangesAsync();
+    }
+    [Fact] public async Task PermissionAllowsProtectedAction()
+    {
+        await GrantPermission("Reception", "Members.View");
+        await Authenticate();
+        using var response = await client.GetAsync("/_tests/auth/permission");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+    [Fact] public async Task MissingPermissionReturns403()
+    {
+        await Authenticate();
+        using var response = await client.GetAsync("/_tests/auth/permission");
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+    [Fact] public async Task AnonymousPermissionRequestReturns401()
+    {
+        using var response = await client.GetAsync("/_tests/auth/permission");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+    [Fact] public async Task MeReturnsUnionOfRolesWithDistinctActivePermissions()
+    {
+        await GrantPermission("Reception", "Members.View");
+        await GrantPermission("Sales", "Members.View");
+        await GrantPermission("Sales", "Members.Edit");
+        await GrantPermission("Reception", "Payments.Refund", active: false);
+        await Authenticate();
+        using var response = await client.GetAsync("/api/auth/me");
+        var context = (await response.Content.ReadFromJsonAsync<CurrentUserContext>())!;
+        Assert.Equal(new[] { "Members.Edit", "Members.View" }, context.Permissions);
+        Assert.Equal(new[] { "Reception", "Sales" }, context.Roles);
+    }
+    [Fact] public async Task PermissionRevocationAffectsExistingJwt()
+    {
+        await GrantPermission("Reception", "Members.View");
+        await Authenticate();
+        using var before = await client.GetAsync("/_tests/auth/permission");
+        Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync());
+            await db.SaveChangesAsync();
+        }
+        using var after = await client.GetAsync("/_tests/auth/permission");
+        Assert.Equal(HttpStatusCode.Forbidden, after.StatusCode);
+    }
+    [Fact] public async Task PermissionDeactivationAffectsExistingJwt()
+    {
+        await GrantPermission("Reception", "Members.View");
+        await Authenticate();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var permission = await db.Permissions.SingleAsync();
+            permission.IsActive = false;
+            await db.SaveChangesAsync();
+        }
+        using var response = await client.GetAsync("/_tests/auth/permission");
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+    [Fact] public async Task RoleRevocationAffectsEvenRoleOnlyChecksOnExistingJwt()
+    {
+        await GrantPermission("Owner", "Members.View");
+        await Authenticate();
+        using var before = await client.GetAsync("/_tests/auth/owner");
+        Assert.Equal(HttpStatusCode.OK, before.StatusCode);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            Assert.True((await users.RemoveFromRoleAsync((await users.FindByIdAsync(userId.ToString()))!, "Owner")).Succeeded);
+        }
+        using var after = await client.GetAsync("/_tests/auth/owner");
+        Assert.Equal(HttpStatusCode.Forbidden, after.StatusCode);
+    }
+    [Fact] public async Task DynamicProviderPreservesStandardPolicies()
+    {
+        using var anonymous = await client.GetAsync("/_tests/auth/standard-policy");
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+        await Authenticate();
+        using var authenticated = await client.GetAsync("/_tests/auth/standard-policy");
+        Assert.Equal(HttpStatusCode.OK, authenticated.StatusCode);
+    }
+
     [Fact] public async Task InvalidRequestReturns400()
     {
         using var response = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest());

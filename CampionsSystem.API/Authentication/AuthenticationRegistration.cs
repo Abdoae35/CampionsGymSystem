@@ -1,3 +1,5 @@
+using CampionsSystem.API.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using CampionsSystem.BLL.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -50,6 +52,8 @@ public static class AuthenticationRegistration
                 };
             });
         services.AddAuthorization();
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         return services;
     }
 

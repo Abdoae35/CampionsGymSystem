@@ -39,40 +39,21 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Active task: Authentication + Authorization + current user/branch context only.
-  BLL subtask implemented and focused tests passing; API/policies/docs remain.
+- Active scope: Authentication + Authorization + current user/branch context only.
   User requests commit/push after each verified small subtask on Auth.
-- Prior Private/Freelance schema and flow update is complete (2026-10-06). New migration
-  UpdatePrivateAndFreelanceBusinessRules and review SQL are generated; NOT applied
-  to the existing local database. Await user direction before database rollout or
-  the next task. See docs/database/UPDATE_PRIVATE_AND_FREELANCE.md.
-
-- A root `.gitignore` now excludes .NET build/restore output, IDE caches,
-  test/coverage reports, logs, temporary files, local secret files, certificates,
-  and operating system metadata.
-- Shared `appsettings.json`, `appsettings.Development.json`, source files, and
-  project files remain tracked. `.env.example` and `.env.sample` are allowed.
-- Ten previously tracked generated files under `CampionsSystem.BLL/obj/` and
-  `CampionsSystem.DAL/obj/` were removed from the Git index and remain on disk.
-  Their removals are staged.
-- `.gitignore`, `AGENTS.md`, and this file are new files awaiting a commit.
-- Earlier tasks were not committed/pushed by the assistant; current auth task is
-  explicitly authorized for incremental commits/pushes.
-- API now connects to local PostgreSQL through EF Core/Npgsql; solution build
-  and real API/database connectivity checks passed. InitialCreate is applied
-  locally with 61 application tables and seven standard Guid Identity tables.
-  Context is DAL/Data/ApplicationDbContext.cs; local connection key is now
-  ConnectionStrings:DefaultConnection. See docs/database for schema/rules/checks.
-- Project references connect API to BLL and BLL to DAL. API also references DAL
-  for dependency injection setup and the development connectivity diagnostic.
-- Four approved skills are installed locally in `~/.codex/skills/`:
-  `aspnet-core`, `security-threat-model`, `sql-schema-designer`, and
-  `scaffold-dotnet-test-project`. See `SKILLS_GUIDE.md` for usage and revisions.
-  Local persistence is complete; business workflows remain unimplemented.
-- Custom `project-history-update` is installed locally, with portable source in
-  `skills/project-history-update/SKILL.md`. `AGENTS.md` requires its checkpoint
-  before final responses after project operations. It is an instruction workflow,
-  not a runtime hook or a guarantee across providers.
+- Auth BLL dc933b0 and JWT/API e72ff74 are committed and pushed to origin/Auth.
+  Dynamic permission policies implemented and being verified; docs/final checks next.
+- API exposes POST /api/auth/login and authenticated GET /api/auth/me. Identity,
+  optional Employee, active primary branch and permissions resolve from existing data.
+  JWT key must be supplied externally; committed configuration contains no secret.
+- Existing net10.0 N-Tier references remain API → BLL/DAL, BLL → DAL. Existing xUnit
+  DAL.Tests project now exercises BLL/API too; no duplicate test project created.
+- Auth needs no schema migration. Model has 62 application tables; prior pending
+  Private/Freelance migration is separate from the still-InitialCreate local database.
+  No auth data/account/privilege seeding or existing database updates performed.
+- Existing ignore rules exclude generated output, secrets and local settings;
+  prior project changes were committed by user before this task (6c305d2).
+- Required history checkpoint uses skills/project-history-update/SKILL.md.
 
 ## Work history
 
@@ -402,3 +383,19 @@ All 50 solution tests passed (0 failures/skips). JWT/API subtask is ready for
 the requested commit/push. No schema changes or seed mechanism added. Existing optional-email Identity policy
 retained; ambiguous legacy emails are refused safely. Requested commit/push follows this checkpoint, then permission policies and
 documentation.
+
+### 2026-10-06 — Auth subtask 3: dynamic permission authorization
+
+JWT/API subtask e72ff74 committed and successfully pushed to origin/Auth after
+all 50 solution tests passed. Added PermissionRequirement, PermissionPolicyProvider
+and scoped PermissionAuthorizationHandler. Endpoints declare Permission:<code>;
+provider delegates ordinary/default policies to the framework provider. Handler
+queries current distinct active permission codes from Identity role mappings;
+there is no per-role policy registration, Redis or persistent permission cache.
+
+Added eight HTTP tests and a controller present only in the test assembly:
+200/401/403, /me permission union/deduplication/inactive exclusion, permission
+revocation/deactivation, role revocation with existing JWT and normal-policy fallback.
+No production debug or business endpoint. Build passed zero warnings/errors.
+All 21 HTTP authentication/authorization tests passed (0 failures/skips).
+Requested commit/push follows this checkpoint. Remaining: documentation/bootstrap strategy and final regression checks.
