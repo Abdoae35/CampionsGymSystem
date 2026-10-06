@@ -1,6 +1,21 @@
-@CampionsSystem_HostAddress = http://localhost:5236
+# Configure HTTPS certificate and supply request variables securely; never commit credentials.
+@AuthHostAddress = https://localhost:7186
+@LoginUserName = REPLACE_LOCALLY
+@LoginPassword = REPLACE_LOCALLY
+@AccessToken = REPLACE_LOCALLY
 
-GET {{CampionsSystem_HostAddress}}/weatherforecast/
+POST {{AuthHostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "userNameOrEmail": "{{LoginUserName}}",
+  "password": "{{LoginPassword}}"
+}
+
+###
+
+GET {{AuthHostAddress}}/api/auth/me
+Authorization: Bearer {{AccessToken}}
 Accept: application/json
 
 ###

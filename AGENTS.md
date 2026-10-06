@@ -39,15 +39,16 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Active scope: Authentication + Authorization + current user/branch only.
-  Commit/push every verified small subtask to Auth (explicit user instruction).
-- dc933b0 (BLL/context) and e72ff74 (JWT/login/me) are pushed to origin/Auth.
-- Dynamic Permission:<code> policies implemented: requirement, provider/standard
-  policy fallback and DB-backed handler. Added eight HTTP authorization tests,
-  using a test-assembly-only controller. Build zero warnings/errors; all 21 HTTP
-  authentication/authorization tests passed.
-- Next: finish focused permission tests/push, then setup/permission docs and final
-  solution regression checks. No unrelated business endpoints or debug API routes.
-- JWT:Key is intentionally empty in Git; configure externally. No auth migration,
-  seed data or existing database updates. Prior schema rollout remains separate.
+- Latest feature (2026-10-06): Authentication + Authorization + current user/branch
+  implemented and verified; stop here, await next user-selected task.
+- User requested incremental commit/push to Auth. Implementation commits dc933b0,
+  e72ff74 and 24ee95b are pushed to origin/Auth; final docs/checkpoint ready to publish.
+- Endpoints: POST /api/auth/login; authenticated GET /api/auth/me. Dynamic policy
+  syntax [Authorize(Policy = "Permission:Members.View")]; live role/permission checks.
+- Configure JWT key externally (empty in Git). No auth migration, automatic seeding,
+  existing DB updates, refresh tokens, branch switching, MFA challenge or CRUD added.
+- Final build zero warnings/errors; 58 tests passed, 0 failed/skipped; no model drift.
+  All PostgreSQL test schemas/data rolled back. Docs in docs/authentication/.
+- Preserve concurrent uncommitted Program.cs weather-route removal by user; excluded
+  from assistant final docs commit. Prior Private/Freelance rollout stays separate.
 - History skill portable source: skills/project-history-update/SKILL.md.

@@ -39,21 +39,21 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Active scope: Authentication + Authorization + current user/branch context only.
-  User requests commit/push after each verified small subtask on Auth.
-- Auth BLL dc933b0 and JWT/API e72ff74 are committed and pushed to origin/Auth.
-  Dynamic permission policies implemented and being verified; docs/final checks next.
-- API exposes POST /api/auth/login and authenticated GET /api/auth/me. Identity,
-  optional Employee, active primary branch and permissions resolve from existing data.
-  JWT key must be supplied externally; committed configuration contains no secret.
-- Existing net10.0 N-Tier references remain API → BLL/DAL, BLL → DAL. Existing xUnit
-  DAL.Tests project now exercises BLL/API too; no duplicate test project created.
-- Auth needs no schema migration. Model has 62 application tables; prior pending
-  Private/Freelance migration is separate from the still-InitialCreate local database.
-  No auth data/account/privilege seeding or existing database updates performed.
-- Existing ignore rules exclude generated output, secrets and local settings;
-  prior project changes were committed by user before this task (6c305d2).
-- Required history checkpoint uses skills/project-history-update/SKILL.md.
+- Authentication + Authorization + current user/branch implementation complete.
+  Auth BLL dc933b0, JWT/API e72ff74 and permission policies 24ee95b are committed
+  and pushed to origin/Auth. Final docs/checkpoint are ready for requested publish.
+- API exposes POST /api/auth/login and authenticated GET /api/auth/me. JWT validates
+  signature/issuer/audience/lifetime and active account/employee state; live Identity
+  roles and distinct active DB permissions drive authorization. No business CRUD.
+- Configure a real JWT key externally; committed key is empty. No auth migration,
+  automatic users/roles/grants, existing database update or production data access.
+- Build zero warnings/errors; all 58 solution tests passed, 0 failed/skipped;
+  no model drift. Existing test project reused; all PostgreSQL fixtures roll back.
+- Model has 62 application tables; prior Private/Freelance rollout remains separate
+  from the existing InitialCreate local database. No DAL schema files changed.
+- Concurrent user Program.cs edit removing weather sample route is preserved and
+  excluded from assistant's final docs commit. Do not overwrite it.
+- Docs: docs/authentication/; project-history skill portable source unchanged.
 
 ## Work history
 
@@ -399,3 +399,30 @@ revocation/deactivation, role revocation with existing JWT and normal-policy fal
 No production debug or business endpoint. Build passed zero warnings/errors.
 All 21 HTTP authentication/authorization tests passed (0 failures/skips).
 Requested commit/push follows this checkpoint. Remaining: documentation/bootstrap strategy and final regression checks.
+
+### 2026-10-06 — Auth subtask 4: documentation and final verification
+
+Permission policy subtask 24ee95b committed and successfully pushed to origin/Auth.
+Created docs/authentication/AUTHENTICATION.md, AUTHORIZATION.md and
+ADDING_A_PERMISSION.md. Added secure key setup, login/JWT/current context flows,
+branch access boundaries, requested full permission catalog, conservative role
+defaults, trusted Identity bootstrap strategy, exact permission attribute, test
+commands and implementation-file inventory. Updated .http auth request examples.
+No automatic seeding because there was no existing mechanism; no real accounts or
+privilege grants were created. MFA challenge/refresh/branch switching stay out of
+scope. Default Africa/Cairo business date and inclusive employment/assignment dates
+are documented. Technical/Owner accounts may lack Employee/current branch.
+
+Final build passed zero warnings/errors. All 58 solution tests passed, 0 failures/
+skips (38 auth/policy/configuration and 20 prior schema tests). EF reported no
+pending model changes; DAL source/migrations unchanged from task baseline. Fixtures
+run real PostgreSQL migrations and HTTP JWT pipelines in isolated transaction-scoped
+schemas, then roll back. All twelve requested cases and invalid JWT/configuration,
+revocation, lockout and MFA safety are covered. No existing database migration/data
+update or production connection. Whitespace check passed.
+
+A concurrent user edit removing weatherforecast registration from Program.cs was
+detected after the feature commits; preserved, not staged/published by assistant.
+Final documentation/checkpoint commit/push follows this entry, as requested after
+each small verified task. Stop at authentication; no Members CRUD or next task.
+The three implementation commits already pushed are dc933b0, e72ff74 and 24ee95b.
