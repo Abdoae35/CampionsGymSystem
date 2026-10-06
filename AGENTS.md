@@ -39,13 +39,14 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-06): local auth demo and Postman collection complete.
-  Seed setup pushed to origin/Auth as 8f73967; collection/checkpoint ready for push.
-- Five local demo accounts, six roles, 37 permissions, two employee assignments,
-  one branch. Explicit localhost/Development seed only; no migrations applied.
-- Build zero warnings/errors; all 61 automated tests passed. Actual API collection
-  passed 12 requests/18 assertions after fixing a sandbox variable collision.
-- Import postman/Campions.Auth.postman_collection.json and private ignored local
-  environment. See postman/README.md. Verification API process stopped.
-- No business CRUD implemented; await next specific user task. Preserve user cleanup c3752e7.
+- Latest operation (2026-10-06): simplified Postman to Login and Current user;
+  optional negative/account-specific tests moved to one folder. Token automatically
+  saved in collection variables and explicitly sent by Current user.
+- Live Newman verification passed 14 requests/21 assertions. No backend/schema changes.
+  Prior build clean and 61 automated tests passed. User's API remains running.
+- Reimport postman/Campions.Auth.postman_collection.json; open Campions Auth - Simple Login.
+  Select private environment, send Login then Current user. See postman/README.md.
+- Verified collection update prepared for commit/push to Auth per user's workflow.
+  Previous seed/collection pushes 8f73967 and 3e8afee; no secrets committed.
+- No business CRUD implemented. Preserve user cleanup c3752e7.
 - History skill portable source: skills/project-history-update/SKILL.md.

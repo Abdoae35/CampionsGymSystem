@@ -1,16 +1,18 @@
-# Test the local authentication API
+# Simple manual API testing
 
 1. Start the API: `dotnet run --project CampionsSystem.API --launch-profile http`.
-2. Import `Campions.Auth.postman_collection.json` into Postman.
-3. Import and select `Campions.Auth.local.postman_environment.json` (generated locally, ignored by Git).
-4. Run the collection in order. Successful logins automatically save bearer tokens for `/api/auth/me`.
+2. Import `Campions.Auth.postman_collection.json`. Open **Campions Auth - Simple Login**.
+3. Select the **Campions Auth - LOCAL PRIVATE** environment (contains demoPassword).
+4. Send **1. Login**. Default username is `dev.reception`; change it in Body for another account.
+5. Send **2. Current user**. Login saves the token in this collection and Current user sends it automatically. No copying/pasting.
 
-The local environment already contains the demo password. Keep it private; do not sync, share or commit passwords/tokens. The committed environment is a blank template, usable after supplying your own credentials.
+Only two auth endpoints exist: POST /api/auth/login and GET /api/auth/me.
+Leave **Optional automated test cases** collapsed. They are examples of successful/failed requests to the same endpoints, not separate APIs. Some intentionally return 401.
 
-Accounts: `dev.owner`, `dev.reception`, `dev.no-permissions`, `dev.inactive`, `dev.suspended`. Owner has no employee/branch. Reception has Demo Reception and Auth Demo Branch. The last two accounts cannot log in.
+If you previously imported the old collection, use the new **Campions Auth - Simple Login** collection. Your imported Postman copy does not update when repository files change.
 
-See [local setup instructions](../docs/authentication/LOCAL_API_TESTING.md) to regenerate the environment or seed a different local development database. No migrations are applied by the seeder.
+Login must return 200 and run its Scripts / Post-response script. Current user sends the latest login token; logging in as another account replaces it. If token expires, send Login again. The collection starts with an empty token and passwords are never committed. Do not share/export a collection after login without clearing accessToken.
 
-Twelve requests check login/current context, invalid password, inactive user, suspended employee, invalid input, missing authentication and invalid token. No business/debug endpoint was added. Permission-protected 200/403 behavior is verified by the automated API tests until business endpoints exist.
+Private local environment is ignored by Git. Regenerate it with `python3 scripts/setup-local-auth-demo.py` if needed. See [local setup](../docs/authentication/LOCAL_API_TESTING.md).
 
-Collection format: [official Postman v2.1 schema](https://schema.postman.com/).
+Automated permission 200/403 tests remain separate; no business/debug endpoints added.

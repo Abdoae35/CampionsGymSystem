@@ -41,7 +41,7 @@ it does not replace checking the actual repository.
 
 - Local auth demo setup added and explicitly run: five Identity accounts, six roles,
   37 permissions, two employee assignments and one demo branch. No migrations run.
-  Build clean; 61 tests pass. Postman collection verified: 12 requests/18 assertions.
+  Build clean; 61 tests pass. Postman collection simplified and verified: 14 requests/21 assertions.
   Seed setup pushed as 8f73967; collection publication checkpoint follows.
 
 - Authentication + Authorization + current user/branch implementation complete.
@@ -459,3 +459,25 @@ weather-route removal remains outside assistant commits.
   for push to Auth. API verification process stopped; start it using the README command.
 - Authentication scope complete; await next user-selected task. All 61 solution tests
   passed and build had zero warnings/errors before collection verification.
+
+## 2026-10-06 — Clarified demo login credentials
+
+- User asked which usernames/password were created and what demoPassword means.
+- Read the private local environment to provide the requested local demo credential
+  directly to the user. No credential values recorded in project documentation.
+- No application changes or new tests; previous build/test results remain unchanged.
+- Collection/setup already pushed as 8f73967 and 3e8afee. This explanation checkpoint
+  is documentation only; no additional commit/push performed.
+
+## 2026-10-06 — Simplified Postman login and token forwarding
+
+- User found many saved scenarios confusing and reported manual token pasting.
+- Changed collection name to Campions Auth - Simple Login, exposing only Login and
+  Current user at top level; moved original scenarios to optional folder.
+- Login saves latest accessToken in collection variables; Current user explicitly
+  sends that saved token, independently of the old account-specific token variables.
+- README explains reimport, successful-login requirement and token refresh by login.
+- Newman against user's running local API: 14 requests, 21 assertions, zero failures.
+  No backend/schema changes; no build rerun needed for JSON/docs-only change.
+- Preparing verified collection update for commit/push to Auth. Existing uncommitted
+  clarification history was preserved; no credentials included. API left running.
