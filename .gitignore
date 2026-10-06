@@ -46,3 +46,6 @@ appsettings.*.Local.json
 ._*
 Thumbs.db
 Desktop.ini
+
+# Local Postman environments contain demo credentials/tokens
+/postman/*.local.postman_environment.json

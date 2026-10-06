@@ -39,6 +39,10 @@ it does not replace checking the actual repository.
 
 ## Current state
 
+- Local auth demo setup added and explicitly run: five Identity accounts, six roles,
+  37 permissions, two employee assignments and one demo branch. No migrations run.
+  Build clean; 61 tests pass. Postman collection is the next subtask.
+
 - Authentication + Authorization + current user/branch implementation complete.
   Auth BLL dc933b0, JWT/API e72ff74 and permission policies 24ee95b are committed
   and pushed to origin/Auth. Documentation a907b76 is also committed/pushed.
@@ -428,3 +432,15 @@ the three verified implementation commits dc933b0, e72ff74 and 24ee95b. This
 publication-state checkpoint accompanies the final history commit/push. Stop at
 authentication; no Members CRUD or next task. Only concurrent user Program.cs
 weather-route removal remains outside assistant commits.
+
+## 2026-10-06 — Persistent local authentication demo data
+
+- Requested persistent API test data and Postman collection; completed the data subtask.
+- Added DevelopmentAuthSeeder, explicit Development/localhost-only --seed-auth-demo command,
+  secret setup script, ignored private Postman environment and local testing guide.
+- Seeded local accounts for Owner, Reception, no permissions, inactive and suspended employee.
+  Existing accounts/grants are preserved on rerun; no business workflows or migrations applied.
+- Build: zero warnings/errors. All 61 tests passed, including three fixture/idempotence tests.
+- Credentials/key stored only in user secrets/private ignored environment, never in Git.
+- User weather cleanup is already committed as c3752e7. Preparing this verified subtask
+  for commit/push to Auth as requested; next subtask is the collection and live API verification.
