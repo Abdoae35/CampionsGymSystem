@@ -12,9 +12,8 @@ public sealed class BranchManagementService(ApplicationDbContext database, ICurr
     private async Task<CurrentUserContext> RequireAsync(string permission, Guid? branch, CancellationToken ct)
     {
         var user = await current.GetAsync(ct);
-        if (user is null || !user.Permissions.Contains(permission)
-            || (!user.Permissions.Contains(AccessAllPermission) && (branch is null || user.CurrentBranchId != branch)))
-            throw new UnauthorizedAccessException();
+        if (user is null || !user.Permissions.Contains(permission)) throw new UnauthorizedAccessException();
+        BranchAccessService.EnsureScope(user, branch);
         return user;
     }
 

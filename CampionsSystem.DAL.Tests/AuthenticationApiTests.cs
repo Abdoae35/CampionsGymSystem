@@ -340,4 +340,26 @@ public sealed class AuthenticationApiTests : IAsyncLifetime
         Assert.Contains(await check.AuditLogs.ToListAsync(), x => x.Action == "Branch.Created");
     }
 
+    [Fact] public async Task DirectBranchPermissionDenyAffectsExistingJwt()
+    {
+        await GrantPermission("GlobalOperator", "Branches.View");
+        await GrantPermission("GlobalOperator", "Branches.AccessAll");
+        await Authenticate();
+        Guid branchId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var branch = new GymBranch { Name = "Protected", City = new City { Name = "Scope" } }; db.Add(branch); await db.SaveChangesAsync(); branchId = branch.Id;
+        }
+        using var allowed = await client.GetAsync($"/api/branches/{branchId}"); Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var permission = await db.Permissions.SingleAsync(x => x.Code == "Branches.AccessAll");
+            db.Add(new UserPermissionOverride { UserId = userId, Permission = permission, Effect = CampionsSystem.DAL.Enums.PermissionOverrideEffect.Deny });
+            await db.SaveChangesAsync();
+        }
+        using var denied = await client.GetAsync($"/api/branches/{branchId}"); Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+    }
+
 }

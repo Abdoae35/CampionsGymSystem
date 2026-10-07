@@ -1,5 +1,6 @@
 using System.Text.Json;
 using CampionsSystem.BLL.Authentication;
+using CampionsSystem.BLL.Branches;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using Microsoft.Extensions.Options;
@@ -20,8 +21,7 @@ public sealed class OperationAccess(ICurrentUserService current, ApplicationDbCo
     {
         var user = await current.GetAsync(ct);
         if (user is null || !user.Permissions.Contains(permission)) throw new UnauthorizedAccessException();
-        if (branchId.HasValue && !user.Roles.Contains("Owner") && user.CurrentBranchId != branchId)
-            throw new UnauthorizedAccessException();
+        if (branchId.HasValue) BranchAccessService.EnsureScope(user, branchId);
         return user.UserId;
     }
 

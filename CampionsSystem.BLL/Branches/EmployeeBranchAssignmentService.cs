@@ -19,11 +19,7 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
         if (user is null || !user.Permissions.Contains(permission)) throw new UnauthorizedAccessException();
         return user;
     }
-    private static void Scope(CurrentUserContext user, Guid? branchId)
-    {
-        if (!user.Permissions.Contains(BranchManagementService.AccessAllPermission)
-            && (!branchId.HasValue || user.CurrentBranchId != branchId)) throw new UnauthorizedAccessException();
-    }
+    private static void Scope(CurrentUserContext user, Guid? branchId) => BranchAccessService.EnsureScope(user, branchId);
     private async Task<List<EmployeeBranchAssignment>> ActiveAsync(Guid employeeId, CancellationToken ct) =>
         await database.EmployeeBranchAssignments.AsNoTracking().Include(x => x.Branch)
             .Where(x => x.EmployeeId == employeeId && x.StartDate <= access.Today && (x.EndDate == null || x.EndDate >= access.Today))

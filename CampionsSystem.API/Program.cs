@@ -7,8 +7,9 @@ using CampionsSystem.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+var configureBranchPermissions = args.Contains("--configure-branch-permissions", StringComparer.Ordinal);
 var seedAuthDemo = args.Contains("--seed-auth-demo", StringComparer.Ordinal);
-var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--seed-auth-demo").ToArray());
+var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--seed-auth-demo" && arg != "--configure-branch-permissions").ToArray());
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -31,6 +32,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddGymAuthentication(builder.Configuration);
 builder.Services.AddScoped<DevelopmentAuthSeeder>();
 builder.Services.AddScoped<BranchManagementService>();
+builder.Services.AddScoped<IBranchAccessService, BranchAccessService>();
+builder.Services.AddScoped<BranchPermissionSetup>();
 builder.Services.AddScoped<EmployeeBranchAssignmentService>();
 builder.Services.AddScoped<OperationAccess>();
 builder.Services.AddScoped<ActivityManagementService>();
@@ -49,6 +52,18 @@ var app = builder.Build();
 if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
     throw new InvalidOperationException(
         "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
+
+if (configureBranchPermissions)
+{
+    var target = new Npgsql.NpgsqlConnectionStringBuilder(app.Configuration.GetConnectionString("DefaultConnection"));
+    if (!app.Environment.IsDevelopment() || target.Host is not ("localhost" or "127.0.0.1" or "::1"))
+        throw new InvalidOperationException("Branch permission setup is allowed only in Development against localhost.");
+    await using (var scope = app.Services.CreateAsyncScope())
+        await scope.ServiceProvider.GetRequiredService<BranchPermissionSetup>().ConfigureAsync(app.Lifetime.ApplicationStopping);
+    Console.WriteLine("Branch permission setup completed; no users, passwords or migrations changed.");
+    await app.DisposeAsync();
+    return;
+}
 
 if (seedAuthDemo)
 {

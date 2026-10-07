@@ -41,13 +41,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature in progress on BranchSepration. Latest increment: shared authenticated current branch context.
-- Verification: build 0 warnings/errors; 41 context/auth tests plus 3 existing seeder tests passed; diff check clean.
-- Added shared EmployeeBranchResolver and ICurrentBranchContext, reused by authenticated user resolution without changing auth/me response shape. Inclusive Cairo-date intervals, future/history exclusion, inactive branch exclusion and ambiguous legacy history fail closed. Updated old multi-current test fixture to latest single-current rule. d185397 pushed successfully.
+- Branch feature in progress on BranchSepration. Latest increment: explicit branch access security foundation.
+- Verification: build 0 warnings/errors; 91 branch/auth/assignment/existing operations tests passed; diff check clean.
+- Added IBranchAccessService for validated branch scope/operation target resolution, reused scope predicate in branch/assignment and existing OperationAccess instead of Owner role bypass. Completed existing PermissionService role plus direct Allow minus Deny resolution so global access denies are effective without JWT renewal. Added explicit localhost Development permission setup command, not run automatically or applied to app DB. 8368948 pushed successfully.
 - No schema/migration changes or application database update in this feature.
 - This verified increment and checkpoint are ready for a small commit and push;
   completed earlier increments remain in chronological history. Preserve user work.
-- Next: branch scope enforcement and explicit global permission setup after commit/push. Do not start unrelated modules.
+- Next: atomic employee branch transfer after commit/push. Do not start unrelated modules.
 
 ## Work history
 
@@ -687,3 +687,15 @@ Added shared EmployeeBranchResolver and ICurrentBranchContext, reused by authent
 
 Verification: build 0 warnings/errors; 41 context/auth tests plus 3 existing seeder tests passed; diff check clean. No schema or existing migration changes. Checkpoint
 included with this increment; commit/push follows verification. Next: branch scope enforcement and explicit global permission setup after commit/push.
+
+## 2026-10-07 — Branch feature: explicit branch access security foundation
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added IBranchAccessService for validated branch scope/operation target resolution, reused scope predicate in branch/assignment and existing OperationAccess instead of Owner role bypass. Completed existing PermissionService role plus direct Allow minus Deny resolution so global access denies are effective without JWT renewal. Added explicit localhost Development permission setup command, not run automatically or applied to app DB. 8368948 pushed successfully.
+
+Verification: build 0 warnings/errors; 91 branch/auth/assignment/existing operations tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: atomic employee branch transfer after commit/push.
