@@ -41,13 +41,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature in progress on BranchSepration. Latest increment: transfer date boundary correction.
-- Verification: build 0 warnings/errors; all 10 transfer tests passed; earlier full suite 201 passed; diff check clean.
-- Review found bounded assignment DateOnly.MaxValue could overflow end-plus-one validation. Replaced with safe day-number comparison and added a regression. 0f2afbe pushed successfully. Pending API/concurrency test completion remains separate and will be committed after full rerun.
+- Branch feature in progress on BranchSepration. Latest increment: complete branch API isolation and concurrency coverage.
+- Verification: build 0 warnings/errors; full suite 202 passed, zero failed/skipped; diff check clean.
+- Added real HTTP branch list isolation/spoofing/no-delete/initial assignment/transfer/me-same-JWT/403/invalid-body tests and independent-connection concurrent initial assignment/transfer tests. Dedicated internally generated PostgreSQL test schemas committed only for race visibility and removed afterward; no application DB writes. 633c654 pushed successfully. All prior increments pushed.
 - No schema/migration changes or application database update in this feature.
 - This verified increment and checkpoint are ready for a small commit and push;
   completed earlier increments remain in chronological history. Preserve user work.
-- Next: full regression and separate test completion commit. Do not start unrelated modules.
+- Next: branch usage/rules documentation and final build/full-suite/model-drift checks. Do not start unrelated modules.
 
 ## Work history
 
@@ -723,3 +723,15 @@ Review found bounded assignment DateOnly.MaxValue could overflow end-plus-one va
 
 Verification: build 0 warnings/errors; all 10 transfer tests passed; earlier full suite 201 passed; diff check clean. No schema or existing migration changes. Checkpoint
 included with this increment; commit/push follows verification. Next: full regression and separate test completion commit.
+
+## 2026-10-07 — Branch feature: complete branch API isolation and concurrency coverage
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added real HTTP branch list isolation/spoofing/no-delete/initial assignment/transfer/me-same-JWT/403/invalid-body tests and independent-connection concurrent initial assignment/transfer tests. Dedicated internally generated PostgreSQL test schemas committed only for race visibility and removed afterward; no application DB writes. 633c654 pushed successfully. All prior increments pushed.
+
+Verification: build 0 warnings/errors; full suite 202 passed, zero failed/skipped; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: branch usage/rules documentation and final build/full-suite/model-drift checks.

@@ -39,12 +39,12 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Branch feature in progress on BranchSepration; latest increment: transfer date boundary correction.
-- Verification: build 0 warnings/errors; all 10 transfer tests passed; earlier full suite 201 passed; diff check clean.
-- Review found bounded assignment DateOnly.MaxValue could overflow end-plus-one validation. Replaced with safe day-number comparison and added a regression. 0f2afbe pushed successfully. Pending API/concurrency test completion remains separate and will be committed after full rerun.
+- Branch feature in progress on BranchSepration; latest increment: complete branch API isolation and concurrency coverage.
+- Verification: build 0 warnings/errors; full suite 202 passed, zero failed/skipped; diff check clean.
+- Added real HTTP branch list isolation/spoofing/no-delete/initial assignment/transfer/me-same-JWT/403/invalid-body tests and independent-connection concurrent initial assignment/transfer tests. Dedicated internally generated PostgreSQL test schemas committed only for race visibility and removed afterward; no application DB writes. 633c654 pushed successfully. All prior increments pushed.
 - No schema/migration/application DB changes; existing deployed five migrations intact.
 - User authorizes small commits and pushes after each verified meaningful branch task.
   This checkpoint is included in the current increment; commit/push next.
-- Next: full regression and separate test completion commit. Do not implement unrelated modules.
+- Next: branch usage/rules documentation and final build/full-suite/model-drift checks. Do not implement unrelated modules.
 - Full chronological operation and commit results: PROJECT_HISTORY.md.
 - History skill portable source: skills/project-history-update/SKILL.md.
