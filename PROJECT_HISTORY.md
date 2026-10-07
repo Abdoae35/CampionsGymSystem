@@ -41,13 +41,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature in progress on BranchSepration. Latest increment: branch management service and endpoints.
-- Verification: build 0 warnings/errors; 33 branch/auth API tests passed; diff check clean.
-- Added permission-scoped branch list/get/create/update, soft activation/deactivation, validation and audits. No hard delete. Explicit AccessAll required for creation/global access; role name alone never grants access in new branch service. Fixed record validation metadata after isolated HTTP test failure; corrected run fully passed.
+- Branch feature in progress on BranchSepration. Latest increment: employee branch assignment management.
+- Verification: build 0 warnings/errors; 40 branch/assignment/auth API tests passed; diff check clean.
+- Added current assignment/history/initial assignment APIs, employment/date/active-branch validation, overlap checks across primary and nonprimary history, per-employee PostgreSQL row locking and atomic audit writes. d69276e was pushed successfully to origin/BranchSepration. No full Employee CRUD.
 - No schema/migration changes or application database update in this feature.
 - This verified increment and checkpoint are ready for a small commit and push;
   completed earlier increments remain in chronological history. Preserve user work.
-- Next: employee assignment management after this increment is committed and pushed. Do not start unrelated modules.
+- Next: shared current branch context after commit and push. Do not start unrelated modules.
 
 ## Work history
 
@@ -663,3 +663,15 @@ Added permission-scoped branch list/get/create/update, soft activation/deactivat
 
 Verification: build 0 warnings/errors; 33 branch/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
 included with this increment; commit/push follows verification. Next: employee assignment management after this increment is committed and pushed.
+
+## 2026-10-07 — Branch feature: employee branch assignment management
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added current assignment/history/initial assignment APIs, employment/date/active-branch validation, overlap checks across primary and nonprimary history, per-employee PostgreSQL row locking and atomic audit writes. d69276e was pushed successfully to origin/BranchSepration. No full Employee CRUD.
+
+Verification: build 0 warnings/errors; 40 branch/assignment/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: shared current branch context after commit and push.

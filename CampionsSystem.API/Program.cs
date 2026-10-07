@@ -31,6 +31,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddGymAuthentication(builder.Configuration);
 builder.Services.AddScoped<DevelopmentAuthSeeder>();
 builder.Services.AddScoped<BranchManagementService>();
+builder.Services.AddScoped<EmployeeBranchAssignmentService>();
 builder.Services.AddScoped<OperationAccess>();
 builder.Services.AddScoped<ActivityManagementService>();
 builder.Services.AddScoped<FreelancePlanService>();
