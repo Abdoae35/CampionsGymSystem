@@ -5,6 +5,11 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class ActivitySubscriptionTransaction
 {
+    // Immutable purchase attribution/rate; legacy rows require explicit reconciliation.
+    public Guid? ActivityCoachIdSnapshot { get; set; }
+    public ActivityCoach? ActivityCoachSnapshot { get; set; }
+    public decimal? CoachPercentageSnapshot { get; set; }
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ActivitySubscriptionId { get; set; }
     public ActivitySubscription ActivitySubscription { get; set; } = null!;

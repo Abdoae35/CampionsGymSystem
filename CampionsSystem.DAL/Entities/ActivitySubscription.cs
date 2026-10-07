@@ -5,6 +5,10 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class ActivitySubscription
 {
+    // Nullable only for legacy reconciliation; required on every new BLL purchase.
+    public Guid? ActivityCoachId { get; set; }
+    public ActivityCoach? ActivityCoach { get; set; }
+
     // Snapshot access semantics instead of depending on a mutable package.
     public AccessMode AccessMode { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();

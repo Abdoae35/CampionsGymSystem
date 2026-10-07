@@ -39,14 +39,21 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-06): simplified Postman to Login and Current user;
-  optional negative/account-specific tests moved to one folder. Token automatically
-  saved in collection variables and explicitly sent by Current user.
-- Live Newman verification passed 14 requests/21 assertions. No backend/schema changes.
-  Prior build clean and 61 automated tests passed. User's API remains running.
-- Reimport postman/Campions.Auth.postman_collection.json; open Campions Auth - Simple Login.
-  Select private environment, send Login then Current user. See postman/README.md.
-- Verified collection update prepared for commit/push to Auth per user's workflow.
-  Previous seed/collection pushes 8f73967 and 3e8afee; no secrets committed.
-- No business CRUD implemented. Preserve user cleanup c3752e7.
+- Latest operation (2026-10-07): completed Activities/Classes/Freelance update;
+  ActivityCoach supports internal/external, purchase coach/rate snapshots, actual
+  collected revenue and explicit period settlements; Class occurrences/stats only;
+  Freelance eligibility and House purchases with preserved Sales history.
+- New migration 20261007000549_UpdateActivitiesClassesAndFreelanceRules; four tables,
+  six nullable added columns, legacy FK made nullable. SQL reviewed; no user DB update.
+  Model now 66 application + seven Identity tables. Old migrations unchanged.
+- Final build zero warnings/errors; 103 tests passed, zero failed/skipped; no model drift.
+  Legacy upgrade/constraints/report SQL and HTTP authorization tested with rollback.
+- Eight new permissions; Owner grants through migration; other role grants preserved.
+  No Class compensation, payment engine, payroll redesign or unrelated CRUD added.
+- See docs/database/UPDATE_ACTIVITIES_CLASSES_AND_FREELANCE.md for exact files, API,
+  assumptions and deployment. Unknown legacy coaches/rates/eligibility remain explicit
+  reconciliation tasks; Class payout and late closed-period adjustments unresolved.
+- Current branch DataBaseInit. Changes/checkpoint uncommitted/unpushed; previous
+  incremental Auth publication instruction related to the authentication task.
+  Await next user-selected task; no automatic migration/publication or branch switch.
 - History skill portable source: skills/project-history-update/SKILL.md.

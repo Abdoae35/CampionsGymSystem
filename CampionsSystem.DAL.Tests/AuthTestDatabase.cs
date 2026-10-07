@@ -11,7 +11,7 @@ internal sealed class AuthTestDatabase : IAsyncDisposable
     public NpgsqlConnection Connection { get; private set; } = null!;
     public NpgsqlTransaction Transaction { get; private set; } = null!;
 
-    public static async Task<AuthTestDatabase> CreateAsync()
+    public static async Task<AuthTestDatabase> CreateAsync(string? targetMigration = null)
     {
         var fixture = new AuthTestDatabase();
         try
@@ -26,7 +26,7 @@ internal sealed class AuthTestDatabase : IAsyncDisposable
                 fixture.Connection, fixture.Transaction);
             await command.ExecuteNonQueryAsync();
             await using var db = fixture.CreateContext();
-            var sql = db.GetService<IMigrator>().GenerateScript()
+            var sql = db.GetService<IMigrator>().GenerateScript(null, targetMigration)
                 .Replace("START TRANSACTION;", "").Replace("BEGIN TRANSACTION;", "").Replace("COMMIT;", "");
             await db.Database.ExecuteSqlRawAsync(sql);
             return fixture;

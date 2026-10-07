@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class CheckIn
 {
+    public Guid? ClassSessionId { get; set; }
+    public ClassSession? ClassSession { get; set; }
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid MemberId { get; set; }
     public Member Member { get; set; } = null!;

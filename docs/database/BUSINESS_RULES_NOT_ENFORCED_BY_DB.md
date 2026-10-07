@@ -50,7 +50,7 @@ not controllers, entity methods, or database triggers.
   may affect gym-recorded sale amounts. A coach discount from their external margin
   is not a system Offer. Never request the coach's external client charge.
 - FreelanceAgreement retains Coach/Branch/dates/notes only; MembershipPlan.Price
-  is the single pricing source. No permanent freelance client assignment is needed.
+  is the single pricing source. Plan eligibility is explicit, not permanent client ownership.
 
 ## Private financial history and concurrency
 
@@ -91,7 +91,8 @@ not controllers, entity methods, or database triggers.
   credits minus debits; no stored CurrentBalance source of truth.
 - Commission rules are effective-dated configuration. Choose employee overrides
   over branch defaults and validate method-specific rates/targets, relevant
-  activity/class scope, overlap, and eligible payment/refund timing.
+  applicable scope, overlap, and eligible payment/refund timing. These generic rules
+  do not control the new activity percentage or create class compensation.
 - On branch setup, create separate configurable SalesNew and SalesRenewal rules:
   each target 30000; SalesNew below/reached 5/7 percent, renewal 3/5 percent.
   Do not seed these without a real BranchId or hardcode them in calculations.
@@ -114,9 +115,9 @@ not controllers, entity methods, or database triggers.
 
 ## Authorization, audit, and contracts
 
-- Standard Identity roles and Permissions are data-driven. RolePermission is
-  storage only: permission authorization, owner-only operations, IsActive user
-  enforcement, and authentication/token delivery must be implemented later.
+- Standard Identity roles and Permissions are data-driven. Existing JWT authentication
+  and dynamic Permission policies protect API actions; BLL also validates current
+  permissions and branch scope. Owner may operate globally without a fake branch.
 - Preserve financial/history records; deactivate/cancel instead of deletion.
   Restrict FKs prevent cascading history loss, not arbitrary direct deletions.
 - AuditLog updates/deletes are rejected by tracked EF SaveChanges. This does
@@ -130,5 +131,53 @@ not controllers, entity methods, or database triggers.
   generated text/version on MemberContract and reference physical archives.
 - Validate branch IP/CIDR/VPN rules, trusted proxy handling, authorized device
   hash verification/revocation, and active permissions before operations.
-- No lazy-loading proxies, triggers, commission/payment workflows, integration
-  providers, background jobs, or automatic startup migrations are included.
+- No lazy-loading proxies, triggers, payment-provider workflows, background jobs,
+  or automatic startup migrations are included. Focused activity settlement and
+  reporting services are described below.
+
+## Activities, Classes and Freelance — latest rules (2026-10-07)
+
+- Activity access and Gym membership are independent. A new activity purchase must
+  select an active ActivityCoach assigned to its activity. Internal coaches reference
+  Employees; external coaches have a name/contact and no Employee/Identity account.
+- ActivityCoach.Percentage is a fixed configurable percentage, never target/member
+  dependent. Every purchased batch snapshots coach and percentage. Changes apply
+  to subsequent purchases/renewals, including their installments, not old batches.
+  The coach identity/type and purchase attribution cannot be reassigned by tracked saves.
+- Eligible activity revenue is completed Payment.Amount, counted once, validated
+  against its PaymentParts. Authorized Refund.Amount tied to OriginalPaymentId
+  reduces the original payment's eligible revenue in an open period. Unlinked,
+  ambiguous legacy activity payments/refunds must be reconciled, never guessed.
+- No package-price-times-subscriber calculation. Period grouping uses explicit
+  Payment.CommissionPeriodId, branch and [StartAt, EndAt) payment timestamps.
+  Refunds after a closed period's end never change its finalized settlement.
+  Their later adjustment/approval workflow remains outside this update.
+- Finalize a closed period explicitly after all original payment/refund records
+  are complete. ActivityCoachSettlement stores immutable per-coach/activity/rate
+  financial snapshots. Internal totals feed EmployeeCommissionSummary exactly
+  once; external totals remain separate amounts owed. No payroll/ledger payment
+  is generated. Reopening does not silently replace prior activity snapshots.
+- Actual ClassSession has the delivering Employee, independent of planned coach.
+  CheckIns link to the occurrence; one member can attend it once. Historical
+  CheckIns without an occurrence are preserved and excluded pending reconciliation.
+- Count completed sessions, including zero attendance. Exclude scheduled/cancelled
+  sessions. AverageAttendance = TotalAttendances / CompletedClassesCount.
+  Class financial compensation is **BUSINESS RULE NOT FINALIZED**. Existing Class
+  CommissionRules/summary fields are preserved historical/configuration structures;
+  this implementation does not use them to pay bonuses, percentages or targets.
+- Freelance purchases require explicit MembershipPlanEligibleMember and an active
+  Freelance Employee. MembershipPlan.Price is the only configured gym price; external
+  coach/client charges remain outside accounting. No new settlement pricing engine.
+- Freelance sales snapshot House attribution, with no SalesEmployeeId or SaleCategory.
+  End a current Sales assignment and append House inside the purchase transaction.
+  Never rewrite prior assignments or prior sales; no SalesNew/SalesRenewal summary.
+- Removing eligibility blocks subsequent purchases/renewals but preserves past
+  subscription/sale snapshots. Eligibility is not ownership or a subscription.
+  One member/one Freelance coach is a business expectation, **not a permanent DB
+  constraint**. A member may appear in multiple plans; no automatic eligibility backfill.
+- Services audit coach percentage/assignment changes, subscription coach selection,
+  Freelance plan edits and eligibility changes with business action names.
+- New purchases use a serializable transaction (or the caller's existing transaction).
+  A caller providing a transaction owns its isolation/rollback. Concurrent conflicts
+  return 409 through the API; reload/retry. Payment posting still must enforce the
+  existing account/refund/idempotency rules when that workflow is implemented.

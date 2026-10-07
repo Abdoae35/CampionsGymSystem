@@ -18,5 +18,8 @@ public sealed class ActivityCoachAssignmentConfiguration : IEntityTypeConfigurat
         builder.Property(x => x.StartDate).HasColumnType("date");
         builder.Property(x => x.EndDate).HasColumnType("date");
         builder.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
+        builder.HasOne(x => x.ActivityCoach).WithMany().HasForeignKey(x => x.ActivityCoachId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => new { x.SportsActivityId, x.ActivityCoachId, x.StartDate });
+        builder.ToTable("ActivityCoachAssignments", t => t.HasCheckConstraint("CK_ActivityCoachAssignments_Coach", "(\"ActivityCoachId\" IS NOT NULL AND \"CoachEmployeeId\" IS NULL) OR (\"ActivityCoachId\" IS NULL AND \"CoachEmployeeId\" IS NOT NULL)"));
     }
 }

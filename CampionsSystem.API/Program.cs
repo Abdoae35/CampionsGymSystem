@@ -1,4 +1,5 @@
 using CampionsSystem.BLL.Authentication;
+using CampionsSystem.BLL.Operations;
 using CampionsSystem.API.Authentication;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
@@ -28,6 +29,12 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 builder.Services.AddGymAuthentication(builder.Configuration);
 builder.Services.AddScoped<DevelopmentAuthSeeder>();
+builder.Services.AddScoped<OperationAccess>();
+builder.Services.AddScoped<ActivityManagementService>();
+builder.Services.AddScoped<FreelancePlanService>();
+builder.Services.AddScoped<SubscriptionPurchaseService>();
+builder.Services.AddScoped<ClassSessionService>();
+builder.Services.AddScoped<CoachReportService>();
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 

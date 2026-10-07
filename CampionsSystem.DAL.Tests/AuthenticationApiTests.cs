@@ -257,7 +257,7 @@ public sealed class AuthenticationApiTests : IAsyncLifetime
         await using (var scope = factory.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var permission = await db.Permissions.SingleAsync();
+            var permission = await db.Permissions.SingleAsync(x => x.Code == "Members.View");
             permission.IsActive = false;
             await db.SaveChangesAsync();
         }
@@ -292,4 +292,31 @@ public sealed class AuthenticationApiTests : IAsyncLifetime
         using var response = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest());
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+    [Theory]
+    [InlineData("/api/activities/coaches")]
+    [InlineData("/api/classes/sessions")]
+    [InlineData("/api/freelance-plans")]
+    public async Task NewManagementEndpointsRequirePermissions(string route)
+    {
+        using var anonymous = await client.PostAsJsonAsync(route, new { });
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+        await Authenticate();
+        using var forbidden = await client.PostAsJsonAsync(route, new { });
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+    }
+
+    [Fact]
+    public async Task AuthorizedActivityManagementCreatesExternalCoachAndAudit()
+    {
+        await GrantPermission("Manager", "Activities.ManageCoaches");
+        await Authenticate();
+        using var response = await client.PostAsJsonAsync("/api/activities/coaches", new
+        { coachType = 1, employeeId = (Guid?)null, externalName = "External HTTP coach", percentage = 25 });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Single(await db.ActivityCoaches.ToListAsync());
+        Assert.Contains(await db.AuditLogs.ToListAsync(), x => x.Action == "ActivityCoach.Created");
+    }
+
 }

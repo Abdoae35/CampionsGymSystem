@@ -33,7 +33,7 @@ password later does not reset existing accounts; use a reviewed Identity operati
 | dev.inactive | Inactive Identity account, login must return 401 |
 | dev.suspended | Active user linked to suspended Employee, login returns 401 |
 
-Fresh setup creates the six documented roles, 37 baseline permission codes, one
+Fresh setup creates the six documented roles, 45 baseline permission codes, one
 Auth Demo City/Branch, five users, two employees and their assignments. No Member,
 payment, membership or other business data is seeded. The prior pending schema
 migration is not needed for these existing auth tables.

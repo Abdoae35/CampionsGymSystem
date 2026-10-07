@@ -21,7 +21,9 @@ public sealed class DevelopmentAuthSeeder(ApplicationDbContext database, UserMan
         "Payments.View", "Payments.Create", "Payments.Refund", "Expenses.View", "Expenses.Create", "Expenses.Approve",
         "Shifts.View", "Shifts.Manage", "Private.View", "Private.Manage", "Activities.View", "Activities.Manage",
         "Leads.View", "Leads.Manage", "Commission.View", "Commission.ClosePeriod", "Commission.ReopenPeriod",
-        "Commission.ManageRules", "Payroll.View", "Payroll.Manage", "Reports.View", "Reports.ViewRevenue", "AuditLogs.View"
+        "Commission.ManageRules", "Payroll.View", "Payroll.Manage", "Reports.View", "Reports.ViewRevenue", "AuditLogs.View",
+        "Activities.ManageCoaches", "Activities.ViewCoachRevenue", "Classes.View", "Classes.Manage",
+        "Classes.ViewAttendanceReport", "FreelancePlans.View", "FreelancePlans.Manage", "FreelancePlans.ManageEligibleMembers"
     ];
 
     public async Task SeedAsync(string password, CancellationToken cancellationToken = default)

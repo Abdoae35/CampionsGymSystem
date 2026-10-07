@@ -32,12 +32,16 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 | PrivateExpirySettlements | Historical unused batch value at final expiry | PrivateSubscriptionId → PrivateSubscriptions, unique PrivateSubscriptionTransactionId → PrivateSubscriptionTransactions, CoachEmployeeId → Employees, CommissionPeriodId → CommissionPeriods, optional CreatedByUserId → AspNetUsers |
 | SportsActivities | Branch activity catalog | BranchId → GymBranches |
 | ActivityPackages | Activity access/pricing configuration | SportsActivityId → SportsActivities |
-| ActivityCoachAssignments | Effective-dated activity coach configuration | SportsActivityId → SportsActivities, CoachEmployeeId → Employees |
+| ActivityCoaches | Internal/external identity and configurable percentage | optional unique EmployeeId → Employees |
+| ActivityCoachAssignments | Effective-dated activity coach assignment | SportsActivityId → SportsActivities, ActivityCoachId → ActivityCoaches; legacy CoachEmployeeId retained |
 | ActivitySchedules | Weekly coach/activity time slots | ActivityCoachAssignmentId → ActivityCoachAssignments |
-| ActivitySubscriptions | Activity entitlement with snapshotted access mode | MemberId → Members, ActivityPackageId → ActivityPackages, BranchId → GymBranches, ActivityCoachAssignmentId → ActivityCoachAssignments |
-| ActivitySubscriptionTransactions | Activity purchase/renewal history | ActivitySubscriptionId → ActivitySubscriptions, SaleTransactionId → SaleTransactions, ActivityPackageId → ActivityPackages |
+| ActivitySubscriptions | Independent activity entitlement and current selected coach | MemberId → Members, ActivityPackageId → ActivityPackages, BranchId → GymBranches, ActivityCoachId → ActivityCoaches, ActivityCoachAssignmentId → ActivityCoachAssignments |
+| ActivitySubscriptionTransactions | Activity purchase/renewal history and immutable coach/rate | ActivitySubscriptionId → ActivitySubscriptions, SaleTransactionId → SaleTransactions, ActivityPackageId → ActivityPackages, ActivityCoachIdSnapshot → ActivityCoaches |
 | GroupClasses | Branch group class configuration | BranchId → GymBranches, CoachEmployeeId → Employees |
 | ClassSchedules | Weekly class time slots | GroupClassId → GroupClasses |
+| ClassSessions | Actual occurrence, status and delivering coach | GroupClassId → GroupClasses, optional ClassScheduleId → ClassSchedules, BranchId → GymBranches, CoachEmployeeId → Employees |
+| MembershipPlanEligibleMembers | Explicit Freelance purchase eligibility | MembershipPlanId → MembershipPlans, MemberId → Members, CreatedByUserId → AspNetUsers |
+| ActivityCoachSettlements | Finalized coach/activity/rate revenue and entitlement | CommissionPeriodId → CommissionPeriods, ActivityCoachId → ActivityCoaches, SportsActivityId → SportsActivities, optional EmployeeId → Employees, CreatedByUserId → AspNetUsers |
 | CheckIns | Gym/activity/class attendance and consumption | MemberId → Members, BranchId → GymBranches, MemberSubscriptionId → MemberSubscriptions, ActivitySubscriptionId → ActivitySubscriptions, GroupClassId → GroupClasses, CoachEmployeeId → Employees, CreatedByUserId → AspNetUsers |
 | SaleTransactions | Historical branch sale totals and seller attribution | MemberId → Members, BranchId → GymBranches, CreatedShiftId → Shifts, SalesEmployeeId → Employees, OfferId → Offers, CreatedByUserId → AspNetUsers |
 | Payments | Received funds linked to sale/shift/period | SaleTransactionId → SaleTransactions, BranchId → GymBranches, ShiftId → Shifts, CommissionPeriodId → CommissionPeriods, InstallmentId → Installments, ReceivedByUserId → AspNetUsers |
@@ -127,3 +131,40 @@ Authorization: Permissions, RolePermissions and standard Identity tables.
 
 See DATA_FLOWS.md and UPDATE_PRIVATE_AND_FREELANCE.md for flow and rollout details.
 InitialCreate and its SQL remain the historical baseline, not the current schema.
+
+## Activities, Classes and Freelance update (2026-10-07)
+
+The model now contains **66 application tables plus seven Identity tables (73 total)**.
+
+- ActivityCoaches: Guid PK; string CoachType Internal/External. CHECK requires EmployeeId
+  for Internal and name/no Employee for External. Internal external-contact columns are
+  null; one profile per Employee (partial unique). Percentage numeric(5,2), CHECK 0..100.
+- ActivityCoachAssignments: nullable ActivityCoachId FK; legacy CoachEmployeeId made
+  nullable without removal. CHECK exactly one coach link. New services use ActivityCoachId.
+  Composite (SportsActivityId, ActivityCoachId, StartDate) index supports valid assignments.
+- ActivitySubscriptions: nullable ActivityCoachId FK plus (ActivityCoachId, CreatedAt)
+  index. Nullable is transitional for old rows; new BLL purchases require a coach.
+- ActivitySubscriptionTransactions: nullable ActivityCoachIdSnapshot and
+  CoachPercentageSnapshot numeric(5,2), checked as both null or both present with rate
+  0..100. Existing rows remain unknown; never infer a historical rate from current config.
+- ActivityCoachSettlements: unique (CommissionPeriodId, ActivityCoachId, SportsActivityId,
+  Percentage); numeric(18,2) revenue/entitlement, numeric(5,2) rate, nonnegative checks,
+  coach/activity name and type snapshots. Optional restricted EmployeeId for internal
+  payroll integration; external coaches never acquire artificial Employee records.
+- ClassSessions: GroupClass/schedule/branch/actual coach FKs. CHECK status and times;
+  completed requires EndedAt. Coach+StartedAt, GroupClass+StartedAt and Branch+StartedAt
+  indexes; planned schedule is optional. CheckIns adds nullable restricted ClassSessionId
+  and unique (ClassSessionId, MemberId) filtered to actual sessions. CHECK permits an
+  occurrence link only on Class CheckIns. Legacy check-ins remain intact and unassigned.
+- MembershipPlanEligibleMembers: Guid PK, unique (MembershipPlanId, MemberId), reverse
+  MemberId FK index, creator/timestamp. No member-global uniqueness and no purchase FK
+  to eligibility; removal cannot erase purchase history.
+- SaleTransactions: nullable string SalesAttributionSnapshot for legacy transition.
+  CHECK House has no SalesEmployeeId/SaleCategory; Sales requires SalesEmployeeId.
+  New Freelance sales are House and retain existing plan/coach transaction snapshots.
+- All new FKs use Restrict, no business cascades. FK indexes generated by EF are
+  retained unless covered by a composite prefix. DateTimeOffset uses timestamptz.
+- Eight new permission codes and existing Owner grants are added by the migration;
+  other roles are unchanged. No new user/role/employee/member/eligibility data is seeded.
+
+See [deployment and reconciliation](UPDATE_ACTIVITIES_CLASSES_AND_FREELANCE.md).

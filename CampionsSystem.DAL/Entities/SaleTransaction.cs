@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class SaleTransaction
 {
+    // Historical attribution: null on legacy rows; House suppresses Sales commissions.
+    public AssignmentType? SalesAttributionSnapshot { get; set; }
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid MemberId { get; set; }
     public Member Member { get; set; } = null!;

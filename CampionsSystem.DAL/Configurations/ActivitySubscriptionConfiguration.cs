@@ -28,5 +28,7 @@ public sealed class ActivitySubscriptionConfiguration : IEntityTypeConfiguration
         builder.Property(x => x.EndDate).HasColumnType("date");
         builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(40);
         builder.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
+        builder.HasOne(x => x.ActivityCoach).WithMany().HasForeignKey(x => x.ActivityCoachId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => new { x.ActivityCoachId, x.CreatedAt });
     }
 }

@@ -71,6 +71,11 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<BranchNetworkRule> BranchNetworkRules => Set<BranchNetworkRule>();
     public DbSet<AuthorizedDevice> AuthorizedDevices => Set<AuthorizedDevice>();
 
+    public DbSet<ActivityCoach> ActivityCoaches => Set<ActivityCoach>();
+    public DbSet<ClassSession> ClassSessions => Set<ClassSession>();
+    public DbSet<MembershipPlanEligibleMember> MembershipPlanEligibleMembers => Set<MembershipPlanEligibleMember>();
+    public DbSet<ActivityCoachSettlement> ActivityCoachSettlements => Set<ActivityCoachSettlement>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -79,6 +84,16 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        foreach (var entry in ChangeTracker.Entries<ActivitySubscriptionTransaction>().Where(x => x.State == EntityState.Modified))
+            if (new[] { nameof(ActivitySubscriptionTransaction.ActivityCoachIdSnapshot), nameof(ActivitySubscriptionTransaction.CoachPercentageSnapshot),
+                    nameof(ActivitySubscriptionTransaction.ActivityPackageId), nameof(ActivitySubscriptionTransaction.SaleTransactionId),
+                    nameof(ActivitySubscriptionTransaction.ActivitySubscriptionId) }.Any(name => entry.Property(name).IsModified))
+                throw new InvalidOperationException("Activity purchase coach/rate attribution is immutable; reconcile legacy data explicitly.");
+        foreach (var entry in ChangeTracker.Entries<ActivityCoach>().Where(x => x.State == EntityState.Modified))
+            if (entry.Property(x => x.EmployeeId).IsModified || entry.Property(x => x.CoachType).IsModified)
+                throw new InvalidOperationException("An activity coach's internal/external identity cannot be reassigned.");
+        if (ChangeTracker.Entries<ActivityCoachSettlement>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Finalized activity settlements are historical snapshots.");
         if (ChangeTracker.Entries<AuditLog>().Any(entry =>
             entry.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Audit logs are append-only.");

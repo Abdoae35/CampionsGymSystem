@@ -30,7 +30,9 @@ post consistent ledger entries. Account balance derives from its ledger.
 flowchart LR
     M[Member] --> P[Coach-specific Freelance MembershipPlan]
     P --> V[Validate active Freelance Employee]
-    V --> S[SaleTransaction: gym fixed Price minus eligible system Offer]
+    V --> E[Require explicit plan eligibility]
+    E --> H[End current Sales assignment and append House]
+    H --> S[House SaleTransaction: gym configured Price]
     S --> U[MemberSubscription]
     U --> T[MembershipSubscriptionTransaction: category and Coach snapshots]
     T --> Pay[Payment: gym money only]
@@ -42,10 +44,13 @@ flowchart LR
 
 1. Load the selected plan and detect Freelance category.
 2. Require FreelanceCoachEmployeeId and a currently active Freelance Employee.
-3. Use MembershipPlan.Price as the amount due to the gym. Apply only eligible
-   system Offers attached to that plan using existing OfferMembershipPlans.
+3. Require explicit plan eligibility. End an existing current Sales assignment and
+   append House, preserving all previous assignments/sales. Use MembershipPlan.Price
+   as the gym amount due. The focused purchase service does not accept discounts;
+   only a future validated system Offer workflow may adjust that amount.
 4. Create SaleTransaction, membership/renewal and purchase transaction; snapshot
    PlanCategory and FreelanceCoachEmployeeId independently of future plan edits.
+   Set SalesAttributionSnapshot=House; SalesEmployeeId and SaleCategory are null.
 5. Record Payment/PaymentParts and account/ledger posting only for gym money.
 
 Example: plan Price=300; Coach charges 400 or 500 externally. Without a system
@@ -176,3 +181,78 @@ configured rates/methods and save the existing summary snapshots. Eligible basis
 1000 with AppliedRate=60 percent yields final commission 600. Configure 100 percent
 in CommissionRule if needed; never hardcode percentages into Private entities.
 Closing a period finalizes its history. A later transfer does not recalculate it.
+
+## 8. Sports activity purchase, revenue and settlement
+
+```mermaid
+flowchart LR
+    M[Member] --> P[Select ActivityPackage]
+    P --> C[Select active assigned ActivityCoach]
+    C --> U[ActivitySubscription - independent of Gym access]
+    U --> S[Create activity SaleTransaction]
+    S --> B[Purchase batch - snapshot coach and percentage]
+    B --> Pay[Receive Payment and PaymentParts]
+    Pay --> R[Count each completed Payment once in its period]
+    R --> Refund[Subtract linked eligible refunds]
+    Refund --> Rate[Apply batch percentage - no targets]
+    Rate --> Report[Coach revenue report]
+    Report --> Final[Explicit closed-period snapshot]
+    Final --> Internal[Internal EmployeeCommissionSummary]
+    Final --> External[External coach amount owed - no Employee payroll]
+```
+
+The purchase service atomically creates/renews the subscription, creates the sale,
+records batch attribution and audits coach selection. It does not receive payments
+or grant Gym membership. New subscriptions are Scheduled; payment/access activation
+remains the payment workflow's responsibility. Renewals can select a new assigned
+coach for future batches; previous batches/installments retain their original coach/rate.
+
+Report rows group by coach/activity/**purchase percentage**; multiple configured
+rates may therefore yield multiple rows. Subscribers are distinct paid members per
+row. Eligible revenue is completed Payment.Amount minus linked refunds, not list
+price or the sum of joined payment/part rows. Validate parts total. Round each grouped
+entitlement to two places, midpoint away from zero. Period intervals are [start,end).
+
+Finalize explicitly after period close, with its final EndAt and reconciled records.
+Internal snapshots feed one EmployeeCommissionSummary per employee/activity;
+external snapshots remain separate. No external payment/ledger engine is added.
+Never recalculate finalized snapshots automatically, including when a period is
+reopened. Later refunds require a separately authorized adjustment, not history edits.
+
+## 9. Actual class attendance — statistics only
+
+```mermaid
+flowchart LR
+    Schedule[ClassSchedule - planned] --> Actual[Actual ClassSession]
+    Actual --> Coach[Actual delivering CoachEmployee]
+    Coach --> Attendance[CheckIns linked to occurrence]
+    Attendance --> Completed[Completed sessions including zero attendance]
+    Completed --> Report[Coach attendance report]
+    Report --> Average[Total attendance divided by completed sessions]
+    Average --> Stop[STOP - financial compensation NOT FINALIZED]
+```
+
+Scheduled/cancelled sessions are excluded. A completed empty session contributes
+one to the denominator and zero to the numerator. The session's actual coach wins
+over GroupClass/planned coach. Unique member/session attendance avoids duplicate
+counts. Legacy class CheckIns without session links are excluded until reconciled;
+no fake occurrences or manual attendance totals are created.
+
+## 10. Freelance plan configuration, eligibility and House sale
+
+```mermaid
+flowchart LR
+    Plan[Create Freelance MembershipPlan] --> Coach[Assign active Freelance Employee]
+    Coach --> Price[Set MembershipPlan.Price - gym money]
+    Price --> Eligible[Explicitly add eligible Members]
+    Eligible --> Validate[Validate eligibility in BLL on every purchase or renewal]
+    Validate --> History[End current Sales assignment and append House]
+    History --> Purchase[Create membership and immutable coach/plan snapshots]
+    Purchase --> Sale[House sale - no Sales employee or category]
+    Sale --> Stop[No SalesNew or SalesRenewal commission]
+```
+
+Removing eligibility affects future purchases only. Historical membership/sale
+snapshots survive plan edits and eligibility removal. One member may be listed on
+multiple plans; no permanent global coach lock exists. No coach margin, external
+client charge, Freelance settlement pricing engine or permanent client table is added.

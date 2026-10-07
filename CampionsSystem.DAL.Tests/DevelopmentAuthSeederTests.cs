@@ -49,7 +49,7 @@ public sealed class DevelopmentAuthSeederTests : IAsyncLifetime
         await Seed();
         Assert.Equal(5, await db.Users.CountAsync());
         Assert.Equal(6, await db.Roles.CountAsync());
-        Assert.Equal(37, await db.Permissions.CountAsync());
+        Assert.Equal(DevelopmentAuthSeeder.PermissionCodes.Length, await db.Permissions.CountAsync());
         Assert.Equal(2, await db.Employees.CountAsync());
         Assert.Equal(2, await db.EmployeeBranchAssignments.CountAsync());
         Assert.Single(await db.GymBranches.ToListAsync());
@@ -60,7 +60,7 @@ public sealed class DevelopmentAuthSeederTests : IAsyncLifetime
         var owner = Assert.IsType<CurrentUserContext>(await Login("dev.owner"));
         Assert.Null(owner.EmployeeId);
         Assert.Null(owner.CurrentBranch);
-        Assert.Equal(37, owner.Permissions.Count);
+        Assert.Equal(DevelopmentAuthSeeder.PermissionCodes.Length, owner.Permissions.Count);
         var reception = Assert.IsType<CurrentUserContext>(await Login("dev.reception"));
         Assert.NotNull(reception.EmployeeId);
         Assert.Equal("Auth Demo Branch", reception.CurrentBranch?.Name);

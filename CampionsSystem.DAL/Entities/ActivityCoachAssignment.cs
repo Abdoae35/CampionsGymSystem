@@ -5,11 +5,15 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class ActivityCoachAssignment
 {
+    public Guid? ActivityCoachId { get; set; }
+    public ActivityCoach? ActivityCoach { get; set; }
+    // Legacy Employee link retained until coach/rate reconciliation. New assignments use ActivityCoachId.
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid SportsActivityId { get; set; }
     public SportsActivity SportsActivity { get; set; } = null!;
-    public Guid CoachEmployeeId { get; set; }
-    public Employee CoachEmployee { get; set; } = null!;
+    public Guid? CoachEmployeeId { get; set; }
+    public Employee? CoachEmployee { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
     public bool IsActive { get; set; } = true;

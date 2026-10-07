@@ -39,25 +39,24 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Local auth demo setup added and explicitly run: five Identity accounts, six roles,
-  37 permissions, two employee assignments and one demo branch. No migrations run.
-  Build clean; 61 tests pass. Postman collection simplified and verified: 14 requests/21 assertions.
-  Seed setup pushed as 8f73967; collection publication checkpoint follows.
-
-- Authentication + Authorization + current user/branch implementation complete.
-  Auth BLL dc933b0, JWT/API e72ff74 and permission policies 24ee95b are committed
-  and pushed to origin/Auth. Documentation a907b76 is also committed/pushed.
-- API exposes POST /api/auth/login and authenticated GET /api/auth/me. JWT validates
-  signature/issuer/audience/lifetime and active account/employee state; live Identity
-  roles and distinct active DB permissions drive authorization. No business CRUD.
-- Configure a real JWT key externally; committed key is empty. No auth migration,
-  automatic startup seeding or production data access. Explicit local demo seed is available.
-- Build zero warnings/errors; all 61 solution tests passed, 0 failed/skipped;
-  no model drift. Existing test project reused; all PostgreSQL fixtures roll back.
-- Model has 62 application tables; prior Private/Freelance rollout remains separate
-  from the existing InitialCreate local database. No DAL schema files changed.
-- User weather-route cleanup is committed as c3752e7 and preserved.
-- Docs: docs/authentication/; project-history skill portable source unchanged.
+- Latest selected update (2026-10-07): Activities/internal-external coaches and actual
+  paid-revenue settlement, Class actual sessions/attendance statistics, Freelance plan
+  eligibility and House purchases implemented. No automatic Class compensation.
+- Model: 66 application tables plus seven Identity tables. One new additive migration
+  UpdateActivitiesClassesAndFreelanceRules; SQL generated/reviewed. No user database
+  migration applied; legacy reconciliation is documented.
+- Final build zero warnings/errors; 103 tests passed, 0 failed/skipped. No model drift.
+  Tests use isolated PostgreSQL schemas/rollback; legacy-data upgrade verified.
+- New permission-protected operations/report endpoints and audited BLL paths exist;
+  existing JWT/login/current-user functionality preserved. No package additions.
+- Current branch is DataBaseInit; update and checkpoint are uncommitted/unpushed.
+  Earlier incremental-push request/handoff targeted Auth authentication work; no
+  branch switch or publication to the old Auth target performed for this update.
+- See docs/database/UPDATE_ACTIVITIES_CLASSES_AND_FREELANCE.md for exact files,
+  endpoints, rate/refund/finalization assumptions and deployment/reconciliation.
+- Pending decisions: Class financial formula and authorized corrections/late refunds
+  for finalized activity settlements. Payment reception/access activation remains its
+  separate workflow. Await next user-selected task; no unrelated implementation.
 
 ## Work history
 
@@ -481,3 +480,57 @@ weather-route removal remains outside assistant commits.
   No backend/schema changes; no build rerun needed for JSON/docs-only change.
 - Preparing verified collection update for commit/push to Auth. Existing uncommitted
   clarification history was preserved; no credentials included. API left running.
+
+## 2026-10-07 — Activities, Classes and Freelance business-rule update
+
+Request: inspect existing persistence/auth implementation and apply the latest activity
+coach, Class attendance and Freelance eligibility/House rules without redesigning the
+system, editing applied migrations or applying destructive updates.
+
+Findings: 62 application/7 Identity tables; ActivityCoachAssignment required an Employee;
+activity purchases had no immutable coach/rate; no actual class occurrence existed;
+Freelance plans/snapshots existed but eligibility/House purchase enforcement did not.
+Generic CommissionRules allowed target/fixed/Class formulas but no business services
+used them. Refund OriginalPaymentId was optional and ambiguous for installment attribution.
+
+Changes:
+- Four new tables: ActivityCoaches, ActivityCoachSettlements, ClassSessions,
+  MembershipPlanEligibleMembers; new coach/session enums and restricted relationships.
+- Extended activity assignments/subscriptions/batches, CheckIns and SaleTransactions.
+  Preserved legacy Employee links and unknown historical values rather than inventing
+  coaches, percentages, occurrences, eligibility or sales history.
+- Added focused BLL management, initial/renewal purchase, attendance and reporting
+  services; permission/branch checks and AuditLog entries; scoped DI and protected
+  API endpoints. Kept N-Tier, existing identity, and response conventions. No packages.
+- Activity percentages snapshot at purchase. Actual completed Payment counted once
+  and checked against parts, minus refunds linked to original payments. Closed snapshots
+  immutable; internal totals bridge existing employee summaries once, external totals
+  remain separate amounts owed. Ambiguous legacy revenue refuses calculation.
+- Class completed zero-attendee sessions count in average; cancelled/scheduled excluded;
+  actual delivering coach receives stats. No Class financial calculation generated.
+- Freelance eligibility required on every purchase/renewal. Sale snapshot House with no
+  Sales employee/category; old Sales assignment ends and House appended atomically.
+  Past purchases survive removal/plan edits. No global member-coach constraint.
+- Generated 20261007000549_UpdateActivitiesClassesAndFreelanceRules and forward SQL.
+  Four new tables, six nullable columns, old Employee FK made nullable, checks/indexes;
+  no Up table/column drops. Eight permissions and existing Owner grants added by migration.
+  Old migrations unchanged. No user development/production database update performed.
+- Updated schema/rules/flows, local seed catalog count and detailed rollout/file manifest.
+
+Verification: pre-migration and final builds passed with zero warnings/errors. First
+expanded test build had an async-lambda syntax error, corrected before test execution.
+28 initial business tests passed; expanded full suite passed 98; final regression suite
+passed 103 (0 failed/skipped, 42 additional cases). PostgreSQL migration/constraint tests
+and HTTP authorization passed, including legacy-data preservation. EF pending-model
+check reports no drift; diff whitespace check clean. Test data/schema fully rolled back.
+
+Decisions/limits: rate changes apply to future purchases, not old installments. Closed
+period activity finalization is explicit; no whole-period close/reopen or payment engine
+introduced. Reopening retains prior snapshot. Late-refund/correction workflow and Class
+payout rules remain unresolved intentionally. No arbitrary mid-batch coach reassignment.
+
+Commit/push state: clean repository at start; current user-selected branch DataBaseInit.
+All new update/checkpoint files remain uncommitted/unpushed; earlier Auth-specific push
+workflow was not used to publish this separate schema/business change to another branch.
+Next: review/apply pending migrations explicitly after required legacy reconciliation;
+then grant any additional non-Owner management permissions as intended. Stop here.

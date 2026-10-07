@@ -26,5 +26,8 @@ public sealed class ActivitySubscriptionTransactionConfiguration : IEntityTypeCo
         builder.Property(x => x.PreviousEndDate).HasColumnType("date");
         builder.Property(x => x.NewEndDate).HasColumnType("date");
         builder.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
+        builder.HasOne(x => x.ActivityCoachSnapshot).WithMany().HasForeignKey(x => x.ActivityCoachIdSnapshot).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.CoachPercentageSnapshot).HasPrecision(5, 2);
+        builder.ToTable("ActivitySubscriptionTransactions", t => t.HasCheckConstraint("CK_ActivitySubscriptionTransactions_CoachSnapshot", "(\"ActivityCoachIdSnapshot\" IS NULL AND \"CoachPercentageSnapshot\" IS NULL) OR (\"ActivityCoachIdSnapshot\" IS NOT NULL AND \"CoachPercentageSnapshot\" IS NOT NULL AND \"CoachPercentageSnapshot\" BETWEEN 0 AND 100)"));
     }
 }

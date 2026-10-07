@@ -22,13 +22,62 @@ namespace CampionsSystem.DAL.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ActivityCoach", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CoachType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ExternalName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("ExternalPhone")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("Percentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId")
+                        .IsUnique()
+                        .HasFilter("\"EmployeeId\" IS NOT NULL");
+
+                    b.ToTable("ActivityCoaches", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ActivityCoaches_Percentage", "\"Percentage\" BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("CK_ActivityCoaches_Type", "(\"CoachType\" = 'Internal' AND \"EmployeeId\" IS NOT NULL AND \"ExternalName\" IS NULL AND \"ExternalPhone\" IS NULL) OR (\"CoachType\" = 'External' AND \"EmployeeId\" IS NULL AND length(trim(\"ExternalName\")) > 0 AND \"ExternalName\" IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.ActivityCoachAssignment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CoachEmployeeId")
+                    b.Property<Guid?>("ActivityCoachId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CoachEmployeeId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -48,13 +97,92 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActivityCoachId");
+
                     b.HasIndex("CoachEmployeeId");
 
-                    b.HasIndex("SportsActivityId");
+                    b.HasIndex("SportsActivityId", "ActivityCoachId", "StartDate");
 
                     b.ToTable("ActivityCoachAssignments", null, t =>
                         {
+                            t.HasCheckConstraint("CK_ActivityCoachAssignments_Coach", "(\"ActivityCoachId\" IS NOT NULL AND \"CoachEmployeeId\" IS NULL) OR (\"ActivityCoachId\" IS NULL AND \"CoachEmployeeId\" IS NOT NULL)");
+
                             t.HasCheckConstraint("CK_ActivityCoachAssignments_StartDateEndDate", "\"EndDate\" >= \"StartDate\"");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ActivityCoachSettlement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActivityCoachId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActivityNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("CoachNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("CoachTypeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("CommissionPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("EligibleRevenue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Entitlement")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTimeOffset>("FinalizedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("Percentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<Guid>("SportsActivityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SubscribersCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityCoachId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("SportsActivityId");
+
+                    b.HasIndex("CommissionPeriodId", "ActivityCoachId", "SportsActivityId", "Percentage")
+                        .IsUnique();
+
+                    b.ToTable("ActivityCoachSettlements", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ActivityCoachSettlements_Amounts", "\"EligibleRevenue\" >= 0 AND \"Entitlement\" >= 0 AND \"SubscribersCount\" >= 0 AND \"Percentage\" BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("CK_ActivityCoachSettlements_Employee", "(\"CoachTypeSnapshot\" = 'Internal' AND \"EmployeeId\" IS NOT NULL) OR (\"CoachTypeSnapshot\" = 'External' AND \"EmployeeId\" IS NULL)");
                         });
                 });
 
@@ -168,6 +296,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("ActivityCoachAssignmentId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ActivityCoachId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ActivityPackageId")
                         .HasColumnType("uuid");
 
@@ -207,6 +338,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("MemberId");
 
+                    b.HasIndex("ActivityCoachId", "CreatedAt");
+
                     b.ToTable("ActivitySubscriptions", null, t =>
                         {
                             t.HasCheckConstraint("CK_ActivitySubscriptions_AccessMode", "\"AccessMode\" IN ('Unlimited', 'SessionBased')");
@@ -231,11 +364,18 @@ namespace CampionsSystem.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ActivityCoachIdSnapshot")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("ActivityPackageId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ActivitySubscriptionId")
                         .HasColumnType("uuid");
+
+                    b.Property<decimal?>("CoachPercentageSnapshot")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -270,6 +410,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActivityCoachIdSnapshot");
+
                     b.HasIndex("ActivityPackageId");
 
                     b.HasIndex("ActivitySubscriptionId");
@@ -278,6 +420,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.ToTable("ActivitySubscriptionTransactions", null, t =>
                         {
+                            t.HasCheckConstraint("CK_ActivitySubscriptionTransactions_CoachSnapshot", "(\"ActivityCoachIdSnapshot\" IS NULL AND \"CoachPercentageSnapshot\" IS NULL) OR (\"ActivityCoachIdSnapshot\" IS NOT NULL AND \"CoachPercentageSnapshot\" IS NOT NULL AND \"CoachPercentageSnapshot\" BETWEEN 0 AND 100)");
+
                             t.HasCheckConstraint("CK_ActivitySubscriptionTransactions_DurationDaysAdded", "\"DurationDaysAdded\" > 0");
 
                             t.HasCheckConstraint("CK_ActivitySubscriptionTransactions_NetAmount", "\"NetAmount\" >= 0");
@@ -613,6 +757,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<DateTimeOffset>("CheckedInAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("ClassSessionId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("CoachEmployeeId")
                         .HasColumnType("uuid");
 
@@ -648,6 +795,10 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("BranchId", "CheckedInAt");
 
+                    b.HasIndex("ClassSessionId", "MemberId")
+                        .IsUnique()
+                        .HasFilter("\"ClassSessionId\" IS NOT NULL");
+
                     b.HasIndex("MemberId", "CheckedInAt");
 
                     b.ToTable("CheckIns", null, t =>
@@ -655,6 +806,8 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_CheckIns_CheckInMethod", "\"CheckInMethod\" IN ('Scanner', 'Manual', 'Coach')");
 
                             t.HasCheckConstraint("CK_CheckIns_CheckInType", "\"CheckInType\" IN ('Gym', 'BorrowedGym', 'Activity', 'Class')");
+
+                            t.HasCheckConstraint("CK_CheckIns_ClassSession", "\"ClassSessionId\" IS NULL OR \"CheckInType\" = 'Class'");
 
                             t.HasCheckConstraint("CK_CheckIns_SubscriptionType", "(\"CheckInType\" IN ('Gym', 'BorrowedGym') AND \"MemberSubscriptionId\" IS NOT NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Activity' AND \"ActivitySubscriptionId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Class' AND \"GroupClassId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL)");
                         });
@@ -712,6 +865,56 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_ClassSchedules_DayOfWeek", "\"DayOfWeek\" BETWEEN 0 AND 6");
 
                             t.HasCheckConstraint("CK_ClassSchedules_TimeRange", "\"EndTime\" > \"StartTime\"");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ClassSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ClassScheduleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CoachEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GroupClassId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassScheduleId");
+
+                    b.HasIndex("BranchId", "StartedAt");
+
+                    b.HasIndex("CoachEmployeeId", "StartedAt");
+
+                    b.HasIndex("GroupClassId", "StartedAt");
+
+                    b.ToTable("ClassSessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ClassSessions_Status", "\"Status\" IN ('Scheduled', 'Completed', 'Cancelled')");
+
+                            t.HasCheckConstraint("CK_ClassSessions_Times", "(\"EndedAt\" IS NULL OR \"EndedAt\" >= \"StartedAt\") AND (\"Status\" <> 'Completed' OR \"EndedAt\" IS NOT NULL)");
                         });
                 });
 
@@ -2049,6 +2252,36 @@ namespace CampionsSystem.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlanEligibleMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MembershipPlanId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("MemberId");
+
+                    b.HasIndex("MembershipPlanId", "MemberId")
+                        .IsUnique();
+
+                    b.ToTable("MembershipPlanEligibleMembers", (string)null);
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipSubscriptionTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3021,6 +3254,10 @@ namespace CampionsSystem.DAL.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
+                    b.Property<string>("SalesAttributionSnapshot")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<Guid?>("SalesEmployeeId")
                         .HasColumnType("uuid");
 
@@ -3046,6 +3283,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.ToTable("SaleTransactions", null, t =>
                         {
                             t.HasCheckConstraint("CK_SaleTransactions_Amounts", "\"DiscountAmount\" <= \"GrossAmount\" AND \"NetAmount\" = \"GrossAmount\" - \"DiscountAmount\"");
+
+                            t.HasCheckConstraint("CK_SaleTransactions_Attribution", "\"SalesAttributionSnapshot\" IS NULL OR (\"SalesAttributionSnapshot\" = 'House' AND \"SalesEmployeeId\" IS NULL AND \"SaleCategory\" IS NULL) OR (\"SalesAttributionSnapshot\" = 'Sales' AND \"SalesEmployeeId\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_SaleTransactions_DiscountAmount", "\"DiscountAmount\" >= 0");
 
@@ -3357,13 +3596,27 @@ namespace CampionsSystem.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ActivityCoach", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Employee");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.ActivityCoachAssignment", b =>
                 {
+                    b.HasOne("CampionsSystem.DAL.Entities.ActivityCoach", "ActivityCoach")
+                        .WithMany()
+                        .HasForeignKey("ActivityCoachId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
                         .WithMany()
                         .HasForeignKey("CoachEmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.SportsActivity", "SportsActivity")
                         .WithMany()
@@ -3371,7 +3624,51 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ActivityCoach");
+
                     b.Navigation("CoachEmployee");
+
+                    b.Navigation("SportsActivity");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ActivityCoachSettlement", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ActivityCoach", "ActivityCoach")
+                        .WithMany()
+                        .HasForeignKey("ActivityCoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
+                        .WithMany()
+                        .HasForeignKey("CommissionPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.SportsActivity", "SportsActivity")
+                        .WithMany()
+                        .HasForeignKey("SportsActivityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActivityCoach");
+
+                    b.Navigation("CommissionPeriod");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Employee");
 
                     b.Navigation("SportsActivity");
                 });
@@ -3405,6 +3702,11 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("ActivityCoachAssignmentId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CampionsSystem.DAL.Entities.ActivityCoach", "ActivityCoach")
+                        .WithMany()
+                        .HasForeignKey("ActivityCoachId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.ActivityPackage", "ActivityPackage")
                         .WithMany()
                         .HasForeignKey("ActivityPackageId")
@@ -3423,6 +3725,8 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ActivityCoach");
+
                     b.Navigation("ActivityCoachAssignment");
 
                     b.Navigation("ActivityPackage");
@@ -3434,6 +3738,11 @@ namespace CampionsSystem.DAL.Migrations
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.ActivitySubscriptionTransaction", b =>
                 {
+                    b.HasOne("CampionsSystem.DAL.Entities.ActivityCoach", "ActivityCoachSnapshot")
+                        .WithMany()
+                        .HasForeignKey("ActivityCoachIdSnapshot")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.ActivityPackage", "ActivityPackage")
                         .WithMany()
                         .HasForeignKey("ActivityPackageId")
@@ -3451,6 +3760,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("SaleTransactionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ActivityCoachSnapshot");
 
                     b.Navigation("ActivityPackage");
 
@@ -3579,6 +3890,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.ClassSession", "ClassSession")
+                        .WithMany()
+                        .HasForeignKey("ClassSessionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
                         .WithMany()
                         .HasForeignKey("CoachEmployeeId")
@@ -3610,6 +3926,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Navigation("Branch");
 
+                    b.Navigation("ClassSession");
+
                     b.Navigation("CoachEmployee");
 
                     b.Navigation("CreatedByUser");
@@ -3628,6 +3946,40 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("GroupClassId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("GroupClass");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ClassSession", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ClassSchedule", "ClassSchedule")
+                        .WithMany()
+                        .HasForeignKey("ClassScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
+                        .WithMany()
+                        .HasForeignKey("CoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.GroupClass", "GroupClass")
+                        .WithMany()
+                        .HasForeignKey("GroupClassId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("ClassSchedule");
+
+                    b.Navigation("CoachEmployee");
 
                     b.Navigation("GroupClass");
                 });
@@ -4244,6 +4596,33 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("City");
 
                     b.Navigation("FreelanceCoachEmployee");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlanEligibleMember", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipPlan", "MembershipPlan")
+                        .WithMany()
+                        .HasForeignKey("MembershipPlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Member");
+
+                    b.Navigation("MembershipPlan");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipSubscriptionTransaction", b =>
