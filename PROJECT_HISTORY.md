@@ -55,7 +55,9 @@ it does not replace checking the actual repository.
   a deliberate operator step; it has not been run automatically against the app database.
 - Postman follow-up is committed locally as 3adb493 but NOT pushed: GitHub rejected
   the initial push and retry with Internal Server Error. No history rewrite/force push.
-  A separate checkpoint records the failure; retain both local commits and retry later.
+  A separate committed checkpoint records the earlier failure. User-requested retry at
+  16:59:40 UTC also failed with GitHub Internal Server Error; both commits remain local.
+  Latest Git-only history/handoff checkpoint is uncommitted; retry publication later.
 - Branch rules/services and prior verification remain documented in docs/branches/.
   Await next user-selected task; no other module started.
 
@@ -833,3 +835,13 @@ a69af6a. Commit retained locally; no force push, amend or reset. Required histor
 updated in a separate local checkpoint commit because the failure occurred after the
 feature commit. No further application changes/checks needed; existing build and 33 API
 tests remain valid. Publication is blocked by GitHub; retry `git push origin HEAD` later.
+
+## 2026-10-07 — User-requested GitHub push retry
+
+User requested retrying publication after VS Code sync failed. Confirmed clean
+BranchSepration working tree, expected origin, and two local commits (3adb493 and
+068f25d). Retried git push origin HEAD; GitHub again rejected it with Internal
+Server Error (request 466C:376D9A:4597D1E:4263E3D, 16:59:40 UTC). No history
+rewrite or application changes. Both commits remain local; publication still
+blocked by the remote server. Build/tests not repeated for this Git-only operation.
+Required history/handoff checkpoint left uncommitted; retry publication later.

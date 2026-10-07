@@ -52,6 +52,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 - Postman commit 3adb493 is local and NOT pushed. Initial push and retry both failed
   with GitHub Internal Server Error; origin remains a69af6a. Separate local history
   checkpoint records failure. Retry git push origin HEAD later; no force push/amend.
+  User-requested retry at 16:59:40 UTC also failed with the same remote server error.
+  Both commits remain local; latest Git-only history/handoff checkpoint is uncommitted.
   Private environment intact.
 - Explicit global branch permission setup is still not automatically run. Other branch
   rules and deferred workflows remain in docs/branches and PROJECT_HISTORY.md.
