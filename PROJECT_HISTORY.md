@@ -43,23 +43,16 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature complete on BranchSepration; all eight implementation/test/docs commits
-  verified pushed through a69af6a, with clean working tree and matching GitHub HEAD.
-- Latest follow-up: existing Postman collection now includes all eight branch/employee
-  assignment/transfer routes alongside authentication. Re-import Campions API - Auth and
-  Branches; set selected IDs/dates and login through the primary Login request.
-- Follow-up build 0 warnings/errors; 33 authentication/branch API tests passed. Collection
-  JSON/routes/body/token placeholders validated. Previous final full suite 202 passed;
-  no full-suite rerun for this collection/docs-only follow-up. No live Postman/Newman run.
-- No application code/schema/database changes. Explicit Branches.AccessAll setup remains
-  a deliberate operator step; it has not been run automatically against the app database.
-- Postman follow-up is committed locally as 3adb493 but NOT pushed: GitHub rejected
-  the initial push and retry with Internal Server Error. No history rewrite/force push.
-  A separate committed checkpoint records the earlier failure. User-requested retry at
-  16:59:40 UTC also failed with GitHub Internal Server Error; both commits remain local.
-  Latest Git-only history/handoff checkpoint is uncommitted; retry publication later.
-- Branch rules/services and prior verification remain documented in docs/branches/.
-  Await next user-selected task; no other module started.
+- Latest remote verification (2026-10-07): local master and origin/master both at
+  74de413, merge PR #1 from BranchSepration. Fetch succeeded; no divergence.
+- All branch feature, Postman (3adb493), and history checkpoint commits are now
+  included in GitHub master. BranchSepration/origin both at 3efb45e; no commits or
+  file differences missing from master. Earlier push failure has been resolved.
+- Last implementation verification: build 0 warnings/errors; full suite 202 passed;
+  Postman follow-up 33 auth/branch API tests passed. No tests rerun for Git verification.
+- Explicit Branches.AccessAll setup remains a deliberate operator step, not run
+  automatically. No feature/schema/database changes during this verification.
+- Latest verification history/handoff edits are uncommitted on master. Await next task.
 
 ## Work history
 
@@ -845,3 +838,14 @@ Server Error (request 466C:376D9A:4597D1E:4263E3D, 16:59:40 UTC). No history
 rewrite or application changes. Both commits remain local; publication still
 blocked by the remote server. Build/tests not repeated for this Git-only operation.
 Required history/handoff checkpoint left uncommitted; retry publication later.
+
+## 2026-10-07 — Verify latest work is merged into master
+
+User requested checking whether master contains the latest completed work. Started
+on clean master; fetched origin successfully. Local/remote master both 74de413
+(merge PR #1); local/remote BranchSepration both 3efb45e. Ancestry checks confirm
+3adb493 and 068f25d included; origin/master..BranchSepration empty and file diff
+empty. master versus origin/master ahead/behind 0/0. Earlier failed publication
+has since succeeded and been merged. No merge, push, application changes, database
+writes, builds or tests performed. Required history/handoff updated and left
+uncommitted; no further action needed to publish the completed feature.

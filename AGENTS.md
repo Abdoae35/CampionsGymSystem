@@ -41,21 +41,15 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Branch feature complete on BranchSepration; eight prior commits verified pushed through
-  a69af6a. Latest follow-up adds all eight branch/assignment/transfer endpoints to existing
-  postman/Campions.Auth.postman_collection.json; displayed name Auth and Branches.
-- Re-import collection; primary Login supplies accessToken. Set selected IDs and calendar
-  dates deliberately. README explains permissions, scope and explicit AccessAll setup.
-- Follow-up build 0 warnings/errors; 33 auth/branch HTTP tests passed; collection JSON,
-  exact route coverage and bodies validated. Prior full suite 202 passed. No live
-  Postman/Newman run, application code/schema changes or application database writes.
-- Postman commit 3adb493 is local and NOT pushed. Initial push and retry both failed
-  with GitHub Internal Server Error; origin remains a69af6a. Separate local history
-  checkpoint records failure. Retry git push origin HEAD later; no force push/amend.
-  User-requested retry at 16:59:40 UTC also failed with the same remote server error.
-  Both commits remain local; latest Git-only history/handoff checkpoint is uncommitted.
-  Private environment intact.
-- Explicit global branch permission setup is still not automatically run. Other branch
-  rules and deferred workflows remain in docs/branches and PROJECT_HISTORY.md.
+- Verified 2026-10-07: master and origin/master both 74de413 (merge PR #1).
+  Successful fresh fetch confirms all BranchSepration work, including Postman and
+  history checkpoints, is included. BranchSepration/origin both 3efb45e; no missing
+  commits or file differences. Previous GitHub push failure is resolved.
+- Existing Postman collection covers authentication plus eight branch/assignment/
+  transfer routes; re-import and configure selected IDs/dates per postman/README.md.
+- Prior build 0 warnings/errors, full suite 202 passed; Postman follow-up 33 API
+  tests passed. No build/test rerun or application/database changes for Git check.
+- Required verification history/handoff edits are uncommitted on master.
+- Global Branches.AccessAll setup remains explicit, not automatically run.
 - Await next user-selected task; no unrelated module started.
 - Portable history skill: skills/project-history-update/SKILL.md.
