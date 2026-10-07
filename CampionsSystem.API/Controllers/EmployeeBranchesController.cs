@@ -16,4 +16,8 @@ public sealed class EmployeeBranchesController(EmployeeBranchAssignmentService a
 
     [HttpPost("assign-branch"), Authorize(Policy = "Permission:Employees.Manage")]
     public Task<IActionResult> Assign(Guid employeeId, AssignBranchRequest request, CancellationToken ct) => Execute(() => assignments.AssignAsync(employeeId, request, ct));
+    [HttpPost("transfer-branch"), Authorize(Policy = "Permission:Employees.Transfer")]
+    public Task<IActionResult> Transfer(Guid employeeId, TransferBranchRequest request, CancellationToken ct) =>
+        Execute(() => assignments.TransferAsync(employeeId, request, ct));
+
 }

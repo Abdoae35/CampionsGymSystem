@@ -41,13 +41,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature in progress on BranchSepration. Latest increment: explicit branch access security foundation.
-- Verification: build 0 warnings/errors; 91 branch/auth/assignment/existing operations tests passed; diff check clean.
-- Added IBranchAccessService for validated branch scope/operation target resolution, reused scope predicate in branch/assignment and existing OperationAccess instead of Owner role bypass. Completed existing PermissionService role plus direct Allow minus Deny resolution so global access denies are effective without JWT renewal. Added explicit localhost Development permission setup command, not run automatically or applied to app DB. 8368948 pushed successfully.
+- Branch feature in progress on BranchSepration. Latest increment: atomic employee branch transfer workflow.
+- Verification: build 0 warnings/errors; 50 transfer/assignment/security/auth API tests passed; diff check clean.
+- Added permission-protected transfer endpoint to existing assignment service. Source and target scope required, active employment/target/date validated, per-employee row lock, inclusive old-end/new-start history, future transfer protection, two atomic saves plus detailed audit. Fault injected after first save verifies rollback. Existing sale and shift BranchIds preserved. 8f8c054 pushed successfully.
 - No schema/migration changes or application database update in this feature.
 - This verified increment and checkpoint are ready for a small commit and push;
   completed earlier increments remain in chronological history. Preserve user work.
-- Next: atomic employee branch transfer after commit/push. Do not start unrelated modules.
+- Next: complete API and real concurrent transfer coverage after commit/push. Do not start unrelated modules.
 
 ## Work history
 
@@ -699,3 +699,15 @@ Added IBranchAccessService for validated branch scope/operation target resolutio
 
 Verification: build 0 warnings/errors; 91 branch/auth/assignment/existing operations tests passed; diff check clean. No schema or existing migration changes. Checkpoint
 included with this increment; commit/push follows verification. Next: atomic employee branch transfer after commit/push.
+
+## 2026-10-07 — Branch feature: atomic employee branch transfer workflow
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added permission-protected transfer endpoint to existing assignment service. Source and target scope required, active employment/target/date validated, per-employee row lock, inclusive old-end/new-start history, future transfer protection, two atomic saves plus detailed audit. Fault injected after first save verifies rollback. Existing sale and shift BranchIds preserved. 8f8c054 pushed successfully.
+
+Verification: build 0 warnings/errors; 50 transfer/assignment/security/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: complete API and real concurrent transfer coverage after commit/push.

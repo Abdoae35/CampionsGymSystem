@@ -39,12 +39,12 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Branch feature in progress on BranchSepration; latest increment: explicit branch access security foundation.
-- Verification: build 0 warnings/errors; 91 branch/auth/assignment/existing operations tests passed; diff check clean.
-- Added IBranchAccessService for validated branch scope/operation target resolution, reused scope predicate in branch/assignment and existing OperationAccess instead of Owner role bypass. Completed existing PermissionService role plus direct Allow minus Deny resolution so global access denies are effective without JWT renewal. Added explicit localhost Development permission setup command, not run automatically or applied to app DB. 8368948 pushed successfully.
+- Branch feature in progress on BranchSepration; latest increment: atomic employee branch transfer workflow.
+- Verification: build 0 warnings/errors; 50 transfer/assignment/security/auth API tests passed; diff check clean.
+- Added permission-protected transfer endpoint to existing assignment service. Source and target scope required, active employment/target/date validated, per-employee row lock, inclusive old-end/new-start history, future transfer protection, two atomic saves plus detailed audit. Fault injected after first save verifies rollback. Existing sale and shift BranchIds preserved. 8f8c054 pushed successfully.
 - No schema/migration/application DB changes; existing deployed five migrations intact.
 - User authorizes small commits and pushes after each verified meaningful branch task.
   This checkpoint is included in the current increment; commit/push next.
-- Next: atomic employee branch transfer after commit/push. Do not implement unrelated modules.
+- Next: complete API and real concurrent transfer coverage after commit/push. Do not implement unrelated modules.
 - Full chronological operation and commit results: PROJECT_HISTORY.md.
 - History skill portable source: skills/project-history-update/SKILL.md.
