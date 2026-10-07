@@ -49,7 +49,12 @@ read this file and `PROJECT_HISTORY.md` before working.
   transfer routes; re-import and configure selected IDs/dates per postman/README.md.
 - Prior build 0 warnings/errors, full suite 202 passed; Postman follow-up 33 API
   tests passed. No build/test rerun or application/database changes for Git check.
-- Required verification history/handoff edits are uncommitted on master.
-- Global Branches.AccessAll setup remains explicit, not automatically run.
+- Latest inquiry: assignment/history GETs require Employees.View plus branch scope.
+  Default Reception lacks Employees.View; use /api/auth/me for own current branch.
+  Owner global permission has now been explicitly applied to the local database.
+- User-requested local Branches.AccessAll setup succeeded: Owner grant plus audit.
+  Development seed updated for new Owner roles; existing custom grants preserved.
+  Build 0 warnings/errors; 43 seeder/security/auth API tests passed. No schema change.
+  Seed fix commit/push follows checkpoint on current master.
 - Await next user-selected task; no unrelated module started.
 - Portable history skill: skills/project-history-update/SKILL.md.

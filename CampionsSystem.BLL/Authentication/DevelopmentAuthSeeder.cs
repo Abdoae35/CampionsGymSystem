@@ -16,7 +16,7 @@ public sealed class DevelopmentAuthSeeder(ApplicationDbContext database, UserMan
     public static readonly string[] PermissionCodes =
     [
         "Users.View", "Users.Manage", "Roles.View", "Roles.Manage",
-        "Employees.View", "Employees.Manage", "Employees.Transfer", "Branches.View", "Branches.Manage",
+        "Employees.View", "Employees.Manage", "Employees.Transfer", "Branches.View", "Branches.Manage", "Branches.AccessAll",
         "Members.View", "Members.Create", "Members.Edit", "MembershipPlans.View", "MembershipPlans.Manage",
         "Payments.View", "Payments.Create", "Payments.Refund", "Expenses.View", "Expenses.Create", "Expenses.Approve",
         "Shifts.View", "Shifts.Manage", "Private.View", "Private.Manage", "Activities.View", "Activities.Manage",

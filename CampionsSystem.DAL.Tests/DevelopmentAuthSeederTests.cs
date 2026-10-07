@@ -62,11 +62,14 @@ public sealed class DevelopmentAuthSeederTests : IAsyncLifetime
         var owner = Assert.IsType<CurrentUserContext>(await Login("dev.owner"));
         Assert.Null(owner.EmployeeId);
         Assert.Null(owner.CurrentBranch);
+        Assert.Contains("Employees.View", owner.Permissions);
+        Assert.Contains("Branches.AccessAll", owner.Permissions);
         Assert.Equal(DevelopmentAuthSeeder.PermissionCodes.Length, owner.Permissions.Count);
         var reception = Assert.IsType<CurrentUserContext>(await Login("dev.reception"));
         Assert.NotNull(reception.EmployeeId);
         Assert.Equal("Auth Demo Branch", reception.CurrentBranch?.Name);
         Assert.Contains("Payments.Create", reception.Permissions);
+        Assert.DoesNotContain("Branches.AccessAll", reception.Permissions);
         Assert.Empty(Assert.IsType<CurrentUserContext>(await Login("dev.no-permissions")).Permissions);
         Assert.Null(await Login("dev.inactive"));
         Assert.Null(await Login("dev.suspended"));

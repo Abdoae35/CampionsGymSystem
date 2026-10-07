@@ -50,9 +50,12 @@ it does not replace checking the actual repository.
   file differences missing from master. Earlier push failure has been resolved.
 - Last implementation verification: build 0 warnings/errors; full suite 202 passed;
   Postman follow-up 33 auth/branch API tests passed. No tests rerun for Git verification.
-- Explicit Branches.AccessAll setup remains a deliberate operator step, not run
-  automatically. No feature/schema/database changes during this verification.
-- Latest verification history/handoff edits are uncommitted on master. Await next task.
+- Branches.AccessAll applied explicitly to local development Owner role on user
+  request; future new development Owner roles receive it from updated demo seed.
+  Existing customized grants remain preserved by demo reseeding. No schema changes.
+- Latest inquiry: assignment/history GETs require Employees.View plus branch scope;
+  default Reception lacks Employees.View. Own branch is available from /api/auth/me.
+- Latest operation: verified Owner branch seed fix; commit/push checked after checkpoint.
 
 ## Work history
 
@@ -849,3 +852,30 @@ empty. master versus origin/master ahead/behind 0/0. Earlier failed publication
 has since succeeded and been merged. No merge, push, application changes, database
 writes, builds or tests performed. Required history/handoff updated and left
 uncommitted; no further action needed to publish the completed feature.
+
+## 2026-10-07 — Explain Reception assignment GET authorization
+
+Inspected employee branch controller/service, branch scope guard and development
+role defaults after user reported Reception receives Forbidden. Both current
+assignment/history GETs require Employees.View; default Reception lacks it.
+BranchManager default includes it, but branch scope also applies; global reads
+require effective Branches.AccessAll. Own current branch is available through
+GET /api/auth/me without Employees.View. No live account/database inspection,
+permission changes, application edits, tests, commits or pushes performed.
+Required history/handoff updated; existing uncommitted documentation preserved.
+
+## 2026-10-07 — Seed Owner global branch permission
+
+User explicitly requested updating seeded data to fix Owner branch assignment access.
+Added Branches.AccessAll to DevelopmentAuthSeeder.PermissionCodes, so newly seeded
+Owner roles receive it. Existing-role preservation remains unchanged; used existing
+explicit localhost Development BranchPermissionSetup command for current database.
+Command succeeded: created missing permission, inserted Owner grant and audit entry,
+committed transaction. No password/account/employee/history/schema/migration changes;
+Reception grants unchanged, direct Deny precedence preserved. No production writes.
+Added seed assertions for Owner Employees.View/AccessAll and Reception lacking
+AccessAll. Build zero warnings/errors; all 43 seeder/security/auth HTTP tests passed.
+No full suite or live Owner login request run. Existing JWT reads updated permissions
+on next request unless expired or explicitly denied. Prior uncommitted history-only
+investigations preserved in this checkpoint. Reviewed diff; small seed fix commit and
+push to current master follow under user's incremental publication workflow.
