@@ -444,4 +444,116 @@ public sealed class AuthenticationApiTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact] public async Task EmployeeEndpointsRequireAuthenticationAndPermissions()
+    {
+        using var anonymous = await client.GetAsync("/api/employees"); Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+        await Authenticate();
+        using var list = await client.GetAsync("/api/employees"); Assert.Equal(HttpStatusCode.Forbidden, list.StatusCode);
+        using var create = await client.PostAsJsonAsync("/api/employees", new { fullName = "No access", phone = "0", hireDate = BranchToday });
+        Assert.Equal(HttpStatusCode.Forbidden, create.StatusCode);
+        using var status = await client.PatchAsJsonAsync($"/api/employees/{Guid.NewGuid()}/status", new { status = "Suspended" });
+        Assert.Equal(HttpStatusCode.Forbidden, status.StatusCode);
+    }
+
+    [Fact] public async Task EmployeeListAndBranchRouteCannotEscapeCurrentScope()
+    {
+        var data = await BranchFixture(); await GrantPermission("EmployeeReader", "Employees.View");
+        Guid otherId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var other = new Employee { FullName = "Other employee", Phone = "elsewhere", HireDate = BranchToday.AddDays(-1) };
+            db.Add(new EmployeeBranchAssignment { Employee = other, BranchId = data.Target, StartDate = BranchToday, IsPrimary = true, AssignedByUserId = userId });
+            await db.SaveChangesAsync(); otherId = other.Id;
+        }
+        await Authenticate();
+        using var list = await client.GetAsync("/api/employees?search=http&pageSize=1"); Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        var result = (await list.Content.ReadFromJsonAsync<CampionsSystem.BLL.Employees.EmployeeListResult>())!;
+        Assert.Equal(1, result.TotalCount); Assert.Equal(data.Employee, Assert.Single(result.Items).Id);
+        using var branch = await client.GetAsync($"/api/branches/{data.Source}/employees"); Assert.Equal(HttpStatusCode.OK, branch.StatusCode);
+        using var spoof = await client.GetAsync($"/api/employees?branchId={data.Target}"); Assert.Equal(HttpStatusCode.Forbidden, spoof.StatusCode);
+        using var routeSpoof = await client.GetAsync($"/api/branches/{data.Target}/employees?branchId={data.Source}"); Assert.Equal(HttpStatusCode.Forbidden, routeSpoof.StatusCode);
+        using var details = await client.GetAsync($"/api/employees/{otherId}"); Assert.Equal(HttpStatusCode.NotFound, details.StatusCode);
+        using var update = await client.PutAsJsonAsync($"/api/employees/{otherId}", new { fullName = "Spoof", phone = "0", hireDate = BranchToday });
+        Assert.Equal(HttpStatusCode.Forbidden, update.StatusCode);
+    }
+
+    private async Task GrantEmployeeManagement()
+    {
+        await GrantPermission("EmployeeAdmin", "Employees.View");
+        await GrantPermission("EmployeeAdmin", "Employees.Manage");
+        await GrantPermission("EmployeeAdmin", "Branches.AccessAll");
+    }
+
+    [Fact] public async Task EmployeeCreateUpdateAndStatusHttpFlowPreservesHistoryWithoutAccountCreation()
+    {
+        var data = await BranchFixture(); await GrantEmployeeManagement(); await Authenticate();
+        using var create = await client.PostAsJsonAsync("/api/employees", new
+            { fullName = "New employee", phone = "123", jobTitle = "Trainer", employmentType = "Staff", hireDate = BranchToday, initialBranchId = data.Source });
+        Assert.Equal(HttpStatusCode.OK, create.StatusCode);
+        var employee = (await create.Content.ReadFromJsonAsync<CampionsSystem.BLL.Employees.EmployeeDetails>())!;
+        Assert.False(employee.HasSystemAccount); Assert.Equal(data.Source, employee.CurrentBranch?.Id);
+        using var update = await client.PutAsJsonAsync($"/api/employees/{employee.Id}", new
+            { fullName = "Edited employee", phone = "456", jobTitle = "Coach", employmentType = "Freelance", hireDate = BranchToday });
+        Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+        Assert.Equal("Edited employee", (await update.Content.ReadFromJsonAsync<CampionsSystem.BLL.Employees.EmployeeDetails>())!.FullName);
+        foreach (var value in new[] { "Suspended", "Active", "Resigned" })
+        {
+            using var status = await client.PatchAsJsonAsync($"/api/employees/{employee.Id}/status", new { status = value, reason = "HTTP test" });
+            Assert.Equal(HttpStatusCode.OK, status.StatusCode);
+            Assert.Equal(value, (await status.Content.ReadFromJsonAsync<CampionsSystem.BLL.Employees.EmployeeDetails>())!.Status);
+        }
+        using var details = await client.GetAsync($"/api/employees/{employee.Id}"); Assert.Equal(HttpStatusCode.OK, details.StatusCode);
+        using var delete = await client.DeleteAsync($"/api/employees/{employee.Id}"); Assert.Equal(HttpStatusCode.MethodNotAllowed, delete.StatusCode);
+        await using var scope = factory.Services.CreateAsyncScope(); var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Equal(1, await db.Users.CountAsync());
+        Assert.Single(await db.EmployeeBranchAssignments.Where(a => a.EmployeeId == employee.Id).ToListAsync());
+        Assert.Equal(3, await db.AuditLogs.CountAsync(a => a.EntityId == employee.Id && a.Action == "EmployeeStatusChanged"));
+        Assert.Equal(BranchToday, (await db.Employees.SingleAsync(e => e.Id == employee.Id)).TerminationDate);
+    }
+
+    [Fact] public async Task EmployeeProfileRejectsBranchAccountAndStatusMassAssignment()
+    {
+        var data = await BranchFixture(); await GrantEmployeeManagement(); await Authenticate();
+        foreach (var field in new[] { "branchId", "initialBranchId", "userId", "status", "terminationDate" })
+        {
+            var body = new Dictionary<string, object> { ["fullName"] = "Unchanged", ["phone"] = "0", ["hireDate"] = BranchToday.AddDays(-30), [field] = data.Target };
+            using var response = await client.PutAsJsonAsync($"/api/employees/{data.Employee}", body);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+        using var create = await client.PostAsJsonAsync("/api/employees", new { fullName = "No login", phone = "0", hireDate = BranchToday, userId });
+        Assert.Equal(HttpStatusCode.BadRequest, create.StatusCode);
+        using var details = await client.GetAsync($"/api/employees/{data.Employee}");
+        Assert.Equal(data.Source, (await details.Content.ReadFromJsonAsync<CampionsSystem.BLL.Employees.EmployeeDetails>())!.CurrentBranch?.Id);
+    }
+
+    [Fact] public async Task EmployeeInvalidRequestsReturn400()
+    {
+        await GrantEmployeeManagement(); await Authenticate();
+        using var profile = await client.PostAsJsonAsync("/api/employees", new { fullName = "", phone = "0", hireDate = BranchToday });
+        Assert.Equal(HttpStatusCode.BadRequest, profile.StatusCode);
+        using var missingDate = await client.PostAsJsonAsync("/api/employees", new { fullName = "Missing date", phone = "0" });
+        Assert.Equal(HttpStatusCode.BadRequest, missingDate.StatusCode);
+        using var missingStatus = await client.PatchAsJsonAsync($"/api/employees/{Guid.NewGuid()}/status", new { reason = "No status" });
+        Assert.Equal(HttpStatusCode.BadRequest, missingStatus.StatusCode);
+        foreach (var query in new[] { "page=0", "pageSize=101", "page=2147483647&pageSize=100", "status=99", "employmentType=99" })
+        {
+            using var list = await client.GetAsync("/api/employees?" + query); Assert.Equal(HttpStatusCode.BadRequest, list.StatusCode);
+        }
+    }
+
+    [Fact] public async Task EmployeeApiInitialAssignmentFailureDoesNotLeavePartialEmployee()
+    {
+        var data = await BranchFixture(); await GrantEmployeeManagement(); await Authenticate();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            (await db.GymBranches.SingleAsync(b => b.Id == data.Target)).IsActive = false; await db.SaveChangesAsync();
+        }
+        using var response = await client.PostAsJsonAsync("/api/employees", new { fullName = "Rollback", phone = "0", hireDate = BranchToday, initialBranchId = data.Target });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        await using var checkScope = factory.Services.CreateAsyncScope(); var check = checkScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Equal(1, await check.Employees.CountAsync()); Assert.Empty(await check.AuditLogs.ToListAsync());
+    }
+
 }

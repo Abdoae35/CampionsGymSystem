@@ -15,7 +15,12 @@ public sealed class FinalAlignmentMigrationTests
         var user = new ApplicationUser { UserName = "final-upgrade" };
         var branch = new GymBranch { Name = "Legacy", City = new City { Name = "Legacy" } };
         var member = new Member { MemberCode = "FINAL-LEGACY", FullName = "Legacy", PrimaryPhone = "final-legacy", HomeBranch = branch, CreatedByUser = user };
-        db.Add(member); await db.SaveChangesAsync();
+        db.AddRange(user, branch); await db.SaveChangesAsync();
+        // Insert with the legacy schema shape, not today's Member EF model.
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO "Members" ("Id", "MemberCode", "FullName", "PrimaryPhone", "HomeBranchId", "CreatedByUserId", "CreatedAt", "IsActive", "IsPrimaryPhoneVerified")
+            VALUES ({member.Id}, {member.MemberCode}, {member.FullName}, {member.PrimaryPhone}, {branch.Id}, {user.Id}, {member.CreatedAt}, TRUE, FALSE);
+            """);
         var saleId = Guid.NewGuid(); var planId = Guid.NewGuid(); var shiftId = Guid.NewGuid();
         var actual = new DateTimeOffset(2026, 10, 31, 1, 30, 0, TimeSpan.Zero);
         await db.Database.ExecuteSqlInterpolatedAsync($"""

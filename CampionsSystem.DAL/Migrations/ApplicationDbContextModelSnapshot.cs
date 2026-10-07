@@ -2023,6 +2023,9 @@ namespace CampionsSystem.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<long?>("ClientCode")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2082,7 +2085,14 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("PrimaryPhone")
                         .IsUnique();
 
-                    b.ToTable("Members", (string)null);
+                    b.HasIndex("HomeBranchId", "ClientCode")
+                        .IsUnique()
+                        .HasFilter("\"ClientCode\" IS NOT NULL");
+
+                    b.ToTable("Members", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Members_ClientCode_Positive", "\"ClientCode\" > 0");
+                        });
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberBenefitUsage", b =>

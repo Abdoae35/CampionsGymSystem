@@ -25,7 +25,7 @@ dotnet run --project CampionsSystem.API/CampionsSystem.csproj --launch-profile h
 
 Open http://localhost:5236/health/database in development. A working connection
 returns `{"status":"healthy"}`; connection failures return HTTP 503. This route
-is not registered in production. All five migrations through `20261007153001_AddMembershipBenefits` have been applied
+is not registered in production. All seven migrations through `20261007183558_ScopeMemberClientCodeByHomeBranch` have been applied
 locally (2026-10-07): 75 application tables, seven Identity tables and EF migration history.
 
 ## Manage the connection
@@ -108,7 +108,7 @@ updated from InitialCreate through all four pending migrations, in order:
 3. FinalBusinessSchemaAlignment
 4. AddMembershipBenefits
 
-All five migrations are now applied; EF reports no pending migrations. Before update,
+At that checkpoint all five migrations were applied with no pending migrations. Before update,
 a private local pg_dump archive was created and its archive listing verified. The
 backup is outside the repository under `/private/tmp/gym-development-backups/`; it is
 only a temporary recovery copy, not durable backup storage. Existing five Identity
@@ -121,3 +121,23 @@ for unauthenticated `/api/auth/me`, then was stopped. Production was not touched
 Prior schema reports describe their original code-only operations; this later authorized
 deployment supersedes their pending-local-application status. Historical rows requiring
 manual reconciliation remain subject to the documented migration guards on other databases.
+
+### Member legacy code update
+
+Later on 2026-10-07, the explicitly authorized development-only migration
+`20261007182227_AddMemberClientCode` was applied successfully. The configured localhost
+`campions_gym` Members table had zero rows before and after. ClientCode is bigint NOT
+NULL, positive and unique, with no generated default. Guid Id and all member foreign
+keys remain unchanged. No production database was updated. This brings local migration
+history to six entries. See docs/database/SCHEMA.md before deploying to a database that
+already has uncoded members; this required-column migration does not backfill codes.
+
+### Branch-scoped legacy code correction
+
+The latest confirmed rule supersedes global ClientCode uniqueness. New migration
+20261007183558_ScopeMemberClientCodeByHomeBranch was applied to local development:
+ClientCode is now nullable bigint, positive when present and unique only within
+HomeBranchId (the original registration branch). It replaces the global index with
+a partial composite index, contains no data backfill/renumbering, and leaves Guid
+keys and MemberCode unchanged. Members count was zero before this correction.
+Seven migrations are now applied locally; no old migration was rewritten.

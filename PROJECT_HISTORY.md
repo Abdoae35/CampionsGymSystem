@@ -43,19 +43,16 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Latest remote verification (2026-10-07): local master and origin/master both at
-  74de413, merge PR #1 from BranchSepration. Fetch succeeded; no divergence.
-- All branch feature, Postman (3adb493), and history checkpoint commits are now
-  included in GitHub master. BranchSepration/origin both at 3efb45e; no commits or
-  file differences missing from master. Earlier push failure has been resolved.
-- Last implementation verification: build 0 warnings/errors; full suite 202 passed;
-  Postman follow-up 33 auth/branch API tests passed. No tests rerun for Git verification.
-- Branches.AccessAll applied explicitly to local development Owner role on user
-  request; future new development Owner roles receive it from updated demo seed.
-  Existing customized grants remain preserved by demo reseeding. No schema changes.
-- Latest inquiry: assignment/history GETs require Employees.View plus branch scope;
-  default Reception lacks Employees.View. Own branch is available from /api/auth/me.
-- Latest operation: verified Owner branch seed fix; commit/push checked after checkpoint.
+- EmployeeManagement (14f597c) merged into master (previously 5ec6640) on user request.
+  Only history/handoff documents conflicted; both chronological records preserved.
+- Combined work includes Owner Branches.AccessAll development seed fix, Employee
+  Management APIs/tests/Postman documentation and nullable branch-scoped ClientCode.
+- ClientCode remains unique per original HomeBranchId; previous local migration
+  deployment recorded below. No application database migration run for this merge.
+- Merge verification: build zero warnings/errors; full suite 232 passed, zero
+  failed/skipped after branch-scoped test fixture correction. Local merge commit
+  follows this checkpoint; no push requested.
+- Await next user-selected task after merge; Member Management not started.
 
 ## Work history
 
@@ -879,3 +876,147 @@ No full suite or live Owner login request run. Existing JWT reads updated permis
 on next request unless expired or explicitly denied. Prior uncommitted history-only
 investigations preserved in this checkpoint. Reviewed diff; small seed fix commit and
 push to current master follow under user's incremental publication workflow.
+## 2026-10-07 — Employee Management increment
+
+Read APIs added: scoped employee list/search/branch/status/type filters, bounded pagination and totalCount, details and /api/branches/{id}/employees. Five PostgreSQL tests added; 17 employee/branch/context tests passed, build 0 warnings/errors, diff reviewed. Next: atomic creation with optional existing initial branch assignment.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+## 2026-10-07 — Employee Management increment
+
+ec6ff70 read increment pushed successfully. Added employee creation without login creation; optional branch uses existing AssignAsync in an atomic transaction/savepoint, scoped creators must select their branch. Four new tests include rollback on inactive branch. Build 0 warnings/errors; 16 employee/assignment tests passed; diff reviewed. Next: profile and status updates.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+## 2026-10-07 — Employee Management increment
+
+c36f38a creation increment pushed. Added profile PUT and separate status PATCH with existing Employees.Manage, shared employee row locks, branch checks and atomic audit. Resigned sets current gym date as TerminationDate; reactivation clears it; historical assignments untouched. Four new tests; build 0 warnings/errors and 30 employee/assignment/transfer tests passed. Next: HTTP security/validation and full regression.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+## 2026-10-07 — Employee Management increment
+
+245669f profile/status increment pushed. Added six HTTP integration cases for permissions, branch spoofing and scoped lists/details, full create/update/status/history flow, rejected profile branch/user/status fields, invalid filters and rollback. Build 0 warnings/errors; FULL suite 221 passed, zero failed/skipped; EF no model drift. All three implementation commits pushed. Next: documentation and Postman coverage.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+## 2026-10-07 — Employee Management increment
+
+Employee Management complete: six read/create/update/status/branch-list routes, existing Employees.View/Manage and global branch scope, separate Identity accounts, atomic initial assignment, locked profile/status audit. Added 13 service plus six HTTP tests. Final build 0 warnings/errors; full suite passed 221 twice, zero failed/skipped; EF no drift. Documentation and all six Postman requests validated; no live Postman run or application DB writes. ec6ff70, c36f38a, 245669f, f3041c4 pushed; final documentation commit/push verified after this checkpoint. Stop; await next user-selected task.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+Final delivery details: EmployeeManagementService and EmployeeContracts implement
+scoped SQL filters/count/pagination, selected branch employee list, profile details,
+atomic creation calling existing assignment service, profile-only update and separate
+status PATCH. API returns 200 on success, 400 validation, 401 unauthenticated, 403
+permission/branch denial, 404 inaccessible details; no DELETE. Resigned is existing
+ended-employment status with today TerminationDate, Active clears it. Scope is checked
+server-side; global unassigned accounts supported. Profile JSON rejects unrelated
+fields; no account link/creation or branch history changes through profile endpoints.
+No new permission codes, packages, migrations or unrelated workflows added.
+
+New docs/employees/EMPLOYEE_MANAGEMENT.md; updated database data flows, Postman
+collection and README. Source token remains empty. All six method/route pairs and
+JSON bodies validated statically. Final working tree and origin HEAD checked after
+documentation commit/push. Previous tests include auth, branch transfer/concurrency,
+private/activity/membership schema regressions. No full Employee accounting/history
+load, salary/payroll/leave/frontend or next module implemented.
+
+## 2026-10-07 — Member legacy ClientCode identifier
+
+User requested one new member business identifier, new migration, explicit local
+application, full regression and commit/push. Started clean on EmployeeManagement.
+Inspected Member/EF/indexes/migrations/import references and configured localhost
+campions_gym database. Five prior migrations applied, Members count zero; no legacy
+import implementation. Existing MemberCode string remains independent and unchanged.
+Numeric legacy-code assumption follows requested example; real file not supplied.
+
+Added required long ClientCode mapped bigint, IX_Members_ClientCode unique and
+CK_Members_ClientCode_Positive (>0). No key/FK or old migration changes. Generated
+20261007182227_AddMemberClientCode; removed generated 0 default from this NEW migration
+so no fake codes can be created. Up has only column/index/check additions; Down removes
+only those additions. Inspected migration, snapshot diff and generated SQL. This required
+migration intentionally cannot upgrade uncoded nonempty Members; other such databases
+need a reviewed nullable transition/import. No automatic generation/backfill/import.
+
+Explicit Development EF database update succeeded with Done. Independently verified
+migration history, bigint NOT NULL/no default, unique index, positive constraint,
+Guid UUID PK and zero members afterward. Production untouched. LOCAL_DATABASE.md
+and SCHEMA.md updated with deployment result, MemberCode distinction and numeric
+import cautions. Eight new test cases cover exact large values, uniqueness, positive/
+null checks, unchanged Guid relationships and narrowly scoped migration operations.
+Existing synthetic fixtures receive test-only positive codes; legacy migration tests
+insert the historical Member shape via SQL and retain appropriate upgrade boundaries.
+No actual member codes invented or existing data rewritten.
+
+Verification: pre-generation and post-generation builds passed; final build zero
+warnings/errors. Focused 14 tests passed; FULL suite 229 passed, zero failed/skipped.
+EF reports no pending model changes. Diff reviewed; old migration files unchanged.
+No unrelated business implementation or Postman/API changes. Required checkpoint
+included with requested feat(members) commit; push/status verified after commit.
+Stop and await next task; Member Management is not started.
+
+## 2026-10-07 — Branch-scoped nullable legacy ClientCode correction
+
+Latest user rule supersedes prior global uniqueness: legacy code is local to the
+original registration branch. Inspected clean EmployeeManagement branch, Member,
+HomeBranchId relationship, EF indexes, applied migration and current development
+Members (zero). Reused HomeBranchId as original registration context; no duplicate
+RegistrationBranchId. ClientCode now long? / nullable bigint. Existing positive
+check allows null but rejects nonpositive numbers. Composite unique filtered index
+IX_Members_HomeBranchId_ClientCode on (HomeBranchId, ClientCode) WHERE ClientCode IS
+NOT NULL replaces global IX_Members_ClientCode. Existing HomeBranchId FK index kept;
+Guid PK/FKs and MemberCode/phone indexes unchanged.
+
+Requested migration name AddMemberClientCode was already applied as 20261007182227;
+explained naming conflict and created distinct 20261007183558_ScopeMemberClientCodeByHomeBranch.
+No old migrations modified. Inspected generated SQL and snapshot: Up only drops old
+index, relaxes NOT NULL and creates composite index; no column drops/data updates.
+Removed generated zero default from this NEW migration's Down, so rollback must
+reconcile nulls/cross-branch duplicates rather than invent codes. Down not applied.
+
+Explicit Development EF update completed Done. Read-only verification confirms
+nullable bigint/no default, partial composite unique index, latest history entry and
+zero Members afterward. Production untouched. Updated schema/business-rule/local DB
+docs: retain original registration branch and exact imported code; no MAX+1 generation,
+import, offline synchronization or Member Management implemented.
+
+Tests now verify same-branch rejection, legal same code in different branches,
+multiple nulls/no invented values, positive values, Guid/FK preservation and actual
+upgrade preservation of existing member code/branch/identity. Prior migration shape
+test retained. Build zero warnings/errors; 11 focused tests passed; FULL suite 232
+passed, zero failed/skipped. EF no model drift. Reviewed diff and old migration files
+unchanged. Required history/handoff included in requested small commit; push and clean
+status verified afterward. Stop; no next feature started.
+
+## 2026-10-07 — Merge EmployeeManagement into master
+
+User requested merging master and EmployeeManagement. Found an existing merge on
+master from 14f597c into 5ec6640 with only AGENTS.md and PROJECT_HISTORY.md unmerged.
+Resolved documentation conflicts, preserving both branches' chronological histories
+and combining the current handoff. Application changes had merged automatically.
+Full regression initially passed 231/232: operations test fixture inherited newly
+seeded Branches.AccessAll, invalidating its branch-denial expectation. Filtered that
+permission from this branch-scoped test user; production authorization unchanged.
+Final build zero warnings/errors; full suite 232 passed, zero failed/skipped.
+Restricted build stalled and was sent cancellation; successful build/tests ran with
+sandbox escalation. No application database migration or production writes performed;
+tests use isolated transactional schemas. Diff/whitespace reviewed. Local merge
+commit follows this checkpoint under merge authorization; no push requested or run.
+No next module started. Both feature histories remain intact.

@@ -22,7 +22,7 @@ public sealed class MembershipBenefitsTests : IAsyncLifetime
         db = fixture.CreateContext();
         var user = new ApplicationUser { UserName = "benefits-test" };
         branch = new GymBranch { Name = "Benefits Branch", City = new City { Name = "Benefits City" } };
-        var member = new Member { MemberCode = "BENEFITS", FullName = "Member", PrimaryPhone = "benefits-member", HomeBranch = branch, CreatedByUser = user };
+        var member = new Member { ClientCode = 1, MemberCode = "BENEFITS", FullName = "Member", PrimaryPhone = "benefits-member", HomeBranch = branch, CreatedByUser = user };
         plan = new MembershipPlan { Name = "Premium", City = branch.City, DurationDays = 90, Price = 1500 };
         var subscription = new MemberSubscription { Member = member, MembershipPlan = plan, City = branch.City,
             PurchasedAtBranch = branch, StartDate = new(2026, 10, 7), EndDate = new(2027, 1, 5) };

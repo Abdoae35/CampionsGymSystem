@@ -18,7 +18,7 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 | EmployeeBranchAssignments | Effective-dated branch assignment history | EmployeeId → Employees, BranchId → GymBranches, AssignedByUserId → AspNetUsers |
 | EmployeeLeaveRequests | Pending/approved/rejected leave and review | EmployeeId → Employees, optional ReviewedByUserId → AspNetUsers |
 | EmployeeSalarySettings | Effective-dated salary history | EmployeeId → Employees, CreatedByUserId → AspNetUsers |
-| Members | Member profile, unique code and phone | HomeBranchId → GymBranches, CreatedByUserId → AspNetUsers |
+| Members | Member profile, unique MemberCode, nullable positive branch-scoped legacy ClientCode (bigint), and phone | HomeBranchId → GymBranches, CreatedByUserId → AspNetUsers |
 | MemberSalesAssignments | Current sales/house owner and assignment history | MemberId → Members, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
 | Leads | Branch CRM prospect and conversion | BranchId → GymBranches, ConvertedMemberId → Members, CreatedByUserId → AspNetUsers |
 | LeadAssignments | Sales ownership history | LeadId → Leads, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
@@ -241,3 +241,32 @@ was added: these facts preserve purchase context but do not finalize expiration 
 carryover policy. Remaining quantity is GrantedQuantity minus summed usage history.
 There is no stored mutable balance, artificial Access quantity, payment linkage or
 ActivityPackage benefit relationship. See [benefit alignment report](MEMBERSHIP_BENEFITS.md).
+
+## Member legacy client identifier
+
+`Members.Id` remains the Guid/UUID primary key and the target of every member foreign
+key. `HomeBranchId` is reused as the original registration branch: no duplicate
+RegistrationBranchId field is added. Visiting or purchasing at another branch must
+not change this original registration context or historical identifiers.
+
+`ClientCode` is nullable long/bigint for numeric legacy serial codes, reception lookup
+and future Excel imports. The same number may occur in different registration branches.
+Partial unique IX_Members_HomeBranchId_ClientCode enforces uniqueness of
+(HomeBranchId, ClientCode) WHERE ClientCode IS NOT NULL. Multiple uncoded members may
+remain null. CK_Members_ClientCode_Positive (>0) rejects zero/negative values when
+present. There is no default, sequence, backfill or code generation. Existing string
+MemberCode and its separate unique index remain unchanged.
+
+The previously applied 20261007182227_AddMemberClientCode remains unchanged.
+New 20261007183558_ScopeMemberClientCodeByHomeBranch replaces only its global code
+index and relaxes nullability, without rewriting member data. Down requires prior
+manual reconciliation of nulls and cross-branch duplicate codes; it must never
+invent substitute codes to recreate the old stricter schema. This change was applied
+to local development only; production deployment remains separate.
+
+Future import must preserve codes exactly and reject branch-local duplicates rather
+than silently renumbering. Numeric storage assumes codes have no meaningful leading
+zeros/letters; verify the legacy file and avoid floating-point conversion of large
+integer codes. Future new-customer generation must be concurrency-safe per branch;
+MAX+1 without serialization is unsafe. No generation, import, Member Management or
+offline synchronization feature is implemented by this schema change.
