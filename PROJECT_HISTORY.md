@@ -43,23 +43,11 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature complete on BranchSepration; all eight implementation/test/docs commits
-  verified pushed through a69af6a, with clean working tree and matching GitHub HEAD.
-- Latest follow-up: existing Postman collection now includes all eight branch/employee
-  assignment/transfer routes alongside authentication. Re-import Campions API - Auth and
-  Branches; set selected IDs/dates and login through the primary Login request.
-- Follow-up build 0 warnings/errors; 33 authentication/branch API tests passed. Collection
-  JSON/routes/body/token placeholders validated. Previous final full suite 202 passed;
-  no full-suite rerun for this collection/docs-only follow-up. No live Postman/Newman run.
-- No application code/schema/database changes. Explicit Branches.AccessAll setup remains
-  a deliberate operator step; it has not been run automatically against the app database.
-- Postman follow-up is committed locally as 3adb493 but NOT pushed: GitHub rejected
-  the initial push and retry with Internal Server Error. No history rewrite/force push.
-  A separate committed checkpoint records the earlier failure. User-requested retry at
-  16:59:40 UTC also failed with GitHub Internal Server Error; both commits remain local.
-  Latest Git-only history/handoff checkpoint is uncommitted; retry publication later.
-- Branch rules/services and prior verification remain documented in docs/branches/.
-  Await next user-selected task; no other module started.
+- Employee Management in progress on user-selected EmployeeManagement branch.
+- Read APIs added: scoped employee list/search/branch/status/type filters, bounded pagination and totalCount, details and /api/branches/{id}/employees. Five PostgreSQL tests added; 17 employee/branch/context tests passed, build 0 warnings/errors, diff reviewed. Next: atomic creation with optional existing initial branch assignment.
+- Existing branch assignment/transfer, permissions, audit and Identity reused.
+- No schema/migration or application database changes. Increment commits/pushes
+  verified after checkpoints. See chronological entries for exact checks.
 
 ## Work history
 
@@ -845,3 +833,12 @@ Server Error (request 466C:376D9A:4597D1E:4263E3D, 16:59:40 UTC). No history
 rewrite or application changes. Both commits remain local; publication still
 blocked by the remote server. Build/tests not repeated for this Git-only operation.
 Required history/handoff checkpoint left uncommitted; retry publication later.
+
+## 2026-10-07 — Employee Management increment
+
+Read APIs added: scoped employee list/search/branch/status/type filters, bounded pagination and totalCount, details and /api/branches/{id}/employees. Five PostgreSQL tests added; 17 employee/branch/context tests passed, build 0 warnings/errors, diff reviewed. Next: atomic creation with optional existing initial branch assignment.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.

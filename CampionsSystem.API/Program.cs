@@ -32,6 +32,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddGymAuthentication(builder.Configuration);
 builder.Services.AddScoped<DevelopmentAuthSeeder>();
 builder.Services.AddScoped<BranchManagementService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Employees.EmployeeManagementService>();
 builder.Services.AddScoped<IBranchAccessService, BranchAccessService>();
 builder.Services.AddScoped<BranchPermissionSetup>();
 builder.Services.AddScoped<EmployeeBranchAssignmentService>();
