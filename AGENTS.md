@@ -41,18 +41,17 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Branch vertical feature complete on BranchSepration: branch management, employee
-  assignment/history, shared current branch context/scope, atomic dated transfers/audits.
-- Final build 0 warnings/errors; full suite 202 passed, 0 failed/skipped; no EF model drift.
-  Rollback, HTTP isolation, same-JWT context and independent-connection races covered.
-- No schema/migration/application DB changes. Explicit Branches.AccessAll setup command
-  documented but NOT run; existing Owner role needs deliberate grant for global operations.
-  Effective permissions now resolve Roles + direct Allow - direct Deny; no role bypass.
-- Seven implementation/fix/test commits already pushed. This handoff belongs to final
-  documentation commit; verify its push/remote HEAD and clean status before final delivery.
-- Rules/setup/routes: docs/branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md.
-  Historical branch ownership unchanged. Backdated/intra-day HR corrections, transfer
-  rescheduling and dependent module consequences remain separate workflows.
-- Await next user-selected feature. No Members/check-in/finance/other module started.
-- Chronological record/commit list: PROJECT_HISTORY.md. Required history skill portable
-  source: skills/project-history-update/SKILL.md.
+- Branch feature complete on BranchSepration; eight prior commits verified pushed through
+  a69af6a. Latest follow-up adds all eight branch/assignment/transfer endpoints to existing
+  postman/Campions.Auth.postman_collection.json; displayed name Auth and Branches.
+- Re-import collection; primary Login supplies accessToken. Set selected IDs and calendar
+  dates deliberately. README explains permissions, scope and explicit AccessAll setup.
+- Follow-up build 0 warnings/errors; 33 auth/branch HTTP tests passed; collection JSON,
+  exact route coverage and bodies validated. Prior full suite 202 passed. No live
+  Postman/Newman run, application code/schema changes or application database writes.
+- This collection/docs checkpoint belongs to its own small commit and push; verify
+  local/remote HEAD and clean status before reporting delivery. Private environment intact.
+- Explicit global branch permission setup is still not automatically run. Other branch
+  rules and deferred workflows remain in docs/branches and PROJECT_HISTORY.md.
+- Await next user-selected task; no unrelated module started.
+- Portable history skill: skills/project-history-update/SKILL.md.

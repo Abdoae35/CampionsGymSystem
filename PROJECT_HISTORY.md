@@ -43,22 +43,20 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature complete on BranchSepration: branch management, employee assignment/history,
-  shared current-branch resolution, explicit branch scope and atomic dated transfers.
-  Existing Guid/EF schema reused; no migration/model or application DB changes.
-- Effective permission resolution now includes role grants + direct Allows - direct Denies.
-  Branches.AccessAll is explicit global scope; Owner role alone is no bypass. Its deliberate
-  localhost Development setup command is documented and NOT run against the app DB here.
-- Final build 0 warnings/errors; full suite 202 passed, 0 failed/skipped; no EF model drift.
-  Tests include actual HTTP isolation/me after transfer, first-save rollback and independent
-  PostgreSQL connection races. Race schemas are isolated and removed, other fixtures rolled back.
-- Seven implementation/fix/test commits pushed successfully (listed below). This handoff and
-  branch/auth/business-flow docs are packaged in the final documentation commit; final delivery
-  requires that commit's remote HEAD to match local HEAD, verified after its push.
-- No Members/check-in/financial/dependent-module workflow added. Backdated/intra-day HR moves,
-  rescheduling/cancellation and dependent module consequences remain separate workflows.
-- See docs/branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md for routes, rules and setup.
-  Await next user-selected feature; do not start automatically.
+- Branch feature complete on BranchSepration; all eight implementation/test/docs commits
+  verified pushed through a69af6a, with clean working tree and matching GitHub HEAD.
+- Latest follow-up: existing Postman collection now includes all eight branch/employee
+  assignment/transfer routes alongside authentication. Re-import Campions API - Auth and
+  Branches; set selected IDs/dates and login through the primary Login request.
+- Follow-up build 0 warnings/errors; 33 authentication/branch API tests passed. Collection
+  JSON/routes/body/token placeholders validated. Previous final full suite 202 passed;
+  no full-suite rerun for this collection/docs-only follow-up. No live Postman/Newman run.
+- No application code/schema/database changes. Explicit Branches.AccessAll setup remains
+  a deliberate operator step; it has not been run automatically against the app database.
+- Postman/checkpoint follow-up is packaged in its own small commit, pushed before delivery;
+  verify remote/local HEAD and clean Git status after push. No unrelated work included.
+- Branch rules/services and prior verification remain documented in docs/branches/.
+  Await next user-selected task; no other module started.
 
 ## Work history
 
@@ -797,3 +795,30 @@ Commits already verified pushed to origin/BranchSepration, in order:
 This checkpoint is included in the final docs(branches) commit. Its push and clean Git
 status/last-ten log/remote HEAD are checked after commit, before reporting completion.
 No squash/amend/force push, discarded user work, package additions or next feature.
+
+## 2026-10-07 — Postman branch endpoint coverage follow-up
+
+User asked whether all new endpoints were in the Postman file. Inspection found the
+existing collection still covered authentication only. Added all eight branch and
+employee assignment/history/transfer endpoints to the existing collection, preserving
+auth examples and empty secret placeholders. Updated displayed collection name to
+Campions API - Auth and Branches; file path unchanged. All new requests use accessToken
+saved by primary Login. Added deliberate branch/city/employee/target IDs and date variables,
+sample bodies, successful-response assertions and Create branch ID capture. Current
+assignment assertion accepts 200/204. No automatic selection of transfer target/employee.
+
+Updated postman/README.md with import/login/variables, action/scope permission requirements,
+explicit AccessAll setup link, date/history rules and manual mutation workflow. Existing
+private local environment untouched; no real credentials/tokens added. Users must re-import
+because their Postman application copy does not automatically track repository changes.
+
+Verification: collection parses, exact eight-route method/path coverage confirmed, sample
+bodies parse and source accessToken remains empty. Build 0 warnings/errors; all 33 auth/
+branch HTTP integration tests passed. git diff check clean. No Postman/Newman runtime run,
+no application DB requests/writes and no application/schema changes. Prior full suite 202
+passed; not repeated for this JSON/docs-only follow-up.
+
+Git: started clean on BranchSepration at a69af6a (all eight feature commits previously
+pushed and remote HEAD verified). This follow-up and required checkpoint are committed
+and pushed separately under the existing small-task workflow; publication checked after
+commit. No next feature started.

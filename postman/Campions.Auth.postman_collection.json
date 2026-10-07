@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Campions Auth - Simple Login",
-    "description": "Start with 1. Login, then 2. Current user. Only two auth endpoints. Token is saved automatically in this collection. Optional advanced tests are in the collapsed folder.",
+    "name": "Campions API - Auth and Branches",
+    "description": "Login first; the collection saves accessToken automatically. Includes both authentication endpoints and all eight branch/employee assignment endpoints. Set the documented ID/date variables before management requests. Optional auth tests intentionally exercise errors.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,6 +16,34 @@
     {
       "key": "invalidToken",
       "value": "invalid-token"
+    },
+    {
+      "key": "branchId",
+      "value": ""
+    },
+    {
+      "key": "cityId",
+      "value": ""
+    },
+    {
+      "key": "employeeId",
+      "value": ""
+    },
+    {
+      "key": "targetBranchId",
+      "value": ""
+    },
+    {
+      "key": "branchName",
+      "value": "New Gym Branch"
+    },
+    {
+      "key": "assignmentStartDate",
+      "value": ""
+    },
+    {
+      "key": "transferEffectiveDate",
+      "value": ""
     }
   ],
   "item": [
@@ -100,6 +128,315 @@
               "pm.request.headers.upsert({ key: \"Authorization\", value: \"Bearer \" + savedAuthToken });"
             ]
           }
+        }
+      ]
+    },
+    {
+      "name": "3. Branch management",
+      "description": "Manual requests, not a safe whole-collection runner workflow. Requires Branches.View/Manage plus branch scope. Creating a branch requires Branches.AccessAll. Set cityId from an existing active City; no City creation endpoint exists. PUT is a complete settings update; set isActive false to deactivate. No DELETE endpoint exists.",
+      "item": [
+        {
+          "name": "List accessible branches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/branches",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Branches.View. Scoped users see only their current branch; explicitly global users see all branches."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get branch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/branches/{{branchId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Branches.View plus scope on branchId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/branches",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Branches.Manage and Branches.AccessAll required. Set cityId to an existing active city. Success saves the created ID into collection branchId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{branchName}}\",\n  \"cityId\": \"{{cityId}}\",\n  \"address\": \"Optional address\",\n  \"phone\": \"Optional phone\",\n  \"isActive\": true,\n  \"maxBorrowedGymSessions\": 2,\n  \"quickRefundWindowHours\": 24\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"branchId\", pm.response.json().id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update branch / activate or deactivate",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/branches/{{branchId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Branches.Manage plus scope. Set branchId/cityId and all intended settings. Change isActive to false for soft deactivation; historical data is preserved.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{branchName}}\",\n  \"cityId\": \"{{cityId}}\",\n  \"address\": \"Optional address\",\n  \"phone\": \"Optional phone\",\n  \"isActive\": true,\n  \"maxBorrowedGymSessions\": 2,\n  \"quickRefundWindowHours\": 24\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Employee branch assignments and transfers",
+      "description": "Management requests modify real development data: send individually to the intended employee. employeeId must reference an existing Employee; this feature provides no Employee CRUD. Dates are YYYY-MM-DD in the configured gym calendar timezone, today or later. Transfers require a date after the current assignment start, both branch scopes, and an active target. Set targetBranchId deliberately; it is never auto-selected.",
+      "item": [
+        {
+          "name": "Get current employee branch assignment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}/branch-assignment",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.View plus scope on employee current branch, or global access. Unassigned employee can produce 204 for an authorized global user."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Current assignment or unassigned\", () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get employee branch history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}/branch-history",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.View plus scope on employee current branch, or global access."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assign employee to branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}/assign-branch",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.Manage plus target scope. Set branchId and assignmentStartDate. Requires active employee/branch and no overlapping history. Use transfer for a currently assigned employee.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"startDate\": \"{{assignmentStartDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Transfer employee between branches",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}/transfer-branch",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.Transfer and scope on both branches. Cross-branch transfer requires explicit global access under the current conservative policy. Set employeeId, targetBranchId and transferEffectiveDate. Existing business transaction branches remain unchanged.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetBranchId\": \"{{targetBranchId}}\",\n  \"effectiveDate\": \"{{transferEffectiveDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
