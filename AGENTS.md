@@ -39,20 +39,20 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-07): final schema-only alignment complete. Model now
-  71 application + seven Identity tables. Added override storage, BusinessDays,
-  dynamic plan audiences, employee leave and shift replacement history.
-- New migration 20261007151235_FinalBusinessSchemaAlignment and reviewed SQL:
-  five tables, nine nullable FK columns, checks/indexes/restricted deletes.
-  No destructive Up operations, fake backfill or old migration edits; no user DB update.
-- Build zero warnings/errors; 128 tests passed, zero failed/skipped; no model drift.
-  Legacy rows/after-midnight timestamps/constraints tested with PostgreSQL rollback.
-- Existing API/BLL/auth and Classes/Activities/Freelance/Private features preserved.
-  Override authorization, day assignment and leave/shift workflows remain future work.
-  Latest Private transfer 50% work/expiry rule documented; no DB rate/trigger added.
-- No offline sync, EAV, manager hierarchy or new controller/service implementation.
-  Class payout remains not finalized. See docs/database/FINAL_SCHEMA_ALIGNMENT.md
-  for full gap report, exact paths, decisions and deployment notes.
-- Branch DataBaseInit; prior user commit c78d95a preserved. This update/checkpoint
-  uncommitted/unpushed. Await next user-selected feature; do not start automatically.
+- Latest operation (2026-10-07): Membership Benefits schema-only alignment complete;
+  75 application + seven Identity tables. Dynamic catalog, per-plan Quantity/Access,
+  purchase-batch snapshots and usage history; no API/BLL feature implementation.
+- New migration 20261007153001_AddMembershipBenefits and reviewed forward SQL create
+  four tables only; all FKs Restrict. Previous FinalBusinessSchemaAlignment and all
+  older migration files unchanged (SHA-256 checked). No application database update.
+- Final build zero warnings/errors; full suite 156 passed, zero failed/skipped;
+  no EF model drift. PostgreSQL test schemas/data rolled back. Sorting-only test
+  failure corrected before successful final full run.
+- No redundant subscription FK, independent validity engine, mutable balance or trigger.
+  Benefit carryover/expiry/FIFO/reset policy NOT FINALIZED. Snapshot creation, usage
+  validation, concurrency and auditing remain future BLL. Other features preserved.
+- Gap analysis, paths, relationships and decisions: docs/database/MEMBERSHIP_BENEFITS.md.
+  Chronological record and previous feature limitations: PROJECT_HISTORY.md.
+- Branch DataBaseInit; started clean at user commit 8f622d8. Benefits changes/checkpoint
+  uncommitted/unpushed. Await user review/next selected task; do not start automatically.
 - History skill portable source: skills/project-history-update/SKILL.md.

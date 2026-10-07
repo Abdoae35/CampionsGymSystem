@@ -231,3 +231,33 @@ not controllers, entity methods, or database triggers.
   the existing append-only AuditLog. Do not log secrets.
 - Offline synchronization is **not implemented**. Existing UUIDs, ownership FKs, real
   timestamps and history are retained. No outbox/inbox/nodes/conflicts/replication added.
+
+## Membership benefit rules for future BLL
+
+- Purchase/renewal must copy current plan benefits into new transaction-based grant
+  snapshots in the purchase transaction. No automatic grant creation exists yet.
+- Each renewal has its own grant batch; changing a plan/catalog must never rewrite
+  historical grant code/name/type/quantity. The unique transaction/benefit constraint
+  supports avoiding duplicate grants, but full request idempotency remains BLL work.
+- Quantity grants require positive quantity; Access grants have NULL quantity, never
+  artificial unlimited counts. Access validation is future subscription-context logic.
+- Usage must target a Quantity grant and satisfy membership/branch/actor authority and
+  validity rules. The DB enforces positive QuantityUsed and FKs, not cross-table type,
+  overconsumption or permission validation. Use one transaction and suitable locking
+  later to prevent concurrent overconsumption; no balance triggers exist.
+- Remaining quantity = GrantedQuantity - SUM(usage.QuantityUsed). Usage history is the
+  source of truth; future BLL must preserve history and define any correction policy.
+  There is no mutable UsedQuantity/RemainingQuantity or automatic reversal mechanism.
+- **BUSINESS RULE NOT FINALIZED:** unused-benefit expiration, renewal carryover,
+  consumption FIFO/reset policy and exact applicable validity boundaries. Separate
+  purchase/renewal batches and existing subscription/transaction dates are retained;
+  no automatic expiry, carryover, merge or independent expiration engine was invented.
+- Benefits apply to all MembershipPlans, including audience classifications and
+  Freelance plans. They do not automatically apply to ActivityPackages.
+- Included benefit consumption creates no SaleTransaction, Payment or FinancialTransaction.
+- Deactivate catalog benefits instead of deleting referenced history. Removing plan
+  configuration does not remove old grants/usages. Future BLL controls new grants and
+  usage against inactive records; deactivation alone does not erase entitlements.
+- Use existing AuditLogs for catalog creation/edit/deactivation, plan benefit addition,
+  removal/quantity changes and usage, with entity IDs and actor context; no duplicate
+  audit system or automatic benefit auditing was implemented here.

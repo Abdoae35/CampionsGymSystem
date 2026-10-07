@@ -322,3 +322,35 @@ Latest Private transfer calculation: preserve delivered/expiry monetary basis, d
 transferred-client context from assignment history, then apply the future BLL 50% rule
 for transferred-client work and expiry. Existing ordinary CommissionRule behavior applies
 to other Private work; no database trigger hardcodes the transfer percentage.
+
+## Membership benefit configuration, snapshots and usage
+
+```mermaid
+flowchart LR
+    Catalog[MembershipBenefit catalog] --> Config[MembershipPlanBenefit: type and quantity]
+    Config --> Plan[MembershipPlan]
+```
+
+```mermaid
+flowchart LR
+    Plan[MembershipPlan] --> Config[Current plan benefits]
+    Config --> Purchase[MembershipSubscriptionTransaction: initial or renewal]
+    Purchase --> Grants[Snapshot MemberSubscriptionBenefits]
+    Purchase --> Subscription[MemberSubscription and date context]
+    Grants --> Separate[Keep each purchase batch separate]
+```
+
+Future purchase BLL copies code, name, grant type and granted quantity atomically.
+Later configuration edits leave existing snapshots unchanged. Renewals copy the new
+configuration into a new batch; no automatic snapshot creation is implemented yet.
+
+```mermaid
+flowchart LR
+    Grant[Quantity MemberSubscriptionBenefit] --> Validate[Future BLL validates available quantity and validity]
+    Validate --> Usage[MemberBenefitUsage: quantity, branch, actor, time]
+    Usage --> Balance[Remaining = granted minus summed usage]
+    Access[Access grant with NULL quantity] --> Entitlement[Future subscription access validation]
+```
+
+Usage is not a payment or sale. Carryover, expiration, FIFO and reset rules remain
+**BUSINESS RULE NOT FINALIZED**. This alignment only stores the required facts.

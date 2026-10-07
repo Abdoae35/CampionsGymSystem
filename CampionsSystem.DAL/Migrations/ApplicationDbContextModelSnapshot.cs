@@ -2085,6 +2085,47 @@ namespace CampionsSystem.DAL.Migrations
                     b.ToTable("Members", (string)null);
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberBenefitUsage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MemberSubscriptionBenefitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<int>("QuantityUsed")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("BranchId", "UsedAt");
+
+                    b.HasIndex("MemberSubscriptionBenefitId", "UsedAt");
+
+                    b.ToTable("MemberBenefitUsages", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MemberBenefitUsages_QuantityUsed", "\"QuantityUsed\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberContract", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2301,6 +2342,91 @@ namespace CampionsSystem.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberSubscriptionBenefit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BenefitCodeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("BenefitNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GrantTypeSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTimeOffset>("GrantedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("GrantedQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("MembershipBenefitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MembershipSubscriptionTransactionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembershipBenefitId");
+
+                    b.HasIndex("MembershipSubscriptionTransactionId", "MembershipBenefitId")
+                        .IsUnique();
+
+                    b.ToTable("MemberSubscriptionBenefits", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MemberSubscriptionBenefits_GrantQuantity", "(\"GrantTypeSnapshot\" = 'Quantity' AND \"GrantedQuantity\" IS NOT NULL AND \"GrantedQuantity\" > 0) OR (\"GrantTypeSnapshot\" = 'Access' AND \"GrantedQuantity\" IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipBenefit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("MembershipBenefits", (string)null);
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlan", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2380,6 +2506,42 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_MembershipPlans_Price", "\"Price\" >= 0");
 
                             t.HasCheckConstraint("CK_MembershipPlans_SessionCount", "\"SessionCount\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlanBenefit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GrantType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("MembershipBenefitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MembershipPlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembershipBenefitId");
+
+                    b.HasIndex("MembershipPlanId", "MembershipBenefitId")
+                        .IsUnique();
+
+                    b.ToTable("MembershipPlanBenefits", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MembershipPlanBenefits_GrantQuantity", "(\"GrantType\" = 'Quantity' AND \"Quantity\" IS NOT NULL AND \"Quantity\" > 0) OR (\"GrantType\" = 'Access' AND \"Quantity\" IS NULL)");
                         });
                 });
 
@@ -4774,6 +4936,32 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("HomeBranch");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberBenefitUsage", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.MemberSubscriptionBenefit", "MemberSubscriptionBenefit")
+                        .WithMany()
+                        .HasForeignKey("MemberSubscriptionBenefitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("MemberSubscriptionBenefit");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberContract", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.ContractTemplate", "ContractTemplate")
@@ -4904,6 +5092,25 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("PurchasedAtBranch");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberSubscriptionBenefit", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipBenefit", "MembershipBenefit")
+                        .WithMany()
+                        .HasForeignKey("MembershipBenefitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipSubscriptionTransaction", "MembershipSubscriptionTransaction")
+                        .WithMany()
+                        .HasForeignKey("MembershipSubscriptionTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MembershipBenefit");
+
+                    b.Navigation("MembershipSubscriptionTransaction");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlan", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.City", "City")
@@ -4927,6 +5134,25 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("FreelanceCoachEmployee");
 
                     b.Navigation("MembershipPlanCategory");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlanBenefit", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipBenefit", "MembershipBenefit")
+                        .WithMany()
+                        .HasForeignKey("MembershipBenefitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipPlan", "MembershipPlan")
+                        .WithMany()
+                        .HasForeignKey("MembershipPlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MembershipBenefit");
+
+                    b.Navigation("MembershipPlan");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlanEligibleMember", b =>

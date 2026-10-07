@@ -82,6 +82,11 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<EmployeeLeaveRequest> EmployeeLeaveRequests => Set<EmployeeLeaveRequest>();
     public DbSet<ShiftEmployeeChange> ShiftEmployeeChanges => Set<ShiftEmployeeChange>();
 
+    public DbSet<MembershipBenefit> MembershipBenefits => Set<MembershipBenefit>();
+    public DbSet<MembershipPlanBenefit> MembershipPlanBenefits => Set<MembershipPlanBenefit>();
+    public DbSet<MemberSubscriptionBenefit> MemberSubscriptionBenefits => Set<MemberSubscriptionBenefit>();
+    public DbSet<MemberBenefitUsage> MemberBenefitUsages => Set<MemberBenefitUsage>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

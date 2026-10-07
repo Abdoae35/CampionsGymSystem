@@ -1,6 +1,6 @@
 # Gym database schema
 
-Current aligned model: **71 application tables plus seven Identity tables (78 total)**.
+Current aligned model: **75 application tables plus seven Identity tables (82 total)**.
 See [final schema-gap and rollout report](FINAL_SCHEMA_ALIGNMENT.md).
 
 Identity uses the seven standard AspNet tables and Guid user/role keys.
@@ -209,3 +209,35 @@ See [deployment and reconciliation](UPDATE_ACTIVITIES_CLASSES_AND_FREELANCE.md).
   trigger or a hardcoded rate column. Existing financial snapshots remain intact.
 - All new timestamps use timestamptz, dates use date and enums are checked strings.
   No fake data or automatic midnight/business-day inference was added.
+
+## Membership benefits
+
+| Table | Purpose | Foreign keys |
+| --- | --- | --- |
+| MembershipBenefits | Management-defined catalog: unique Code (128), unique Name (256), optional Description, IsActive, CreatedAt | None |
+| MembershipPlanBenefits | Plan-specific GrantType and nullable Quantity; unique plan/benefit pair | MembershipPlanId → MembershipPlans; MembershipBenefitId → MembershipBenefits |
+| MemberSubscriptionBenefits | Purchase/renewal grant snapshots: code, name, grant type, quantity, GrantedAt, CreatedAt; unique transaction/benefit pair | MembershipSubscriptionTransactionId → MembershipSubscriptionTransactions; MembershipBenefitId → MembershipBenefits |
+| MemberBenefitUsages | Specific grant consumption, positive QuantityUsed, UsedAt, branch, optional actor/notes, CreatedAt | MemberSubscriptionBenefitId → MemberSubscriptionBenefits; BranchId → GymBranches; optional CreatedByUserId → AspNetUsers |
+
+All four tables have Guid primary keys. All new FKs use Restrict. GrantType is a
+checked string enum (`Quantity`, `Access`) on plan configuration and grant snapshots,
+never on the catalog. Quantity requires a positive integer; Access requires NULL.
+The unique transaction/benefit pair prevents duplicate grants for the same purchase.
+
+Grants resolve their subscription through MembershipSubscriptionTransaction; no
+redundant MemberSubscriptionId is stored. They reference neither the current plan
+benefit row nor its mutable quantity/name. Removing plan configuration or deactivating
+the catalog therefore leaves historical grants and usages intact. Catalog uniqueness
+uses ordinary PostgreSQL case-sensitive equality; normalization is future BLL work.
+
+The unique plan/benefit and transaction/benefit indexes cover their leading FK.
+Benefit-side FK indexes support reverse queries. Usage indexes cover
+(MemberSubscriptionBenefitId, UsedAt), (BranchId, UsedAt), and optional creator FK.
+No redundant standalone leading-column index or low-selectivity IsActive index added.
+
+Validity reuses subscription dates and source transaction PreviousEndDate, NewEndDate,
+PurchasedDurationDays and real CreatedAt. No independent ValidFrom/ValidUntil engine
+was added: these facts preserve purchase context but do not finalize expiration or
+carryover policy. Remaining quantity is GrantedQuantity minus summed usage history.
+There is no stored mutable balance, artificial Access quantity, payment linkage or
+ActivityPackage benefit relationship. See [benefit alignment report](MEMBERSHIP_BENEFITS.md).

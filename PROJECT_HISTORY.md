@@ -16,7 +16,7 @@ it does not replace checking the actual repository.
 - `CampionsGymSystem.slnx`: solution file.
 - Intended scope includes gym operations, transactions, payments, and leads.
   PostgreSQL is selected; the 26-module EF persistence schema is implemented.
-  The current aligned model has 71 application tables plus seven Identity tables.
+  The current aligned model has 75 application tables plus seven Identity tables.
   Database rollout remains separate; no migration is applied by schema alignment.
   Payment provider and business workflows remain to be implemented.
 
@@ -40,24 +40,23 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Latest operation (2026-10-07): final schema-only alignment complete. Added direct
-  Allow/Deny override storage, BusinessDays/event links, dynamic membership audiences,
-  leave requests and shift replacement business history. Existing features preserved.
-- Model: 71 application tables plus seven Identity tables (78). New migration
-  20261007151235_FinalBusinessSchemaAlignment; reviewed forward SQL adds five tables
-  and nine nullable FK columns. No destructive Up operation or historical backfill.
-- Final build zero warnings/errors; 128 tests passed, zero failed/skipped; no model drift.
-  Legacy preservation and constraints tested in isolated rolled-back PostgreSQL schemas.
-- No API/BLL/auth/feature implementation changed. Direct Allow/Deny resolution and
-  BusinessDay/leave/shift validation need their dedicated feature implementations.
-- Existing Classes, Activities, Freelance and Private facts reused. Latest transferred
-  Private work/expiry 50% rule documented for future BLL; no hardcoded DB rate/trigger.
-  Class financial compensation remains not finalized; no offline sync implementation.
-- Detailed gap report, exact paths and deployment notes: docs/database/FINAL_SCHEMA_ALIGNMENT.md.
-  Schema/rules/data flows updated. Existing prior change is committed by user as c78d95a.
-- Branch DataBaseInit; this update/checkpoint uncommitted/unpushed. No user development
-  or production database migration applied. Review deployment separately. Ready for
-  one user-selected vertical feature; do not start it automatically.
+- Latest operation (2026-10-07): Membership Benefits schema/domain alignment complete.
+  Added dynamic catalog, per-plan Quantity/Access configuration, purchase/renewal grant
+  snapshots and branch/user/time usage history. No API/BLL feature code changed.
+- Model: 75 application tables plus seven Identity tables (82). New migration
+  20261007153001_AddMembershipBenefits adds only four tables and their constraints/indexes.
+  Prior 20261007151235_FinalBusinessSchemaAlignment and all older migration files unchanged.
+- Final build zero warnings/errors; full suite 156 passed, zero failed/skipped (28 new
+  benefit cases); EF no model drift. Reviewed forward SQL has no destructive statements.
+- Grants resolve subscription through their purchase transaction; no duplicate subscription
+  FK or independent validity dates. Carryover/expiry/FIFO/reset rules remain NOT FINALIZED.
+  Future BLL must snapshot grants and enforce usage/type/balance/validity/concurrency/audit.
+- No migration applied to user's development or production application database. Tests
+  use isolated schemas rolled back in PostgreSQL transactions. Deployment remains separate.
+- Branch DataBaseInit; started clean at user commit 8f622d8. Benefits changes/checkpoint
+  remain uncommitted/unpushed. No branch switch or publication. Await user review/task.
+- Detailed gap report, file manifest and decisions: docs/database/MEMBERSHIP_BENEFITS.md.
+  Previous alignment facts and feature limitations remain in the chronological history.
 
 ## Work history
 
@@ -590,3 +589,44 @@ as before; storage alignment is complete and feature work can proceed vertically
 Commit state: repository started clean on DataBaseInit at user commit c78d95a; this
 alignment and checkpoint remain uncommitted/unpushed. No branch switch or automatic
 publication. Stop here and await next user-selected feature/deployment instruction.
+
+## 2026-10-07 — Configurable Membership Benefits schema alignment
+
+Request: inspect existing membership/purchase/audit/schema conventions, add only missing
+benefit catalog/configuration/snapshots/usages, and create a separate migration without
+applying it. The final prior alignment was already committed by the user as 8f622d8.
+
+Changes: four Guid entities/configurations/DbSets (MembershipBenefit, MembershipPlanBenefit,
+MemberSubscriptionBenefit, MemberBenefitUsage), string MembershipBenefitGrantType enum,
+unique catalog code/name and plan/benefit plus transaction/benefit pairs, Quantity/Access
+checks, positive usage check, history query indexes and seven Restrict FKs. Independent
+snapshot code/name/type/quantity keep each purchase/renewal batch explainable. Subscription
+is reached through the purchase transaction, avoiding duplicated subscription FK. Existing
+subscription/transaction dates retained; no ValidFrom/Until, balance triggers, financial
+records, activity benefits, controllers, services, policies or automatic grants added.
+
+Generated 20261007153001_AddMembershipBenefits (four tables only), designer/model snapshot,
+and docs/database/AddMembershipBenefits.sql. All eight prior migration source/designer
+files verified unchanged by SHA-256, including FinalBusinessSchemaAlignment. Forward Up
+contains only CreateTable/CreateIndex; no existing business columns/tables changed. Standard
+Down removes only these new tables and would lose benefit data on an explicitly requested
+rollback; neither Up nor Down was applied to the user's application schema.
+
+Updated SCHEMA (75 application + seven Identity tables), BUSINESS_RULES_NOT_ENFORCED_BY_DB,
+DATA_FLOWS and MEMBERSHIP_BENEFITS report with gap analysis, exact changed paths and design
+choices. Carryover, expiration, reset/FIFO and precise validity remain BUSINESS RULE NOT
+FINALIZED. Future BLL must create snapshots atomically, preserve history and enforce usage
+availability/type/branch/authorization/concurrency, audit and correction rules.
+
+Verification: pre-migration and post-migration builds passed zero warnings/errors. Added
+28 PostgreSQL/model/migration cases covering reusable catalog/plans, uniqueness, constraints,
+renewal batches, configuration-independent snapshots, usage balance and no financial writes,
+deactivation/removal preservation and restricted historical deletes. Initial full run had
+155 passes and one test-only culture-sensitive table sorting failure; corrected assertion
+to ordinal ordering. Rebuilt cleanly; final full suite 156 passed, zero failed/skipped.
+EF has-pending-model-changes reports no drift; forward SQL reviewed non-destructive. Test
+schemas/DDL/data are isolated and rolled back. No application DB migration applied.
+Sandboxed initial build stalled; normal local build permission succeeded. No packages added.
+
+Commit state: branch DataBaseInit, prior user changes preserved, new changes/checkpoint
+uncommitted/unpushed. No further feature implementation; await user review/next task.
