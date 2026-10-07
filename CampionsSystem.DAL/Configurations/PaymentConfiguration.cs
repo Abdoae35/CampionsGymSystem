@@ -26,5 +26,6 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(x => x.Notes).HasColumnType("text");
         builder.HasIndex(x => new { x.BranchId, x.PaidAt });
         builder.HasIndex(x => x.CommissionPeriodId);
+        builder.HasOne(x => x.BusinessDay).WithMany().HasForeignKey(x => x.BusinessDayId).OnDelete(DeleteBehavior.Restrict);
     }
 }

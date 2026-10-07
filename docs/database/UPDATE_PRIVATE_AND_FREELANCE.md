@@ -1,5 +1,11 @@
 # Private and Freelance schema rollout
 
+Latest clarification (2026-10-07): transferred-client Private work and expiry use the
+fixed 50% rule in future BLL. Earlier configurable-rate guidance below applies to
+ordinary non-transferred work; historical basis/coach/session facts stay unchanged.
+See [final alignment](FINAL_SCHEMA_ALIGNMENT.md).
+
+
 This update extends the applied InitialCreate with
 UpdatePrivateAndFreelanceBusinessRules. InitialCreate and its archived SQL are
 unchanged. No existing database was updated as part of this task.

@@ -39,21 +39,20 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-07): completed Activities/Classes/Freelance update;
-  ActivityCoach supports internal/external, purchase coach/rate snapshots, actual
-  collected revenue and explicit period settlements; Class occurrences/stats only;
-  Freelance eligibility and House purchases with preserved Sales history.
-- New migration 20261007000549_UpdateActivitiesClassesAndFreelanceRules; four tables,
-  six nullable added columns, legacy FK made nullable. SQL reviewed; no user DB update.
-  Model now 66 application + seven Identity tables. Old migrations unchanged.
-- Final build zero warnings/errors; 103 tests passed, zero failed/skipped; no model drift.
-  Legacy upgrade/constraints/report SQL and HTTP authorization tested with rollback.
-- Eight new permissions; Owner grants through migration; other role grants preserved.
-  No Class compensation, payment engine, payroll redesign or unrelated CRUD added.
-- See docs/database/UPDATE_ACTIVITIES_CLASSES_AND_FREELANCE.md for exact files, API,
-  assumptions and deployment. Unknown legacy coaches/rates/eligibility remain explicit
-  reconciliation tasks; Class payout and late closed-period adjustments unresolved.
-- Current branch DataBaseInit. Changes/checkpoint uncommitted/unpushed; previous
-  incremental Auth publication instruction related to the authentication task.
-  Await next user-selected task; no automatic migration/publication or branch switch.
+- Latest operation (2026-10-07): final schema-only alignment complete. Model now
+  71 application + seven Identity tables. Added override storage, BusinessDays,
+  dynamic plan audiences, employee leave and shift replacement history.
+- New migration 20261007151235_FinalBusinessSchemaAlignment and reviewed SQL:
+  five tables, nine nullable FK columns, checks/indexes/restricted deletes.
+  No destructive Up operations, fake backfill or old migration edits; no user DB update.
+- Build zero warnings/errors; 128 tests passed, zero failed/skipped; no model drift.
+  Legacy rows/after-midnight timestamps/constraints tested with PostgreSQL rollback.
+- Existing API/BLL/auth and Classes/Activities/Freelance/Private features preserved.
+  Override authorization, day assignment and leave/shift workflows remain future work.
+  Latest Private transfer 50% work/expiry rule documented; no DB rate/trigger added.
+- No offline sync, EAV, manager hierarchy or new controller/service implementation.
+  Class payout remains not finalized. See docs/database/FINAL_SCHEMA_ALIGNMENT.md
+  for full gap report, exact paths, decisions and deployment notes.
+- Branch DataBaseInit; prior user commit c78d95a preserved. This update/checkpoint
+  uncommitted/unpushed. Await next user-selected feature; do not start automatically.
 - History skill portable source: skills/project-history-update/SKILL.md.

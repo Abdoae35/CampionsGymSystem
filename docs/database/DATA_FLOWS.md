@@ -256,3 +256,69 @@ Removing eligibility affects future purchases only. Historical membership/sale
 snapshots survive plan edits and eligibility removal. One member may be listed on
 multiple plans; no permanent global coach lock exists. No coach margin, external
 client charge, Freelance settlement pricing engine or permanent client table is added.
+
+## 11. Business day — explicit operational date
+
+```mermaid
+flowchart LR
+    B[Branch] --> Open[Open BusinessDay with BusinessDate]
+    Open --> Operations[Shifts - Sales - Payments - Refunds - Expenses - CheckIns]
+    Operations --> Actual[Keep actual event timestamps and BusinessDayId]
+    Actual --> Close[Explicitly close BusinessDay]
+```
+
+After midnight, operations may continue referencing the still-open prior BusinessDate.
+No timestamp is overwritten. Purchase batches derive BusinessDay through their sale;
+parts derive it through their payment/refund. Ledger adjustments and actual class sessions
+also have explicit optional day links. Legacy unknown links remain null for reconciliation.
+Future BLL performs assignment/branch checks; this alignment implements no day workflow.
+
+## 12. Employee leave and shift replacement — storage ready
+
+```mermaid
+flowchart LR
+    E[Employee] --> Request[Leave Request]
+    Request --> Review[Authorized Manager Review]
+    Review --> Decision[Approved or Rejected]
+    Decision --> Validate[Later shift assignment checks approved leave]
+    Validate --> Replace[If replacing - preserve original assignment]
+    Replace --> History[Append ShiftEmployeeChange and AuditLog]
+```
+
+No manager hierarchy or approval/shift API is implemented by this schema alignment.
+
+## 13. Class, activity and Freelance facts ready for vertical features
+
+```mermaid
+flowchart LR
+    Schedule[ClassSchedule] --> Session[Actual ClassSession]
+    Session --> Coach[Actual CoachEmployee]
+    Coach --> Checks[Unique member Class CheckIns]
+    Checks --> Average[Completed classes - attendance - average]
+    Average --> Stop[STOP - class financial rule NOT FINALIZED]
+```
+
+```mermaid
+flowchart LR
+    Package[ActivityPackage] --> Subscription[ActivitySubscription]
+    Subscription --> Coach[Selected internal or external ActivityCoach]
+    Coach --> Snapshot[Purchase coach and percentage snapshots]
+    Snapshot --> Pay[Sale and collected Payments]
+    Pay --> Entitlement[Coach entitlement using actual eligible money]
+```
+
+```mermaid
+flowchart LR
+    Plan[Freelance MembershipPlan] --> Eligible[Explicit eligible Members]
+    Eligible --> Purchase[Validated member purchase]
+    Purchase --> House[House attribution and historical snapshots]
+    House --> NoSales[No Sales commission]
+```
+
+These reuse existing schema facts and any previously implemented feature code. This
+final alignment adds no purchase, attendance, report, financial or authorization service.
+
+Latest Private transfer calculation: preserve delivered/expiry monetary basis, determine
+transferred-client context from assignment history, then apply the future BLL 50% rule
+for transferred-client work and expiry. Existing ordinary CommissionRule behavior applies
+to other Private work; no database trigger hardcodes the transfer percentage.

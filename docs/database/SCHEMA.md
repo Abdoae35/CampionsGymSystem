@@ -1,5 +1,8 @@
 # Gym database schema
 
+Current aligned model: **71 application tables plus seven Identity tables (78 total)**.
+See [final schema-gap and rollout report](FINAL_SCHEMA_ALIGNMENT.md).
+
 Identity uses the seven standard AspNet tables and Guid user/role keys.
 All business foreign keys restrict deletion. Enums are checked strings. Money
 is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
@@ -9,15 +12,18 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 | Cities | City configuration | None |
 | GymBranches | Branch settings and city ownership | CityId → Cities |
 | Permissions | Dynamic permission catalog | None |
+| UserPermissionOverrides | Per-user Allow/Deny storage | UserId → AspNetUsers, PermissionId → Permissions, optional CreatedByUserId → AspNetUsers |
 | RolePermissions | RoleDynamic permission catalog | RoleId → AspNetRoles, PermissionId → Permissions |
 | Employees | Staff/freelance identity and employment | UserId → AspNetUsers |
 | EmployeeBranchAssignments | Effective-dated branch assignment history | EmployeeId → Employees, BranchId → GymBranches, AssignedByUserId → AspNetUsers |
+| EmployeeLeaveRequests | Pending/approved/rejected leave and review | EmployeeId → Employees, optional ReviewedByUserId → AspNetUsers |
 | EmployeeSalarySettings | Effective-dated salary history | EmployeeId → Employees, CreatedByUserId → AspNetUsers |
 | Members | Member profile, unique code and phone | HomeBranchId → GymBranches, CreatedByUserId → AspNetUsers |
 | MemberSalesAssignments | Current sales/house owner and assignment history | MemberId → Members, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
 | Leads | Branch CRM prospect and conversion | BranchId → GymBranches, ConvertedMemberId → Members, CreatedByUserId → AspNetUsers |
 | LeadAssignments | Sales ownership history | LeadId → Leads, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
 | LeadInteractions | Contact and follow-up history | LeadId → Leads, EmployeeId → Employees |
+| MembershipPlanCategories | Dynamic audience classification, independent of Normal/Freelance | None |
 | MembershipPlans | Normal or Coach-specific Freelance gym products | CityId → Cities, optional FreelanceCoachEmployeeId → Employees |
 | MemberSubscriptions | Gym entitlement with access/session snapshot | MemberId → Members, MembershipPlanId → MembershipPlans, CityId → Cities, PurchasedAtBranchId → GymBranches |
 | MembershipSubscriptionTransactions | Initial/renewal purchases and price/date snapshots | MemberSubscriptionId → MemberSubscriptions, SaleTransactionId → SaleTransactions, MembershipPlanId → MembershipPlans, optional FreelanceCoachEmployeeIdSnapshot → Employees |
@@ -54,6 +60,8 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 | FinancialTransactions | Explicit-source credit/debit ledger | FinancialAccountId → FinancialAccounts, BranchId → GymBranches, PaymentId → Payments, RefundId → Refunds, ExpenseId → Expenses, PayrollId → Payrolls, CreatedByUserId → AspNetUsers |
 | ExpenseCategories | Expense classification | None |
 | Expenses | Historical expense approval and account | BranchId → GymBranches, ShiftId → Shifts, ExpenseCategoryId → ExpenseCategories, FinancialAccountId → FinancialAccounts, CreatedByUserId → AspNetUsers, ApprovedByUserId → AspNetUsers |
+| BusinessDays | Branch operational day independent of midnight | BranchId → GymBranches, optional opening/closing user → AspNetUsers |
+| ShiftEmployeeChanges | Original/replacement shift history and actor | ShiftId → Shifts, OriginalEmployeeId/ReplacementEmployeeId → Employees, ChangedByUserId → AspNetUsers |
 | Shifts | Branch cash shift lifecycle | BranchId → GymBranches, OpenedByUserId → AspNetUsers, ClosedByUserId → AspNetUsers |
 | ShiftEmployees | ShiftStaff/freelance identity and employment | ShiftId → Shifts, EmployeeId → Employees |
 | CommissionPeriods | Branch close/reopen lifecycle | BranchId → GymBranches, ClosedByUserId → AspNetUsers, ReopenedByUserId → AspNetUsers |
@@ -134,7 +142,7 @@ InitialCreate and its SQL remain the historical baseline, not the current schema
 
 ## Activities, Classes and Freelance update (2026-10-07)
 
-The model now contains **66 application tables plus seven Identity tables (73 total)**.
+Before final alignment, the model contained **66 application tables plus seven Identity tables (73 total)**.
 
 - ActivityCoaches: Guid PK; string CoachType Internal/External. CHECK requires EmployeeId
   for Internal and name/no Employee for External. Internal external-contact columns are
@@ -168,3 +176,36 @@ The model now contains **66 application tables plus seven Identity tables (73 to
   other roles are unchanged. No new user/role/employee/member/eligibility data is seeded.
 
 See [deployment and reconciliation](UPDATE_ACTIVITIES_CLASSES_AND_FREELANCE.md).
+
+## Final business schema alignment (2026-10-07)
+
+- UserPermissionOverrides uses composite Guid PK (UserId, PermissionId), checked string
+  Effect Allow/Deny, optional creator and real CreatedAt. FKs Restrict. PK enforces one
+  override per user/permission; separate PermissionId/CreatedByUserId FK indexes.
+- BusinessDays has Guid PK, BranchId, DateOnly BusinessDate, OpenedAt/ClosedAt,
+  checked Open/Closed Status, optional opening/closing users and CreatedAt. Unique
+  (BranchId, BusinessDate) and partial unique BranchId WHERE Status='Open'. Lifecycle
+  check requires closed timestamp after opening; an open day cannot have a close stamp.
+- Nullable BusinessDayId on Shifts, SaleTransactions, Payments, Refunds, Expenses,
+  CheckIns, FinancialTransactions and ClassSessions. All FKs indexed and Restrict.
+  Keep their actual timestamps. MembershipSubscriptionTransactions derives its day
+  from SaleTransaction, as do Private/Activity purchase batches. Payment/refund parts
+  inherit their parent event day. No redundant BusinessDate columns are stored.
+- MembershipPlanCategories is an editable audience catalog (not enum): Guid ID,
+  unique nonblank Name, nullable text Description, IsActive, CreatedAt. Nullable
+  indexed MembershipPlans.MembershipPlanCategoryId FK Restrict preserves old plans.
+  Existing PlanCategory Normal/Freelance and CityId access model remain unchanged.
+- EmployeeLeaveRequests: Guid PK, EmployeeId, inclusive date FromDate/ToDate, reason,
+  checked Pending/Approved/Rejected status, optional reviewer/time/notes, CreatedAt.
+  Checks reject reversed dates and inconsistent review timestamps; indexes on
+  (EmployeeId, FromDate, ToDate), Status and reviewer FK. BLL owns authorization,
+  overlaps and preventing shift assignment during approved leave.
+- ShiftEmployeeChanges: Guid PK, ShiftId, distinct OriginalEmployeeId and
+  ReplacementEmployeeId, optional reason, required ChangedByUserId and ChangedAt.
+  Shift/time index plus Employee/user FK indexes. Existing ShiftEmployees composite
+  key and joined/left history are preserved. AuditLog remains a separate system audit.
+- No Class/Activity/Freelance/Private duplication or redesign. Private transfer history
+  supports the latest future-BLL 50% transferred-client work/expiry rule without a DB
+  trigger or a hardcoded rate column. Existing financial snapshots remain intact.
+- All new timestamps use timestamptz, dates use date and enums are checked strings.
+  No fake data or automatic midnight/business-day inference was added.

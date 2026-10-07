@@ -16,7 +16,8 @@ it does not replace checking the actual repository.
 - `CampionsGymSystem.slnx`: solution file.
 - Intended scope includes gym operations, transactions, payments, and leads.
   PostgreSQL is selected; the 26-module EF persistence schema is implemented.
-  The current model has 62 application tables; local DB still has InitialCreate.
+  The current aligned model has 71 application tables plus seven Identity tables.
+  Database rollout remains separate; no migration is applied by schema alignment.
   Payment provider and business workflows remain to be implemented.
 
 ## User preferences and workflow
@@ -39,24 +40,24 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Latest selected update (2026-10-07): Activities/internal-external coaches and actual
-  paid-revenue settlement, Class actual sessions/attendance statistics, Freelance plan
-  eligibility and House purchases implemented. No automatic Class compensation.
-- Model: 66 application tables plus seven Identity tables. One new additive migration
-  UpdateActivitiesClassesAndFreelanceRules; SQL generated/reviewed. No user database
-  migration applied; legacy reconciliation is documented.
-- Final build zero warnings/errors; 103 tests passed, 0 failed/skipped. No model drift.
-  Tests use isolated PostgreSQL schemas/rollback; legacy-data upgrade verified.
-- New permission-protected operations/report endpoints and audited BLL paths exist;
-  existing JWT/login/current-user functionality preserved. No package additions.
-- Current branch is DataBaseInit; update and checkpoint are uncommitted/unpushed.
-  Earlier incremental-push request/handoff targeted Auth authentication work; no
-  branch switch or publication to the old Auth target performed for this update.
-- See docs/database/UPDATE_ACTIVITIES_CLASSES_AND_FREELANCE.md for exact files,
-  endpoints, rate/refund/finalization assumptions and deployment/reconciliation.
-- Pending decisions: Class financial formula and authorized corrections/late refunds
-  for finalized activity settlements. Payment reception/access activation remains its
-  separate workflow. Await next user-selected task; no unrelated implementation.
+- Latest operation (2026-10-07): final schema-only alignment complete. Added direct
+  Allow/Deny override storage, BusinessDays/event links, dynamic membership audiences,
+  leave requests and shift replacement business history. Existing features preserved.
+- Model: 71 application tables plus seven Identity tables (78). New migration
+  20261007151235_FinalBusinessSchemaAlignment; reviewed forward SQL adds five tables
+  and nine nullable FK columns. No destructive Up operation or historical backfill.
+- Final build zero warnings/errors; 128 tests passed, zero failed/skipped; no model drift.
+  Legacy preservation and constraints tested in isolated rolled-back PostgreSQL schemas.
+- No API/BLL/auth/feature implementation changed. Direct Allow/Deny resolution and
+  BusinessDay/leave/shift validation need their dedicated feature implementations.
+- Existing Classes, Activities, Freelance and Private facts reused. Latest transferred
+  Private work/expiry 50% rule documented for future BLL; no hardcoded DB rate/trigger.
+  Class financial compensation remains not finalized; no offline sync implementation.
+- Detailed gap report, exact paths and deployment notes: docs/database/FINAL_SCHEMA_ALIGNMENT.md.
+  Schema/rules/data flows updated. Existing prior change is committed by user as c78d95a.
+- Branch DataBaseInit; this update/checkpoint uncommitted/unpushed. No user development
+  or production database migration applied. Review deployment separately. Ready for
+  one user-selected vertical feature; do not start it automatically.
 
 ## Work history
 
@@ -534,3 +535,58 @@ All new update/checkpoint files remain uncommitted/unpushed; earlier Auth-specif
 workflow was not used to publish this separate schema/business change to another branch.
 Next: review/apply pending migrations explicitly after required legacy reconciliation;
 then grant any additional non-Owner management permissions as intended. Stop here.
+
+## 2026-10-07 — Final business schema alignment
+
+Request: inspect the complete current schema, classify gaps against latest confirmed
+rules and add only missing persistence support; no controllers/features, no previous
+migration rewrites, no destructive data changes or offline architecture.
+
+Inspection: all entities/configurations, enum/key/index/FK conventions, Guid Identity,
+context, three existing migrations, snapshots and schema documentation. Existing
+Class occurrences/unique attendance, internal/external Activity coaches/purchase rate
+history, Freelance coach/eligibility/House snapshots and Private session/expiry facts
+already supported the rules. Roles existed without direct user overrides; BusinessDay,
+audience categories and leave were absent; ShiftEmployees lacked replacement/actor/reason.
+Short gap report delivered before code and recorded in FINAL_SCHEMA_ALIGNMENT.md.
+
+Changes:
+- Added UserPermissionOverrides (composite Guid user/permission PK, checked Allow/Deny,
+  optional creator); BusinessDays (date, timestamps/lifecycle and unique branch/date,
+  partial unique open branch); MembershipPlanCategories (dynamic unique nonblank name);
+  EmployeeLeaveRequests (dates/status/review metadata); ShiftEmployeeChanges (distinct
+  original/replacement employee, shift, actor, time/reason). Five Fluent configurations,
+  three string-stored enums and DbSets, all restricted FKs.
+- Added nullable BusinessDayId to Shift, SaleTransaction, Payment, Refund, Expense,
+  CheckIn, FinancialTransaction and ClassSession; nullable category FK on MembershipPlan.
+  Existing rows stay unknown, not inferred from midnight timestamps or fake seeds.
+- Membership/Private/Activity purchase batches derive day via SaleTransaction; parts
+  via their parent. No duplicate BusinessDate or plan-city/branch access model added.
+- Preserved all existing feature and identity code. No authorization resolution change:
+  future feature must implement Roles + Allows - Denies; stored overrides are not yet
+  effective at runtime. No leave/day/shift services or controllers implemented here.
+- Verified existing private facts support latest transferred-client 50% work/expiry
+  rule; updated conflicting earlier documentation, no rate hardcoded in schema/trigger.
+- Generated 20261007151235_FinalBusinessSchemaAlignment and reviewed SQL: five tables,
+  nine nullable FK columns with indexes/checks. No Up table/column drop, rename,
+  alteration or data backfill. Previous migrations unchanged; no new permissions seeded.
+- Updated SCHEMA, BUSINESS_RULES_NOT_ENFORCED_BY_DB, DATA_FLOWS, prior Private rollout
+  clarification, detailed gap/file/verification report and handoff.
+
+Verification: build before migration and final build zero warnings/errors. First full
+suite passed 127; final suite with explicit legacy-sale/shift/plan upgrade case passed
+128 (25 additional schema/migration cases), zero failed/skipped. Existing activity
+migration test adapted to apply through latest before reading current EF optional
+columns. PostgreSQL fixtures/DDL/data rolled back. EF has-pending-model-changes reports
+no drift; git diff --check clean. API/BLL and old migration paths confirmed unchanged.
+No user's development or production database migration applied.
+
+Decisions/remaining: no ManagerId, EAV, duplicate class/activity/freelance concepts,
+permanent member-coach constraint, payment tables, payroll redesign, sync/node/outbox
+architecture or speculative per-table timestamps. Business rules cross-table checks
+remain BLL work. Class payout and finalized activity adjustment rules remain unresolved
+as before; storage alignment is complete and feature work can proceed vertically.
+
+Commit state: repository started clean on DataBaseInit at user commit c78d95a; this
+alignment and checkpoint remain uncommitted/unpushed. No branch switch or automatic
+publication. Stop here and await next user-selected feature/deployment instruction.

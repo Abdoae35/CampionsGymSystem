@@ -37,5 +37,6 @@ public sealed class SaleTransactionConfiguration : IEntityTypeConfiguration<Sale
         builder.HasIndex(x => new { x.BranchId, x.CreatedAt });
         builder.Property(x => x.SalesAttributionSnapshot).HasConversion<string>().HasMaxLength(40);
         builder.ToTable("SaleTransactions", t => t.HasCheckConstraint("CK_SaleTransactions_Attribution", "\"SalesAttributionSnapshot\" IS NULL OR (\"SalesAttributionSnapshot\" = 'House' AND \"SalesEmployeeId\" IS NULL AND \"SaleCategory\" IS NULL) OR (\"SalesAttributionSnapshot\" = 'Sales' AND \"SalesEmployeeId\" IS NOT NULL)"));
+        builder.HasOne(x => x.BusinessDay).WithMany().HasForeignKey(x => x.BusinessDayId).OnDelete(DeleteBehavior.Restrict);
     }
 }

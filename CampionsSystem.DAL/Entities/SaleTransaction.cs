@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class SaleTransaction
 {
+    // Nullable for legacy reconciliation; preserve operational date independently of real timestamps.
+    public Guid? BusinessDayId { get; set; }
+    public BusinessDay? BusinessDay { get; set; }
     // Historical attribution: null on legacy rows; House suppresses Sales commissions.
     public AssignmentType? SalesAttributionSnapshot { get; set; }
 

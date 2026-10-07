@@ -732,6 +732,59 @@ namespace CampionsSystem.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.BusinessDay", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ClosedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("OpenedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OpenedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Open'");
+
+                    b.HasIndex("ClosedByUserId");
+
+                    b.HasIndex("OpenedByUserId");
+
+                    b.HasIndex("BranchId", "BusinessDate")
+                        .IsUnique();
+
+                    b.ToTable("BusinessDays", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BusinessDays_Lifecycle", "(\"Status\" = 'Open' AND \"ClosedAt\" IS NULL AND \"ClosedByUserId\" IS NULL) OR (\"Status\" = 'Closed' AND \"ClosedAt\" IS NOT NULL AND \"ClosedAt\" >= \"OpenedAt\")");
+
+                            t.HasCheckConstraint("CK_BusinessDays_Status", "\"Status\" IN ('Open', 'Closed')");
+                        });
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.CheckIn", b =>
                 {
                     b.Property<Guid>("Id")
@@ -742,6 +795,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BusinessDayId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("CheckInMethod")
@@ -784,6 +840,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ActivitySubscriptionId");
+
+                    b.HasIndex("BusinessDayId");
 
                     b.HasIndex("CoachEmployeeId");
 
@@ -877,6 +935,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BusinessDayId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("ClassScheduleId")
                         .HasColumnType("uuid");
 
@@ -901,6 +962,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("character varying(40)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BusinessDayId");
 
                     b.HasIndex("ClassScheduleId");
 
@@ -1292,6 +1355,59 @@ namespace CampionsSystem.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.EmployeeLeaveRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("FromDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ManagerNotes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ReviewedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateOnly>("ToDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("EmployeeId", "FromDate", "ToDate");
+
+                    b.ToTable("EmployeeLeaveRequests", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EmployeeLeaveRequests_Dates", "\"ToDate\" >= \"FromDate\"");
+
+                            t.HasCheckConstraint("CK_EmployeeLeaveRequests_Review", "(\"Status\" = 'Pending' AND \"ReviewedAt\" IS NULL AND \"ReviewedByUserId\" IS NULL) OR (\"Status\" IN ('Approved', 'Rejected') AND \"ReviewedAt\" IS NOT NULL AND \"ReviewedAt\" >= \"CreatedAt\")");
+
+                            t.HasCheckConstraint("CK_EmployeeLeaveRequests_Status", "\"Status\" IN ('Pending', 'Approved', 'Rejected')");
+                        });
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.EmployeeSalarySetting", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1347,6 +1463,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BusinessDayId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1379,6 +1498,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("ApprovedByUserId");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("BusinessDayId");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -1470,6 +1591,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BusinessDayId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uuid");
 
@@ -1507,6 +1631,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("BusinessDayId");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -2209,6 +2335,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("MembershipPlanCategoryId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -2232,6 +2361,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("FreelanceCoachEmployeeId");
 
+                    b.HasIndex("MembershipPlanCategoryId");
+
                     b.HasIndex("PlanCategory", "FreelanceCoachEmployeeId", "IsActive");
 
                     b.ToTable("MembershipPlans", null, t =>
@@ -2249,6 +2380,37 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_MembershipPlans_Price", "\"Price\" >= 0");
 
                             t.HasCheckConstraint("CK_MembershipPlans_SessionCount", "\"SessionCount\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlanCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("MembershipPlanCategories", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MembershipPlanCategories_Name", "length(trim(\"Name\")) > 0");
                         });
                 });
 
@@ -2520,6 +2682,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BusinessDayId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CommissionPeriodId")
                         .HasColumnType("uuid");
 
@@ -2547,6 +2712,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("character varying(40)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BusinessDayId");
 
                     b.HasIndex("CommissionPeriodId");
 
@@ -3117,6 +3284,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BusinessDayId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -3146,6 +3316,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("ApprovedByUserId");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("BusinessDayId");
 
                     b.HasIndex("OriginalPaymentId");
 
@@ -3215,6 +3387,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BusinessDayId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -3268,6 +3443,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BusinessDayId");
+
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("CreatedShiftId");
@@ -3313,6 +3490,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BusinessDayId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -3345,6 +3525,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("BusinessDayId");
 
                     b.HasIndex("ClosedByUserId");
 
@@ -3385,6 +3567,46 @@ namespace CampionsSystem.DAL.Migrations
                     b.ToTable("ShiftEmployees", null, t =>
                         {
                             t.HasCheckConstraint("CK_ShiftEmployees_JoinedAtLeftAt", "\"LeftAt\" >= \"JoinedAt\"");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ShiftEmployeeChange", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ChangedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OriginalEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ReplacementEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ShiftId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangedByUserId");
+
+                    b.HasIndex("OriginalEmployeeId");
+
+                    b.HasIndex("ReplacementEmployeeId");
+
+                    b.HasIndex("ShiftId", "ChangedAt");
+
+                    b.ToTable("ShiftEmployeeChanges", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ShiftEmployeeChanges_DifferentEmployees", "\"OriginalEmployeeId\" <> \"ReplacementEmployeeId\"");
                         });
                 });
 
@@ -3463,6 +3685,37 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_SubscriptionFreezes_FreezeType", "\"FreezeType\" IN ('Normal', 'Medical')");
 
                             t.HasCheckConstraint("CK_SubscriptionFreezes_StartDateEndDate", "\"EndDate\" >= \"StartDate\"");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.UserPermissionOverride", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Effect")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("UserId", "PermissionId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("UserPermissionOverrides", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_UserPermissionOverrides_Effect", "\"Effect\" IN ('Allow', 'Deny')");
                         });
                 });
 
@@ -3877,6 +4130,31 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Branch");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.BusinessDay", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ClosedByUser")
+                        .WithMany()
+                        .HasForeignKey("ClosedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "OpenedByUser")
+                        .WithMany()
+                        .HasForeignKey("OpenedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("ClosedByUser");
+
+                    b.Navigation("OpenedByUser");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.CheckIn", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.ActivitySubscription", "ActivitySubscription")
@@ -3889,6 +4167,11 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
+                        .WithMany()
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.ClassSession", "ClassSession")
                         .WithMany()
@@ -3926,6 +4209,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Navigation("Branch");
 
+                    b.Navigation("BusinessDay");
+
                     b.Navigation("ClassSession");
 
                     b.Navigation("CoachEmployee");
@@ -3958,6 +4243,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
+                        .WithMany()
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.ClassSchedule", "ClassSchedule")
                         .WithMany()
                         .HasForeignKey("ClassScheduleId")
@@ -3976,6 +4266,8 @@ namespace CampionsSystem.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Branch");
+
+                    b.Navigation("BusinessDay");
 
                     b.Navigation("ClassSchedule");
 
@@ -4138,6 +4430,24 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("SportsActivity");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.EmployeeLeaveRequest", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ReviewedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("ReviewedByUser");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.EmployeeSalarySetting", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
@@ -4170,6 +4480,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
+                        .WithMany()
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
@@ -4196,6 +4511,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("ApprovedByUser");
 
                     b.Navigation("Branch");
+
+                    b.Navigation("BusinessDay");
 
                     b.Navigation("CreatedByUser");
 
@@ -4224,6 +4541,11 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
+                        .WithMany()
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
                         .WithMany()
@@ -4258,6 +4580,8 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Branch");
+
+                    b.Navigation("BusinessDay");
 
                     b.Navigation("CreatedByUser");
 
@@ -4593,9 +4917,16 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("FreelanceCoachEmployeeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipPlanCategory", "MembershipPlanCategory")
+                        .WithMany()
+                        .HasForeignKey("MembershipPlanCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("City");
 
                     b.Navigation("FreelanceCoachEmployee");
+
+                    b.Navigation("MembershipPlanCategory");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlanEligibleMember", b =>
@@ -4733,6 +5064,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
+                        .WithMany()
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
                         .WithMany()
                         .HasForeignKey("CommissionPeriodId")
@@ -4763,6 +5099,8 @@ namespace CampionsSystem.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Branch");
+
+                    b.Navigation("BusinessDay");
 
                     b.Navigation("CommissionPeriod");
 
@@ -5044,6 +5382,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
+                        .WithMany()
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Payment", "OriginalPayment")
                         .WithMany()
                         .HasForeignKey("OriginalPaymentId")
@@ -5069,6 +5412,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("ApprovedByUser");
 
                     b.Navigation("Branch");
+
+                    b.Navigation("BusinessDay");
 
                     b.Navigation("OriginalPayment");
 
@@ -5125,6 +5470,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
+                        .WithMany()
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
@@ -5154,6 +5504,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Navigation("Branch");
 
+                    b.Navigation("BusinessDay");
+
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("CreatedShift");
@@ -5173,6 +5525,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
+                        .WithMany()
+                        .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ClosedByUser")
                         .WithMany()
                         .HasForeignKey("ClosedByUserId")
@@ -5185,6 +5542,8 @@ namespace CampionsSystem.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Branch");
+
+                    b.Navigation("BusinessDay");
 
                     b.Navigation("ClosedByUser");
 
@@ -5206,6 +5565,41 @@ namespace CampionsSystem.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+
+                    b.Navigation("Shift");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ShiftEmployeeChange", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ChangedByUser")
+                        .WithMany()
+                        .HasForeignKey("ChangedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "OriginalEmployee")
+                        .WithMany()
+                        .HasForeignKey("OriginalEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "ReplacementEmployee")
+                        .WithMany()
+                        .HasForeignKey("ReplacementEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Shift", "Shift")
+                        .WithMany()
+                        .HasForeignKey("ShiftId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ChangedByUser");
+
+                    b.Navigation("OriginalEmployee");
+
+                    b.Navigation("ReplacementEmployee");
 
                     b.Navigation("Shift");
                 });
@@ -5238,6 +5632,32 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("ApprovedByUser");
 
                     b.Navigation("MemberSubscription");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.UserPermissionOverride", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Permission", "Permission")
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

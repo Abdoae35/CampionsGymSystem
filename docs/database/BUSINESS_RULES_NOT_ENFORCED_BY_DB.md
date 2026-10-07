@@ -61,7 +61,8 @@ not controllers, entity methods, or database triggers.
 - Initialize each batch RemainingSessions=SessionsAdded. Consume oldest valid batch
   first (CreatedAt, then Id); validate batch/subscription ownership and eligibility.
 - Sum delivered-session unit values plus expiry settlement EligibleAmount per Coach
-  and CommissionPeriod, then apply configurable CommissionRules. Basis is not final
+  and CommissionPeriod, then apply the applicable rule (ordinary configurable rules;
+  transferred-client work/expiry uses 50% per the latest alignment below). Basis is not final
   commission: 1000 basis at 60 percent gives 600; no rate is hardcoded in entities.
 - Preserve all session/settlement history and finalized summaries. Restrict deletes
   do not make records append-only: BLL must reject history edits/deletes.
@@ -181,3 +182,52 @@ not controllers, entity methods, or database triggers.
   A caller providing a transaction owns its isolation/rollback. Concurrent conflicts
   return 409 through the API; reload/retry. Payment posting still must enforce the
   existing account/refund/idempotency rules when that workflow is implemented.
+
+## Final alignment — future BLL responsibilities (2026-10-07)
+
+- Direct authorization resolves active permissions as **Roles + direct Allow - direct
+  Deny**. Deny wins over Owner/other role grants and direct Allows. The database stores
+  one effect per user/permission. Existing permission runtime remains role-only until
+  this is implemented deliberately; this schema task adds no authorization handler.
+- Open/close BusinessDay explicitly through an authorized branch operation. Never
+  close it automatically at midnight. A real after-midnight event may still reference
+  the prior BusinessDate while retaining its true UTC timestamp. Closing a Shift does
+  not imply closing BusinessDay. A day can contain multiple shifts.
+- On each operation, validate the chosen BusinessDay belongs to its event's Branch,
+  is valid/open for that workflow, and is preserved historically. Payment/refund days
+  may differ from sale day. Derived purchase-batch day comes from its own sale; payment
+  and refund parts inherit their own parent. Do not infer unknown legacy days from
+  CreatedAt. Financial adjustment/day and zero-attendee class/day links are explicit.
+- Subscription StartDate may follow the linked business date according to the purchase
+  rule; never replace real CreatedAt with midnight or the business date. Day assignment,
+  subscription start logic, date boundaries/timezone and immutable history are BLL work.
+- Management controls dynamic plan audience categories independently of Normal/Freelance.
+  Preserve existing city-based access. Deactivate categories/plans instead of deleting
+  referenced data; classification edits must be auditable.
+- Employees submit leave; a manager resolved through branch + permissions reviews it.
+  Pending/Approved/Rejected and reviewer/time are stored. Future BLL validates reviewer
+  authority, leave overlaps, and approved leave conflicts with shifts before assignment
+  or replacement. No Employee.ManagerId or automated hierarchy/workflow was added.
+- Shift replacement atomically preserves assignment participation and appends a
+  ShiftEmployeeChange (original, replacement, actor, time, reason). AuditLog also records
+  the action; it does not replace the business event. Reject invalid/cross-branch or
+  approved-leave-conflicting replacements in BLL, not a cross-table trigger.
+- Private transfer is allowed after closed periods. Old delivered sessions stay with
+  their actual coach/batch/period. **Transferred-client work and transferred-client expiry
+  settlement use the fixed 50% rule in future BLL**, superseding older ordinary configurable
+  rate guidance for this case. Preserve full eligible basis; apply 50% to final entitlement,
+  never halve recorded delivered sessions or move already-earned historical basis.
+  Assignment histories and event/settlement timestamps preserve the transfer facts.
+- Class average remains total actual attendance / completed actual sessions, including
+  completed zero-attendee sessions and excluding cancelled/scheduled sessions. Financial
+  class compensation remains **BUSINESS RULE NOT FINALIZED**.
+- Activity entitlement remains based on actual collected eligible funds and linked refunds,
+  using preserved coach/rate history; no new calculation, payment table or trigger here.
+- Freelance plans require explicit eligibility and coach/price snapshots; new purchases
+  are House with no Sales commission. Do not rewrite prior Sales history. One Freelance
+  coach per member is an expectation, not permanent global database uniqueness.
+- Audit override changes, BusinessDay opening/closing, leave review, shift replacements,
+  audience changes, eligibility changes and activity coach/rate/assignment changes using
+  the existing append-only AuditLog. Do not log secrets.
+- Offline synchronization is **not implemented**. Existing UUIDs, ownership FKs, real
+  timestamps and history are retained. No outbox/inbox/nodes/conflicts/replication added.

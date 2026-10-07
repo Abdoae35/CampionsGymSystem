@@ -29,5 +29,6 @@ public sealed class FinancialTransactionConfiguration : IEntityTypeConfiguration
         builder.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Notes).HasColumnType("text");
         builder.HasIndex(x => new { x.FinancialAccountId, x.OccurredAt });
+        builder.HasOne(x => x.BusinessDay).WithMany().HasForeignKey(x => x.BusinessDayId).OnDelete(DeleteBehavior.Restrict);
     }
 }

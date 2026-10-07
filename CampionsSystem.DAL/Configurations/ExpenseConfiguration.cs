@@ -25,5 +25,6 @@ public sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
         builder.HasOne(x => x.ApprovedByUser).WithMany().HasForeignKey(x => x.ApprovedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(40);
         builder.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
+        builder.HasOne(x => x.BusinessDay).WithMany().HasForeignKey(x => x.BusinessDayId).OnDelete(DeleteBehavior.Restrict);
     }
 }

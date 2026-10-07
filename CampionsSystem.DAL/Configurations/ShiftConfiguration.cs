@@ -27,5 +27,6 @@ public sealed class ShiftConfiguration : IEntityTypeConfiguration<Shift>
         builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(40);
         builder.HasOne(x => x.OpenedByUser).WithMany().HasForeignKey(x => x.OpenedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.ClosedByUser).WithMany().HasForeignKey(x => x.ClosedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.BusinessDay).WithMany().HasForeignKey(x => x.BusinessDayId).OnDelete(DeleteBehavior.Restrict);
     }
 }

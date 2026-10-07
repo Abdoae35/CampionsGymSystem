@@ -22,5 +22,6 @@ public sealed class ClassSessionConfiguration : IEntityTypeConfiguration<ClassSe
         b.HasIndex(x => new { x.CoachEmployeeId, x.StartedAt });
         b.HasIndex(x => new { x.GroupClassId, x.StartedAt });
         b.HasIndex(x => new { x.BranchId, x.StartedAt });
+        b.HasOne(x => x.BusinessDay).WithMany().HasForeignKey(x => x.BusinessDayId).OnDelete(DeleteBehavior.Restrict);
     }
 }

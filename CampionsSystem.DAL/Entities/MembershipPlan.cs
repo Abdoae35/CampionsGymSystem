@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class MembershipPlan
 {
+    // Dynamic audience classification, distinct from Normal/Freelance PlanCategory.
+    public Guid? MembershipPlanCategoryId { get; set; }
+    public MembershipPlanCategory? MembershipPlanCategory { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid CityId { get; set; }
     public City City { get; set; } = null!;

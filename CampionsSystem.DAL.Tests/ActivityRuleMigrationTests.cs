@@ -33,7 +33,7 @@ public sealed class ActivityRuleMigrationTests
             INSERT INTO "CheckIns" ("Id", "MemberId", "BranchId", "CheckInType", "GroupClassId", "CoachEmployeeId", "CheckInMethod", "SessionConsumed", "CheckedInAt", "CreatedByUserId")
             VALUES ({checkIn}, {member.Id}, {branch.Id}, 'Class', {group.Id}, {employee.Id}, 'Manual', FALSE, {now}, {user.Id});
             """);
-        var sql = db.GetService<IMigrator>().GenerateScript("UpdatePrivateAndFreelanceBusinessRules", "UpdateActivitiesClassesAndFreelanceRules")
+        var sql = db.GetService<IMigrator>().GenerateScript("UpdatePrivateAndFreelanceBusinessRules", null)
             .Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
         await db.Database.ExecuteSqlRawAsync(sql);
         db.ChangeTracker.Clear();

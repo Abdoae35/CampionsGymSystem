@@ -76,6 +76,12 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<MembershipPlanEligibleMember> MembershipPlanEligibleMembers => Set<MembershipPlanEligibleMember>();
     public DbSet<ActivityCoachSettlement> ActivityCoachSettlements => Set<ActivityCoachSettlement>();
 
+    public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
+    public DbSet<BusinessDay> BusinessDays => Set<BusinessDay>();
+    public DbSet<MembershipPlanCategory> MembershipPlanCategories => Set<MembershipPlanCategory>();
+    public DbSet<EmployeeLeaveRequest> EmployeeLeaveRequests => Set<EmployeeLeaveRequest>();
+    public DbSet<ShiftEmployeeChange> ShiftEmployeeChanges => Set<ShiftEmployeeChange>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

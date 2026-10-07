@@ -31,5 +31,6 @@ public sealed class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
         builder.HasOne(x => x.ClassSession).WithMany().HasForeignKey(x => x.ClassSessionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => new { x.ClassSessionId, x.MemberId }).IsUnique().HasFilter("\"ClassSessionId\" IS NOT NULL");
         builder.ToTable("CheckIns", t => t.HasCheckConstraint("CK_CheckIns_ClassSession", "\"ClassSessionId\" IS NULL OR \"CheckInType\" = 'Class'"));
+        builder.HasOne(x => x.BusinessDay).WithMany().HasForeignKey(x => x.BusinessDayId).OnDelete(DeleteBehavior.Restrict);
     }
 }
