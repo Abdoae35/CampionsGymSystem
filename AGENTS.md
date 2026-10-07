@@ -29,6 +29,8 @@ or private environment values. Do not claim checks or actions that were not run.
 Preserve existing user changes. Do not commit or push unless requested.
 For the Authentication task (2026-10-06), the user explicitly requested committing
 and pushing each completed, verified small subtask to the current Auth branch.
+For the Branch feature (2026-10-07), the user explicitly requested small verified
+commits and pushes to the current BranchSepration branch after each meaningful task.
 
 Work one user-selected task at a time. Complete its implementation, relevant
 verification, and history checkpoint before moving on. Do not expand a task into
@@ -39,12 +41,18 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Branch feature in progress on BranchSepration; latest increment: complete branch API isolation and concurrency coverage.
-- Verification: build 0 warnings/errors; full suite 202 passed, zero failed/skipped; diff check clean.
-- Added real HTTP branch list isolation/spoofing/no-delete/initial assignment/transfer/me-same-JWT/403/invalid-body tests and independent-connection concurrent initial assignment/transfer tests. Dedicated internally generated PostgreSQL test schemas committed only for race visibility and removed afterward; no application DB writes. 633c654 pushed successfully. All prior increments pushed.
-- No schema/migration/application DB changes; existing deployed five migrations intact.
-- User authorizes small commits and pushes after each verified meaningful branch task.
-  This checkpoint is included in the current increment; commit/push next.
-- Next: branch usage/rules documentation and final build/full-suite/model-drift checks. Do not implement unrelated modules.
-- Full chronological operation and commit results: PROJECT_HISTORY.md.
-- History skill portable source: skills/project-history-update/SKILL.md.
+- Branch vertical feature complete on BranchSepration: branch management, employee
+  assignment/history, shared current branch context/scope, atomic dated transfers/audits.
+- Final build 0 warnings/errors; full suite 202 passed, 0 failed/skipped; no EF model drift.
+  Rollback, HTTP isolation, same-JWT context and independent-connection races covered.
+- No schema/migration/application DB changes. Explicit Branches.AccessAll setup command
+  documented but NOT run; existing Owner role needs deliberate grant for global operations.
+  Effective permissions now resolve Roles + direct Allow - direct Deny; no role bypass.
+- Seven implementation/fix/test commits already pushed. This handoff belongs to final
+  documentation commit; verify its push/remote HEAD and clean status before final delivery.
+- Rules/setup/routes: docs/branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md.
+  Historical branch ownership unchanged. Backdated/intra-day HR corrections, transfer
+  rescheduling and dependent module consequences remain separate workflows.
+- Await next user-selected feature. No Members/check-in/finance/other module started.
+- Chronological record/commit list: PROJECT_HISTORY.md. Required history skill portable
+  source: skills/project-history-update/SKILL.md.

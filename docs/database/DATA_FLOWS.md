@@ -354,3 +354,49 @@ flowchart LR
 
 Usage is not a payment or sale. Carryover, expiration, FIFO and reset rules remain
 **BUSINESS RULE NOT FINALIZED**. This alignment only stores the required facts.
+
+## Branch context, transfer and future boundaries
+
+```mermaid
+flowchart LR
+    User[Authenticated User] --> Employee[Employee via UserId]
+    Employee --> Assignment[One date-valid EmployeeBranchAssignment]
+    Assignment --> Branch[Active Current Branch]
+    Branch --> Scope[Permission plus Branch Scope]
+```
+
+```mermaid
+flowchart LR
+    Source[Current branch assignment] --> Validate[Validate permission, source and target scope, employee and dates]
+    Validate --> Lock[Transaction and employee row lock]
+    Lock --> End[Close source at effective date minus one day]
+    End --> New[Create target assignment and transfer audit]
+    New --> Commit[Commit atomically]
+    Commit --> Future[Future effective operations use target branch]
+```
+
+Historical transaction/attendance/shift branches remain unchanged. Future transfers
+switch context on their effective calendar date; no automatic dependent-module reassignment.
+
+```mermaid
+flowchart LR
+    Member[Member from any home branch] --> Sub[Shared active Subscription]
+    Sub --> Eligible[Verify target branch eligibility]
+    Eligible --> Check[Future CheckIn at actual target branch]
+    Check --> Sessions[SessionBased deducts one shared session]
+    Check --> Unlimited[Unlimited deducts no session quantity]
+```
+
+This future member lookup exposes only required operational data, not branch financials.
+It does not transfer the member's home branch; no check-in feature is added here.
+
+```mermaid
+flowchart LR
+    Money[Money received at Branch B] --> Sale[Future Sale Branch B]
+    Sale --> Payment[Payment Branch B]
+    Payment --> Ledger[Ledger Branch B]
+    Spend[Money spent at Branch B] --> Expense[Expense Branch B]
+```
+
+Future finance ownership follows actual receiving/spending branch, not member registration
+or the employee's later current assignment. No financial workflow is implemented here.

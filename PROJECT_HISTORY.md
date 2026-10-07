@@ -25,6 +25,8 @@ it does not replace checking the actual repository.
 
 - For the Authentication task (2026-10-06), commit and push each completed,
   verified small subtask to the existing Auth branch as explicitly requested.
+- For the Branch feature (2026-10-07), build/test/review and commit/push each
+  meaningful increment to BranchSepration; no squash/amend/force push.
 - Work one user-selected task at a time; finish and verify it before advancing.
   Do not begin the next task or whole-project implementation without direction.
 
@@ -41,13 +43,22 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature in progress on BranchSepration. Latest increment: complete branch API isolation and concurrency coverage.
-- Verification: build 0 warnings/errors; full suite 202 passed, zero failed/skipped; diff check clean.
-- Added real HTTP branch list isolation/spoofing/no-delete/initial assignment/transfer/me-same-JWT/403/invalid-body tests and independent-connection concurrent initial assignment/transfer tests. Dedicated internally generated PostgreSQL test schemas committed only for race visibility and removed afterward; no application DB writes. 633c654 pushed successfully. All prior increments pushed.
-- No schema/migration changes or application database update in this feature.
-- This verified increment and checkpoint are ready for a small commit and push;
-  completed earlier increments remain in chronological history. Preserve user work.
-- Next: branch usage/rules documentation and final build/full-suite/model-drift checks. Do not start unrelated modules.
+- Branch feature complete on BranchSepration: branch management, employee assignment/history,
+  shared current-branch resolution, explicit branch scope and atomic dated transfers.
+  Existing Guid/EF schema reused; no migration/model or application DB changes.
+- Effective permission resolution now includes role grants + direct Allows - direct Denies.
+  Branches.AccessAll is explicit global scope; Owner role alone is no bypass. Its deliberate
+  localhost Development setup command is documented and NOT run against the app DB here.
+- Final build 0 warnings/errors; full suite 202 passed, 0 failed/skipped; no EF model drift.
+  Tests include actual HTTP isolation/me after transfer, first-save rollback and independent
+  PostgreSQL connection races. Race schemas are isolated and removed, other fixtures rolled back.
+- Seven implementation/fix/test commits pushed successfully (listed below). This handoff and
+  branch/auth/business-flow docs are packaged in the final documentation commit; final delivery
+  requires that commit's remote HEAD to match local HEAD, verified after its push.
+- No Members/check-in/financial/dependent-module workflow added. Backdated/intra-day HR moves,
+  rescheduling/cancellation and dependent module consequences remain separate workflows.
+- See docs/branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md for routes, rules and setup.
+  Await next user-selected feature; do not start automatically.
 
 ## Work history
 
@@ -735,3 +746,54 @@ Added real HTTP branch list isolation/spoofing/no-delete/initial assignment/tran
 
 Verification: build 0 warnings/errors; full suite 202 passed, zero failed/skipped; diff check clean. No schema or existing migration changes. Checkpoint
 included with this increment; commit/push follows verification. Next: branch usage/rules documentation and final build/full-suite/model-drift checks.
+
+## 2026-10-07 — Branch documentation and final delivery verification
+
+Completed branch vertical feature using existing GymBranch/City/Employee/dated assignments,
+current-user authentication, dynamic policies, shared audit helper and PostgreSQL schema.
+Added branch CRUD (no DELETE), assignment current/history/initial APIs, atomic transfer API,
+shared EmployeeBranchResolver/ICurrentBranchContext and IBranchAccessService. Permission
+checks and branch scope are separate; no global EF filters, Employee.CurrentBranchId or
+schema change. Existing partial primary index supplemented by BLL interval checks and
+per-employee row locks; ambiguous legacy assignments fail closed instead of being guessed.
+
+Implemented direct override resolution in existing PermissionService because a direct Deny
+must revoke the new global branch permission even on an existing JWT. Existing OperationAccess
+now shares permission-based scope rather than Owner role bypass. Added explicit local-only
+BranchPermissionSetup command; it is not automatic, creates no accounts and was NOT executed
+against the application DB. Existing Owner role needs Branches.AccessAll configured deliberately.
+
+Transfer dates inclusive, no backdating, no same-start-day/intra-day move, active employment/
+target required, no overlapping/pending transfer override. Old row closes before new insertion
+within one transaction/savepoint, with audit actor/employee/source/target/effective dates.
+Injected fault after the first save verifies rollback; concurrent separate connections verify
+only one assignment/transfer wins. Old sale/shift branches tested unchanged. Raw SQL bypasses
+BLL interval guards; no automatic history repair or dependent-module reassignment exists.
+
+Added docs/branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md; updated authentication,
+authorization, database business rules and data flows. Documented explicit permission setup,
+normal/global scope, member cross-branch operational lookup/eligibility versus financial
+visibility, future check-in session behavior and money ownership at actual receiving/spending
+branch. Those future workflows are not implemented. Dates use configured gym calendar timezone,
+not overnight BusinessDay. No unrelated entities/modules/frontend/finance/offline changes.
+
+Verification: initial HTTP request validation metadata issue corrected before first commit;
+all subsequent meaningful increments built/tested/reviewed before commit/push. Final build
+0 warnings/errors; full suite 202 passed, zero failed/skipped (46 additional branch/security
+cases). Full suites passed 201, then 202 after reviewed date-boundary regression; final full
+run also 202. EF reports no model drift. No DAL entity/configuration/migration files changed.
+Diff check clean; no application/production database writes. Concurrency tests use committed
+private synthetic schemas removed afterward; standard fixtures rollback their own schemas.
+
+Commits already verified pushed to origin/BranchSepration, in order:
+- d69276e feat(branches): add branch management service and endpoints
+- d185397 feat(employees): add employee branch assignment management
+- 8368948 feat(branch-context): add authenticated employee branch context
+- 8f8c054 feat(branch-security): enforce branch access boundaries
+- 0f2afbe feat(employee-transfer): implement branch transfer with history
+- 633c654 fix(employee-transfer): handle maximum assignment end date safely
+- 13c68cf test(branches): cover branch isolation and employee transfers
+
+This checkpoint is included in the final docs(branches) commit. Its push and clean Git
+status/last-ten log/remote HEAD are checked after commit, before reporting completion.
+No squash/amend/force push, discarded user work, package additions or next feature.
