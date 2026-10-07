@@ -43,7 +43,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 - User-selected task: Employee Management on EmployeeManagement branch; incremental
   build/test/diff/commit/push workflow explicitly requested. No next feature.
-- c36f38a creation increment pushed. Added profile PUT and separate status PATCH with existing Employees.Manage, shared employee row locks, branch checks and atomic audit. Resigned sets current gym date as TerminationDate; reactivation clears it; historical assignments untouched. Four new tests; build 0 warnings/errors and 30 employee/assignment/transfer tests passed. Next: HTTP security/validation and full regression.
+- 245669f profile/status increment pushed. Added six HTTP integration cases for permissions, branch spoofing and scoped lists/details, full create/update/status/history flow, rejected profile branch/user/status fields, invalid filters and rollback. Build 0 warnings/errors; FULL suite 221 passed, zero failed/skipped; EF no model drift. All three implementation commits pushed. Next: documentation and Postman coverage.
 - Reuse existing nullable Employee.UserId, branch history/transfers, permissions and
   audit. Existing status Resigned means ended employment with TerminationDate;
   no new Terminated enum/database change. No Employee email field/account creation.

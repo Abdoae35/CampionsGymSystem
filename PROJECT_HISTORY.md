@@ -44,7 +44,7 @@ it does not replace checking the actual repository.
 ## Current state
 
 - Employee Management in progress on user-selected EmployeeManagement branch.
-- c36f38a creation increment pushed. Added profile PUT and separate status PATCH with existing Employees.Manage, shared employee row locks, branch checks and atomic audit. Resigned sets current gym date as TerminationDate; reactivation clears it; historical assignments untouched. Four new tests; build 0 warnings/errors and 30 employee/assignment/transfer tests passed. Next: HTTP security/validation and full regression.
+- 245669f profile/status increment pushed. Added six HTTP integration cases for permissions, branch spoofing and scoped lists/details, full create/update/status/history flow, rejected profile branch/user/status fields, invalid filters and rollback. Build 0 warnings/errors; FULL suite 221 passed, zero failed/skipped; EF no model drift. All three implementation commits pushed. Next: documentation and Postman coverage.
 - Existing branch assignment/transfer, permissions, audit and Identity reused.
 - No schema/migration or application database changes. Increment commits/pushes
   verified after checkpoints. See chronological entries for exact checks.
@@ -855,6 +855,15 @@ Required history/handoff checkpoint included; commit/push checked afterward.
 ## 2026-10-07 — Employee Management increment
 
 c36f38a creation increment pushed. Added profile PUT and separate status PATCH with existing Employees.Manage, shared employee row locks, branch checks and atomic audit. Resigned sets current gym date as TerminationDate; reactivation clears it; historical assignments untouched. Four new tests; build 0 warnings/errors and 30 employee/assignment/transfer tests passed. Next: HTTP security/validation and full regression.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+## 2026-10-07 — Employee Management increment
+
+245669f profile/status increment pushed. Added six HTTP integration cases for permissions, branch spoofing and scoped lists/details, full create/update/status/history flow, rejected profile branch/user/status fields, invalid filters and rollback. Build 0 warnings/errors; FULL suite 221 passed, zero failed/skipped; EF no model drift. All three implementation commits pushed. Next: documentation and Postman coverage.
 
 User requested small verified commits/pushes on EmployeeManagement. Existing entity
 has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
