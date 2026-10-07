@@ -1,6 +1,7 @@
 using CampionsSystem.API.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using CampionsSystem.BLL.Authentication;
+using CampionsSystem.BLL.Branches;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -23,6 +24,8 @@ public static class AuthenticationRegistration
         services.AddScoped<ICurrentUserIdentity, HttpCurrentUserIdentity>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<UserContextService>();
+        services.AddScoped<EmployeeBranchResolver>();
+        services.AddScoped<ICurrentBranchContext, CurrentBranchContext>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<JwtTokenIssuer>();

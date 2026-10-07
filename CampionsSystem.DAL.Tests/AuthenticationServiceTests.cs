@@ -1,4 +1,5 @@
 using CampionsSystem.BLL.Authentication;
+using CampionsSystem.BLL.Branches;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
@@ -29,6 +30,7 @@ public sealed class AuthenticationServiceTests : IAsyncLifetime
             .AddRoles<IdentityRole<Guid>>().AddEntityFrameworkStores<ApplicationDbContext>();
         registrations.AddScoped<IPermissionService, PermissionService>();
         registrations.AddScoped<UserContextService>();
+        registrations.AddScoped<EmployeeBranchResolver>();
         registrations.AddScoped<IAuthenticationService, AuthenticationService>();
         services = registrations.BuildServiceProvider();
         scope = services.CreateAsyncScope();
@@ -77,8 +79,7 @@ public sealed class AuthenticationServiceTests : IAsyncLifetime
         var other = new GymBranch { City = city, Name = "Other" };
         db.AddRange(
             new EmployeeBranchAssignment { Employee = employee, Branch = primary, StartDate = new(2026, 10, 1), EndDate = new(2026, 10, 6), IsPrimary = true, AssignedByUser = user },
-            new EmployeeBranchAssignment { Employee = employee, Branch = other, StartDate = new(2026, 10, 1), AssignedByUser = user },
-            new EmployeeBranchAssignment { Employee = employee, Branch = other, StartDate = new(2026, 10, 7), IsPrimary = true, AssignedByUser = user },
+                        new EmployeeBranchAssignment { Employee = employee, Branch = other, StartDate = new(2026, 10, 7), IsPrimary = true, AssignedByUser = user },
             new EmployeeBranchAssignment { Employee = employee, Branch = other, StartDate = new(2026, 1, 1), EndDate = new(2026, 1, 31), IsPrimary = true, AssignedByUser = user });
         await db.SaveChangesAsync();
         var context = await Login();

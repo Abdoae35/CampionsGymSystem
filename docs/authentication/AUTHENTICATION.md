@@ -77,8 +77,9 @@ must have Active status and inclusive current employment dates. Global Owner or
 technical accounts without Employee/branch are safe.
 
 Current assignment satisfies StartDate<=today and EndDate null or >=today, with
-active GymBranch. Prefer primary, then latest StartDate, then stable Id. Ignore
-future/ended assignments/inactive branches; no eligible assignment means null.
+active GymBranch. Require exactly one date-valid assignment; overlapping primary/
+nonprimary history fails closed. Ignore future/ended assignments and inactive branches;
+no unambiguous eligible assignment means null.
 Never use historical transaction branches or add Employee.CurrentBranchId.
 Today uses TimeProvider and AuthContext:TimeZoneId (Africa/Cairo default), independent
 of server local timezone. Existing schema has no per-branch timezone.
@@ -95,7 +96,7 @@ AsNoTracking/projections and async cancellation where supported. UserManager API
 lack CancellationToken; cancellation is checked around them.
 
 Future branch-scoped actions MUST enforce resource BranchId in BLL/API, explicitly
-define Owner/global access and safely handle null branch. Context is not resource
+use the shared branch-access service and safely handle null branch. Context is not resource
 authorization. Next.js server/BFF and Flutter can send bearer headers; direct
 cross-origin browser requests need an explicitly reviewed CORS configuration.
 No frontend origin or permissive CORS policy was invented.
@@ -139,3 +140,11 @@ Final verification: build zero warnings/errors; 58 solution tests passed, zero
 failures/skips (38 authentication/authorization/configuration plus 20 existing
 schema tests); EF reported no pending model changes. Real test schema/data writes
 rolled back. No existing database was updated or production connection used.
+
+## Shared branch resolver (branch feature update)
+
+UserContextService now delegates to EmployeeBranchResolver. Exactly one date-valid
+assignment is required; inactive branches and ambiguous overlapping legacy assignments
+produce no operational branch. Primary is not a bypass for conflicting active rows.
+ICurrentBranchContext reuses this context, and effective transfer changes appear on the
+next request without renewing JWT. See [branch management](../branches/BRANCH_MANAGEMENT.md).

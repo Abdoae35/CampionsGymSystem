@@ -1,4 +1,5 @@
 using CampionsSystem.BLL.Authentication;
+using CampionsSystem.BLL.Branches;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -27,6 +28,7 @@ public sealed class DevelopmentAuthSeederTests : IAsyncLifetime
         registrations.AddScoped<DevelopmentAuthSeeder>();
         registrations.AddScoped<IPermissionService, PermissionService>();
         registrations.AddScoped<UserContextService>();
+        registrations.AddScoped<EmployeeBranchResolver>();
         registrations.AddScoped<IAuthenticationService, AuthenticationService>();
         services = registrations.BuildServiceProvider();
         scope = services.CreateAsyncScope();

@@ -1,4 +1,5 @@
 using CampionsSystem.DAL.Data;
+using CampionsSystem.BLL.Branches;
 using CampionsSystem.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace CampionsSystem.BLL.Authentication;
 
 public sealed class UserContextService(ApplicationDbContext database, IPermissionService permissionService,
-    TimeProvider clock, IOptions<AuthContextOptions> options)
+    TimeProvider clock, IOptions<AuthContextOptions> options, EmployeeBranchResolver branches)
 {
     private readonly TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZoneId);
 
@@ -27,16 +28,7 @@ public sealed class UserContextService(ApplicationDbContext database, IPermissio
         if (employee is not null && (employee.EmploymentStatus != EmploymentStatus.Active
             || employee.HireDate > today || employee.TerminationDate < today)) return null;
 
-        BranchContext? branch = null;
-        if (employee is not null)
-        {
-            branch = await database.EmployeeBranchAssignments.AsNoTracking()
-                .Where(x => x.EmployeeId == employee.Id && x.StartDate <= today
-                    && (x.EndDate == null || x.EndDate >= today) && x.Branch.IsActive)
-                .OrderByDescending(x => x.IsPrimary).ThenByDescending(x => x.StartDate).ThenBy(x => x.Id)
-                .Select(x => new BranchContext(x.BranchId, x.Branch.Name))
-                .FirstOrDefaultAsync(cancellationToken);
-        }
+        var branch = employee is null ? null : await branches.ResolveAsync(employee.Id, today, cancellationToken);
         var roles = await (from userRole in database.UserRoles.AsNoTracking()
                            join role in database.Roles.AsNoTracking() on userRole.RoleId equals role.Id
                            where userRole.UserId == userId && role.Name != null

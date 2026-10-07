@@ -319,4 +319,129 @@ public sealed class AuthenticationApiTests : IAsyncLifetime
         Assert.Contains(await db.AuditLogs.ToListAsync(), x => x.Action == "ActivityCoach.Created");
     }
 
+    [Fact] public async Task BranchManagementRequiresPermissionAndCreatesAuditWhenAuthorized()
+    {
+        await Authenticate();
+        using var forbidden = await client.PostAsJsonAsync("/api/branches", new { name = "New", cityId = Guid.NewGuid() });
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        await GrantPermission("BranchAdministrator", "Branches.Manage");
+        await GrantPermission("BranchAdministrator", "Branches.AccessAll");
+        Guid cityId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var city = new City { Name = "HTTP branch city" }; db.Add(city); await db.SaveChangesAsync(); cityId = city.Id;
+        }
+        using var created = await client.PostAsJsonAsync("/api/branches", new { name = "New", cityId });
+        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+        await using var checkScope = factory.Services.CreateAsyncScope();
+        var check = checkScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Single(await check.GymBranches.ToListAsync());
+        Assert.Contains(await check.AuditLogs.ToListAsync(), x => x.Action == "Branch.Created");
+    }
+
+    [Fact] public async Task DirectBranchPermissionDenyAffectsExistingJwt()
+    {
+        await GrantPermission("GlobalOperator", "Branches.View");
+        await GrantPermission("GlobalOperator", "Branches.AccessAll");
+        await Authenticate();
+        Guid branchId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var branch = new GymBranch { Name = "Protected", City = new City { Name = "Scope" } }; db.Add(branch); await db.SaveChangesAsync(); branchId = branch.Id;
+        }
+        using var allowed = await client.GetAsync($"/api/branches/{branchId}"); Assert.Equal(HttpStatusCode.OK, allowed.StatusCode);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var permission = await db.Permissions.SingleAsync(x => x.Code == "Branches.AccessAll");
+            db.Add(new UserPermissionOverride { UserId = userId, Permission = permission, Effect = CampionsSystem.DAL.Enums.PermissionOverrideEffect.Deny });
+            await db.SaveChangesAsync();
+        }
+        using var denied = await client.GetAsync($"/api/branches/{branchId}"); Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+    }
+
+    private static DateOnly BranchToday => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow,
+        TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo")).DateTime);
+    private async Task<(Guid Employee, Guid Source, Guid Target)> BranchFixture()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var source = new GymBranch { Name = "HTTP A", City = new City { Name = "HTTP Branches" } };
+        var target = new GymBranch { Name = "HTTP B", City = source.City };
+        var employee = new Employee { UserId = userId, FullName = "HTTP Employee", Phone = "http-branch-employee", HireDate = BranchToday.AddDays(-30) };
+        db.AddRange(target, new EmployeeBranchAssignment { Employee = employee, Branch = source, AssignedByUserId = userId,
+            StartDate = BranchToday.AddDays(-10), IsPrimary = true });
+        await db.SaveChangesAsync(); return (employee.Id, source.Id, target.Id);
+    }
+    [Fact] public async Task BranchListRequiresAuthenticationAndPermission()
+    {
+        using var anonymous = await client.GetAsync("/api/branches"); Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+        await Authenticate(); using var forbidden = await client.GetAsync("/api/branches"); Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+    }
+    [Fact] public async Task BranchEmployeeCannotReadOrUpdateAnotherBranchAndCannotHardDeleteHistory()
+    {
+        var data = await BranchFixture(); await GrantPermission("BranchOperator", "Branches.View"); await GrantPermission("BranchOperator", "Branches.Manage");
+        await Authenticate();
+        using var list = await client.GetAsync("/api/branches"); Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        var branches = (await list.Content.ReadFromJsonAsync<List<CampionsSystem.BLL.Branches.BranchDetails>>())!;
+        Assert.Equal(data.Source, Assert.Single(branches).Id);
+        using var get = await client.GetAsync($"/api/branches/{data.Target}"); Assert.Equal(HttpStatusCode.Forbidden, get.StatusCode);
+        using var update = await client.PutAsJsonAsync($"/api/branches/{data.Target}", new { name = "Spoofed", cityId = Guid.NewGuid() });
+        Assert.Equal(HttpStatusCode.Forbidden, update.StatusCode);
+        using var delete = await client.DeleteAsync($"/api/branches/{data.Source}"); Assert.Equal(HttpStatusCode.MethodNotAllowed, delete.StatusCode);
+        await using var scope = factory.Services.CreateAsyncScope(); var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Equal(2, await db.GymBranches.CountAsync()); Assert.Single(await db.EmployeeBranchAssignments.ToListAsync());
+    }
+    [Fact] public async Task TransferApiPreservesHistoryAndMeResolvesNewBranchOnSameJwt()
+    {
+        var data = await BranchFixture(); await GrantPermission("TransferOperator", "Employees.Transfer");
+        await GrantPermission("TransferOperator", "Employees.View"); await GrantPermission("TransferOperator", "Branches.AccessAll");
+        await Authenticate();
+        using var before = await client.GetAsync("/api/auth/me");
+        Assert.Equal(data.Source, (await before.Content.ReadFromJsonAsync<CurrentUserContext>())!.CurrentBranchId);
+        using var transfer = await client.PostAsJsonAsync($"/api/employees/{data.Employee}/transfer-branch", new { targetBranchId = data.Target, effectiveDate = BranchToday });
+        Assert.Equal(HttpStatusCode.OK, transfer.StatusCode);
+        using var after = await client.GetAsync("/api/auth/me"); Assert.Equal(HttpStatusCode.OK, after.StatusCode);
+        Assert.Equal(data.Target, (await after.Content.ReadFromJsonAsync<CurrentUserContext>())!.CurrentBranchId);
+        using var history = await client.GetAsync($"/api/employees/{data.Employee}/branch-history"); Assert.Equal(HttpStatusCode.OK, history.StatusCode);
+        Assert.Equal(2, (await history.Content.ReadFromJsonAsync<List<CampionsSystem.BLL.Branches.BranchAssignmentDetails>>())!.Count);
+        using var duplicate = await client.PostAsJsonAsync($"/api/employees/{data.Employee}/transfer-branch", new { targetBranchId = data.Target, effectiveDate = BranchToday });
+        Assert.Equal(HttpStatusCode.BadRequest, duplicate.StatusCode);
+    }
+    [Fact] public async Task TransferWithoutPermissionOrCrossBranchScopeReturns403()
+    {
+        var data = await BranchFixture(); await Authenticate();
+        using var missing = await client.PostAsJsonAsync($"/api/employees/{data.Employee}/transfer-branch", new { targetBranchId = data.Target, effectiveDate = BranchToday });
+        Assert.Equal(HttpStatusCode.Forbidden, missing.StatusCode);
+        await GrantPermission("ScopedManager", "Employees.Transfer");
+        using var outOfScope = await client.PostAsJsonAsync($"/api/employees/{data.Employee}/transfer-branch", new { targetBranchId = data.Target, effectiveDate = BranchToday });
+        Assert.Equal(HttpStatusCode.Forbidden, outOfScope.StatusCode);
+    }
+    [Fact] public async Task InitialAssignmentApiAndCurrentQueryWorkWithoutEmployeeCrud()
+    {
+        await GrantPermission("AssignmentOperator", "Employees.Manage"); await GrantPermission("AssignmentOperator", "Employees.View");
+        await GrantPermission("AssignmentOperator", "Branches.AccessAll");
+        Guid employeeId, branchId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var employee = new Employee { FullName = "Unassigned", Phone = "http-unassigned", HireDate = BranchToday.AddDays(-1) };
+            var branch = new GymBranch { Name = "Initial", City = new City { Name = "Initial" } }; db.AddRange(employee, branch);
+            await db.SaveChangesAsync(); employeeId = employee.Id; branchId = branch.Id;
+        }
+        await Authenticate();
+        using var assigned = await client.PostAsJsonAsync($"/api/employees/{employeeId}/assign-branch", new { branchId, startDate = BranchToday });
+        Assert.Equal(HttpStatusCode.OK, assigned.StatusCode);
+        using var current = await client.GetAsync($"/api/employees/{employeeId}/branch-assignment"); Assert.Equal(HttpStatusCode.OK, current.StatusCode);
+        Assert.Equal(branchId, (await current.Content.ReadFromJsonAsync<CampionsSystem.BLL.Branches.BranchAssignmentDetails>())!.BranchId);
+    }
+    [Fact] public async Task InvalidBranchRequestReturns400InsteadOfInternalError()
+    {
+        await GrantPermission("BranchAdmin", "Branches.Manage"); await GrantPermission("BranchAdmin", "Branches.AccessAll"); await Authenticate();
+        using var response = await client.PostAsJsonAsync("/api/branches", new { name = "", cityId = Guid.NewGuid(), maxBorrowedGymSessions = -1 });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
 }

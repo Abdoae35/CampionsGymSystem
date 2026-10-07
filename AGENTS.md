@@ -29,6 +29,8 @@ or private environment values. Do not claim checks or actions that were not run.
 Preserve existing user changes. Do not commit or push unless requested.
 For the Authentication task (2026-10-06), the user explicitly requested committing
 and pushing each completed, verified small subtask to the current Auth branch.
+For the Branch feature (2026-10-07), the user explicitly requested small verified
+commits and pushes to the current BranchSepration branch after each meaningful task.
 
 Work one user-selected task at a time. Complete its implementation, relevant
 verification, and history checkpoint before moving on. Do not expand a task into
@@ -39,18 +41,21 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-07): explicitly authorized local development database update
-  completed. Backed up verified localhost target; applied all four pending migrations
-  from InitialCreate through 20261007153001_AddMembershipBenefits. None pending.
-- Model remains 75 application + seven Identity tables. No application code, domain
-  model or old migration edits; production not touched. Existing five users preserved;
-  aggregate business row counts unchanged.
-- Full suite 156 passed, zero failed/skipped; compilation succeeded. Post-update API
-  database health healthy; unauthenticated auth/me HTTP 401. Verification host stopped.
-- Deployment notes: LOCAL_DATABASE.md. Prior code-only reports are historical; their
-  pending-local status is superseded. Detailed chronological record: PROJECT_HISTORY.md.
-- Benefits carryover/expiry/FIFO/reset and class financial rules remain not finalized;
-  future feature validation/grant generation remains BLL work. No feature started here.
-- Branch DataBaseInit; started clean at user commit 41e1e25. Deployment docs/checkpoint
-  uncommitted/unpushed. Ready for next user-selected feature; await direction.
-- History skill portable source: skills/project-history-update/SKILL.md.
+- Branch feature complete on BranchSepration; eight prior commits verified pushed through
+  a69af6a. Latest follow-up adds all eight branch/assignment/transfer endpoints to existing
+  postman/Campions.Auth.postman_collection.json; displayed name Auth and Branches.
+- Re-import collection; primary Login supplies accessToken. Set selected IDs and calendar
+  dates deliberately. README explains permissions, scope and explicit AccessAll setup.
+- Follow-up build 0 warnings/errors; 33 auth/branch HTTP tests passed; collection JSON,
+  exact route coverage and bodies validated. Prior full suite 202 passed. No live
+  Postman/Newman run, application code/schema changes or application database writes.
+- Postman commit 3adb493 is local and NOT pushed. Initial push and retry both failed
+  with GitHub Internal Server Error; origin remains a69af6a. Separate local history
+  checkpoint records failure. Retry git push origin HEAD later; no force push/amend.
+  User-requested retry at 16:59:40 UTC also failed with the same remote server error.
+  Both commits remain local; latest Git-only history/handoff checkpoint is uncommitted.
+  Private environment intact.
+- Explicit global branch permission setup is still not automatically run. Other branch
+  rules and deferred workflows remain in docs/branches and PROJECT_HISTORY.md.
+- Await next user-selected task; no unrelated module started.
+- Portable history skill: skills/project-history-update/SKILL.md.

@@ -118,7 +118,8 @@ not controllers, entity methods, or database triggers.
 
 - Standard Identity roles and Permissions are data-driven. Existing JWT authentication
   and dynamic Permission policies protect API actions; BLL also validates current
-  permissions and branch scope. Owner may operate globally without a fake branch.
+  permissions and branch scope. Global accounts may operate without a fake branch when explicitly granted
+  Branches.AccessAll; Owner role name alone is no bypass.
 - Preserve financial/history records; deactivate/cancel instead of deletion.
   Restrict FKs prevent cascading history loss, not arbitrary direct deletions.
 - AuditLog updates/deletes are rejected by tracked EF SaveChanges. This does
@@ -187,8 +188,8 @@ not controllers, entity methods, or database triggers.
 
 - Direct authorization resolves active permissions as **Roles + direct Allow - direct
   Deny**. Deny wins over Owner/other role grants and direct Allows. The database stores
-  one effect per user/permission. Existing permission runtime remains role-only until
-  this is implemented deliberately; this schema task adds no authorization handler.
+  one effect per user/permission. The later branch feature now implements this resolution
+  in the existing PermissionService; no new policy/override management API was added.
 - Open/close BusinessDay explicitly through an authorized branch operation. Never
   close it automatically at midnight. A real after-midnight event may still reference
   the prior BusinessDate while retaining its true UTC timestamp. Closing a Shift does
@@ -261,3 +262,29 @@ not controllers, entity methods, or database triggers.
 - Use existing AuditLogs for catalog creation/edit/deactivation, plan benefit addition,
   removal/quantity changes and usage, with entity IDs and actor context; no duplicate
   audit system or automatic benefit auditing was implemented here.
+
+## Implemented branch foundation and future module contracts
+
+- Employee branch dates are inclusive and resolved using the configured gym calendar
+  timezone, independently of an overnight BusinessDay. One current assignment is required.
+  Legacy overlaps fail closed and need explicit reconciliation; no silent history rewrite.
+- Initial assignments/transfers use employment/active-branch validation, all-interval overlap
+  checks and a common per-employee DB row lock. The existing index protects only open
+  primary rows; BLL guards bounded/nonprimary intervals. Direct SQL writers bypass BLL
+  and must not create overlapping history. No schema change was necessary.
+- Transfers require Employees.Transfer and scope on both source and target. Scoped
+  managers have no broad cross-branch authority. Effective dates cannot be backdated or
+  equal the current assignment's start; pending future transfers cannot be overwritten.
+  Backdated corrections, intra-day moves and rescheduling/cancellation remain separate work.
+- Audit branch creation/settings/activation and assignment/transfer atomically using
+  existing AuditLogs. Historical financial/attendance/shift BranchIds never move.
+- All future branch-scoped BLL queries and writes must use branch-scope validation and
+  actual resource BranchId, not trust a request ID. No global EF filter is assumed.
+- Cross-branch member identification for legitimate subscription access is allowed only
+  with necessary operational fields; it does not grant financial visibility or change
+  home branch. Future SessionBased check-ins consume shared sessions; Unlimited does not.
+- Money received/spent at B belongs to B's sale/payment/ledger/expense even if a member
+  registered at A. Subsequent employee/member transfers do not rewrite these facts.
+- Sales client/lead/follow-up/future-shift/payroll consequences of employee transfers are
+  deferred to their own features. No automatic reassignment or finance/check-in workflow
+  was implemented. See ../branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md.

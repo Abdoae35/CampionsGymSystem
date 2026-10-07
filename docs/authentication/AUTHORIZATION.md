@@ -8,8 +8,9 @@ Owner has no magic bypass: configure all intended role grants explicitly.
 
 User → AspNetUserRoles → Identity Roles → RolePermissions → Permissions.
 IPermissionService.GetUserPermissionsAsync queries live role mappings, filters
-active Permission/active ApplicationUser, and returns a distinct ordinal-code
-HashSet. All roles contribute. No Redis, persistent cache or JWT permission list.
+active Permission/active ApplicationUser, unions direct Allow overrides, then removes
+direct Deny overrides and returns a distinct ordinal-code HashSet. Deny wins over role
+grants. All roles contribute. No Redis, persistent cache or JWT permission list.
 Grant/revoke/deactivate affects the next request using the same JWT. Employee
 eligibility is additionally checked during JWT/current context validation.
 
@@ -40,7 +41,7 @@ Module, optional Description and IsActive. Code is unique; DB is runtime truth.
 | Users | Users.View, Users.Manage |
 | Roles | Roles.View, Roles.Manage |
 | Employees | Employees.View, Employees.Manage, Employees.Transfer |
-| Branches | Branches.View, Branches.Manage |
+| Branches | Branches.View, Branches.Manage, Branches.AccessAll |
 | Members | Members.View, Members.Create, Members.Edit |
 | MembershipPlans | MembershipPlans.View, MembershipPlans.Manage |
 | Payments | Payments.View, Payments.Create, Payments.Refund |
@@ -91,3 +92,10 @@ Wrap provisioning/grants/account creation in one transaction using the scoped
 ApplicationDbContext, so failures cannot leave partial privileged accounts. This is
 a strategy for a later explicitly authorized bootstrap operation, not a claim that
 roles/users/grants exist now. All test accounts/grants roll back.
+
+## Branch feature integration
+
+See [branch isolation](../branches/BRANCH_ISOLATION.md) for explicit global permission
+setup and reusable branch-scope checks. Branches.AccessAll controls WHERE, not action
+authority. Effective direct Denies are now resolved at runtime from the existing
+UserPermissionOverrides table; its management API is still a separate future feature.

@@ -25,6 +25,8 @@ it does not replace checking the actual repository.
 
 - For the Authentication task (2026-10-06), commit and push each completed,
   verified small subtask to the existing Auth branch as explicitly requested.
+- For the Branch feature (2026-10-07), build/test/review and commit/push each
+  meaningful increment to BranchSepration; no squash/amend/force push.
 - Work one user-selected task at a time; finish and verify it before advancing.
   Do not begin the next task or whole-project implementation without direction.
 
@@ -41,22 +43,23 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Latest operation (2026-10-07): user explicitly authorized development database update.
-  Verified documented localhost target, created/verified private local backup, reran
-  full suite (156 passed, zero failed/skipped), then applied four pending migrations.
-- All five migrations are now applied through 20261007153001_AddMembershipBenefits;
-  EF migration list has no pending entries. Model: 75 application + seven Identity tables.
-  Previous migrations and application code unchanged by deployment.
-- Existing five users preserved; member/sale/payment/Private counts unchanged. Temporary
-  development API health returned healthy; unauthenticated auth/me returned 401.
-  Temporary verification host stopped. Production not accessed or modified.
-- Local deployment notes updated in LOCAL_DATABASE.md. Earlier schema reports retain
-  original code-only historical context; their pending-local status is now superseded.
-- Benefits carryover/expiry/FIFO/reset and class payout rules remain not finalized.
-  Future BLL must implement grant creation/usage checks and existing deferred workflows.
-- Branch DataBaseInit; started clean at user commit 41e1e25. Deployment checkpoint/docs
-  uncommitted/unpushed; no application feature implementation or migration edits.
-  Ready for next user-selected feature; do not start automatically.
+- Branch feature complete on BranchSepration; all eight implementation/test/docs commits
+  verified pushed through a69af6a, with clean working tree and matching GitHub HEAD.
+- Latest follow-up: existing Postman collection now includes all eight branch/employee
+  assignment/transfer routes alongside authentication. Re-import Campions API - Auth and
+  Branches; set selected IDs/dates and login through the primary Login request.
+- Follow-up build 0 warnings/errors; 33 authentication/branch API tests passed. Collection
+  JSON/routes/body/token placeholders validated. Previous final full suite 202 passed;
+  no full-suite rerun for this collection/docs-only follow-up. No live Postman/Newman run.
+- No application code/schema/database changes. Explicit Branches.AccessAll setup remains
+  a deliberate operator step; it has not been run automatically against the app database.
+- Postman follow-up is committed locally as 3adb493 but NOT pushed: GitHub rejected
+  the initial push and retry with Internal Server Error. No history rewrite/force push.
+  A separate committed checkpoint records the earlier failure. User-requested retry at
+  16:59:40 UTC also failed with GitHub Internal Server Error; both commits remain local.
+  Latest Git-only history/handoff checkpoint is uncommitted; retry publication later.
+- Branch rules/services and prior verification remain documented in docs/branches/.
+  Await next user-selected task; no other module started.
 
 ## Work history
 
@@ -660,3 +663,185 @@ Backup is temporary local recovery storage, not durable off-machine backup.
 
 Git: started clean on DataBaseInit at user commit 41e1e25; deployment documentation and
 checkpoint remain uncommitted/unpushed. No next feature started; await user direction.
+
+## 2026-10-07 — Branch feature: branch management service and endpoints
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added permission-scoped branch list/get/create/update, soft activation/deactivation, validation and audits. No hard delete. Explicit AccessAll required for creation/global access; role name alone never grants access in new branch service. Fixed record validation metadata after isolated HTTP test failure; corrected run fully passed.
+
+Verification: build 0 warnings/errors; 33 branch/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: employee assignment management after this increment is committed and pushed.
+
+## 2026-10-07 — Branch feature: employee branch assignment management
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added current assignment/history/initial assignment APIs, employment/date/active-branch validation, overlap checks across primary and nonprimary history, per-employee PostgreSQL row locking and atomic audit writes. d69276e was pushed successfully to origin/BranchSepration. No full Employee CRUD.
+
+Verification: build 0 warnings/errors; 40 branch/assignment/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: shared current branch context after commit and push.
+
+## 2026-10-07 — Branch feature: shared authenticated current branch context
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added shared EmployeeBranchResolver and ICurrentBranchContext, reused by authenticated user resolution without changing auth/me response shape. Inclusive Cairo-date intervals, future/history exclusion, inactive branch exclusion and ambiguous legacy history fail closed. Updated old multi-current test fixture to latest single-current rule. d185397 pushed successfully.
+
+Verification: build 0 warnings/errors; 41 context/auth tests plus 3 existing seeder tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: branch scope enforcement and explicit global permission setup after commit/push.
+
+## 2026-10-07 — Branch feature: explicit branch access security foundation
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added IBranchAccessService for validated branch scope/operation target resolution, reused scope predicate in branch/assignment and existing OperationAccess instead of Owner role bypass. Completed existing PermissionService role plus direct Allow minus Deny resolution so global access denies are effective without JWT renewal. Added explicit localhost Development permission setup command, not run automatically or applied to app DB. 8368948 pushed successfully.
+
+Verification: build 0 warnings/errors; 91 branch/auth/assignment/existing operations tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: atomic employee branch transfer after commit/push.
+
+## 2026-10-07 — Branch feature: atomic employee branch transfer workflow
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added permission-protected transfer endpoint to existing assignment service. Source and target scope required, active employment/target/date validated, per-employee row lock, inclusive old-end/new-start history, future transfer protection, two atomic saves plus detailed audit. Fault injected after first save verifies rollback. Existing sale and shift BranchIds preserved. 8f8c054 pushed successfully.
+
+Verification: build 0 warnings/errors; 50 transfer/assignment/security/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: complete API and real concurrent transfer coverage after commit/push.
+
+## 2026-10-07 — Branch feature: transfer date boundary correction
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Review found bounded assignment DateOnly.MaxValue could overflow end-plus-one validation. Replaced with safe day-number comparison and added a regression. 0f2afbe pushed successfully. Pending API/concurrency test completion remains separate and will be committed after full rerun.
+
+Verification: build 0 warnings/errors; all 10 transfer tests passed; earlier full suite 201 passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: full regression and separate test completion commit.
+
+## 2026-10-07 — Branch feature: complete branch API isolation and concurrency coverage
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added real HTTP branch list isolation/spoofing/no-delete/initial assignment/transfer/me-same-JWT/403/invalid-body tests and independent-connection concurrent initial assignment/transfer tests. Dedicated internally generated PostgreSQL test schemas committed only for race visibility and removed afterward; no application DB writes. 633c654 pushed successfully. All prior increments pushed.
+
+Verification: build 0 warnings/errors; full suite 202 passed, zero failed/skipped; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: branch usage/rules documentation and final build/full-suite/model-drift checks.
+
+## 2026-10-07 — Branch documentation and final delivery verification
+
+Completed branch vertical feature using existing GymBranch/City/Employee/dated assignments,
+current-user authentication, dynamic policies, shared audit helper and PostgreSQL schema.
+Added branch CRUD (no DELETE), assignment current/history/initial APIs, atomic transfer API,
+shared EmployeeBranchResolver/ICurrentBranchContext and IBranchAccessService. Permission
+checks and branch scope are separate; no global EF filters, Employee.CurrentBranchId or
+schema change. Existing partial primary index supplemented by BLL interval checks and
+per-employee row locks; ambiguous legacy assignments fail closed instead of being guessed.
+
+Implemented direct override resolution in existing PermissionService because a direct Deny
+must revoke the new global branch permission even on an existing JWT. Existing OperationAccess
+now shares permission-based scope rather than Owner role bypass. Added explicit local-only
+BranchPermissionSetup command; it is not automatic, creates no accounts and was NOT executed
+against the application DB. Existing Owner role needs Branches.AccessAll configured deliberately.
+
+Transfer dates inclusive, no backdating, no same-start-day/intra-day move, active employment/
+target required, no overlapping/pending transfer override. Old row closes before new insertion
+within one transaction/savepoint, with audit actor/employee/source/target/effective dates.
+Injected fault after the first save verifies rollback; concurrent separate connections verify
+only one assignment/transfer wins. Old sale/shift branches tested unchanged. Raw SQL bypasses
+BLL interval guards; no automatic history repair or dependent-module reassignment exists.
+
+Added docs/branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md; updated authentication,
+authorization, database business rules and data flows. Documented explicit permission setup,
+normal/global scope, member cross-branch operational lookup/eligibility versus financial
+visibility, future check-in session behavior and money ownership at actual receiving/spending
+branch. Those future workflows are not implemented. Dates use configured gym calendar timezone,
+not overnight BusinessDay. No unrelated entities/modules/frontend/finance/offline changes.
+
+Verification: initial HTTP request validation metadata issue corrected before first commit;
+all subsequent meaningful increments built/tested/reviewed before commit/push. Final build
+0 warnings/errors; full suite 202 passed, zero failed/skipped (46 additional branch/security
+cases). Full suites passed 201, then 202 after reviewed date-boundary regression; final full
+run also 202. EF reports no model drift. No DAL entity/configuration/migration files changed.
+Diff check clean; no application/production database writes. Concurrency tests use committed
+private synthetic schemas removed afterward; standard fixtures rollback their own schemas.
+
+Commits already verified pushed to origin/BranchSepration, in order:
+- d69276e feat(branches): add branch management service and endpoints
+- d185397 feat(employees): add employee branch assignment management
+- 8368948 feat(branch-context): add authenticated employee branch context
+- 8f8c054 feat(branch-security): enforce branch access boundaries
+- 0f2afbe feat(employee-transfer): implement branch transfer with history
+- 633c654 fix(employee-transfer): handle maximum assignment end date safely
+- 13c68cf test(branches): cover branch isolation and employee transfers
+
+This checkpoint is included in the final docs(branches) commit. Its push and clean Git
+status/last-ten log/remote HEAD are checked after commit, before reporting completion.
+No squash/amend/force push, discarded user work, package additions or next feature.
+
+## 2026-10-07 — Postman branch endpoint coverage follow-up
+
+User asked whether all new endpoints were in the Postman file. Inspection found the
+existing collection still covered authentication only. Added all eight branch and
+employee assignment/history/transfer endpoints to the existing collection, preserving
+auth examples and empty secret placeholders. Updated displayed collection name to
+Campions API - Auth and Branches; file path unchanged. All new requests use accessToken
+saved by primary Login. Added deliberate branch/city/employee/target IDs and date variables,
+sample bodies, successful-response assertions and Create branch ID capture. Current
+assignment assertion accepts 200/204. No automatic selection of transfer target/employee.
+
+Updated postman/README.md with import/login/variables, action/scope permission requirements,
+explicit AccessAll setup link, date/history rules and manual mutation workflow. Existing
+private local environment untouched; no real credentials/tokens added. Users must re-import
+because their Postman application copy does not automatically track repository changes.
+
+Verification: collection parses, exact eight-route method/path coverage confirmed, sample
+bodies parse and source accessToken remains empty. Build 0 warnings/errors; all 33 auth/
+branch HTTP integration tests passed. git diff check clean. No Postman/Newman runtime run,
+no application DB requests/writes and no application/schema changes. Prior full suite 202
+passed; not repeated for this JSON/docs-only follow-up.
+
+Git: started clean on BranchSepration at a69af6a (all eight feature commits previously
+pushed and remote HEAD verified). This follow-up and required checkpoint are committed
+and pushed separately under the existing small-task workflow; publication checked after
+commit. No next feature started.
+
+### Postman publication failure
+
+Created local commit 3adb493 with the verified collection/README/checkpoint. Initial push
+and explicit retry both failed: `remote: Internal Server Error`, `remote rejected HEAD ->
+BranchSepration (Internal Server Error)`, `failed to push some refs`. origin remains at
+a69af6a. Commit retained locally; no force push, amend or reset. Required history/handoff
+updated in a separate local checkpoint commit because the failure occurred after the
+feature commit. No further application changes/checks needed; existing build and 33 API
+tests remain valid. Publication is blocked by GitHub; retry `git push origin HEAD` later.
+
+## 2026-10-07 — User-requested GitHub push retry
+
+User requested retrying publication after VS Code sync failed. Confirmed clean
+BranchSepration working tree, expected origin, and two local commits (3adb493 and
+068f25d). Retried git push origin HEAD; GitHub again rejected it with Internal
+Server Error (request 466C:376D9A:4597D1E:4263E3D, 16:59:40 UTC). No history
+rewrite or application changes. Both commits remain local; publication still
+blocked by the remote server. Build/tests not repeated for this Git-only operation.
+Required history/handoff checkpoint left uncommitted; retry publication later.
