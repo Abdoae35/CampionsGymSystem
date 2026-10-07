@@ -39,18 +39,12 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-07): explicitly authorized local development database update
-  completed. Backed up verified localhost target; applied all four pending migrations
-  from InitialCreate through 20261007153001_AddMembershipBenefits. None pending.
-- Model remains 75 application + seven Identity tables. No application code, domain
-  model or old migration edits; production not touched. Existing five users preserved;
-  aggregate business row counts unchanged.
-- Full suite 156 passed, zero failed/skipped; compilation succeeded. Post-update API
-  database health healthy; unauthenticated auth/me HTTP 401. Verification host stopped.
-- Deployment notes: LOCAL_DATABASE.md. Prior code-only reports are historical; their
-  pending-local status is superseded. Detailed chronological record: PROJECT_HISTORY.md.
-- Benefits carryover/expiry/FIFO/reset and class financial rules remain not finalized;
-  future feature validation/grant generation remains BLL work. No feature started here.
-- Branch DataBaseInit; started clean at user commit 41e1e25. Deployment docs/checkpoint
-  uncommitted/unpushed. Ready for next user-selected feature; await direction.
+- Branch feature in progress on BranchSepration; latest increment: branch management service and endpoints.
+- Verification: build 0 warnings/errors; 33 branch/auth API tests passed; diff check clean.
+- Added permission-scoped branch list/get/create/update, soft activation/deactivation, validation and audits. No hard delete. Explicit AccessAll required for creation/global access; role name alone never grants access in new branch service. Fixed record validation metadata after isolated HTTP test failure; corrected run fully passed.
+- No schema/migration/application DB changes; existing deployed five migrations intact.
+- User authorizes small commits and pushes after each verified meaningful branch task.
+  This checkpoint is included in the current increment; commit/push next.
+- Next: employee assignment management after this increment is committed and pushed. Do not implement unrelated modules.
+- Full chronological operation and commit results: PROJECT_HISTORY.md.
 - History skill portable source: skills/project-history-update/SKILL.md.

@@ -319,4 +319,25 @@ public sealed class AuthenticationApiTests : IAsyncLifetime
         Assert.Contains(await db.AuditLogs.ToListAsync(), x => x.Action == "ActivityCoach.Created");
     }
 
+    [Fact] public async Task BranchManagementRequiresPermissionAndCreatesAuditWhenAuthorized()
+    {
+        await Authenticate();
+        using var forbidden = await client.PostAsJsonAsync("/api/branches", new { name = "New", cityId = Guid.NewGuid() });
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        await GrantPermission("BranchAdministrator", "Branches.Manage");
+        await GrantPermission("BranchAdministrator", "Branches.AccessAll");
+        Guid cityId;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var city = new City { Name = "HTTP branch city" }; db.Add(city); await db.SaveChangesAsync(); cityId = city.Id;
+        }
+        using var created = await client.PostAsJsonAsync("/api/branches", new { name = "New", cityId });
+        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+        await using var checkScope = factory.Services.CreateAsyncScope();
+        var check = checkScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Single(await check.GymBranches.ToListAsync());
+        Assert.Contains(await check.AuditLogs.ToListAsync(), x => x.Action == "Branch.Created");
+    }
+
 }

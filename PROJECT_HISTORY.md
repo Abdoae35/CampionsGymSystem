@@ -41,22 +41,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Latest operation (2026-10-07): user explicitly authorized development database update.
-  Verified documented localhost target, created/verified private local backup, reran
-  full suite (156 passed, zero failed/skipped), then applied four pending migrations.
-- All five migrations are now applied through 20261007153001_AddMembershipBenefits;
-  EF migration list has no pending entries. Model: 75 application + seven Identity tables.
-  Previous migrations and application code unchanged by deployment.
-- Existing five users preserved; member/sale/payment/Private counts unchanged. Temporary
-  development API health returned healthy; unauthenticated auth/me returned 401.
-  Temporary verification host stopped. Production not accessed or modified.
-- Local deployment notes updated in LOCAL_DATABASE.md. Earlier schema reports retain
-  original code-only historical context; their pending-local status is now superseded.
-- Benefits carryover/expiry/FIFO/reset and class payout rules remain not finalized.
-  Future BLL must implement grant creation/usage checks and existing deferred workflows.
-- Branch DataBaseInit; started clean at user commit 41e1e25. Deployment checkpoint/docs
-  uncommitted/unpushed; no application feature implementation or migration edits.
-  Ready for next user-selected feature; do not start automatically.
+- Branch feature in progress on BranchSepration. Latest increment: branch management service and endpoints.
+- Verification: build 0 warnings/errors; 33 branch/auth API tests passed; diff check clean.
+- Added permission-scoped branch list/get/create/update, soft activation/deactivation, validation and audits. No hard delete. Explicit AccessAll required for creation/global access; role name alone never grants access in new branch service. Fixed record validation metadata after isolated HTTP test failure; corrected run fully passed.
+- No schema/migration changes or application database update in this feature.
+- This verified increment and checkpoint are ready for a small commit and push;
+  completed earlier increments remain in chronological history. Preserve user work.
+- Next: employee assignment management after this increment is committed and pushed. Do not start unrelated modules.
 
 ## Work history
 
@@ -660,3 +651,15 @@ Backup is temporary local recovery storage, not durable off-machine backup.
 
 Git: started clean on DataBaseInit at user commit 41e1e25; deployment documentation and
 checkpoint remain uncommitted/unpushed. No next feature started; await user direction.
+
+## 2026-10-07 — Branch feature: branch management service and endpoints
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added permission-scoped branch list/get/create/update, soft activation/deactivation, validation and audits. No hard delete. Explicit AccessAll required for creation/global access; role name alone never grants access in new branch service. Fixed record validation metadata after isolated HTTP test failure; corrected run fully passed.
+
+Verification: build 0 warnings/errors; 33 branch/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: employee assignment management after this increment is committed and pushed.
