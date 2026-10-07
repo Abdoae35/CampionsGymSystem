@@ -44,7 +44,7 @@ it does not replace checking the actual repository.
 ## Current state
 
 - Employee Management in progress on user-selected EmployeeManagement branch.
-- ec6ff70 read increment pushed successfully. Added employee creation without login creation; optional branch uses existing AssignAsync in an atomic transaction/savepoint, scoped creators must select their branch. Four new tests include rollback on inactive branch. Build 0 warnings/errors; 16 employee/assignment tests passed; diff reviewed. Next: profile and status updates.
+- c36f38a creation increment pushed. Added profile PUT and separate status PATCH with existing Employees.Manage, shared employee row locks, branch checks and atomic audit. Resigned sets current gym date as TerminationDate; reactivation clears it; historical assignments untouched. Four new tests; build 0 warnings/errors and 30 employee/assignment/transfer tests passed. Next: HTTP security/validation and full regression.
 - Existing branch assignment/transfer, permissions, audit and Identity reused.
 - No schema/migration or application database changes. Increment commits/pushes
   verified after checkpoints. See chronological entries for exact checks.
@@ -846,6 +846,15 @@ Required history/handoff checkpoint included; commit/push checked afterward.
 ## 2026-10-07 — Employee Management increment
 
 ec6ff70 read increment pushed successfully. Added employee creation without login creation; optional branch uses existing AssignAsync in an atomic transaction/savepoint, scoped creators must select their branch. Four new tests include rollback on inactive branch. Build 0 warnings/errors; 16 employee/assignment tests passed; diff reviewed. Next: profile and status updates.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+## 2026-10-07 — Employee Management increment
+
+c36f38a creation increment pushed. Added profile PUT and separate status PATCH with existing Employees.Manage, shared employee row locks, branch checks and atomic audit. Resigned sets current gym date as TerminationDate; reactivation clears it; historical assignments untouched. Four new tests; build 0 warnings/errors and 30 employee/assignment/transfer tests passed. Next: HTTP security/validation and full regression.
 
 User requested small verified commits/pushes on EmployeeManagement. Existing entity
 has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned

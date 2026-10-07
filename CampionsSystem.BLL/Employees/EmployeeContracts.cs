@@ -36,3 +36,12 @@ public sealed class CreateEmployeeRequest : EmployeeProfileRequest
 {
     public Guid? InitialBranchId { get; set; }
 }
+
+[System.Text.Json.Serialization.JsonUnmappedMemberHandling(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)]
+public sealed class ChangeEmployeeStatusRequest
+{
+    [Required, EnumDataType(typeof(DAL.Enums.EmploymentStatus))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DAL.Enums.EmploymentStatus>))]
+    public DAL.Enums.EmploymentStatus? Status { get; set; }
+    [MaxLength(2048)] public string? Reason { get; set; }
+}

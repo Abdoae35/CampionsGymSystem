@@ -110,4 +110,45 @@ public sealed class EmployeeManagementTests : IAsyncLifetime
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.CreateAsync(NewEmployee(branchA.Id)));
     }
 
+    private EmployeeProfileRequest Profile() => new()
+        { FullName = "Updated name", Phone = "new-phone", JobTitle = "Trainer", HireDate = employeeA.HireDate };
+
+    [Fact] public async Task UpdateChangesOnlyProfileAndAudits()
+    {
+        var assignment = await db.EmployeeBranchAssignments.SingleAsync(a => a.EmployeeId == employeeA.Id);
+        var updated = await service.UpdateAsync(employeeA.Id, Profile());
+        Assert.Equal("Updated name", updated.FullName); Assert.Equal("Trainer", updated.JobTitle);
+        Assert.Equal(branchA.Id, updated.CurrentBranch?.Id); Assert.Equal("Active", updated.Status);
+        Assert.Null(assignment.EndDate); Assert.Equal(branchA.Id, assignment.BranchId);
+        Assert.Contains(await db.AuditLogs.ToListAsync(), a => a.Action == "EmployeeUpdated");
+    }
+    [Fact] public async Task SuspendReactivateAndEndEmploymentPreserveHistory()
+    {
+        Assert.Equal("Suspended", (await service.ChangeStatusAsync(employeeA.Id, new() { Status = EmploymentStatus.Suspended, Reason = "Review" })).Status);
+        Assert.Equal("Active", (await service.ChangeStatusAsync(employeeA.Id, new() { Status = EmploymentStatus.Active })).Status);
+        var ended = await service.ChangeStatusAsync(employeeA.Id, new() { Status = EmploymentStatus.Resigned, Reason = "Employment ended" });
+        Assert.Equal(access.Today, ended.TerminationDate); Assert.Equal("Resigned", (await service.GetAsync(employeeA.Id)).Status);
+        Assert.Equal(employeeA.Id, Assert.Single((await service.ListAsync(new() { Status = EmploymentStatus.Resigned })).Items).Id);
+        Assert.Single(await db.EmployeeBranchAssignments.Where(a => a.EmployeeId == employeeA.Id).ToListAsync());
+        Assert.Equal(3, await db.AuditLogs.CountAsync(a => a.Action == "EmployeeStatusChanged"));
+        Assert.Null((await service.ChangeStatusAsync(employeeA.Id, new() { Status = EmploymentStatus.Active })).TerminationDate);
+    }
+    [Fact] public async Task UpdateAndStatusRespectScopeAndPermissions()
+    {
+        Scoped(); await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.UpdateAsync(employeeB.Id, Profile()));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.ChangeStatusAsync(employeeB.Id, new() { Status = EmploymentStatus.Suspended }));
+        current.Context = current.Context! with { Permissions = ["Employees.View", BranchManagementService.AccessAllPermission] };
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.UpdateAsync(employeeA.Id, Profile()));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.ChangeStatusAsync(employeeA.Id, new() { Status = EmploymentStatus.Suspended }));
+    }
+    [Fact] public async Task InvalidProfileOrStatusLeavesEmployeeUnchanged()
+    {
+        var request = Profile(); request.HireDate = access.Today;
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.UpdateAsync(employeeA.Id, request));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.ChangeStatusAsync(employeeA.Id, new() { Status = (EmploymentStatus)99 }));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.ChangeStatusAsync(employeeA.Id, new()));
+        Assert.Equal("Ahmed Alpha", (await service.GetAsync(employeeA.Id)).FullName);
+        Assert.Empty(await db.AuditLogs.ToListAsync());
+    }
+
 }

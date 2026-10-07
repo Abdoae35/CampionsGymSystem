@@ -130,6 +130,60 @@ public sealed class EmployeeManagementService(ApplicationDbContext database, ICu
         finally { if (owned is not null) await owned.DisposeAsync(); }
     }
 
+    private async Task<Employee> TrackedEmployeeAsync(Guid id, CancellationToken ct)
+    {
+        var employee = await database.Employees.SingleAsync(e => e.Id == id, ct);
+        // Assignment transaction owns the row lock; refresh any already-tracked values.
+        await database.Entry(employee).ReloadAsync(ct);
+        return employee;
+    }
+
+    public async Task<EmployeeDetails> UpdateAsync(Guid id, EmployeeProfileRequest request, CancellationToken ct = default)
+    {
+        var user = await RequireAsync("Employees.Manage", ct);
+        ValidateProfile(request);
+        return await EmployeeAssignmentTransaction.RunAsync(database, id, async locked =>
+        {
+            var branch = await resolver.ResolveAsync(id, access.Today, ct);
+            BranchAccessService.EnsureScope(user, branch?.Id);
+            if (locked.TerminationDate < request.HireDate
+                || await database.EmployeeBranchAssignments.AnyAsync(a => a.EmployeeId == id && a.StartDate < request.HireDate, ct))
+                throw new BusinessRuleException("Hire date cannot follow an existing assignment or termination date.");
+            var employee = await TrackedEmployeeAsync(id, ct);
+            var before = new { employee.FullName, employee.Phone, employee.JobTitle, employee.EmploymentType, employee.HireDate };
+            SetProfile(employee, request);
+            access.Audit(user.UserId, branch?.Id, "EmployeeUpdated", nameof(Employee), id, before,
+                new { employee.FullName, employee.Phone, employee.JobTitle, employee.EmploymentType, employee.HireDate });
+            await database.SaveChangesAsync(ct);
+            return await DetailsAsync(employee, ct);
+        }, ct);
+    }
+
+    public async Task<EmployeeDetails> ChangeStatusAsync(Guid id, ChangeEmployeeStatusRequest request, CancellationToken ct = default)
+    {
+        var user = await RequireAsync("Employees.Manage", ct);
+        if (!request.Status.HasValue || !Enum.IsDefined(request.Status.Value) || request.Reason?.Length > 2048)
+            throw new BusinessRuleException("A valid employment status and optional reason up to 2048 characters are required.");
+        return await EmployeeAssignmentTransaction.RunAsync(database, id, async locked =>
+        {
+            var branch = await resolver.ResolveAsync(id, access.Today, ct);
+            BranchAccessService.EnsureScope(user, branch?.Id);
+            if (locked.EmploymentStatus == request.Status) throw new BusinessRuleException("Employee already has this status.");
+            if (locked.EmploymentStatus == DAL.Enums.EmploymentStatus.Resigned && request.Status != DAL.Enums.EmploymentStatus.Active)
+                throw new BusinessRuleException("Reactivate ended employment before suspending it.");
+            if (request.Status == DAL.Enums.EmploymentStatus.Resigned && locked.HireDate > access.Today)
+                throw new BusinessRuleException("Termination date cannot precede hire date.");
+            var employee = await TrackedEmployeeAsync(id, ct);
+            var before = new { employee.EmploymentStatus, employee.TerminationDate };
+            employee.EmploymentStatus = request.Status.Value;
+            employee.TerminationDate = request.Status == DAL.Enums.EmploymentStatus.Resigned ? access.Today : null;
+            access.Audit(user.UserId, branch?.Id, "EmployeeStatusChanged", nameof(Employee), id, before,
+                new { employee.EmploymentStatus, employee.TerminationDate, Reason = request.Reason?.Trim() });
+            await database.SaveChangesAsync(ct);
+            return await DetailsAsync(employee, ct);
+        }, ct);
+    }
+
     private async Task<EmployeeDetails> DetailsAsync(Employee employee, CancellationToken ct) => new(employee.Id,
         employee.FullName, employee.Phone, employee.JobTitle, employee.EmploymentType.ToString(),
         employee.EmploymentStatus.ToString(), employee.HireDate, employee.TerminationDate,

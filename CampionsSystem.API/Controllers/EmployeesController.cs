@@ -17,6 +17,12 @@ public sealed class EmployeesController(EmployeeManagementService employees) : B
     [HttpGet("{id:guid}"), Authorize(Policy = "Permission:Employees.View")]
     public Task<IActionResult> Get(Guid id, CancellationToken ct) => Execute(() => employees.GetAsync(id, ct));
 
+    [HttpPut("{id:guid}"), Authorize(Policy = "Permission:Employees.Manage")]
+    public Task<IActionResult> Update(Guid id, EmployeeProfileRequest request, CancellationToken ct) => Execute(() => employees.UpdateAsync(id, request, ct));
+
+    [HttpPatch("{id:guid}/status"), Authorize(Policy = "Permission:Employees.Manage")]
+    public Task<IActionResult> Status(Guid id, ChangeEmployeeStatusRequest request, CancellationToken ct) => Execute(() => employees.ChangeStatusAsync(id, request, ct));
+
     [HttpGet("/api/branches/{branchId:guid}/employees"), Authorize(Policy = "Permission:Employees.View")]
     public Task<IActionResult> BranchEmployees(Guid branchId, [FromQuery] EmployeeListRequest request, CancellationToken ct)
     {

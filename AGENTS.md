@@ -43,7 +43,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 - User-selected task: Employee Management on EmployeeManagement branch; incremental
   build/test/diff/commit/push workflow explicitly requested. No next feature.
-- ec6ff70 read increment pushed successfully. Added employee creation without login creation; optional branch uses existing AssignAsync in an atomic transaction/savepoint, scoped creators must select their branch. Four new tests include rollback on inactive branch. Build 0 warnings/errors; 16 employee/assignment tests passed; diff reviewed. Next: profile and status updates.
+- c36f38a creation increment pushed. Added profile PUT and separate status PATCH with existing Employees.Manage, shared employee row locks, branch checks and atomic audit. Resigned sets current gym date as TerminationDate; reactivation clears it; historical assignments untouched. Four new tests; build 0 warnings/errors and 30 employee/assignment/transfer tests passed. Next: HTTP security/validation and full regression.
 - Reuse existing nullable Employee.UserId, branch history/transfers, permissions and
   audit. Existing status Resigned means ended employment with TerminationDate;
   no new Terminated enum/database change. No Employee email field/account creation.
