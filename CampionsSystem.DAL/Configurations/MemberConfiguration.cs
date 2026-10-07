@@ -13,7 +13,7 @@ public sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
             table.HasCheckConstraint("CK_Members_ClientCode_Positive", "\"ClientCode\" > 0");
         });
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.ClientCode).HasColumnType("bigint").IsRequired();
+        builder.Property(x => x.ClientCode).HasColumnType("bigint").IsRequired(false);
         builder.Property(x => x.MemberCode).HasMaxLength(64).IsRequired();
         builder.Property(x => x.FullName).HasMaxLength(256).IsRequired();
         builder.Property(x => x.PrimaryPhone).HasMaxLength(64).IsRequired();
@@ -25,7 +25,9 @@ public sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
         builder.Property(x => x.Notes).HasColumnType("text");
         builder.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
-        builder.HasIndex(x => x.ClientCode).IsUnique();
+        builder.HasIndex(x => new { x.HomeBranchId, x.ClientCode }).IsUnique()
+            .HasFilter("\"ClientCode\" IS NOT NULL");
+        builder.HasIndex(x => x.HomeBranchId);
         builder.HasIndex(x => x.MemberCode).IsUnique();
         builder.HasIndex(x => x.PrimaryPhone).IsUnique();
     }

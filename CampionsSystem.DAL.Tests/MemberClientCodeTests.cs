@@ -23,7 +23,7 @@ public sealed class MemberClientCodeTests : IAsyncLifetime
         db.AddRange(user, branch); await db.SaveChangesAsync();
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
-    private Member Member(long code) => new() { ClientCode = code, MemberCode = Guid.NewGuid().ToString("N"),
+    private Member Member(long? code) => new() { ClientCode = code, MemberCode = Guid.NewGuid().ToString("N"),
         FullName = "Synthetic member", PrimaryPhone = Guid.NewGuid().ToString("N"), HomeBranchId = branch.Id, CreatedByUserId = user.Id };
 
     [Theory] [InlineData(10542L)] [InlineData(long.MaxValue)]
@@ -37,7 +37,7 @@ public sealed class MemberClientCodeTests : IAsyncLifetime
         Assert.Equal(member.Id, stored.MemberId); Assert.Equal(code, stored.Member.ClientCode);
         Assert.Equal(member.MemberCode, stored.Member.MemberCode); Assert.Equal(branch.Id, stored.Member.HomeBranchId);
     }
-    [Fact] public async Task DuplicateClientCodeIsRejected()
+    [Fact] public async Task DuplicateClientCodeInSameBranchIsRejected()
     {
         db.Add(Member(10542)); await db.SaveChangesAsync(); db.Add(Member(10542));
         var error = await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
@@ -49,12 +49,18 @@ public sealed class MemberClientCodeTests : IAsyncLifetime
         db.Add(Member(code)); var error = await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
         Assert.Equal("CK_Members_ClientCode_Positive", Assert.IsType<PostgresException>(error.InnerException).ConstraintName);
     }
-    [Fact] public async Task NullIsRejectedBecauseDevelopmentMembersWereEmpty()
+    [Fact] public async Task MultipleUncodedMembersRemainNullWithoutInventedValues()
     {
-        var member = Member(10542); db.Add(member); await db.SaveChangesAsync();
-        var error = await Assert.ThrowsAsync<PostgresException>(() => db.Database.ExecuteSqlInterpolatedAsync(
-            $"UPDATE \"Members\" SET \"ClientCode\" = NULL WHERE \"Id\" = {member.Id}"));
-        Assert.Equal(PostgresErrorCodes.NotNullViolation, error.SqlState);
+        db.AddRange(Member(null), Member(null)); await db.SaveChangesAsync();
+        Assert.Equal(2, await db.Members.CountAsync(m => m.ClientCode == null));
+    }
+    [Fact] public async Task DifferentBranchesCanHaveSameClientCode()
+    {
+        var otherBranch = new GymBranch { Name = "Other branch", CityId = branch.CityId };
+        db.Add(otherBranch); await db.SaveChangesAsync();
+        var first = Member(1500); var second = Member(1500); second.HomeBranchId = otherBranch.Id;
+        db.AddRange(first, second); await db.SaveChangesAsync();
+        Assert.NotEqual(first.Id, second.Id); Assert.Equal(2, await db.Members.CountAsync(m => m.ClientCode == 1500));
     }
     [Fact] public void GuidRemainsPrimaryAndAllRelationshipKeysRemainUnchanged()
     {
@@ -62,8 +68,10 @@ public sealed class MemberClientCodeTests : IAsyncLifetime
         Assert.Equal("Id", Assert.Single(member.FindPrimaryKey()!.Properties).Name);
         Assert.Equal(typeof(Guid), member.FindPrimaryKey()!.Properties[0].ClrType);
         var code = member.FindProperty("ClientCode")!;
-        Assert.Equal(typeof(long), code.ClrType); Assert.False(code.IsNullable); Assert.Equal("bigint", code.GetColumnType());
-        Assert.True(member.GetIndexes().Single(i => i.Properties.Count == 1 && i.Properties[0] == code).IsUnique);
+        Assert.Equal(typeof(long?), code.ClrType); Assert.True(code.IsNullable); Assert.Equal("bigint", code.GetColumnType());
+        var index = member.GetIndexes().Single(i => i.Properties.Select(p => p.Name).SequenceEqual(new[] { "HomeBranchId", "ClientCode" }));
+        Assert.True(index.IsUnique); Assert.Equal("\"ClientCode\" IS NOT NULL", index.GetFilter());
+        Assert.DoesNotContain(member.GetIndexes(), i => i.Properties.Count == 1 && i.Properties[0] == code);
         var references = db.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()).Where(fk => fk.PrincipalEntityType == member).ToList();
         Assert.NotEmpty(references);
         Assert.All(references, fk => Assert.Equal("Id", Assert.Single(fk.PrincipalKey.Properties).Name));
@@ -81,4 +89,33 @@ public sealed class MemberClientCodeTests : IAsyncLifetime
         Assert.Equal("Members", index.Table); Assert.True(index.IsUnique);
         Assert.Single(migration.UpOperations.OfType<AddCheckConstraintOperation>());
     }
+    [Fact] public void ScopingMigrationOnlyRelaxesNullabilityAndReplacesGlobalIndex()
+    {
+        var migrations = db.GetService<IMigrationsAssembly>();
+        var migration = migrations.CreateMigration(migrations.Migrations.Single(m => m.Key.EndsWith("_ScopeMemberClientCodeByHomeBranch")).Value, db.Database.ProviderName!);
+        Assert.Equal(3, migration.UpOperations.Count);
+        Assert.Equal("IX_Members_ClientCode", Assert.Single(migration.UpOperations.OfType<DropIndexOperation>()).Name);
+        var column = Assert.Single(migration.UpOperations.OfType<AlterColumnOperation>());
+        Assert.Equal("Members", column.Table); Assert.True(column.IsNullable); Assert.Null(column.DefaultValue);
+        var index = Assert.Single(migration.UpOperations.OfType<CreateIndexOperation>());
+        Assert.True(index.IsUnique); Assert.Equal(new[] { "HomeBranchId", "ClientCode" }, index.Columns);
+        Assert.Equal("\"ClientCode\" IS NOT NULL", index.Filter);
+        Assert.Null(Assert.Single(migration.DownOperations.OfType<AlterColumnOperation>()).DefaultValue);
+    }
+    [Fact] public async Task UpgradePreservesExistingMemberIdentityCodeAndRelationships()
+    {
+        await using var legacy = await AuthTestDatabase.CreateAsync("AddMemberClientCode");
+        await using var old = legacy.CreateContext();
+        var creator = new ApplicationUser { UserName = "legacy-scoping" };
+        var home = new GymBranch { Name = "Legacy home", City = new City { Name = "Legacy city" } };
+        var member = new Member { ClientCode = 1500, MemberCode = "LEGACY", FullName = "Legacy", PrimaryPhone = "legacy", HomeBranch = home, CreatedByUser = creator };
+        old.Add(member); await old.SaveChangesAsync();
+        var sql = old.GetService<IMigrator>().GenerateScript("AddMemberClientCode", "ScopeMemberClientCodeByHomeBranch")
+            .Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
+        await old.Database.ExecuteSqlRawAsync(sql); old.ChangeTracker.Clear();
+        var stored = await old.Members.AsNoTracking().SingleAsync();
+        Assert.Equal(member.Id, stored.Id); Assert.Equal(1500L, stored.ClientCode); Assert.Equal(home.Id, stored.HomeBranchId);
+        Assert.Equal("LEGACY", stored.MemberCode); Assert.Equal(creator.Id, stored.CreatedByUserId);
+    }
+
 }

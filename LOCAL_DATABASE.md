@@ -25,7 +25,7 @@ dotnet run --project CampionsSystem.API/CampionsSystem.csproj --launch-profile h
 
 Open http://localhost:5236/health/database in development. A working connection
 returns `{"status":"healthy"}`; connection failures return HTTP 503. This route
-is not registered in production. All six migrations through `20261007182227_AddMemberClientCode` have been applied
+is not registered in production. All seven migrations through `20261007183558_ScopeMemberClientCodeByHomeBranch` have been applied
 locally (2026-10-07): 75 application tables, seven Identity tables and EF migration history.
 
 ## Manage the connection
@@ -131,3 +131,13 @@ NULL, positive and unique, with no generated default. Guid Id and all member for
 keys remain unchanged. No production database was updated. This brings local migration
 history to six entries. See docs/database/SCHEMA.md before deploying to a database that
 already has uncoded members; this required-column migration does not backfill codes.
+
+### Branch-scoped legacy code correction
+
+The latest confirmed rule supersedes global ClientCode uniqueness. New migration
+20261007183558_ScopeMemberClientCodeByHomeBranch was applied to local development:
+ClientCode is now nullable bigint, positive when present and unique only within
+HomeBranchId (the original registration branch). It replaces the global index with
+a partial composite index, contains no data backfill/renumbering, and leaves Guid
+keys and MemberCode unchanged. Members count was zero before this correction.
+Seven migrations are now applied locally; no old migration was rewritten.

@@ -43,9 +43,16 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member ClientCode complete on EmployeeManagement: required long/bigint, unique and positive, no generated default. Local development Members had zero rows; new migration 20261007182227_AddMemberClientCode applied successfully, still zero members. Guid PK, FKs and existing string MemberCode unchanged. Build 0 warnings/errors; full suite 229 passed, zero failed/skipped; EF no drift. Commit/push checked after checkpoint; stop before Member Management.
-- Employee Management prior five commits were pushed through 1d10a04.
-- No Member Management controllers/services/import feature started.
+- Latest Member identifier rule: ClientCode nullable long/bigint and unique within
+  existing HomeBranchId (original registration branch), not globally. Guid PK/FKs
+  and separate string MemberCode unchanged. No duplicate registration branch field.
+- New 20261007183558_ScopeMemberClientCodeByHomeBranch applied successfully to local
+  development; seven migrations applied, Member count zero. Prior AddMemberClientCode
+  unchanged. No code generation, backfill or production update.
+- Build 0 warnings/errors; full suite 232 passed, zero failed/skipped; EF no drift.
+- Existing Employee Management and earlier ClientCode commits already pushed through
+  20f1cca. Branch-scoped correction commit/push checked after this checkpoint.
+- Stop before Member Management; await next user-selected task.
 
 ## Work history
 
@@ -927,3 +934,36 @@ EF reports no pending model changes. Diff reviewed; old migration files unchange
 No unrelated business implementation or Postman/API changes. Required checkpoint
 included with requested feat(members) commit; push/status verified after commit.
 Stop and await next task; Member Management is not started.
+
+## 2026-10-07 — Branch-scoped nullable legacy ClientCode correction
+
+Latest user rule supersedes prior global uniqueness: legacy code is local to the
+original registration branch. Inspected clean EmployeeManagement branch, Member,
+HomeBranchId relationship, EF indexes, applied migration and current development
+Members (zero). Reused HomeBranchId as original registration context; no duplicate
+RegistrationBranchId. ClientCode now long? / nullable bigint. Existing positive
+check allows null but rejects nonpositive numbers. Composite unique filtered index
+IX_Members_HomeBranchId_ClientCode on (HomeBranchId, ClientCode) WHERE ClientCode IS
+NOT NULL replaces global IX_Members_ClientCode. Existing HomeBranchId FK index kept;
+Guid PK/FKs and MemberCode/phone indexes unchanged.
+
+Requested migration name AddMemberClientCode was already applied as 20261007182227;
+explained naming conflict and created distinct 20261007183558_ScopeMemberClientCodeByHomeBranch.
+No old migrations modified. Inspected generated SQL and snapshot: Up only drops old
+index, relaxes NOT NULL and creates composite index; no column drops/data updates.
+Removed generated zero default from this NEW migration's Down, so rollback must
+reconcile nulls/cross-branch duplicates rather than invent codes. Down not applied.
+
+Explicit Development EF update completed Done. Read-only verification confirms
+nullable bigint/no default, partial composite unique index, latest history entry and
+zero Members afterward. Production untouched. Updated schema/business-rule/local DB
+docs: retain original registration branch and exact imported code; no MAX+1 generation,
+import, offline synchronization or Member Management implemented.
+
+Tests now verify same-branch rejection, legal same code in different branches,
+multiple nulls/no invented values, positive values, Guid/FK preservation and actual
+upgrade preservation of existing member code/branch/identity. Prior migration shape
+test retained. Build zero warnings/errors; 11 focused tests passed; FULL suite 232
+passed, zero failed/skipped. EF no model drift. Reviewed diff and old migration files
+unchanged. Required history/handoff included in requested small commit; push and clean
+status verified afterward. Stop; no next feature started.

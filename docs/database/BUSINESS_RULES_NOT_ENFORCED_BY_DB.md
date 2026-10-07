@@ -288,3 +288,13 @@ not controllers, entity methods, or database triggers.
 - Sales client/lead/follow-up/future-shift/payroll consequences of employee transfers are
   deferred to their own features. No automatic reassignment or finance/check-in workflow
   was implemented. See ../branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md.
+
+## Member registration branch and legacy ClientCode
+
+HomeBranchId represents the original registration branch for ClientCode identity.
+Preserve that context independently from later check-ins, purchases or staff moves.
+ClientCode is nullable for uncoded legacy members and unique per HomeBranchId when
+present; positive values are enforced by the DB. Import must retain exact old codes,
+never silently renumber. No fake backfill is performed. Future new-member code
+allocation requires branch-local concurrency safety; plain unprotected MAX+1 is not
+safe. Code generation and offline synchronization are not implemented in this task.

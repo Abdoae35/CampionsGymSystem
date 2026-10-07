@@ -41,16 +41,16 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest task: add Member.ClientCode only; complete on EmployeeManagement branch.
-- Required long/bigint chosen after verifying configured development Members empty.
-  Unique IX_Members_ClientCode and positive check; no default or invented real codes.
-- New 20261007182227_AddMemberClientCode applied successfully to localhost development.
-  Member count remains zero; production untouched. Guid PK/FKs and MemberCode unchanged.
-- Build 0 warnings/errors; full suite 229 passed, zero failed/skipped; EF no drift.
-  Eight new identifier tests; necessary synthetic/legacy migration fixtures updated.
-- Schema/local deployment docs updated. Old migrations untouched. Commit/push checked
-  after checkpoint; see PROJECT_HISTORY.md. Other databases with uncoded members need
-  separate nullable transition review before deploying this required migration.
-- Employee Management completed/pushed through 1d10a04. No Member Management feature
-  or import implementation started; await next user-selected task.
+- Latest rule complete: Member.ClientCode is nullable long/bigint, unique per
+  existing HomeBranchId (original registration branch), positive when present.
+  Global code index replaced by partial composite unique index; no new branch field.
+- New 20261007183558_ScopeMemberClientCodeByHomeBranch applied successfully to local
+  development; seven migrations applied, Member count zero; production untouched.
+  Earlier AddMemberClientCode migration unchanged. Guid PK/FKs and MemberCode unchanged.
+- Build 0 warnings/errors; full suite 232 passed, zero failed/skipped; EF no drift.
+  Same-branch duplicates rejected; cross-branch duplicates/nulls allowed; upgrade
+  preserves codes/data. No fake backfill or generation logic.
+- Latest commit/push verified after checkpoint on EmployeeManagement; earlier work
+  pushed through 20f1cca. See PROJECT_HISTORY.md for chronological deployment history.
+- Stop before Member Management/import/offline sync; await next user-selected task.
 - Portable history skill: skills/project-history-update/SKILL.md.

@@ -2023,7 +2023,7 @@ namespace CampionsSystem.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<long>("ClientCode")
+                    b.Property<long?>("ClientCode")
                         .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -2075,9 +2075,6 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientCode")
-                        .IsUnique();
-
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("HomeBranchId");
@@ -2087,6 +2084,10 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("PrimaryPhone")
                         .IsUnique();
+
+                    b.HasIndex("HomeBranchId", "ClientCode")
+                        .IsUnique()
+                        .HasFilter("\"ClientCode\" IS NOT NULL");
 
                     b.ToTable("Members", null, t =>
                         {
