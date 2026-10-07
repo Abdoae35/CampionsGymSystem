@@ -49,8 +49,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 - Follow-up build 0 warnings/errors; 33 auth/branch HTTP tests passed; collection JSON,
   exact route coverage and bodies validated. Prior full suite 202 passed. No live
   Postman/Newman run, application code/schema changes or application database writes.
-- This collection/docs checkpoint belongs to its own small commit and push; verify
-  local/remote HEAD and clean status before reporting delivery. Private environment intact.
+- Postman commit 3adb493 is local and NOT pushed. Initial push and retry both failed
+  with GitHub Internal Server Error; origin remains a69af6a. Separate local history
+  checkpoint records failure. Retry git push origin HEAD later; no force push/amend.
+  Private environment intact.
 - Explicit global branch permission setup is still not automatically run. Other branch
   rules and deferred workflows remain in docs/branches and PROJECT_HISTORY.md.
 - Await next user-selected task; no unrelated module started.

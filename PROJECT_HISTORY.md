@@ -53,8 +53,9 @@ it does not replace checking the actual repository.
   no full-suite rerun for this collection/docs-only follow-up. No live Postman/Newman run.
 - No application code/schema/database changes. Explicit Branches.AccessAll setup remains
   a deliberate operator step; it has not been run automatically against the app database.
-- Postman/checkpoint follow-up is packaged in its own small commit, pushed before delivery;
-  verify remote/local HEAD and clean Git status after push. No unrelated work included.
+- Postman follow-up is committed locally as 3adb493 but NOT pushed: GitHub rejected
+  the initial push and retry with Internal Server Error. No history rewrite/force push.
+  A separate checkpoint records the failure; retain both local commits and retry later.
 - Branch rules/services and prior verification remain documented in docs/branches/.
   Await next user-selected task; no other module started.
 
@@ -822,3 +823,13 @@ Git: started clean on BranchSepration at a69af6a (all eight feature commits prev
 pushed and remote HEAD verified). This follow-up and required checkpoint are committed
 and pushed separately under the existing small-task workflow; publication checked after
 commit. No next feature started.
+
+### Postman publication failure
+
+Created local commit 3adb493 with the verified collection/README/checkpoint. Initial push
+and explicit retry both failed: `remote: Internal Server Error`, `remote rejected HEAD ->
+BranchSepration (Internal Server Error)`, `failed to push some refs`. origin remains at
+a69af6a. Commit retained locally; no force push, amend or reset. Required history/handoff
+updated in a separate local checkpoint commit because the failure occurred after the
+feature commit. No further application changes/checks needed; existing build and 33 API
+tests remain valid. Publication is blocked by GitHub; retry `git push origin HEAD` later.
