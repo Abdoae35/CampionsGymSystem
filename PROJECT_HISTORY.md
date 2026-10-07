@@ -41,13 +41,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature in progress on BranchSepration. Latest increment: employee branch assignment management.
-- Verification: build 0 warnings/errors; 40 branch/assignment/auth API tests passed; diff check clean.
-- Added current assignment/history/initial assignment APIs, employment/date/active-branch validation, overlap checks across primary and nonprimary history, per-employee PostgreSQL row locking and atomic audit writes. d69276e was pushed successfully to origin/BranchSepration. No full Employee CRUD.
+- Branch feature in progress on BranchSepration. Latest increment: shared authenticated current branch context.
+- Verification: build 0 warnings/errors; 41 context/auth tests plus 3 existing seeder tests passed; diff check clean.
+- Added shared EmployeeBranchResolver and ICurrentBranchContext, reused by authenticated user resolution without changing auth/me response shape. Inclusive Cairo-date intervals, future/history exclusion, inactive branch exclusion and ambiguous legacy history fail closed. Updated old multi-current test fixture to latest single-current rule. d185397 pushed successfully.
 - No schema/migration changes or application database update in this feature.
 - This verified increment and checkpoint are ready for a small commit and push;
   completed earlier increments remain in chronological history. Preserve user work.
-- Next: shared current branch context after commit and push. Do not start unrelated modules.
+- Next: branch scope enforcement and explicit global permission setup after commit/push. Do not start unrelated modules.
 
 ## Work history
 
@@ -675,3 +675,15 @@ Added current assignment/history/initial assignment APIs, employment/date/active
 
 Verification: build 0 warnings/errors; 40 branch/assignment/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
 included with this increment; commit/push follows verification. Next: shared current branch context after commit and push.
+
+## 2026-10-07 — Branch feature: shared authenticated current branch context
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Added shared EmployeeBranchResolver and ICurrentBranchContext, reused by authenticated user resolution without changing auth/me response shape. Inclusive Cairo-date intervals, future/history exclusion, inactive branch exclusion and ambiguous legacy history fail closed. Updated old multi-current test fixture to latest single-current rule. d185397 pushed successfully.
+
+Verification: build 0 warnings/errors; 41 context/auth tests plus 3 existing seeder tests passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: branch scope enforcement and explicit global permission setup after commit/push.

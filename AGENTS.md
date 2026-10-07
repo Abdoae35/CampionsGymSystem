@@ -39,12 +39,12 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Branch feature in progress on BranchSepration; latest increment: employee branch assignment management.
-- Verification: build 0 warnings/errors; 40 branch/assignment/auth API tests passed; diff check clean.
-- Added current assignment/history/initial assignment APIs, employment/date/active-branch validation, overlap checks across primary and nonprimary history, per-employee PostgreSQL row locking and atomic audit writes. d69276e was pushed successfully to origin/BranchSepration. No full Employee CRUD.
+- Branch feature in progress on BranchSepration; latest increment: shared authenticated current branch context.
+- Verification: build 0 warnings/errors; 41 context/auth tests plus 3 existing seeder tests passed; diff check clean.
+- Added shared EmployeeBranchResolver and ICurrentBranchContext, reused by authenticated user resolution without changing auth/me response shape. Inclusive Cairo-date intervals, future/history exclusion, inactive branch exclusion and ambiguous legacy history fail closed. Updated old multi-current test fixture to latest single-current rule. d185397 pushed successfully.
 - No schema/migration/application DB changes; existing deployed five migrations intact.
 - User authorizes small commits and pushes after each verified meaningful branch task.
   This checkpoint is included in the current increment; commit/push next.
-- Next: shared current branch context after commit and push. Do not implement unrelated modules.
+- Next: branch scope enforcement and explicit global permission setup after commit/push. Do not implement unrelated modules.
 - Full chronological operation and commit results: PROJECT_HISTORY.md.
 - History skill portable source: skills/project-history-update/SKILL.md.
