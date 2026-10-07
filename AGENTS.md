@@ -39,20 +39,18 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Latest operation (2026-10-07): Membership Benefits schema-only alignment complete;
-  75 application + seven Identity tables. Dynamic catalog, per-plan Quantity/Access,
-  purchase-batch snapshots and usage history; no API/BLL feature implementation.
-- New migration 20261007153001_AddMembershipBenefits and reviewed forward SQL create
-  four tables only; all FKs Restrict. Previous FinalBusinessSchemaAlignment and all
-  older migration files unchanged (SHA-256 checked). No application database update.
-- Final build zero warnings/errors; full suite 156 passed, zero failed/skipped;
-  no EF model drift. PostgreSQL test schemas/data rolled back. Sorting-only test
-  failure corrected before successful final full run.
-- No redundant subscription FK, independent validity engine, mutable balance or trigger.
-  Benefit carryover/expiry/FIFO/reset policy NOT FINALIZED. Snapshot creation, usage
-  validation, concurrency and auditing remain future BLL. Other features preserved.
-- Gap analysis, paths, relationships and decisions: docs/database/MEMBERSHIP_BENEFITS.md.
-  Chronological record and previous feature limitations: PROJECT_HISTORY.md.
-- Branch DataBaseInit; started clean at user commit 8f622d8. Benefits changes/checkpoint
-  uncommitted/unpushed. Await user review/next selected task; do not start automatically.
+- Latest operation (2026-10-07): explicitly authorized local development database update
+  completed. Backed up verified localhost target; applied all four pending migrations
+  from InitialCreate through 20261007153001_AddMembershipBenefits. None pending.
+- Model remains 75 application + seven Identity tables. No application code, domain
+  model or old migration edits; production not touched. Existing five users preserved;
+  aggregate business row counts unchanged.
+- Full suite 156 passed, zero failed/skipped; compilation succeeded. Post-update API
+  database health healthy; unauthenticated auth/me HTTP 401. Verification host stopped.
+- Deployment notes: LOCAL_DATABASE.md. Prior code-only reports are historical; their
+  pending-local status is superseded. Detailed chronological record: PROJECT_HISTORY.md.
+- Benefits carryover/expiry/FIFO/reset and class financial rules remain not finalized;
+  future feature validation/grant generation remains BLL work. No feature started here.
+- Branch DataBaseInit; started clean at user commit 41e1e25. Deployment docs/checkpoint
+  uncommitted/unpushed. Ready for next user-selected feature; await direction.
 - History skill portable source: skills/project-history-update/SKILL.md.

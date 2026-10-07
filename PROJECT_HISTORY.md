@@ -17,7 +17,8 @@ it does not replace checking the actual repository.
 - Intended scope includes gym operations, transactions, payments, and leads.
   PostgreSQL is selected; the 26-module EF persistence schema is implemented.
   The current aligned model has 75 application tables plus seven Identity tables.
-  Database rollout remains separate; no migration is applied by schema alignment.
+  Local development migrations through AddMembershipBenefits were explicitly authorized
+  and applied on 2026-10-07. Production rollout remains separate.
   Payment provider and business workflows remain to be implemented.
 
 ## User preferences and workflow
@@ -40,23 +41,22 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Latest operation (2026-10-07): Membership Benefits schema/domain alignment complete.
-  Added dynamic catalog, per-plan Quantity/Access configuration, purchase/renewal grant
-  snapshots and branch/user/time usage history. No API/BLL feature code changed.
-- Model: 75 application tables plus seven Identity tables (82). New migration
-  20261007153001_AddMembershipBenefits adds only four tables and their constraints/indexes.
-  Prior 20261007151235_FinalBusinessSchemaAlignment and all older migration files unchanged.
-- Final build zero warnings/errors; full suite 156 passed, zero failed/skipped (28 new
-  benefit cases); EF no model drift. Reviewed forward SQL has no destructive statements.
-- Grants resolve subscription through their purchase transaction; no duplicate subscription
-  FK or independent validity dates. Carryover/expiry/FIFO/reset rules remain NOT FINALIZED.
-  Future BLL must snapshot grants and enforce usage/type/balance/validity/concurrency/audit.
-- No migration applied to user's development or production application database. Tests
-  use isolated schemas rolled back in PostgreSQL transactions. Deployment remains separate.
-- Branch DataBaseInit; started clean at user commit 8f622d8. Benefits changes/checkpoint
-  remain uncommitted/unpushed. No branch switch or publication. Await user review/task.
-- Detailed gap report, file manifest and decisions: docs/database/MEMBERSHIP_BENEFITS.md.
-  Previous alignment facts and feature limitations remain in the chronological history.
+- Latest operation (2026-10-07): user explicitly authorized development database update.
+  Verified documented localhost target, created/verified private local backup, reran
+  full suite (156 passed, zero failed/skipped), then applied four pending migrations.
+- All five migrations are now applied through 20261007153001_AddMembershipBenefits;
+  EF migration list has no pending entries. Model: 75 application + seven Identity tables.
+  Previous migrations and application code unchanged by deployment.
+- Existing five users preserved; member/sale/payment/Private counts unchanged. Temporary
+  development API health returned healthy; unauthenticated auth/me returned 401.
+  Temporary verification host stopped. Production not accessed or modified.
+- Local deployment notes updated in LOCAL_DATABASE.md. Earlier schema reports retain
+  original code-only historical context; their pending-local status is now superseded.
+- Benefits carryover/expiry/FIFO/reset and class payout rules remain not finalized.
+  Future BLL must implement grant creation/usage checks and existing deferred workflows.
+- Branch DataBaseInit; started clean at user commit 41e1e25. Deployment checkpoint/docs
+  uncommitted/unpushed; no application feature implementation or migration edits.
+  Ready for next user-selected feature; do not start automatically.
 
 ## Work history
 
@@ -630,3 +630,33 @@ Sandboxed initial build stalled; normal local build permission succeeded. No pac
 
 Commit state: branch DataBaseInit, prior user changes preserved, new changes/checkpoint
 uncommitted/unpushed. No further feature implementation; await user review/next task.
+
+## 2026-10-07 — Authorized development database migration deployment
+
+Request: stop waiting, verify tests and update the development database. This explicit
+instruction superseded the previous code-only/no-automatic-application restriction for
+this local deployment. Used required project-history-update workflow.
+
+Inspection found only InitialCreate applied, not merely two pending migrations as earlier
+advice assumed: Private/Freelance, Activities/Classes/Freelance, FinalBusinessSchemaAlignment,
+and AddMembershipBenefits were all pending. Verified the configured connection matches the
+documented localhost development target without exposing credentials. Reviewed older Up
+changes/Private reconciliation guard; existing data had no Private sessions/subscriptions,
+members, sales or payments. Initial safe CLI configuration parser rejected its wrapper;
+fixed parsing and successfully verified target before any database mutation.
+
+Created a private local pg_dump custom-format backup outside Git and verified pg_restore
+archive listing. Reran full dotnet test (includes build): compilation succeeded and all
+156 tests passed, zero failed/skipped. Applied EF database update explicitly targeting
+20261007153001_AddMembershipBenefits in Development; all four pending migrations completed.
+No prior migration source, domain model or application feature was modified.
+
+Post-update EF list shows all five migrations applied, none pending. Aggregate existing
+user count remains five and business row counts unchanged. Started separate temporary
+Development API: database health returned healthy; unauthenticated /api/auth/me returned
+401. Stopped verification host. Production not touched. Updated LOCAL_DATABASE.md and
+handoff to accurately distinguish earlier code-only work from this authorized deployment.
+Backup is temporary local recovery storage, not durable off-machine backup.
+
+Git: started clean on DataBaseInit at user commit 41e1e25; deployment documentation and
+checkpoint remain uncommitted/unpushed. No next feature started; await user direction.

@@ -25,8 +25,8 @@ dotnet run --project CampionsSystem.API/CampionsSystem.csproj --launch-profile h
 
 Open http://localhost:5236/health/database in development. A working connection
 returns `{"status":"healthy"}`; connection failures return HTTP 503. This route
-is not registered in production. InitialCreate has been applied locally:
-61 application tables, seven standard Identity tables, and EF migration history.
+is not registered in production. All five migrations through `20261007153001_AddMembershipBenefits` have been applied
+locally (2026-10-07): 75 application tables, seven Identity tables and EF migration history.
 
 ## Manage the connection
 
@@ -98,12 +98,26 @@ psql -h localhost -U campions_app -d campions_gym -W -v ON_ERROR_STOP=1 -f docs/
 Tests insert only synthetic fixtures and roll them back. See `SCHEMA.md` and
 `BUSINESS_RULES_NOT_ENFORCED_BY_DB.md` for model assumptions and BLL obligations.
 
-## Pending Private and Freelance update
+## Current migration deployment status
 
-`UpdatePrivateAndFreelanceBusinessRules` is generated but has NOT been applied to
-this existing local database. It extends the model to 62 application tables and
-adds batch/period session links, expiry settlements and coach-specific membership
-plans. See [rollout and reconciliation notes](docs/database/UPDATE_PRIVATE_AND_FREELANCE.md)
-and [data flows](docs/database/DATA_FLOWS.md). Obtain explicit permission before
-applying to this database; never update production from these validation steps.
-The new PostgreSQL tests use isolated transaction-scoped schemas only.
+On 2026-10-07, after explicit user authorization, the local development database was
+updated from InitialCreate through all four pending migrations, in order:
+
+1. UpdatePrivateAndFreelanceBusinessRules
+2. UpdateActivitiesClassesAndFreelanceRules
+3. FinalBusinessSchemaAlignment
+4. AddMembershipBenefits
+
+All five migrations are now applied; EF reports no pending migrations. Before update,
+a private local pg_dump archive was created and its archive listing verified. The
+backup is outside the repository under `/private/tmp/gym-development-backups/`; it is
+only a temporary recovery copy, not durable backup storage. Existing five Identity
+users were preserved; aggregate member/sale/payment/Private counts remained unchanged.
+
+Verification: full suite 156 passed, zero failed/skipped; solution compiled successfully.
+A temporary API on a separate local port returned healthy database status and HTTP 401
+for unauthenticated `/api/auth/me`, then was stopped. Production was not touched.
+
+Prior schema reports describe their original code-only operations; this later authorized
+deployment supersedes their pending-local-application status. Historical rows requiring
+manual reconciliation remain subject to the documented migration guards on other databases.
