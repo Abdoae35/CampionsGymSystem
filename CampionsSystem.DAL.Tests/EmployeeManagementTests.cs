@@ -35,7 +35,7 @@ public sealed class EmployeeManagementTests : IAsyncLifetime
             new EmployeeBranchAssignment { Employee = employeeA, Branch = branchA, StartDate = access.Today.AddDays(-20), IsPrimary = true, AssignedByUserId = actor },
             new EmployeeBranchAssignment { Employee = employeeB, Branch = branchB, StartDate = access.Today.AddDays(-20), IsPrimary = true, AssignedByUserId = actor });
         await db.SaveChangesAsync();
-        service = new EmployeeManagementService(db, current, access, new EmployeeBranchResolver(db));
+        service = new EmployeeManagementService(db, current, access, new EmployeeBranchResolver(db), new EmployeeBranchAssignmentService(db, current, access));
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
     private void Scoped() => current.Context = current.Context! with
@@ -78,4 +78,36 @@ public sealed class EmployeeManagementTests : IAsyncLifetime
         Assert.Null((await service.GetAsync(employeeA.Id)).CurrentBranch);
         Scoped(); Assert.Empty((await service.ListAsync(new())).Items);
     }
+    private CreateEmployeeRequest NewEmployee(Guid? branch = null) => new()
+        { FullName = "New Employee", Phone = "0303", HireDate = access.Today, InitialBranchId = branch };
+
+    [Fact] public async Task CreateDoesNotCreateSystemAccount()
+    {
+        var users = await db.Users.CountAsync(); var created = await service.CreateAsync(NewEmployee());
+        Assert.False(created.HasSystemAccount); Assert.Null(created.CurrentBranch);
+        Assert.Equal(users, await db.Users.CountAsync());
+        Assert.Null((await db.Employees.SingleAsync(e => e.Id == created.Id)).UserId);
+        Assert.Contains(await db.AuditLogs.ToListAsync(), a => a.Action == "EmployeeCreated" && a.EntityId == created.Id);
+    }
+    [Fact] public async Task CreateWithBranchUsesExistingAssignmentAndAudit()
+    {
+        Scoped(); var created = await service.CreateAsync(NewEmployee(branchA.Id));
+        Assert.Equal(branchA.Id, created.CurrentBranch?.Id);
+        Assert.Single(await db.EmployeeBranchAssignments.Where(a => a.EmployeeId == created.Id).ToListAsync());
+        Assert.Contains(await db.AuditLogs.ToListAsync(), a => a.Action == "Employee.BranchAssigned");
+    }
+    [Fact] public async Task FailedInitialAssignmentRollsBackEmployeeAndAudit()
+    {
+        branchA.IsActive = false; await db.SaveChangesAsync(); var count = await db.Employees.CountAsync();
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateAsync(NewEmployee(branchA.Id)));
+        Assert.Equal(count, await db.Employees.CountAsync()); Assert.Empty(await db.AuditLogs.ToListAsync());
+    }
+    [Fact] public async Task ScopedCreateCannotOmitOrSpoofBranch()
+    {
+        Scoped(); await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.CreateAsync(NewEmployee()));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.CreateAsync(NewEmployee(branchB.Id)));
+        current.Context = current.Context! with { Permissions = ["Employees.View"] };
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.CreateAsync(NewEmployee(branchA.Id)));
+    }
+
 }

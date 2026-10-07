@@ -44,7 +44,7 @@ it does not replace checking the actual repository.
 ## Current state
 
 - Employee Management in progress on user-selected EmployeeManagement branch.
-- Read APIs added: scoped employee list/search/branch/status/type filters, bounded pagination and totalCount, details and /api/branches/{id}/employees. Five PostgreSQL tests added; 17 employee/branch/context tests passed, build 0 warnings/errors, diff reviewed. Next: atomic creation with optional existing initial branch assignment.
+- ec6ff70 read increment pushed successfully. Added employee creation without login creation; optional branch uses existing AssignAsync in an atomic transaction/savepoint, scoped creators must select their branch. Four new tests include rollback on inactive branch. Build 0 warnings/errors; 16 employee/assignment tests passed; diff reviewed. Next: profile and status updates.
 - Existing branch assignment/transfer, permissions, audit and Identity reused.
 - No schema/migration or application database changes. Increment commits/pushes
   verified after checkpoints. See chronological entries for exact checks.
@@ -837,6 +837,15 @@ Required history/handoff checkpoint left uncommitted; retry publication later.
 ## 2026-10-07 — Employee Management increment
 
 Read APIs added: scoped employee list/search/branch/status/type filters, bounded pagination and totalCount, details and /api/branches/{id}/employees. Five PostgreSQL tests added; 17 employee/branch/context tests passed, build 0 warnings/errors, diff reviewed. Next: atomic creation with optional existing initial branch assignment.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+## 2026-10-07 — Employee Management increment
+
+ec6ff70 read increment pushed successfully. Added employee creation without login creation; optional branch uses existing AssignAsync in an atomic transaction/savepoint, scoped creators must select their branch. Four new tests include rollback on inactive branch. Build 0 warnings/errors; 16 employee/assignment tests passed; diff reviewed. Next: profile and status updates.
 
 User requested small verified commits/pushes on EmployeeManagement. Existing entity
 has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned

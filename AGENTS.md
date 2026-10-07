@@ -43,7 +43,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 - User-selected task: Employee Management on EmployeeManagement branch; incremental
   build/test/diff/commit/push workflow explicitly requested. No next feature.
-- Read APIs added: scoped employee list/search/branch/status/type filters, bounded pagination and totalCount, details and /api/branches/{id}/employees. Five PostgreSQL tests added; 17 employee/branch/context tests passed, build 0 warnings/errors, diff reviewed. Next: atomic creation with optional existing initial branch assignment.
+- ec6ff70 read increment pushed successfully. Added employee creation without login creation; optional branch uses existing AssignAsync in an atomic transaction/savepoint, scoped creators must select their branch. Four new tests include rollback on inactive branch. Build 0 warnings/errors; 16 employee/assignment tests passed; diff reviewed. Next: profile and status updates.
 - Reuse existing nullable Employee.UserId, branch history/transfers, permissions and
   audit. Existing status Resigned means ended employment with TerminationDate;
   no new Terminated enum/database change. No Employee email field/account creation.

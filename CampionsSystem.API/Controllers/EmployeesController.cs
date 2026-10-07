@@ -11,6 +11,9 @@ public sealed class EmployeesController(EmployeeManagementService employees) : B
     [HttpGet, Authorize(Policy = "Permission:Employees.View")]
     public Task<IActionResult> List([FromQuery] EmployeeListRequest request, CancellationToken ct) => Execute(() => employees.ListAsync(request, ct));
 
+    [HttpPost, Authorize(Policy = "Permission:Employees.Manage")]
+    public Task<IActionResult> Create(CreateEmployeeRequest request, CancellationToken ct) => Execute(() => employees.CreateAsync(request, ct));
+
     [HttpGet("{id:guid}"), Authorize(Policy = "Permission:Employees.View")]
     public Task<IActionResult> Get(Guid id, CancellationToken ct) => Execute(() => employees.GetAsync(id, ct));
 

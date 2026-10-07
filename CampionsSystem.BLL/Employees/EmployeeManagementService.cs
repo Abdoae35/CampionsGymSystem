@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.BLL.Employees;
 
 public sealed class EmployeeManagementService(ApplicationDbContext database, ICurrentUserService current,
-    OperationAccess access, EmployeeBranchResolver resolver)
+    OperationAccess access, EmployeeBranchResolver resolver, EmployeeBranchAssignmentService assignments)
 {
     private async Task<CurrentUserContext> RequireAsync(string permission, CancellationToken ct)
     {
@@ -78,6 +78,56 @@ public sealed class EmployeeManagementService(ApplicationDbContext database, ICu
         var employee = await ScopedEmployees(user, null).SingleOrDefaultAsync(e => e.Id == id, ct)
             ?? throw new BranchNotFoundException("Employee not found in accessible scope.");
         return await DetailsAsync(employee, ct);
+    }
+
+    private static void ValidateProfile(EmployeeProfileRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.FullName) || request.FullName.Length > 256
+            || string.IsNullOrWhiteSpace(request.Phone) || request.Phone.Length > 64
+            || request.JobTitle?.Length > 256 || request.HireDate == default || !Enum.IsDefined(request.EmploymentType))
+            throw new BusinessRuleException("Name, phone, hire date and a valid employment type are required.");
+    }
+
+    private static void SetProfile(Employee employee, EmployeeProfileRequest request)
+    {
+        employee.FullName = request.FullName.Trim(); employee.Phone = request.Phone.Trim();
+        employee.JobTitle = string.IsNullOrWhiteSpace(request.JobTitle) ? null : request.JobTitle.Trim();
+        employee.EmploymentType = request.EmploymentType; employee.HireDate = request.HireDate;
+    }
+
+    public async Task<EmployeeDetails> CreateAsync(CreateEmployeeRequest request, CancellationToken ct = default)
+    {
+        var user = await RequireAsync("Employees.Manage", ct);
+        ValidateProfile(request);
+        BranchAccessService.EnsureScope(user, request.InitialBranchId);
+        var owned = database.Database.CurrentTransaction is null ? await database.Database.BeginTransactionAsync(ct) : null;
+        var transaction = database.Database.CurrentTransaction!;
+        var savepoint = "employee_create_" + Guid.NewGuid().ToString("N");
+        try
+        {
+            await transaction.CreateSavepointAsync(savepoint, ct);
+            var employee = new Employee { CreatedAt = access.Now };
+            SetProfile(employee, request);
+            database.Employees.Add(employee);
+            await database.SaveChangesAsync(ct);
+            if (request.InitialBranchId.HasValue)
+                await assignments.AssignAsync(employee.Id, new(request.InitialBranchId.Value,
+                    request.HireDate > access.Today ? request.HireDate : access.Today), ct);
+            access.Audit(user.UserId, request.InitialBranchId, "EmployeeCreated", nameof(Employee), employee.Id,
+                after: new { employee.FullName, employee.Phone, employee.JobTitle, employee.EmploymentType, employee.HireDate });
+            await database.SaveChangesAsync(ct);
+            var result = await DetailsAsync(employee, ct);
+            await transaction.ReleaseSavepointAsync(savepoint, ct);
+            if (owned is not null) await owned.CommitAsync(ct);
+            return result;
+        }
+        catch
+        {
+            if (owned is not null) await owned.RollbackAsync(CancellationToken.None);
+            else await transaction.RollbackToSavepointAsync(savepoint, CancellationToken.None);
+            database.ChangeTracker.Clear(); throw;
+        }
+        finally { if (owned is not null) await owned.DisposeAsync(); }
     }
 
     private async Task<EmployeeDetails> DetailsAsync(Employee employee, CancellationToken ct) => new(employee.Id,
