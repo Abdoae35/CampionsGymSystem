@@ -21,8 +21,13 @@ public sealed class ActivityRuleMigrationTests
         var activity = new SportsActivity { Branch = branch, Name = "Legacy Boxing" };
         var package = new ActivityPackage { SportsActivity = activity, Name = "Legacy", DurationDays = 30, Price = 500 };
         var group = new GroupClass { Branch = branch, Name = "Legacy class", CoachEmployee = employee };
-        db.AddRange(user, member, package, group);
+        db.AddRange(user, branch, package, group);
         await db.SaveChangesAsync();
+        // Insert with the legacy schema shape, not today's Member EF model.
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO "Members" ("Id", "MemberCode", "FullName", "PrimaryPhone", "HomeBranchId", "CreatedByUserId", "CreatedAt", "IsActive", "IsPrimaryPhoneVerified")
+            VALUES ({member.Id}, {member.MemberCode}, {member.FullName}, {member.PrimaryPhone}, {branch.Id}, {user.Id}, {member.CreatedAt}, TRUE, FALSE);
+            """);
         var assignment = Guid.NewGuid(); var subscription = Guid.NewGuid(); var checkIn = Guid.NewGuid();
         var today = new DateOnly(2026, 10, 1); var now = new DateTimeOffset(2026, 10, 1, 12, 0, 0, TimeSpan.Zero);
         await db.Database.ExecuteSqlInterpolatedAsync($"""
@@ -33,7 +38,7 @@ public sealed class ActivityRuleMigrationTests
             INSERT INTO "CheckIns" ("Id", "MemberId", "BranchId", "CheckInType", "GroupClassId", "CoachEmployeeId", "CheckInMethod", "SessionConsumed", "CheckedInAt", "CreatedByUserId")
             VALUES ({checkIn}, {member.Id}, {branch.Id}, 'Class', {group.Id}, {employee.Id}, 'Manual', FALSE, {now}, {user.Id});
             """);
-        var sql = db.GetService<IMigrator>().GenerateScript("UpdatePrivateAndFreelanceBusinessRules", null)
+        var sql = db.GetService<IMigrator>().GenerateScript("UpdatePrivateAndFreelanceBusinessRules", "AddMembershipBenefits")
             .Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
         await db.Database.ExecuteSqlRawAsync(sql);
         db.ChangeTracker.Clear();

@@ -37,7 +37,7 @@ public sealed class EmployeeBranchTransferTests : IAsyncLifetime
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
     [Fact] public async Task TransferClosesOriginalCreatesNewAndAuditsWithoutMovingHistory()
     {
-        var member = new Member { MemberCode = "TRANSFER-M", FullName = "Member", PrimaryPhone = "transfer-m", HomeBranch = source, CreatedByUserId = current.UserId!.Value };
+        var member = new Member { ClientCode = 1, MemberCode = "TRANSFER-M", FullName = "Member", PrimaryPhone = "transfer-m", HomeBranch = source, CreatedByUserId = current.UserId!.Value };
         var sale = new SaleTransaction { Member = member, Branch = source, CreatedByUserId = current.UserId.Value };
         var shift = new Shift { Branch = source, OpenedByUserId = current.UserId.Value, OpenedAt = access.Now.AddDays(-1) };
         db.AddRange(sale, shift); await db.SaveChangesAsync();

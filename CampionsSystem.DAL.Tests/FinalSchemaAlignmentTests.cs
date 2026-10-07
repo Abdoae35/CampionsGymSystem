@@ -86,7 +86,7 @@ public sealed class FinalSchemaAlignmentTests : IAsyncLifetime
     [Fact] public async Task AfterMidnightPurchaseKeepsPriorOperationalDateAndActualTimestamp()
     {
         var day = Day(); var actual = new DateTimeOffset(2026, 10, 31, 1, 30, 0, TimeSpan.Zero);
-        var member = new Member { MemberCode = "ALIGN", FullName = "Member", PrimaryPhone = "align-member", HomeBranch = branch, CreatedByUser = user };
+        var member = new Member { ClientCode = 1, MemberCode = "ALIGN", FullName = "Member", PrimaryPhone = "align-member", HomeBranch = branch, CreatedByUser = user };
         var plan = new MembershipPlan { Name = "Normal", CityId = branch.CityId, Price = 500, DurationDays = 30 };
         var sale = new SaleTransaction { Member = member, Branch = branch, CreatedByUser = user, BusinessDay = day,
             SaleType = SaleType.GymMembership, GrossAmount = 500, NetAmount = 500, CreatedAt = actual };

@@ -40,7 +40,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
         employee = new Employee { FullName = "Internal Coach", Phone = "test-1", HireDate = new(2026, 1, 1),
             EmploymentStatus = EmploymentStatus.Active, EmploymentType = EmploymentType.Freelance };
         substitute = new Employee { FullName = "Substitute", Phone = "test-2", HireDate = new(2026, 1, 1), EmploymentStatus = EmploymentStatus.Active };
-        member = new Member { MemberCode = "M-TEST", FullName = "Test Member", PrimaryPhone = "test-member", HomeBranch = branch, CreatedByUser = actor };
+        member = new Member { ClientCode = 1, MemberCode = "M-TEST", FullName = "Test Member", PrimaryPhone = "test-member", HomeBranch = branch, CreatedByUser = actor };
         activity = new SportsActivity { Name = "Boxing", Branch = branch };
         package = new ActivityPackage { SportsActivity = activity, Name = "Monthly Boxing", Price = 500,
             DurationDays = 30, AccessMode = AccessMode.Unlimited };
@@ -164,7 +164,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     [Fact] public async Task AttendanceAverageUsesActualUniqueCheckIns()
     {
         var first = await Session(); var second = await Session(); await classes.AttendAsync(first, member.Id); await classes.AttendAsync(second, member.Id);
-        var another = new Member { MemberCode = "M-2", FullName = "Second", PrimaryPhone = "second", HomeBranch = branch, CreatedByUser = actor };
+        var another = new Member { ClientCode = 2, MemberCode = "M-2", FullName = "Second", PrimaryPhone = "second", HomeBranch = branch, CreatedByUser = actor };
         db.Add(another); await db.SaveChangesAsync(); await classes.AttendAsync(second, another.Id);
         var row = Assert.Single(await Stats()); Assert.Equal(3, row.TotalAttendances); Assert.Equal(1.5m, row.AverageAttendance);
         await Assert.ThrowsAsync<BusinessRuleException>(() => classes.AttendAsync(first, member.Id));

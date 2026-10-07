@@ -6,6 +6,7 @@ namespace CampionsSystem.DAL.Entities;
 public sealed class Member
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public long ClientCode { get; set; }
     public string MemberCode { get; set; } = null!;
     public string FullName { get; set; } = null!;
     public string PrimaryPhone { get; set; } = null!;

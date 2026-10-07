@@ -18,7 +18,7 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 | EmployeeBranchAssignments | Effective-dated branch assignment history | EmployeeId → Employees, BranchId → GymBranches, AssignedByUserId → AspNetUsers |
 | EmployeeLeaveRequests | Pending/approved/rejected leave and review | EmployeeId → Employees, optional ReviewedByUserId → AspNetUsers |
 | EmployeeSalarySettings | Effective-dated salary history | EmployeeId → Employees, CreatedByUserId → AspNetUsers |
-| Members | Member profile, unique code and phone | HomeBranchId → GymBranches, CreatedByUserId → AspNetUsers |
+| Members | Member profile, unique MemberCode, positive unique legacy ClientCode (bigint), and phone | HomeBranchId → GymBranches, CreatedByUserId → AspNetUsers |
 | MemberSalesAssignments | Current sales/house owner and assignment history | MemberId → Members, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
 | Leads | Branch CRM prospect and conversion | BranchId → GymBranches, ConvertedMemberId → Members, CreatedByUserId → AspNetUsers |
 | LeadAssignments | Sales ownership history | LeadId → Leads, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
@@ -241,3 +241,21 @@ was added: these facts preserve purchase context but do not finalize expiration 
 carryover policy. Remaining quantity is GrantedQuantity minus summed usage history.
 There is no stored mutable balance, artificial Access quantity, payment linkage or
 ActivityPackage benefit relationship. See [benefit alignment report](MEMBERSHIP_BENEFITS.md).
+
+## Member legacy client identifier
+
+`Members.Id` remains the Guid/UUID primary key and the target of every member foreign
+key. `ClientCode` is a separate required long/bigint business identifier for numeric
+legacy serial codes, reception lookup and future Excel imports. It is unique
+(IX_Members_ClientCode) and positive (CK_Members_ClientCode_Positive), with no default,
+sequence or generated values. Existing string MemberCode and its unique index remain
+unchanged; no import or Member Management feature is implemented by this change.
+
+The configured development Members table was confirmed empty before migration
+20261007182227_AddMemberClientCode, so NOT NULL was safe. This migration must not be
+applied unchanged to a database with uncoded existing members: it intentionally has
+no fake backfill. Such a deployment needs a separately reviewed nullable transition
+and actual legacy import. Preserve numeric codes exactly; reject duplicates or
+invalid values rather than silently changing them. Numeric storage assumes codes
+have no meaningful leading zeros/letters; verify the legacy file before import.
+Import tooling must avoid floating-point conversion of large integer codes.

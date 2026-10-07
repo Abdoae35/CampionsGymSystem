@@ -43,11 +43,9 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Employee Management in progress on user-selected EmployeeManagement branch.
-- Employee Management complete: six read/create/update/status/branch-list routes, existing Employees.View/Manage and global branch scope, separate Identity accounts, atomic initial assignment, locked profile/status audit. Added 13 service plus six HTTP tests. Final build 0 warnings/errors; full suite passed 221 twice, zero failed/skipped; EF no drift. Documentation and all six Postman requests validated; no live Postman run or application DB writes. ec6ff70, c36f38a, 245669f, f3041c4 pushed; final documentation commit/push verified after this checkpoint. Stop; await next user-selected task.
-- Existing branch assignment/transfer, permissions, audit and Identity reused.
-- No schema/migration or application database changes. Increment commits/pushes
-  verified after checkpoints. See chronological entries for exact checks.
+- Member ClientCode complete on EmployeeManagement: required long/bigint, unique and positive, no generated default. Local development Members had zero rows; new migration 20261007182227_AddMemberClientCode applied successfully, still zero members. Guid PK, FKs and existing string MemberCode unchanged. Build 0 warnings/errors; full suite 229 passed, zero failed/skipped; EF no drift. Commit/push checked after checkpoint; stop before Member Management.
+- Employee Management prior five commits were pushed through 1d10a04.
+- No Member Management controllers/services/import feature started.
 
 ## Work history
 
@@ -895,3 +893,37 @@ JSON bodies validated statically. Final working tree and origin HEAD checked aft
 documentation commit/push. Previous tests include auth, branch transfer/concurrency,
 private/activity/membership schema regressions. No full Employee accounting/history
 load, salary/payroll/leave/frontend or next module implemented.
+
+## 2026-10-07 — Member legacy ClientCode identifier
+
+User requested one new member business identifier, new migration, explicit local
+application, full regression and commit/push. Started clean on EmployeeManagement.
+Inspected Member/EF/indexes/migrations/import references and configured localhost
+campions_gym database. Five prior migrations applied, Members count zero; no legacy
+import implementation. Existing MemberCode string remains independent and unchanged.
+Numeric legacy-code assumption follows requested example; real file not supplied.
+
+Added required long ClientCode mapped bigint, IX_Members_ClientCode unique and
+CK_Members_ClientCode_Positive (>0). No key/FK or old migration changes. Generated
+20261007182227_AddMemberClientCode; removed generated 0 default from this NEW migration
+so no fake codes can be created. Up has only column/index/check additions; Down removes
+only those additions. Inspected migration, snapshot diff and generated SQL. This required
+migration intentionally cannot upgrade uncoded nonempty Members; other such databases
+need a reviewed nullable transition/import. No automatic generation/backfill/import.
+
+Explicit Development EF database update succeeded with Done. Independently verified
+migration history, bigint NOT NULL/no default, unique index, positive constraint,
+Guid UUID PK and zero members afterward. Production untouched. LOCAL_DATABASE.md
+and SCHEMA.md updated with deployment result, MemberCode distinction and numeric
+import cautions. Eight new test cases cover exact large values, uniqueness, positive/
+null checks, unchanged Guid relationships and narrowly scoped migration operations.
+Existing synthetic fixtures receive test-only positive codes; legacy migration tests
+insert the historical Member shape via SQL and retain appropriate upgrade boundaries.
+No actual member codes invented or existing data rewritten.
+
+Verification: pre-generation and post-generation builds passed; final build zero
+warnings/errors. Focused 14 tests passed; FULL suite 229 passed, zero failed/skipped.
+EF reports no pending model changes. Diff reviewed; old migration files unchanged.
+No unrelated business implementation or Postman/API changes. Required checkpoint
+included with requested feat(members) commit; push/status verified after commit.
+Stop and await next task; Member Management is not started.

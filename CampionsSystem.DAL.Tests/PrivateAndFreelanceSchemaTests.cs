@@ -52,7 +52,7 @@ public sealed class PrivateAndFreelanceSchemaTests : IAsyncLifetime
         branch = new GymBranch { City = city, Name = "Test" };
         coachA = new Employee { FullName = "A", Phone = "A", EmploymentType = EmploymentType.Freelance, HireDate = new(2026, 1, 1) };
         coachB = new Employee { FullName = "B", Phone = "B", EmploymentType = EmploymentType.Freelance, HireDate = new(2026, 1, 1) };
-        member = new Member { MemberCode = "TEST", FullName = "Test", PrimaryPhone = "TEST", HomeBranch = branch, CreatedByUser = user };
+        member = new Member { ClientCode = 1, MemberCode = "TEST", FullName = "Test", PrimaryPhone = "TEST", HomeBranch = branch, CreatedByUser = user };
         normalPlan = Plan(PlanCategory.Normal, null, 500m);
         gymSubscription = new MemberSubscription { Member = member, City = city, PurchasedAtBranch = branch, MembershipPlan = normalPlan, StartDate = new(2026, 1, 1), EndDate = new(2026, 12, 31), AccessMode = AccessMode.Unlimited, Status = SubscriptionStatus.Active };
         sale = new SaleTransaction { Member = member, Branch = branch, CreatedByUser = user, SaleType = SaleType.Private, GrossAmount = 2000, NetAmount = 2000 };

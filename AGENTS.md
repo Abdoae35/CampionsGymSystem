@@ -41,12 +41,16 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- User-selected task: Employee Management on EmployeeManagement branch; incremental
-  build/test/diff/commit/push workflow explicitly requested. No next feature.
-- Employee Management complete: six read/create/update/status/branch-list routes, existing Employees.View/Manage and global branch scope, separate Identity accounts, atomic initial assignment, locked profile/status audit. Added 13 service plus six HTTP tests. Final build 0 warnings/errors; full suite passed 221 twice, zero failed/skipped; EF no drift. Documentation and all six Postman requests validated; no live Postman run or application DB writes. ec6ff70, c36f38a, 245669f, f3041c4 pushed; final documentation commit/push verified after this checkpoint. Stop; await next user-selected task.
-- Reuse existing nullable Employee.UserId, branch history/transfers, permissions and
-  audit. Existing status Resigned means ended employment with TerminationDate;
-  no new Terminated enum/database change. No Employee email field/account creation.
-- No application database writes or migration changes. Publication checked after
-  each increment; chronological verification in PROJECT_HISTORY.md.
+- Latest task: add Member.ClientCode only; complete on EmployeeManagement branch.
+- Required long/bigint chosen after verifying configured development Members empty.
+  Unique IX_Members_ClientCode and positive check; no default or invented real codes.
+- New 20261007182227_AddMemberClientCode applied successfully to localhost development.
+  Member count remains zero; production untouched. Guid PK/FKs and MemberCode unchanged.
+- Build 0 warnings/errors; full suite 229 passed, zero failed/skipped; EF no drift.
+  Eight new identifier tests; necessary synthetic/legacy migration fixtures updated.
+- Schema/local deployment docs updated. Old migrations untouched. Commit/push checked
+  after checkpoint; see PROJECT_HISTORY.md. Other databases with uncoded members need
+  separate nullable transition review before deploying this required migration.
+- Employee Management completed/pushed through 1d10a04. No Member Management feature
+  or import implementation started; await next user-selected task.
 - Portable history skill: skills/project-history-update/SKILL.md.
