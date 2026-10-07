@@ -43,7 +43,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 - User-selected task: Employee Management on EmployeeManagement branch; incremental
   build/test/diff/commit/push workflow explicitly requested. No next feature.
-- 245669f profile/status increment pushed. Added six HTTP integration cases for permissions, branch spoofing and scoped lists/details, full create/update/status/history flow, rejected profile branch/user/status fields, invalid filters and rollback. Build 0 warnings/errors; FULL suite 221 passed, zero failed/skipped; EF no model drift. All three implementation commits pushed. Next: documentation and Postman coverage.
+- Employee Management complete: six read/create/update/status/branch-list routes, existing Employees.View/Manage and global branch scope, separate Identity accounts, atomic initial assignment, locked profile/status audit. Added 13 service plus six HTTP tests. Final build 0 warnings/errors; full suite passed 221 twice, zero failed/skipped; EF no drift. Documentation and all six Postman requests validated; no live Postman run or application DB writes. ec6ff70, c36f38a, 245669f, f3041c4 pushed; final documentation commit/push verified after this checkpoint. Stop; await next user-selected task.
 - Reuse existing nullable Employee.UserId, branch history/transfers, permissions and
   audit. Existing status Resigned means ended employment with TerminationDate;
   no new Terminated enum/database change. No Employee email field/account creation.

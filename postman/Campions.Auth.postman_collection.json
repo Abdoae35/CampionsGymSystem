@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Campions API - Auth and Branches",
+    "name": "Campions API - Auth, Branches and Employees",
     "description": "Login first; the collection saves accessToken automatically. Includes both authentication endpoints and all eight branch/employee assignment endpoints. Set the documented ID/date variables before management requests. Optional auth tests intentionally exercise errors.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -44,6 +44,11 @@
     {
       "key": "transferEffectiveDate",
       "value": ""
+    },
+    {
+      "key": "employeeHireDate",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -419,6 +424,234 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"targetBranchId\": \"{{targetBranchId}}\",\n  \"effectiveDate\": \"{{transferEffectiveDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Employee management",
+      "item": [
+        {
+          "name": "List and search accessible employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/employees?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.View. Add optional search, branchId, status and employmentType query parameters. totalCount is before paging."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Employees currently assigned to branch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/branches/{{branchId}}/employees?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.View plus branch scope. totalCount gives assigned count; add status=Active to count active employees only."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Employee details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.View plus scope; no payroll or Identity secrets."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create employee and initial branch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.Manage plus scope. Remove initialBranchId only for globally authorized unassigned creation. No login account is created. Returned ID replaces employeeId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Example employee\",\n  \"phone\": \"01000000000\",\n  \"jobTitle\": \"Trainer\",\n  \"employmentType\": \"Staff\",\n  \"hireDate\": \"{{employeeHireDate}}\",\n  \"initialBranchId\": \"{{branchId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"employeeId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update employee profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.Manage plus scope. Full profile body; retain current values. No branch/account/status fields.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Example employee\",\n  \"phone\": \"01000000000\",\n  \"jobTitle\": \"Trainer\",\n  \"employmentType\": \"Staff\",\n  \"hireDate\": \"{{employeeHireDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change employee status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}/status",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Employees.Manage plus scope. Active, Suspended or Resigned (existing ended-employment name). Resigned sets termination date; Active clears it.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Suspended\",\n  \"reason\": \"Example management review\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

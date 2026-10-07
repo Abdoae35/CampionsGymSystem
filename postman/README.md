@@ -1,7 +1,7 @@
 # Simple manual API testing
 
 1. Start the API: `dotnet run --project CampionsSystem.API --launch-profile http`.
-2. Import `Campions.Auth.postman_collection.json`. Open **Campions API - Auth and Branches**.
+2. Import `Campions.Auth.postman_collection.json`. Open **Campions API - Auth, Branches and Employees**.
 3. Select the **Campions Auth - LOCAL PRIVATE** environment (contains demoPassword).
 4. Send **1. Login**. Default username is `dev.reception`; change it in Body for another account.
 5. Send **2. Current user**. Login saves the token in this collection and Current user sends it automatically. No copying/pasting.
@@ -10,7 +10,7 @@ The authentication endpoints are POST /api/auth/login and GET /api/auth/me.
 The collection also includes all eight implemented branch/employee assignment routes.
 Leave **Optional automated test cases** collapsed. They are examples of successful/failed requests to the same endpoints, not separate APIs. Some intentionally return 401.
 
-If you previously imported the old collection, use the new **Campions API - Auth and Branches** collection. Your imported Postman copy does not update when repository files change.
+If you previously imported the old collection, use the new **Campions API - Auth, Branches and Employees** collection. Your imported Postman copy does not update when repository files change.
 
 Login must return 200 and run its Scripts / Post-response script. Current user sends the latest login token; logging in as another account replaces it. If token expires, send Login again. The collection starts with an empty token and passwords are never committed. Do not share/export a collection after login without clearing accessToken.
 
@@ -32,7 +32,7 @@ Set these **collection variables** (leave real passwords/tokens in private local
 | --- | --- |
 | cityId | Existing active City ID from your development database; no City CRUD endpoint yet |
 | branchId | Branch being read/updated/assigned; Create branch saves its returned ID here |
-| employeeId | Existing Employee ID selected deliberately; no Employee CRUD endpoint yet |
+| employeeId | Employee ID selected from GET /api/employees; Create employee saves its returned ID here |
 | targetBranchId | Active destination for transfer, selected deliberately |
 | branchName | Desired branch name for create/update |
 | assignmentStartDate | YYYY-MM-DD, today or later in configured gym timezone |
@@ -53,3 +53,19 @@ permissions, accounts, employees or cities. A 403 indicates missing permission o
 Send modifying requests individually against your intended development records; do not run
 the entire collection indiscriminately. No Postman requests were sent against your database
 as part of adding these examples. The .NET integration tests verify endpoint behavior.
+
+## Employee management requests
+
+Folder **5. Employee management** contains list/search, branch employees, details,
+create, profile update and status change. Re-import the collection after updating it.
+Use primary Login with Employees.View for reads or Employees.Manage for writes;
+global users also need Branches.AccessAll. The folder reuses accessToken, employeeId
+and branchId. Set employeeHireDate to YYYY-MM-DD; PUT must retain the employee's real
+hire date and other profile values. Create captures employeeId, but never creates a
+login. Initial branch assignment is atomic with creation; global users may remove
+initialBranchId to create an unassigned employee. Branch list totalCount counts all
+matching current assignments before pagination (status=Active counts active only).
+Status accepts Active, Suspended, Resigned; Resigned is the current ended-employment
+name. No delete or account/role management requests are provided. Existing branch
+assignment/transfer requests remain in folder 4. See
+[employee management](../docs/employees/EMPLOYEE_MANAGEMENT.md) for complete rules.

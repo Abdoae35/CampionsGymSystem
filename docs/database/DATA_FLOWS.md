@@ -400,3 +400,22 @@ flowchart LR
 
 Future finance ownership follows actual receiving/spending branch, not member registration
 or the employee's later current assignment. No financial workflow is implemented here.
+
+## Employee management
+
+```mermaid
+flowchart LR
+    U[Authenticated user] --> P[Employees.View or Employees.Manage]
+    P --> S[Validate branch scope]
+    S --> E[Employee profile and current assignment]
+    E --> L[List / details / totalCount]
+    S --> C[Create employee without login account]
+    C --> A[Optional existing initial branch assignment service]
+    A --> T[Atomic employee + assignment + audit]
+    S --> M[Profile update or status change]
+    M --> R[Employee row lock shared with branch transfers]
+    R --> H[Preserve historical records and save audit]
+```
+
+Employees remain separate from Identity accounts. Ended employment uses the existing
+Resigned status and TerminationDate; no payroll, salary or account workflow is added.

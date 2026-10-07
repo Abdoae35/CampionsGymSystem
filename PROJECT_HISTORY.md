@@ -44,7 +44,7 @@ it does not replace checking the actual repository.
 ## Current state
 
 - Employee Management in progress on user-selected EmployeeManagement branch.
-- 245669f profile/status increment pushed. Added six HTTP integration cases for permissions, branch spoofing and scoped lists/details, full create/update/status/history flow, rejected profile branch/user/status fields, invalid filters and rollback. Build 0 warnings/errors; FULL suite 221 passed, zero failed/skipped; EF no model drift. All three implementation commits pushed. Next: documentation and Postman coverage.
+- Employee Management complete: six read/create/update/status/branch-list routes, existing Employees.View/Manage and global branch scope, separate Identity accounts, atomic initial assignment, locked profile/status audit. Added 13 service plus six HTTP tests. Final build 0 warnings/errors; full suite passed 221 twice, zero failed/skipped; EF no drift. Documentation and all six Postman requests validated; no live Postman run or application DB writes. ec6ff70, c36f38a, 245669f, f3041c4 pushed; final documentation commit/push verified after this checkpoint. Stop; await next user-selected task.
 - Existing branch assignment/transfer, permissions, audit and Identity reused.
 - No schema/migration or application database changes. Increment commits/pushes
   verified after checkpoints. See chronological entries for exact checks.
@@ -869,3 +869,29 @@ User requested small verified commits/pushes on EmployeeManagement. Existing ent
 has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
 status. Resigned plus TerminationDate reused for ended employment; no schema change.
 Required history/handoff checkpoint included; commit/push checked afterward.
+
+## 2026-10-07 — Employee Management increment
+
+Employee Management complete: six read/create/update/status/branch-list routes, existing Employees.View/Manage and global branch scope, separate Identity accounts, atomic initial assignment, locked profile/status audit. Added 13 service plus six HTTP tests. Final build 0 warnings/errors; full suite passed 221 twice, zero failed/skipped; EF no drift. Documentation and all six Postman requests validated; no live Postman run or application DB writes. ec6ff70, c36f38a, 245669f, f3041c4 pushed; final documentation commit/push verified after this checkpoint. Stop; await next user-selected task.
+
+User requested small verified commits/pushes on EmployeeManagement. Existing entity
+has nullable UserId, no email, Staff/Freelance types and Active/Suspended/Resigned
+status. Resigned plus TerminationDate reused for ended employment; no schema change.
+Required history/handoff checkpoint included; commit/push checked afterward.
+
+Final delivery details: EmployeeManagementService and EmployeeContracts implement
+scoped SQL filters/count/pagination, selected branch employee list, profile details,
+atomic creation calling existing assignment service, profile-only update and separate
+status PATCH. API returns 200 on success, 400 validation, 401 unauthenticated, 403
+permission/branch denial, 404 inaccessible details; no DELETE. Resigned is existing
+ended-employment status with today TerminationDate, Active clears it. Scope is checked
+server-side; global unassigned accounts supported. Profile JSON rejects unrelated
+fields; no account link/creation or branch history changes through profile endpoints.
+No new permission codes, packages, migrations or unrelated workflows added.
+
+New docs/employees/EMPLOYEE_MANAGEMENT.md; updated database data flows, Postman
+collection and README. Source token remains empty. All six method/route pairs and
+JSON bodies validated statically. Final working tree and origin HEAD checked after
+documentation commit/push. Previous tests include auth, branch transfer/concurrency,
+private/activity/membership schema regressions. No full Employee accounting/history
+load, salary/payroll/leave/frontend or next module implemented.
