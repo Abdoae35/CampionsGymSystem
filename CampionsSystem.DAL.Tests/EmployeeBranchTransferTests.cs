@@ -95,6 +95,12 @@ public sealed class EmployeeBranchTransferTests : IAsyncLifetime
         db.ChangeTracker.Clear(); Assert.Null((await db.EmployeeBranchAssignments.SingleAsync()).EndDate);
         Assert.Empty(await db.AuditLogs.ToListAsync());
     }
+    [Fact] public async Task MaximumBoundedEndDateDoesNotOverflowTransferValidation()
+    {
+        original.EndDate = DateOnly.MaxValue; await db.SaveChangesAsync();
+        var result = await service.TransferAsync(employee.Id, new(target.Id, access.Today));
+        Assert.Equal(target.Id, result.BranchId);
+    }
     private sealed class RejectTransferAudit : SaveChangesInterceptor
     {
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData,

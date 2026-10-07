@@ -94,7 +94,7 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
             if (old.BranchId == request.TargetBranchId) throw new BusinessRuleException("Employee is already assigned to the target branch.");
             if (request.EffectiveDate <= old.StartDate)
                 throw new BusinessRuleException("Transfer date must follow the current assignment start date.");
-            if (old.EndDate is DateOnly end && request.EffectiveDate > end.AddDays(1))
+            if (old.EndDate is DateOnly end && request.EffectiveDate.DayNumber > end.DayNumber + 1)
                 throw new BusinessRuleException("Transfer cannot extend an already scheduled assignment end date.");
             if (await database.EmployeeBranchAssignments.AnyAsync(x => x.EmployeeId == employeeId && x.Id != old.Id
                 && (x.StartDate > access.Today || x.EndDate == null || x.EndDate >= request.EffectiveDate), ct))

@@ -39,12 +39,12 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Branch feature in progress on BranchSepration; latest increment: atomic employee branch transfer workflow.
-- Verification: build 0 warnings/errors; 50 transfer/assignment/security/auth API tests passed; diff check clean.
-- Added permission-protected transfer endpoint to existing assignment service. Source and target scope required, active employment/target/date validated, per-employee row lock, inclusive old-end/new-start history, future transfer protection, two atomic saves plus detailed audit. Fault injected after first save verifies rollback. Existing sale and shift BranchIds preserved. 8f8c054 pushed successfully.
+- Branch feature in progress on BranchSepration; latest increment: transfer date boundary correction.
+- Verification: build 0 warnings/errors; all 10 transfer tests passed; earlier full suite 201 passed; diff check clean.
+- Review found bounded assignment DateOnly.MaxValue could overflow end-plus-one validation. Replaced with safe day-number comparison and added a regression. 0f2afbe pushed successfully. Pending API/concurrency test completion remains separate and will be committed after full rerun.
 - No schema/migration/application DB changes; existing deployed five migrations intact.
 - User authorizes small commits and pushes after each verified meaningful branch task.
   This checkpoint is included in the current increment; commit/push next.
-- Next: complete API and real concurrent transfer coverage after commit/push. Do not implement unrelated modules.
+- Next: full regression and separate test completion commit. Do not implement unrelated modules.
 - Full chronological operation and commit results: PROJECT_HISTORY.md.
 - History skill portable source: skills/project-history-update/SKILL.md.

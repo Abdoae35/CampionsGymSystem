@@ -41,13 +41,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Branch feature in progress on BranchSepration. Latest increment: atomic employee branch transfer workflow.
-- Verification: build 0 warnings/errors; 50 transfer/assignment/security/auth API tests passed; diff check clean.
-- Added permission-protected transfer endpoint to existing assignment service. Source and target scope required, active employment/target/date validated, per-employee row lock, inclusive old-end/new-start history, future transfer protection, two atomic saves plus detailed audit. Fault injected after first save verifies rollback. Existing sale and shift BranchIds preserved. 8f8c054 pushed successfully.
+- Branch feature in progress on BranchSepration. Latest increment: transfer date boundary correction.
+- Verification: build 0 warnings/errors; all 10 transfer tests passed; earlier full suite 201 passed; diff check clean.
+- Review found bounded assignment DateOnly.MaxValue could overflow end-plus-one validation. Replaced with safe day-number comparison and added a regression. 0f2afbe pushed successfully. Pending API/concurrency test completion remains separate and will be committed after full rerun.
 - No schema/migration changes or application database update in this feature.
 - This verified increment and checkpoint are ready for a small commit and push;
   completed earlier increments remain in chronological history. Preserve user work.
-- Next: complete API and real concurrent transfer coverage after commit/push. Do not start unrelated modules.
+- Next: full regression and separate test completion commit. Do not start unrelated modules.
 
 ## Work history
 
@@ -711,3 +711,15 @@ Added permission-protected transfer endpoint to existing assignment service. Sou
 
 Verification: build 0 warnings/errors; 50 transfer/assignment/security/auth API tests passed; diff check clean. No schema or existing migration changes. Checkpoint
 included with this increment; commit/push follows verification. Next: complete API and real concurrent transfer coverage after commit/push.
+
+## 2026-10-07 — Branch feature: transfer date boundary correction
+
+User requested incremental branch management, assignments, shared current context,
+branch scope, transfers, tests and docs, with a build/relevant tests/diff check/commit
+and push after every meaningful task. Started clean on BranchSepration with origin
+configured; ASP.NET Core and required project-history-update skills used.
+
+Review found bounded assignment DateOnly.MaxValue could overflow end-plus-one validation. Replaced with safe day-number comparison and added a regression. 0f2afbe pushed successfully. Pending API/concurrency test completion remains separate and will be committed after full rerun.
+
+Verification: build 0 warnings/errors; all 10 transfer tests passed; earlier full suite 201 passed; diff check clean. No schema or existing migration changes. Checkpoint
+included with this increment; commit/push follows verification. Next: full regression and separate test completion commit.
