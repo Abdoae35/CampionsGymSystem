@@ -15,6 +15,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<EmployeeBranchAssignment> EmployeeBranchAssignments => Set<EmployeeBranchAssignment>();
     public DbSet<EmployeeSalarySetting> EmployeeSalarySettings => Set<EmployeeSalarySetting>();
+    public DbSet<GuestInvitation> GuestInvitations => Set<GuestInvitation>();
     public DbSet<Member> Members => Set<Member>();
     public DbSet<MemberSalesAssignment> MemberSalesAssignments => Set<MemberSalesAssignment>();
     public DbSet<Lead> Leads => Set<Lead>();

@@ -419,3 +419,34 @@ flowchart LR
 
 Employees remain separate from Identity accounts. Ended employment uses the existing
 Resigned status and TerminationDate; no payroll, salary or account workflow is added.
+
+## FREE TRIAL FLOW
+
+Guest -> Gym / Member Invitation -> Available Invitation -> future CheckIn
+redemption -> Redeemed -> no future free trial.
+
+The invitation does not require a Member. Future redemption creates a Trial
+CheckIn at the actual visit branch and links RedeemedCheckInId. It produces no
+SaleTransaction, Payment or FinancialTransaction. BLL must validate identity,
+availability and cross-record consistency inside a transaction; unique indexes
+arbitrate duplicate redemption. No redemption workflow is implemented here.
+
+## MEMBER INVITATION BENEFIT — FUTURE
+
+MemberSubscriptionBenefit -> GuestInvitation -> future MemberBenefitUsage ->
+Guest CheckIn.
+
+SourceSubscriptionBenefitId preserves the original grant batch. Future BLL
+validates inviter ownership, benefit kind, remaining quantity and consumption
+timing, and records usage atomically. The invitation FK does not consume benefits.
+
+## HOUSE CUSTOMER FLOW — FUTURE
+
+House Member -> inactive for configured period -> manager report -> assign to
+Sales -> MemberSalesAssignment history.
+
+Derive inactivity from subscription end, last check-in and last sale/renewal.
+HouseClientInactiveAfterDays is a proposed future configurable threshold; there
+is no general settings subsystem to extend now. End the previous assignment and
+create the new assignment; preserve history. Freelance eligibility remains
+MembershipPlanEligibleMembers, independent of future normal-plan purchases.

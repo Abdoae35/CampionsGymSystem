@@ -298,3 +298,31 @@ present; positive values are enforced by the DB. Import must retain exact old co
 never silently renumber. No fake backfill is performed. Future new-member code
 allocation requires branch-local concurrency safety; plain unprotected MAX+1 is not
 safe. Code generation and offline synchronization are not implemented in this task.
+
+## Guest invitations and House customers
+
+- One successfully redeemed free trial per person: the DB enforces uniqueness
+  independently for canonical phone and known MemberId, plus immutable redeemed
+  identity/status and no redeemed deletion. BLL must match phone/member identities
+  across records, normalize consistently, and handle changed/shared phone numbers;
+  indexes cannot identify a human using different unlinked identities.
+- No shared phone normalizer currently exists. Define one canonical policy in
+  future BLL before exposing issuance/redemption; database trimming/nonblank checks
+  are not phone normalization or verification.
+- Future BLL requires Available before redemption, validates that a linked
+  CheckIn is Trial and matches the invitee/actual branch, and writes atomically.
+  The FK alone does not enforce these cross-record facts.
+- Benefit source must belong to the inviting member and represent an invitation
+  benefit with available quantity. Consumption and its timing remain future BLL.
+- Expiration duration/calculation is not finalized. Expired is stored but no
+  automatic expiry calculation is introduced.
+- Inactive House threshold is configurable later (proposed
+  HouseClientInactiveAfterDays); derive inactivity from existing history.
+- Freelance purchases and normal purchases while still House have no Sales
+  commission and remain House revenue. Management may explicitly assign Sales
+  later. Existing House assignment history/eligibility schema is unchanged.
+- MembershipPlan.Price for Freelance is only the fixed gym receipt. The coach's
+  external envelope money is outside gym accounting; no customer-total,
+  coach-share, envelope or percentage-settlement columns are introduced.
+- AuditLogs remains the audit mechanism for invitations, eligibility changes
+  and House redistribution. No second audit system or workflow is implemented.

@@ -6,4 +6,5 @@ public enum CheckInType
     BorrowedGym = 1,
     Activity = 2,
     Class = 3,
+    Trial = 4,
 }

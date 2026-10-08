@@ -10,8 +10,9 @@ public sealed class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
     {
         builder.ToTable("CheckIns", table =>
         {
-            table.HasCheckConstraint("CK_CheckIns_SubscriptionType", "(\"CheckInType\" IN ('Gym', 'BorrowedGym') AND \"MemberSubscriptionId\" IS NOT NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Activity' AND \"ActivitySubscriptionId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Class' AND \"GroupClassId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL)");
-            table.HasCheckConstraint("CK_CheckIns_CheckInType", "\"CheckInType\" IN ('Gym', 'BorrowedGym', 'Activity', 'Class')");
+            table.HasCheckConstraint("CK_CheckIns_SubscriptionType", "(\"CheckInType\" IN ('Gym', 'BorrowedGym') AND \"MemberSubscriptionId\" IS NOT NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Activity' AND \"ActivitySubscriptionId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Class' AND \"GroupClassId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL) OR (\"CheckInType\" = 'Trial' AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL)");
+            table.HasCheckConstraint("CK_CheckIns_CheckInType", "\"CheckInType\" IN ('Gym', 'BorrowedGym', 'Activity', 'Class', 'Trial')");
+            table.HasCheckConstraint("CK_CheckIns_Member", "\"CheckInType\" = 'Trial' OR \"MemberId\" IS NOT NULL");
             table.HasCheckConstraint("CK_CheckIns_CheckInMethod", "\"CheckInMethod\" IN ('Scanner', 'Manual', 'Coach')");
         });
         builder.HasKey(x => x.Id);

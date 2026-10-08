@@ -270,3 +270,42 @@ zeros/letters; verify the legacy file and avoid floating-point conversion of lar
 integer codes. Future new-customer generation must be concurrency-safe per branch;
 MAX+1 without serialization is unsafe. No generation, import, Member Management or
 offline synchronization feature is implemented by this schema change.
+
+## GuestInvitations — one-time free trial
+
+GuestInvitation is an access entitlement, never a MembershipPlan or financial sale.
+Guid Id identifies each issued record. Required InviteeName (200), InviteePhone
+(32) and InviteePhoneNormalized (32) identify guests before Member creation.
+InviteeMemberId is optional and may be linked later without changing HomeBranchId.
+Source is a string-backed Gym/Member enum; Gym has no inviter or benefit source,
+and Member requires InvitedByMemberId. SourceSubscriptionBenefitId optionally
+references the specific MemberSubscriptionBenefits purchase grant batch.
+BranchId is the issuing/operational branch; the actual visit branch is on CheckIn.
+CreatedByUserId and Notes are optional.
+
+Status is string-backed Available/Redeemed/Cancelled/Expired. CreatedAt,
+RedeemedAt and CancelledAt use UTC timestamptz; redemption/cancellation timestamps
+must match status and cannot precede creation. RedeemedCheckInId is optional and
+unique when present. All six foreign keys use Restrict: two Members references,
+MemberSubscriptionBenefits, GymBranches, CheckIns and AspNetUsers.
+
+Partial unique indexes reserve InviteePhoneNormalized WHERE Status = 'Redeemed',
+and InviteeMemberId WHERE Status = 'Redeemed' AND InviteeMemberId IS NOT NULL.
+Multiple available/cancelled/expired records are permitted. A PostgreSQL trigger
+rejects deleting a redeemed row or changing its redeemed status, normalized phone,
+redemption timestamp, or already-linked Member/CheckIn. Null Member/CheckIn links
+may be populated later; unique/FK constraints still apply. This protects history
+even through bulk/direct SQL under ordinary runtime DML privileges.
+
+CheckInType.Trial = 4 is stored as 'Trial'. CheckIns.MemberId is nullable only
+when CheckInType = Trial; every existing type still requires MemberId and its
+existing subscription/class relationship. Trial has no subscription/class and
+does not consume a paid session. No financial relationships were added.
+Migration Down requires explicit reconciliation of Trial check-ins and nullable
+MemberIds before rollback; it does not invent member IDs. Down is destructive
+rollback of the new table and was not applied.
+
+No existing phone normalization strategy was found. This task stores the supplied
+canonical phone (required, nonblank, trimmed); future BLL must define and share a
+single normalization policy across guest/member matching before enabling issuance.
+No separate normalization algorithm is introduced by this domain migration.

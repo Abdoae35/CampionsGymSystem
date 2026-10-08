@@ -43,16 +43,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- EmployeeManagement (14f597c) merged into master (previously 5ec6640) on user request.
-  Only history/handoff documents conflicted; both chronological records preserved.
-- Combined work includes Owner Branches.AccessAll development seed fix, Employee
-  Management APIs/tests/Postman documentation and nullable branch-scoped ClientCode.
-- ClientCode remains unique per original HomeBranchId; previous local migration
-  deployment recorded below. No application database migration run for this merge.
-- Merge verification: build zero warnings/errors; full suite 232 passed, zero
-  failed/skipped after branch-scoped test fixture correction. Local merge commit
-  follows this checkpoint; no push requested.
-- Await next user-selected task after merge; Member Management not started.
+- One-time guest invitation domain/database update implemented on the existing
+  EmployeeManagement branch; no Freelance schema redesign or Member Management.
+- Development migration 20261008012831_AddGuestInvitations applied successfully.
+  Catalog confirms indexes/trigger and guest-capable Trial check-ins.
+- Build zero warnings/errors; EF no model drift; full suite 247 passed, zero failed/skipped.
+- Requested scoped commit/push follows this verified checkpoint.
+- Phone identity policy, expiry and House inactivity threshold remain future BLL.
 
 ## Work history
 
@@ -1020,3 +1017,56 @@ sandbox escalation. No application database migration or production writes perfo
 tests use isolated transactional schemas. Diff/whitespace reviewed. Local merge
 commit follows this checkpoint under merge authorization; no push requested or run.
 No next module started. Both feature histories remain intact.
+
+## 2026-10-08 — One-time guest invitation domain/database update
+
+Request: inspect existing Freelance/House, membership/benefit/check-in/audit models,
+add only missing one-time trial persistence, migrate Development, run full tests,
+document, commit and push this update; stop before Member Management.
+
+Started clean on EmployeeManagement at efd1c13 (the merge commit is present on this
+current branch despite the prior handoff describing master). Existing Freelance
+plan fixed gym price, selected-member eligibility, renewals, House sale attribution,
+assignment history, benefit grants/usages and AuditLogs were verified. No Freelance,
+eligibility, accounting or benefit schema changes were needed. No shared phone
+normalizer or general settings subsystem was found; canonical identity policy
+remains future BLL rather than introducing competing normalization code.
+
+Added GuestInvitation, Gym/Member source and four status enums, Fluent configuration
+and DbSet. Includes guest name/raw/canonical phone, nullable invitee Member, inviter,
+grant batch, issuing branch, actor, timestamps, status, notes and redemption CheckIn.
+All six FKs Restrict; source/status/timestamp/identity checks apply. Partial unique
+indexes reserve redeemed canonical phone and known MemberId; linked CheckIn is
+unique. PostgreSQL trigger prevents deleting redeemed rows or clearing/changing
+redeemed identity/status/time or existing Member/CheckIn links, including raw SQL.
+Null identity/check-in links may be completed later. Benefit consumption is absent.
+
+CheckInType.Trial added at stable value 4; MemberId nullable for Trial only via
+constraint. Existing types still require Member and existing subscription/class
+shape. Trial has no subscription/class requirement, financial FK or workflow.
+New migration 20261008012831_AddGuestInvitations and archived upgrade SQL reviewed:
+only the invitation table/indexes/checks/history trigger and necessary CheckIn
+constraint/nullability changes. No old migration modified, table/column drops,
+data rewrites or unrelated changes in Up. Down was not applied and requires
+explicit trial/member reconciliation; generated fake Guid default removed.
+
+Development update completed Done. Read-only verification against localhost
+campions_gym confirmed migration history, eight indexes including PK, history
+trigger, nullable CheckIn MemberId and zero invitations. Production untouched.
+Updated SCHEMA.md, DATA_FLOWS.md, BUSINESS_RULES_NOT_ENFORCED_BY_DB.md and
+LOCAL_DATABASE.md. Future rules: BLL phone/member matching, benefit ownership/
+quantity/usage timing, check-in consistency, expiry policy and configurable House
+inactivity threshold. Coach external money stays outside gym accounting.
+
+Verification: successful builds zero warnings/errors; FULL suite 247 passed,
+zero failed/skipped, including 15 new invitation cases and existing Freelance/
+eligibility/membership/CheckIn regressions. Focused initial run exposed a fixture
+tracking error (new CheckIn not explicitly Added); corrected with explicit inserts
+and verified in full suite. Tests use isolated transactional schemas. EF reports
+no model changes since migration. Diff/whitespace and snapshot reviewed; only
+new migration files and snapshot changed under migrations. Restricted initial
+build stalled and cancellation was requested; successful tooling used escalation.
+
+Required checkpoint included in requested feat(members) commit; push/status will
+be verified after commit. No Member Management, invitation API/redemption service,
+Excel import, inactive House report, redistribution UI or frontend started.

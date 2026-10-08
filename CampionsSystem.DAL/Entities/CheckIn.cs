@@ -12,8 +12,8 @@ public sealed class CheckIn
     public ClassSession? ClassSession { get; set; }
 
     public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid MemberId { get; set; }
-    public Member Member { get; set; } = null!;
+    public Guid? MemberId { get; set; }
+    public Member? Member { get; set; }
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;
     public CheckInType CheckInType { get; set; }

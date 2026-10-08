@@ -825,7 +825,7 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("GroupClassId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("MemberId")
+                    b.Property<Guid?>("MemberId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("MemberSubscriptionId")
@@ -863,11 +863,13 @@ namespace CampionsSystem.DAL.Migrations
                         {
                             t.HasCheckConstraint("CK_CheckIns_CheckInMethod", "\"CheckInMethod\" IN ('Scanner', 'Manual', 'Coach')");
 
-                            t.HasCheckConstraint("CK_CheckIns_CheckInType", "\"CheckInType\" IN ('Gym', 'BorrowedGym', 'Activity', 'Class')");
+                            t.HasCheckConstraint("CK_CheckIns_CheckInType", "\"CheckInType\" IN ('Gym', 'BorrowedGym', 'Activity', 'Class', 'Trial')");
 
                             t.HasCheckConstraint("CK_CheckIns_ClassSession", "\"ClassSessionId\" IS NULL OR \"CheckInType\" = 'Class'");
 
-                            t.HasCheckConstraint("CK_CheckIns_SubscriptionType", "(\"CheckInType\" IN ('Gym', 'BorrowedGym') AND \"MemberSubscriptionId\" IS NOT NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Activity' AND \"ActivitySubscriptionId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Class' AND \"GroupClassId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL)");
+                            t.HasCheckConstraint("CK_CheckIns_Member", "\"CheckInType\" = 'Trial' OR \"MemberId\" IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_CheckIns_SubscriptionType", "(\"CheckInType\" IN ('Gym', 'BorrowedGym') AND \"MemberSubscriptionId\" IS NOT NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Activity' AND \"ActivitySubscriptionId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Class' AND \"GroupClassId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL) OR (\"CheckInType\" = 'Trial' AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL)");
                         });
                 });
 
@@ -1735,6 +1737,107 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("CoachEmployeeId");
 
                     b.ToTable("GroupClasses", (string)null);
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.GuestInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InvitedByMemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("InviteeMemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("InviteeName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("InviteePhone")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("InviteePhoneNormalized")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("RedeemedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RedeemedCheckInId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid?>("SourceSubscriptionBenefitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("InvitedByMemberId");
+
+                    b.HasIndex("InviteeMemberId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Redeemed' AND \"InviteeMemberId\" IS NOT NULL");
+
+                    b.HasIndex("InviteePhoneNormalized")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Redeemed'");
+
+                    b.HasIndex("RedeemedCheckInId")
+                        .IsUnique()
+                        .HasFilter("\"RedeemedCheckInId\" IS NOT NULL");
+
+                    b.HasIndex("SourceSubscriptionBenefitId");
+
+                    b.HasIndex("BranchId", "Status", "CreatedAt");
+
+                    b.ToTable("GuestInvitations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GuestInvitations_Cancellation", "(\"Status\" = 'Cancelled' AND \"CancelledAt\" IS NOT NULL) OR (\"Status\" <> 'Cancelled' AND \"CancelledAt\" IS NULL)");
+
+                            t.HasCheckConstraint("CK_GuestInvitations_Identity", "btrim(\"InviteeName\") <> '' AND btrim(\"InviteePhone\") <> '' AND btrim(\"InviteePhoneNormalized\") <> '' AND \"InviteePhoneNormalized\" = btrim(\"InviteePhoneNormalized\")");
+
+                            t.HasCheckConstraint("CK_GuestInvitations_Inviter", "(\"Source\" = 'Gym' AND \"InvitedByMemberId\" IS NULL AND \"SourceSubscriptionBenefitId\" IS NULL) OR (\"Source\" = 'Member' AND \"InvitedByMemberId\" IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_GuestInvitations_Redemption", "(\"Status\" = 'Redeemed' AND \"RedeemedAt\" IS NOT NULL) OR (\"Status\" <> 'Redeemed' AND \"RedeemedAt\" IS NULL AND \"RedeemedCheckInId\" IS NULL)");
+
+                            t.HasCheckConstraint("CK_GuestInvitations_Source", "\"Source\" IN ('Gym', 'Member')");
+
+                            t.HasCheckConstraint("CK_GuestInvitations_Status", "\"Status\" IN ('Available', 'Redeemed', 'Cancelled', 'Expired')");
+
+                            t.HasCheckConstraint("CK_GuestInvitations_Timestamps", "(\"RedeemedAt\" IS NULL OR \"RedeemedAt\" >= \"CreatedAt\") AND (\"CancelledAt\" IS NULL OR \"CancelledAt\" >= \"CreatedAt\")");
+                        });
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.GymBranch", b =>
@@ -4369,8 +4472,7 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasOne("CampionsSystem.DAL.Entities.Member", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.MemberSubscription", "MemberSubscription")
                         .WithMany()
@@ -4812,6 +4914,52 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Branch");
 
                     b.Navigation("CoachEmployee");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.GuestInvitation", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Member", "InvitedByMember")
+                        .WithMany()
+                        .HasForeignKey("InvitedByMemberId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Member", "InviteeMember")
+                        .WithMany()
+                        .HasForeignKey("InviteeMemberId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.CheckIn", "RedeemedCheckIn")
+                        .WithMany()
+                        .HasForeignKey("RedeemedCheckInId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.MemberSubscriptionBenefit", "SourceSubscriptionBenefit")
+                        .WithMany()
+                        .HasForeignKey("SourceSubscriptionBenefitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("InvitedByMember");
+
+                    b.Navigation("InviteeMember");
+
+                    b.Navigation("RedeemedCheckIn");
+
+                    b.Navigation("SourceSubscriptionBenefit");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.GymBranch", b =>

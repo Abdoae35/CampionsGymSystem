@@ -25,8 +25,8 @@ dotnet run --project CampionsSystem.API/CampionsSystem.csproj --launch-profile h
 
 Open http://localhost:5236/health/database in development. A working connection
 returns `{"status":"healthy"}`; connection failures return HTTP 503. This route
-is not registered in production. All seven migrations through `20261007183558_ScopeMemberClientCodeByHomeBranch` have been applied
-locally (2026-10-07): 75 application tables, seven Identity tables and EF migration history.
+is not registered in production. All eight migrations through `20261008012831_AddGuestInvitations` have been applied
+locally (2026-10-08): 76 application tables, seven Identity tables and EF migration history.
 
 ## Manage the connection
 
@@ -141,3 +141,13 @@ HomeBranchId (the original registration branch). It replaces the global index wi
 a partial composite index, contains no data backfill/renumbering, and leaves Guid
 keys and MemberCode unchanged. Members count was zero before this correction.
 Seven migrations are now applied locally; no old migration was rewritten.
+
+
+### One-time guest invitations
+
+On 2026-10-08, AddGuestInvitations was applied explicitly to localhost
+campions_gym in Development. Catalog verification confirmed the migration history
+entry, invitation indexes, history trigger and nullable CheckIns.MemberId.
+Only Trial check-ins may omit MemberId; existing access types retain the member
+requirement. No production update or existing-table data rewrite was performed.
+The reviewed upgrade SQL is docs/database/AddGuestInvitations.sql.

@@ -41,12 +41,11 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- User requested merging EmployeeManagement into master; existing merge has only
-  AGENTS.md and PROJECT_HISTORY.md conflicts, now resolved preserving both histories.
-- Combined work includes Owner global branch seed fix, Employee Management and
-  nullable ClientCode unique per original HomeBranchId. No new module started.
-- Final build zero warnings/errors; full suite 232 passed, zero failed/skipped.
-  Branch-scoped operations test fixture excludes global access permission.
-- Local merge commit follows checkpoint; no push requested or performed.
-- See PROJECT_HISTORY.md for prior migration deployments and detailed verification.
+- One-time GuestInvitation domain/database update on EmployeeManagement; no
+  Freelance schema changes or Member Management started.
+- Development migration 20261008012831_AddGuestInvitations applied; catalog
+  verified indexes/history trigger and Trial-only nullable CheckIn member.
+- Build zero warnings/errors; EF model drift clean; full suite 247 passed, zero failed/skipped.
+- Requested commit/push follows this verified checkpoint. See PROJECT_HISTORY.md for details.
+- Future BLL must finalize phone matching/normalization, expiry and House threshold.
 - Portable history skill: skills/project-history-update/SKILL.md.
