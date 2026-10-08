@@ -47,6 +47,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 - Free Unlimited Employee plan type, optional unique Employee–Member link and
   explicit historical subscription owner; null EndDate only for open employee periods.
 - Build zero warnings/errors; full suite 264 passed, zero failed/skipped; EF drift clean.
-- Requested scoped commit/push follows verification. See PROJECT_HISTORY.md.
+- Implementation fee5f5a pushed to origin/DataBaseInit; hashes matched.
+  See PROJECT_HISTORY.md for details.
 - Lifecycle, employment access checks and cross-record validation remain future BLL.
 - Portable history skill: skills/project-history-update/SKILL.md.
