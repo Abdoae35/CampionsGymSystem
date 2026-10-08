@@ -258,3 +258,14 @@ full solution suite 316 passed, zero failed/skipped (52 added tests versus basel
 EF reported no model changes since the new migration. Final implementation commits
 were individually verified and pushed; see PROJECT_HISTORY.md and Git history for
 chronology. The final documentation commit carries the completion checkpoint.
+
+## CRM integration (2026-10-08)
+
+CRM adds an assembly-internal Lead-ID-based creation path which preserves the locked
+Lead owner's assignment and persisted canonical phone, including cross-country branch
+conversion. Public registration and primary-phone changes reject conflicting Leads
+so they cannot bypass CRM ownership. No arbitrary trusted owner is exposed publicly.
+CRM queues permit lightweight owned cross-branch contact data without expanding these
+Member list/details branch rules. Member status behavior remains unchanged: automatic
+CRM task creation on status, expiry or attendance is a future integration; explicit
+CRM task opening is available now. See [CRM management](CRM_LEADS.md).

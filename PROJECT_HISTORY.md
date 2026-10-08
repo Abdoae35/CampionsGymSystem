@@ -16,8 +16,8 @@ it does not replace checking the actual repository.
 - `CampionsGymSystem.slnx`: solution file.
 - Intended scope includes gym operations, transactions, payments, and leads.
   PostgreSQL is selected; the 26-module EF persistence schema is implemented.
-  The current aligned model has 76 application tables plus seven Identity tables.
-  Local development migrations through AddEmployeeGymMembershipSupport were explicitly
+  The current model has 77 application tables plus seven Identity tables.
+  Local development migrations through AllowPhoneOnlyCrmLeads were explicitly
   authorized and applied on 2026-10-08. Production rollout remains separate.
   Payment provider and business workflows remain to be implemented.
 
@@ -43,11 +43,17 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 8: API and authorization.
-- Added 19 thin CRM/Lead routes, seven reused/new permission codes, guarded explicit setup and HTTP tests. Bulk JSON validates per row. Phone-only intake required a reviewed single-column migration 20261008162710_AllowPhoneOnlyCrmLeads (nullable Lead name); Member name still required on conversion. Both local migrations applied; seven CRM codes configured, existing custom role grants/inactive permissions preserved. 38 CRM tests passed, EF drift clean. Added post-lock House-task completion recheck. No production operations.
-- Verified build/focused tests; each completed task committed/pushed. Remaining tasks continue.
-- Development migration 20261008143406_AddCrmLeadManagement applied; production untouched.
-- Member Management complete (0790548); see chronological history for details.
+- CRM backend implemented on CRM-/-Leads-&-Follow-up-Management; eight verified task
+  commits pushed through 68a0ec6. Final docs/Postman completion commit accompanies this checkpoint.
+- Leads, distribution/history, interactions/scheduling, lifecycle, atomic owner-preserving
+  conversion and current-owner/House Member work implemented; 19 routes, 21 Postman examples.
+- Both development-only CRM migrations applied; seven CRM codes provisioned; business
+  counts unchanged (zero CRM/Member rows, two branches). Production untouched.
+- Final build zero warnings/errors; full suite 354 passed, zero failed/skipped; EF drift clean.
+- Automatic Member status/expiry/attendance task generation is NOT wired: manual opening
+  and internal lifecycle integration are ready. Staff grants/country codes need explicit setup.
+- See docs/CRM_LEADS.md and PROJECT_HISTORY.md for behavior, limitations and commit chronology.
+- Portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
 
@@ -1395,3 +1401,50 @@ Added 19 thin CRM/Lead routes, seven reused/new permission codes, guarded explic
 Build zero warnings/errors; focused CRM tests passed; diff/whitespace reviewed.
 This task is committed and pushed to the current CRM feature branch before the next
 task. No production operations. Remaining CRM tasks continue automatically.
+
+### 2026-10-08 — CRM task 9: documentation and final validation
+
+Completed CRM backend documentation in docs/CRM_LEADS.md, schema/flows/BLL rule notes,
+Member integration notes and LOCAL_DATABASE.md. Exported reviewed two-migration SQL
+as docs/database/AddCrmLeadManagement.sql. Postman folders 7 and 8 cover all nineteen
+routes with twenty-one examples, including lifecycle and conversion alternatives,
+shared token, query filters, ID capture and URL-encoded international phone lookup.
+Existing Auth/Branch/Employee/Member folders preserved; private environment untouched.
+
+Final build: zero warnings/errors. Full suite: 354 passed, zero failed/skipped (38 CRM
+additions over 316 baseline). EF pending-model check clean. Both CRM migrations and
+all seven permission codes verified in local campions_gym; catalog confirms required
+partial unique indexes. Development counts preserved: Leads=0, assignments=0,
+interactions=0, tasks=0, Members=0, branches=2. Actual catalog is 77 application plus
+seven Identity tables; EF history is a separate bookkeeping table. Old migrations
+unchanged. SQL export has no table/data deletion and touches only CRM tables.
+Postman structural checks verify all nineteen routes/twenty-one examples, body JSON,
+variables, bearer auth and protected ownership; Node mock execution verifies all
+scripts, Lead/Member/task capture and + phone encoding. No live modifying Postman
+requests, frontend work or production operations were performed.
+
+Implementation commits, pushed in order on CRM-/-Leads-&-Follow-up-Management:
+- 285696b feat(crm): add lead management domain and contracts
+- 0e58cdb feat(crm): add lead creation and queries
+- d1a63b9 feat(crm): add lead assignment workflow
+- 3e46862 feat(crm): add lead interactions and follow-ups
+- 1a59b14 feat(crm): add lead lifecycle management
+- b6a6468 feat(crm): add lead to member conversion
+- d630452 feat(crm): add member follow-up queues
+- 68a0ec6 feat(crm): expose lead and follow-up api
+
+This completion checkpoint accompanies docs(crm): document lead and follow-up workflows;
+commit/push and local/remote equality are verified after this write and reported in
+final response without recursive history updates.
+
+Remaining explicit integrations: automatic task generation from Member status,
+Subscription expiry/renewal and CheckIn attendance is not wired. Manual task opening
+and assembly-internal lifecycle integration are ready; no thresholds/attendance data
+were invented. Member status service remains unchanged. Future services must call
+OpenMemberFollowUpFromWorkflowAsync; current owner determines cross-branch work, House
+work goes to management. Shift surfacing, notifications, commissions, legacy import,
+Excel parsing and frontend are future scope. Existing staff grants/country calling
+codes require explicit configuration; populated legacy databases require ambiguity/
+assignment/conversion reconciliation before rollout. Known old Sales owners must be
+preserved by future import. No known unresolved issues in the implemented CRM backend;
+automatic lifecycle generation and production rollout remain the documented limitations.

@@ -41,8 +41,14 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 8: API and authorization.
-- Added 19 thin CRM/Lead routes, seven reused/new permission codes, guarded explicit setup and HTTP tests. Bulk JSON validates per row. Phone-only intake required a reviewed single-column migration 20261008162710_AllowPhoneOnlyCrmLeads (nullable Lead name); Member name still required on conversion. Both local migrations applied; seven CRM codes configured, existing custom role grants/inactive permissions preserved. 38 CRM tests passed, EF drift clean. Added post-lock House-task completion recheck. No production operations.
-- Verified build/focused tests; each completed task committed/pushed. Remaining tasks continue.
-- Development migration 20261008143406_AddCrmLeadManagement applied; production untouched.
-- Member Management complete (0790548); see chronological history for details.
+- CRM backend implemented on CRM-/-Leads-&-Follow-up-Management; eight verified task
+  commits pushed through 68a0ec6. Final docs/Postman completion commit accompanies this checkpoint.
+- Leads, distribution/history, interactions/scheduling, lifecycle, atomic owner-preserving
+  conversion and current-owner/House Member work implemented; 19 routes, 21 Postman examples.
+- Both development-only CRM migrations applied; seven CRM codes provisioned; business
+  counts unchanged (zero CRM/Member rows, two branches). Production untouched.
+- Final build zero warnings/errors; full suite 354 passed, zero failed/skipped; EF drift clean.
+- Automatic Member status/expiry/attendance task generation is NOT wired: manual opening
+  and internal lifecycle integration are ready. Staff grants/country codes need explicit setup.
+- See docs/CRM_LEADS.md and PROJECT_HISTORY.md for behavior, limitations and commit chronology.
+- Portable history skill: skills/project-history-update/SKILL.md.

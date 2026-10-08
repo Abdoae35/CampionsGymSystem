@@ -504,3 +504,29 @@ management-created registration must explicitly select eligible Sales; a normal 
 registration resolves the actor. Reassignment/House return preserve all prior rows.
 Profile edits cannot change registration origin, identifiers or ownership. Status
 Active/Inactive preserves all related history. See [Member Management](../MEMBER_MANAGEMENT.md).
+
+## CRM / Leads (2026-10-08)
+
+Manager -> create/bulk phone-only Leads -> assign eligible branch Sales -> My Leads
+-> append contact -> next follow-up. Reassignment closes the old row and preserves
+history. Lost is historical; authorized management can retry without recreating.
+
+Walk-in lookup: normalized phone -> existing Member -> existing Lead -> NotFound.
+Existing Member ownership remains. Existing Lead owned by Ahmed -> authorized
+conversion at Mohamed's desk -> Member owner Ahmed. Totally new walk-in -> existing
+NormalSales Member workflow -> current eligible Sales owner. Public registration
+cannot bypass an existing Lead; inaccessible duplicate details remain private.
+
+Cross-branch conversion: Lead/Sales A -> destination registration B -> B ClientCode
+-> owner Sales A; employee stays A. No wider B scope. Future revenue B and future
+commission A+B stay distinct per-branch buckets, with no calculations here.
+
+Explicit Freelance conversion -> eligible plan -> House -> no Sales assignment;
+old Lead ownership and exception are audited. Legacy import must preserve old Sales
+ownership or original House state; import itself is future work.
+
+Member task opened explicitly -> current owner queue, including owned cross-branch
+Members. No owner -> House management queue -> existing Member assignment workflow
+-> new owner's queue. Reassignment dynamically moves current work. Automatic Member
+status/expiry/attendance task generation is not wired; internal CRM lifecycle method
+is provided for future callers. Full detail: [CRM management](../CRM_LEADS.md).

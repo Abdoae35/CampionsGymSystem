@@ -1,6 +1,7 @@
 # Gym database schema
 
-Current aligned model: **75 application tables plus seven Identity tables (82 total)**.
+Current model: **77 application tables plus seven Identity tables (84 model tables)**.
+The database also has EF migration history (85 tables including that bookkeeping table).
 See [final schema-gap and rollout report](FINAL_SCHEMA_ALIGNMENT.md).
 
 Identity uses the seven standard AspNet tables and Guid user/role keys.
@@ -22,7 +23,8 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 | MemberSalesAssignments | Current sales/house owner and assignment history | MemberId → Members, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
 | Leads | Branch CRM prospect and conversion | BranchId → GymBranches, ConvertedMemberId → Members, CreatedByUserId → AspNetUsers |
 | LeadAssignments | Sales ownership history | LeadId → Leads, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
-| LeadInteractions | Contact and follow-up history | LeadId → Leads, EmployeeId → Employees |
+| LeadInteractions | Contact and follow-up history | LeadId → Leads, EmployeeId → Employees, optional CreatedByUserId → AspNetUsers |
+| MemberFollowUpTasks | Explicit Member contact work; owner derived from current Sales assignment | MemberId → Members, optional CreatedByUserId / CompletedByUserId → AspNetUsers |
 | MembershipPlanCategories | Dynamic audience classification, independent of Normal/Freelance | None |
 | MembershipPlans | Normal or Coach-specific Freelance gym products | CityId → Cities, optional FreelanceCoachEmployeeId → Employees |
 | MemberSubscriptions | Gym entitlement with access/session snapshot | MemberId → Members, MembershipPlanId → MembershipPlans, CityId → Cities, PurchasedAtBranchId → GymBranches |
@@ -85,7 +87,7 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 
 Organization: Cities, GymBranches. Employees: Employees, EmployeeBranchAssignments,
 EmployeeSalarySettings. Members: Members, MemberSalesAssignments. CRM: Leads,
-LeadAssignments, LeadInteractions. Gym: MembershipPlans, MemberSubscriptions,
+LeadAssignments, LeadInteractions, MemberFollowUpTasks. Gym: MembershipPlans, MemberSubscriptions,
 MembershipSubscriptionTransactions, SubscriptionFreezes, BorrowedGymSessions,
 BranchClosures. Private: PrivatePackages, PrivateSubscriptions,
 PrivateSubscriptionTransactions, PrivateCoachAssignments, PrivateSessions, PrivateExpirySettlements.
@@ -370,3 +372,25 @@ are backfilled. Branch calling codes/local legacy phones are never guessed.
 Applied to local development only; no Members existed to reconcile. No new tables.
 See [Member Management](../MEMBER_MANAGEMENT.md) for API, ownership, security,
 normalization, deployment and verification details.
+
+## CRM / Leads implementation (2026-10-08)
+
+Existing Lead/assignment/interaction tables are reused. Lead.Phone remains display;
+PhoneNormalized is a persisted globally unique nullable legacy-safe canonical value.
+FullName is now optional for phone-only intake; Member name remains mandatory.
+Lead gains SecondaryPhone, Notes, NextFollowUpAt, LostAt/LostReason and ConvertedAt.
+Interactions gain nullable legacy-safe ContactedAt and CreatedByUserId (Restrict FK).
+
+MemberFollowUpTasks has explicit Member FK, reason, due/notes, creating/completing
+user/timestamps, Restrict FKs and valid reason/completion checks. Lead scheduling
+stays on Lead; task owner derives from current MemberSalesAssignment. No duplicate
+owner/House flag, polymorphic subject ID or generic task engine was introduced.
+
+Partial uniqueness protects Lead.PhoneNormalized, Lead.ConvertedMemberId, current
+LeadAssignments (EndedAt null) and open Member/reason work (CompletedAt null).
+Lead branch/status/schedule and assignment employee/end indexes support queues.
+Migration 20261008143406_AddCrmLeadManagement adds this support;
+20261008162710_AllowPhoneOnlyCrmLeads changes only Lead name nullability. Safe unique
+phones are backfilled; ambiguous legacy data stays preserved. Business transitions
+and privacy rules are enforced in BLL rather than retroactively inventing legacy
+lifecycle timestamps. See [CRM workflows](../CRM_LEADS.md) and reviewed SQL export.

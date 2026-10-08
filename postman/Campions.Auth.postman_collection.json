@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Campions API - Auth, Branches, Employees and Members",
-    "description": "Login first; accessToken is saved automatically. Includes authentication, branch, employee and all nine Member Management endpoints. Set ID/date/profile variables deliberately and send modifying requests individually. Optional auth tests intentionally exercise errors.",
+    "name": "Campions API - Auth, Branches, Employees, Members and CRM",
+    "description": "Login first; accessToken is saved automatically. Includes authentication, branch, employee and all nine Member Management endpoints. Set ID/date/profile variables deliberately and send modifying requests individually. Optional auth tests intentionally exercise errors. CRM folders cover all 19 Lead/follow-up routes. Send writes individually; conversion creates a Member, not a subscription/payment.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -87,6 +87,46 @@
     },
     {
       "key": "memberClientCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "leadId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "crmOperationalBranchId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "leadFullName",
+      "value": "Example prospect",
+      "type": "string"
+    },
+    {
+      "key": "leadPrimaryPhone",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "leadSecondPhone",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "leadNextFollowUpAt",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "crmFollowUpId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "crmFollowUpDueAt",
       "value": "",
       "type": "string"
     }
@@ -1178,6 +1218,864 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"reason\": \"Example authorized return to House\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. CRM Leads",
+      "description": "All 14 Lead routes plus explicit Lost/reactivation and normal/Freelance conversion alternatives. Login first, set variables, and send modifying requests individually. Converted is terminal. Managers need distribution authority; Sales eligibility is separate.",
+      "item": [
+        {
+          "name": "List, search and filter visible Leads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/leads?page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "leads"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                },
+                {
+                  "key": "search",
+                  "value": "{{leadPrimaryPhone}}",
+                  "disabled": true
+                },
+                {
+                  "key": "branchId",
+                  "value": "{{crmOperationalBranchId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "salesEmployeeId",
+                  "value": "{{salesEmployeeId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "New",
+                  "disabled": true
+                },
+                {
+                  "key": "unassignedOnly",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "followUp",
+                  "value": "Overdue",
+                  "disabled": true
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.View. Sales see assigned Leads; Leads.Assign managers see scoped branch Leads. Enable optional filters; no branch bypass."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My Leads",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/leads/my?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.View. Authenticated employee only. Add status=Lost or Converted for historical view, followUp=Today/Overdue/Upcoming for scheduling."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Walk-in phone lookup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/leads/lookup?branchId={{crmOperationalBranchId}}&phone={{crmLookupPhoneEncoded}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.View and active operational branch scope. Member first, then Lead, then NotFound. Inaccessible duplicate details/IDs are withheld. Script URL-encodes + input correctly."
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set(\"crmLookupPhoneEncoded\", encodeURIComponent(pm.variables.get(\"leadPrimaryPhone\") || \"\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lead details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.View and owner/management branch scope."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.Manage. Leads.Assign manager creates unassigned Lead; eligible Sales self-owns. fullName is optional for phone-only intake. Successful Created saves leadId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{leadFullName}}\",\n  \"primaryPhone\": \"{{leadPrimaryPhone}}\",\n  \"secondaryPhone\": null,\n  \"email\": null,\n  \"source\": \"WalkIn\",\n  \"notes\": null,\n  \"branchId\": \"{{crmOperationalBranchId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) { const body = pm.response.json(); if (body.result === \"Created\" && body.lead) pm.collectionVariables.set(\"leadId\", body.lead.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bulk create Leads (row results)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads/bulk",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.Assign + Leads.Manage; 1\u2013100 rows. Created/AlreadyMember/AlreadyLead/Invalid per row. These examples include a phone-only prospect; choose distinct real test phones.",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"fullName\": \"{{leadFullName}}\",\n    \"primaryPhone\": \"{{leadPrimaryPhone}}\",\n    \"secondaryPhone\": null,\n    \"email\": null,\n    \"source\": \"WalkIn\",\n    \"notes\": null,\n    \"branchId\": \"{{crmOperationalBranchId}}\"\n  },\n  {\n    \"branchId\": \"{{crmOperationalBranchId}}\",\n    \"primaryPhone\": \"{{leadSecondPhone}}\"\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Lead profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.Manage and owner/management scope. Retain real profile values. Branch, owner, lifecycle and normalized phone are protected. Converted profiles use Member API.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{leadFullName}}\",\n  \"primaryPhone\": \"{{leadPrimaryPhone}}\",\n  \"secondaryPhone\": null,\n  \"email\": null,\n  \"source\": \"WalkIn\",\n  \"notes\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assign or reassign Lead",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/assign",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.Assign. Target active Sales account needs Members.OwnSalesCustomers and current primary operational branch assignment. Old assignment is closed, not overwritten.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salesEmployeeId\": \"{{salesEmployeeId}}\",\n  \"reason\": \"Example distribution\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current Lead assignment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/assignment",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.View; unassigned/converted current assignment can be 204/null."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Assignment or unassigned\", () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lead assignment history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/assignment-history",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.View plus scope; ended assignments remain."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Record interaction and schedule follow-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/interactions",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.Manage; active linked employee and owner/management scope. Call, WhatsApp, Visit, Other. Set future ISO8601 leadNextFollowUpAt; contact time defaults to now.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"interactionType\": \"Call\",\n  \"status\": \"FollowUp\",\n  \"notes\": \"Interested; call again\",\n  \"outcome\": \"Interested\",\n  \"nextFollowUpAt\": \"{{leadNextFollowUpAt}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lead interaction history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/interactions?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.View; append-only history and pagination."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark Lead lost",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/status",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.Manage; records loss and clears current schedule, preserves history/assignment.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Lost\",\n  \"reason\": \"Example not interested\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reactivate lost Lead",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/status",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.Manage + Leads.Assign; preserves history. Use FollowUp with a future date after prior contact.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FollowUp\",\n  \"reason\": \"Management retry\",\n  \"nextFollowUpAt\": \"{{leadNextFollowUpAt}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Convert Lead to Member (preserve owner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/convert",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Leads.Convert + Members.Create; current owner or Leads.Assign manager. Normal conversion needs an assigned eligible owner. Cross-branch requires Members.CreateCrossBranch. No arbitrary owner, subscription or payment. Preserves canonical Lead phone; saves memberId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{memberFullName}}\",\n  \"primaryPhone\": \"{{leadPrimaryPhone}}\",\n  \"targetRegistrationBranchId\": \"{{memberRegistrationBranchId}}\",\n  \"secondaryPhone\": null,\n  \"dateOfBirth\": null,\n  \"gender\": null,\n  \"notes\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"memberId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Convert explicit Freelance special offer to House",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/leads/{{leadId}}/convert",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Alternative to normal conversion. Also requires FreelancePlans.ManageEligibleMembers and destination scope. Eligible plan/coach/city required. Explicitly overrides Lead owner with audited House; creates eligibility only.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{memberFullName}}\",\n  \"primaryPhone\": \"{{leadPrimaryPhone}}\",\n  \"targetRegistrationBranchId\": \"{{memberRegistrationBranchId}}\",\n  \"secondaryPhone\": null,\n  \"dateOfBirth\": null,\n  \"gender\": null,\n  \"notes\": null,\n  \"freelancePlanId\": \"{{freelancePlanId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"memberId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. CRM Member follow-ups",
+      "description": "Five follow-up routes. Current Member ownership determines queues; House work needs management distribution. No automatic lifecycle detection, payments or notifications.",
+      "item": [
+        {
+          "name": "My Lead and Member follow-ups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/crm/my-follow-ups?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CRM.ViewMemberFollowUps; authenticated employee only. Lead items additionally require Leads.View. Add window=Today/Overdue/Upcoming or branchId. Includes owned cross-branch Members without expanding Member browsing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "House Member follow-ups",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/crm/house-follow-ups?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CRM.ManageHouseFollowUps; branch-scoped management queue. Add window or branchId filters."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Open or update Member follow-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/crm/members/{{memberId}}/follow-ups",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CRM.ManageMemberFollowUps. Owner (including cross-branch) or Members.AssignSales manager in scope. One open Member/reason task; saves crmFollowUpId. Tasks are explicit; no automatic expiry/attendance generation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Reactivation\",\n  \"dueAt\": \"{{crmFollowUpDueAt}}\",\n  \"notes\": \"Example contact work\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"crmFollowUpId\", pm.response.json());"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete Member follow-up",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/crm/member-follow-ups/{{crmFollowUpId}}/complete",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CRM.ManageMemberFollowUps; current owner or scoped Members.AssignSales manager. Preserves task history."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Distribute House follow-up to Sales",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/crm/house-follow-ups/{{crmFollowUpId}}/assign",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CRM.ManageHouseFollowUps + Members.AssignSales; open House work in scope. Invokes existing Member assignment/history and validates owner capability. Work dynamically moves to new owner.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salesEmployeeId\": \"{{salesEmployeeId}}\",\n  \"reason\": \"House reactivation distribution\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

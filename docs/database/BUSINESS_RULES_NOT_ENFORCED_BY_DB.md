@@ -377,3 +377,21 @@ reconciliation. Branch calling-code edits never bulk rewrite stored canonical ph
 Raw SQL/bulk writes bypass service authorization/immutability; operational grants must prevent
 uncontrolled writes. Imports/corrections/counter maintenance are future explicit workflows.
 Commission attribution remains future BLL and must use actual revenue per branch independently.
+
+## CRM / Leads BLL rules (2026-10-08)
+
+Database partial indexes enforce current Lead assignment, canonical Lead phone,
+conversion link and open Member/reason uniqueness. Restrict FKs preserve business
+history. BLL adds locked transactions, shared Lead/Member phone locks, legacy-safe
+matching, branch/owner scope, employee/account/effective ownership capability and
+operational branch eligibility. Cross-table phone identity is a workflow rule, not
+a cross-table unique index; future imports must use equivalent locking/validation.
+
+Lifecycle timestamp/state consistency, append-only interaction workflow, next-contact
+ordering, safe owner-preserving conversion and explicit Freelance House exceptions
+are BLL rules. Legacy nullable canonical phones/actors/dates are not guessed. Existing
+historical assignment/conversion duplicates must be reconciled before deploying new
+uniqueness on another populated database. No ownership is silently changed on employee
+transfer/termination. No automatic inactivity/expiry/attendance scanner exists; CRM
+work is opened manually or through the internal integration method. Legacy import
+must preserve original Sales/House ownership. See [CRM](../CRM_LEADS.md).

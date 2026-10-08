@@ -1,7 +1,7 @@
 # Simple manual API testing
 
 1. Start the API: `dotnet run --project CampionsSystem.API --launch-profile http`.
-2. Import `Campions.Auth.postman_collection.json`. Open **Campions API - Auth, Branches, Employees and Members**.
+2. Import `Campions.Auth.postman_collection.json`. Open **Campions API - Auth, Branches, Employees, Members and CRM**.
 3. Select the **Campions Auth - LOCAL PRIVATE** environment (contains demoPassword).
 4. Send **1. Login**. Default username is `dev.reception`; change it in Body for another account.
 5. Send **2. Current user**. Login saves the token in this collection and Current user sends it automatically. No copying/pasting.
@@ -10,7 +10,7 @@ The authentication endpoints are POST /api/auth/login and GET /api/auth/me.
 The collection also includes all eight implemented branch/employee assignment routes.
 Leave **Optional automated test cases** collapsed. They are examples of successful/failed requests to the same endpoints, not separate APIs. Some intentionally return 401.
 
-If you previously imported the old collection, use the new **Campions API - Auth, Branches, Employees and Members** collection. Your imported Postman copy does not update when repository files change.
+If you previously imported the old collection, use the new **Campions API - Auth, Branches, Employees, Members and CRM** collection. Your imported Postman copy does not update when repository files change.
 
 Login must return 200 and run its Scripts / Post-response script. Current user sends the latest login token; logging in as another account replaces it. If token expires, send Login again. The collection starts with an empty token and passwords are never committed. Do not share/export a collection after login without clearing accessToken.
 
@@ -118,3 +118,44 @@ creates a subscription/payment. Send writes individually against intended develo
 records; the three creation requests are alternatives, not a sequence. Examples were
 validated without sending modifying requests to the development database. See
 [Member Management](../docs/MEMBER_MANAGEMENT.md) for complete rules and setup.
+
+## CRM / Leads requests
+
+Re-import the updated collection. Folder **7. CRM Leads** covers all fourteen Lead
+routes, with alternative Lost/reactivation and normal/Freelance conversion examples.
+Folder **8. CRM Member follow-ups** covers all five Member follow-up routes. Login
+first; all requests reuse accessToken. Send writes individually; conversion alternatives
+must not both be sent to the same Lead. No live modifying Postman requests were sent
+while creating these examples.
+
+Set collection variables: crmOperationalBranchId (Lead branch), leadId (captured on
+Created), leadFullName (optional), leadPrimaryPhone, leadSecondPhone (distinct bulk
+example), leadNextFollowUpAt (future ISO8601), crmFollowUpDueAt (ISO8601), crmFollowUpId
+(captured on task opening). Existing memberRegistrationBranchId is the conversion
+destination; memberFullName is required for conversion even for an unnamed Lead.
+Reuse memberId, salesEmployeeId and freelancePlanId. Conversion saves memberId.
+Lookup's pre-request script encodes the phone, including +, automatically.
+
+Lead list has disabled optional Params filters; enable the desired ones. My Leads
+resolves the logged-in employee and normally excludes Lost/Converted; request status
+for history or followUp=Today/Overdue/Upcoming. Combined work uses window for the same
+date filters and can filter branchId. Calendar dates use the configured gym timezone.
+
+Leads.View/Manage are reused; Leads.Assign is branch management/distribution authority,
+Leads.Convert is conversion authority, and Members.OwnSalesCustomers is ownership
+eligibility. Conversion also needs Members.Create, plus Members.CreateCrossBranch for
+normal referral to a different branch. Freelance conversion additionally requires
+FreelancePlans.ManageEligibleMembers and destination scope; it is explicitly House.
+Managers without ownership capability can assign to eligible Sales. Invalid/duplicate
+bulk rows return row-level results; bounds are 1–100 rows.
+
+CRM.ViewMemberFollowUps allows the employee's queue. CRM.ManageMemberFollowUps allows
+owned work opening/completion (or branch-scoped management with Members.AssignSales).
+CRM.ManageHouseFollowUps permits the management House queue; distribution also requires
+Members.AssignSales. Cross-branch owned contact work does not grant wider Member or
+financial access. Automatic inactivity/expiry/attendance work generation is not wired;
+open tasks explicitly until future lifecycle integrations are connected.
+
+Configure actual branch country calling codes and staff grants. Guarded local setup:
+`dotnet run --project CampionsSystem.API -- --configure-crm-permissions`.
+See [CRM documentation](../docs/CRM_LEADS.md) for complete contracts, flows and permissions.

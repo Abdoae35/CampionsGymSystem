@@ -181,3 +181,13 @@ Existing Sales/Reception/custom roles require explicit capability grants appropr
 normal Sales, management-assigned or FreelanceHouse registration. See
 [Member Management](docs/MEMBER_MANAGEMENT.md) for payloads, permission matrix, legacy
 reconciliation, counter/import rules and deployment guidance.
+
+## CRM local update (2026-10-08)
+
+Applied 20261008143406_AddCrmLeadManagement and
+20261008162710_AllowPhoneOnlyCrmLeads to local development only. These extend existing
+CRM tables and add MemberFollowUpTasks; Lead name may be unknown at phone-only intake.
+The explicit guarded --configure-crm-permissions command provisions seven CRM/Lead
+codes and existing Owner bootstrap grants, without rewriting custom staff grants.
+Production untouched. See docs/CRM_LEADS.md for setup, constraints and remaining
+automatic lifecycle integrations.
