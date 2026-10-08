@@ -41,7 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- CRM implementation in progress: task 1 domain/contracts implemented; existing Lead models reused.
-- Development-only migration 20261008143406_AddCrmLeadManagement applied; zero CRM/Member rows preserved.
-- Build zero warnings/errors; two CRM model/migration tests passed; EF drift clean.
-- Member Management remains complete, pushed through 0790548. CRM service/API tasks remain.
+- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 2: creation and queries.
+- Implemented branch-secured Lead creation/list/details, bounded per-row bulk results and privacy-safe walk-in lookup. Shared PhoneIdentity helper handles safe legacy/canonical matching and transaction phone locks. Seven CRM tests passed. Initial constructor mismatch fixed before verification; task 1 pushed as 285696b to current CRM branch (an initial MemberManagement push was a no-op).
+- Verified build/focused tests; each completed task committed/pushed. Remaining tasks continue.
+- Development migration 20261008143406_AddCrmLeadManagement applied; production untouched.
+- Member Management complete (0790548); see chronological history for details.

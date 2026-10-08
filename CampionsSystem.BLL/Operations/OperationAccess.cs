@@ -17,6 +17,14 @@ public sealed class OperationAccess(ICurrentUserService current, ApplicationDbCo
     public DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(Now,
         TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZoneId)).DateTime);
 
+    public (DateTimeOffset Start, DateTimeOffset End) DayBounds()
+    {
+        var zone = TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZoneId);
+        var date = Today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
+        return (new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(date, zone)),
+            new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(date.AddDays(1), zone)));
+    }
+
     public async Task<Guid> RequireAsync(string permission, Guid? branchId, CancellationToken ct)
     {
         var user = await current.GetAsync(ct);
