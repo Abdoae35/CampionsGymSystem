@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 4: contact history and scheduling.
-- Added append-only contacts, paged interaction history, latest-contact scheduling and gym-timezone Today/Overdue/Upcoming filters. Backdated contacts cannot overwrite newer scheduling. Three focused interaction tests passed.
+- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 5: lifecycle and profile.
+- Added status/lost/management-reactivation workflow and explicit Lead profile update. Converted lifecycle is protected; New cannot erase contact meaning, history/ownership/branch preserved. Three focused tests passed.
 - Verified build/focused tests; each completed task committed/pushed. Remaining tasks continue.
 - Development migration 20261008143406_AddCrmLeadManagement applied; production untouched.
 - Member Management complete (0790548); see chronological history for details.

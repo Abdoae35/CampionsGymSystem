@@ -89,3 +89,14 @@ public sealed class MemberFollowUpRequest
     public DateTimeOffset DueAt { get; set; }
     [MaxLength(4096)] public string? Notes { get; set; }
 }
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class UpdateLeadRequest
+{
+    [Required,MaxLength(256)] public string FullName { get; set; } = "";
+    [Required,MaxLength(64)] public string PrimaryPhone { get; set; } = "";
+    [MaxLength(64)] public string? SecondaryPhone { get; set; }
+    [EmailAddress,MaxLength(320)] public string? Email { get; set; }
+    [MaxLength(256)] public string? Source { get; set; }
+    [MaxLength(4096)] public string? Notes { get; set; }
+}
