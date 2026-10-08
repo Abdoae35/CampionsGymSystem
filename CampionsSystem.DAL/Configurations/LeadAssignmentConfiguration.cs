@@ -12,6 +12,8 @@ public sealed class LeadAssignmentConfiguration : IEntityTypeConfiguration<LeadA
         {
             table.HasCheckConstraint("CK_LeadAssignments_AssignedAtEndedAt", "\"EndedAt\" >= \"AssignedAt\"");
         });
+        builder.HasIndex(x => x.LeadId).IsUnique().HasFilter("\"EndedAt\" IS NULL");
+        builder.HasIndex(x => new { x.SalesEmployeeId, x.EndedAt });
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Lead).WithMany().HasForeignKey(x => x.LeadId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.SalesEmployee).WithMany().HasForeignKey(x => x.SalesEmployeeId).OnDelete(DeleteBehavior.Restrict);

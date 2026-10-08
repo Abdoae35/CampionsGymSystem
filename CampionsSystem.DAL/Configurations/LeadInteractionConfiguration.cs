@@ -12,6 +12,7 @@ public sealed class LeadInteractionConfiguration : IEntityTypeConfiguration<Lead
         {
             table.HasCheckConstraint("CK_LeadInteractions_InteractionType", "\"InteractionType\" IN ('Call', 'WhatsApp', 'Visit', 'Other')");
         });
+        builder.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Lead).WithMany().HasForeignKey(x => x.LeadId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);

@@ -12,6 +12,13 @@ public sealed class LeadConfiguration : IEntityTypeConfiguration<Lead>
         {
             table.HasCheckConstraint("CK_Leads_Status", "\"Status\" IN ('New', 'Contacted', 'Interested', 'FollowUp', 'Converted', 'Lost', 'Inactive')");
         });
+        builder.Property(x => x.PhoneNormalized).HasMaxLength(16);
+        builder.Property(x => x.SecondaryPhone).HasMaxLength(64);
+        builder.Property(x => x.Notes).HasMaxLength(4096);
+        builder.Property(x => x.LostReason).HasMaxLength(2048);
+        builder.HasIndex(x => x.PhoneNormalized).IsUnique().HasFilter("\"PhoneNormalized\" IS NOT NULL");
+        builder.HasIndex(x => new { x.BranchId, x.Status, x.NextFollowUpAt });
+        builder.HasIndex(x => x.ConvertedMemberId).IsUnique().HasFilter("\"ConvertedMemberId\" IS NOT NULL");
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.FullName).HasMaxLength(256).IsRequired();

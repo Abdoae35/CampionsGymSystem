@@ -14,5 +14,8 @@ public sealed class LeadInteraction
     public string Notes { get; set; } = null!;
     public string? Outcome { get; set; }
     public DateTimeOffset? NextFollowUpAt { get; set; }
+    public DateTimeOffset? ContactedAt { get; set; }
+    public Guid? CreatedByUserId { get; set; }
+    public ApplicationUser? CreatedByUser { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 }

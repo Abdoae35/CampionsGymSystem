@@ -18,6 +18,7 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<GuestInvitation> GuestInvitations => Set<GuestInvitation>();
     public DbSet<Member> Members => Set<Member>();
     public DbSet<MemberSalesAssignment> MemberSalesAssignments => Set<MemberSalesAssignment>();
+    public DbSet<MemberFollowUpTask> MemberFollowUpTasks => Set<MemberFollowUpTask>();
     public DbSet<Lead> Leads => Set<Lead>();
     public DbSet<LeadAssignment> LeadAssignments => Set<LeadAssignment>();
     public DbSet<LeadInteraction> LeadInteractions => Set<LeadInteraction>();

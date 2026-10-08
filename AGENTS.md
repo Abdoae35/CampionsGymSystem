@@ -41,18 +41,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Postman Member folder now covers all nine routes with eleven examples, shared token,
-  filters and ID capture. README includes variables, permissions and re-import steps.
-  Feature implementation pushed through 068ad51; see history for Postman verification.
-
-- Member Management backend complete on MemberManagement; implementation pushed through
-  fa55633; documentation c5d38c6 pushed. Test fixture cleanup handles setup failures.
-- Branch-local atomic ClientCode, display/canonical phones, Sales/referral/House workflows,
-  scoped API, ownership history, status, permissions and audit implemented.
-- Development migration 20261008110432_AddBranchClientCodeSequenceSupport applied;
-  nine Member permissions configured. Existing zero Members/two branches preserved.
-- Final build zero warnings/errors; full suite 316 passed, zero failed/skipped; EF drift clean.
-- Configure actual branch CountryCallingCode and existing staff capability grants before
-  local-number registration. Production untouched; purchase/lifecycle/finance out of scope.
-- See docs/MEMBER_MANAGEMENT.md and PROJECT_HISTORY.md for details and commit chronology.
-- Portable history skill: skills/project-history-update/SKILL.md.
+- CRM implementation in progress: task 1 domain/contracts implemented; existing Lead models reused.
+- Development-only migration 20261008143406_AddCrmLeadManagement applied; zero CRM/Member rows preserved.
+- Build zero warnings/errors; two CRM model/migration tests passed; EF drift clean.
+- Member Management remains complete, pushed through 0790548. CRM service/API tasks remain.

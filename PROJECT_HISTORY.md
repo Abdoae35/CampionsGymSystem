@@ -43,20 +43,10 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Postman now includes all nine Member routes (eleven examples including three create
-  workflows), shared bearer token, optional filters and memberId capture. README updated.
-  Member implementation is pushed through 068ad51; Postman completion checkpoint follows.
-
-- Member Management backend complete on MemberManagement; application commits pushed
-  through fa55633; documentation c5d38c6 pushed. Final test-fixture cleanup
-  removes abandoned empty schemas and handles initialization failure.
-- New migration 20261008110432_AddBranchClientCodeSequenceSupport applied only locally;
-  Members=0 and branches=2 preserved. Nine Member permissions configured explicitly.
-- Final build zero warnings/errors; full suite 316 passed, zero failed/skipped; EF drift clean.
-- Configure actual CountryCallingCode values on the two existing branches and grant
-  appropriate capabilities to existing staff before using local-number registration.
-- Production untouched. Legacy ambiguous phones on other databases require explicit
-  reconciliation; purchase/commission/attendance/frontend workflows remain out of scope.
+- CRM implementation in progress: task 1 domain/contracts implemented; existing Lead models reused.
+- Development-only migration 20261008143406_AddCrmLeadManagement applied; zero CRM/Member rows preserved.
+- Build zero warnings/errors; two CRM model/migration tests passed; EF drift clean.
+- Member Management remains complete, pushed through 0790548. CRM service/API tasks remain.
 
 ## Work history
 
@@ -1335,3 +1325,16 @@ process inspection was unavailable and unnecessary after tests completed normall
 This checkpoint includes the prior coverage investigation and accompanies the
 requested verified Postman commit/push on MemberManagement; final response reports
 the resulting hash and remote outcome without recursively editing this entry.
+
+### 2026-10-08 — CRM task 1: domain and contracts
+
+User authorized all nine CRM tasks with separate build/test/diff/commit/push checkpoints.
+Reused Lead/LeadAssignment/LeadInteraction, existing enums and shared phone infrastructure.
+Added scheduling/lifecycle/canonical phone fields, optional legacy-safe interaction actor/time,
+MemberFollowUpTasks with derived current owner and one open task per Member/reason. New
+migration 20261008143406_AddCrmLeadManagement has only CRM additions/index changes;
+Restrict history FKs and partial current-assignment uniqueness. Safe unique derivable phones
+backfilled; unresolved legacy values preserved. Development counts before migration were
+zero Leads/assignments/interactions/Members, unchanged. Applied only local development.
+Build clean; two focused tests passed; EF drift clean; diff reviewed. Committing/pushing
+this task before service implementation; remaining tasks 2–9. Production untouched.
