@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 
 namespace CampionsSystem.DAL.Tests;
 
-public sealed class AuthenticationApiTests : IAsyncLifetime
+public sealed partial class AuthenticationApiTests : IAsyncLifetime
 {
     private AuthTestDatabase database = null!;
     private WebApplicationFactory<Program> factory = null!;

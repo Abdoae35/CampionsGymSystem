@@ -16,7 +16,7 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
 {
     private string connection = null!;
     private string schema = "gym_member_concurrent_" + Guid.NewGuid().ToString("N");
-    private Guid a, b, actor;
+    private Guid a, b, actor, owner;
     private ApplicationDbContext Context() => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connection).Options);
     public async Task InitializeAsync()
     {
@@ -30,7 +30,8 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
         var user = new ApplicationUser { UserName = "concurrent-member" }; actor = user.Id;
         var first = new GymBranch { Name = "A", City = new City { Name = "Concurrent city" } };
         var second = new GymBranch { Name = "B", City = first.City };
-        a = first.Id; b = second.Id; db.AddRange(user, first, second); await db.SaveChangesAsync();
+        var sales = new Employee { FullName = "Concurrent Sales", Phone = "sales", UserId = actor, HireDate = new(2026,1,1) };
+        owner = sales.Id; a = first.Id; b = second.Id; db.AddRange(user, first, second, sales); await db.SaveChangesAsync();
     }
     public async Task DisposeAsync()
     {
@@ -54,7 +55,7 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
     {
         await using var db = Context();
         var result = await Service(db).CreateMemberAsync(new() { FullName = "Concurrent", PrimaryPhone = "+44123456" + Interlocked.Increment(ref phoneCounter).ToString("D4"),
-            TargetRegistrationBranchId = branch, CreationType = MemberCreationType.ManagementCreated });
+            TargetRegistrationBranchId = branch, CreationType = MemberCreationType.ManagementCreated, SalesEmployeeId = owner });
         return result.ClientCode!.Value;
     }
     [Fact] public async Task IndependentConnectionsCreateUniqueSameBranchCodes()
@@ -81,17 +82,18 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
         await using (var db = Context())
         {
             member = await db.Members.Select(m => m.Id).SingleAsync();
-            var e1 = new Employee { FullName = "First", Phone = "first", UserId = actor, HireDate = new(2026,1,1) };
+            var e1 = await db.Employees.SingleAsync(e => e.Id == owner);
             var e2 = new Employee { FullName = "Second", Phone = "second", User = new ApplicationUser { UserName = "second" }, HireDate = new(2026,1,1) };
-            db.AddRange(e1, e2); await db.SaveChangesAsync(); first = e1.Id; second = e2.Id;
+            db.Add(e2); await db.SaveChangesAsync(); first = e1.Id; second = e2.Id;
         }
+        await using (var db = Context()) await Service(db).ReturnMemberToHouseAsync(member, new());
         async Task Assign(Guid employee)
         {
             await using var db = Context(); await Service(db).AssignSalesAsync(member, new() { SalesEmployeeId = employee });
         }
         await Task.WhenAll(Assign(first), Assign(second));
         await using var check = Context(); var rows = await check.MemberSalesAssignments.Where(x => x.MemberId == member).ToListAsync();
-        Assert.Equal(2, rows.Count); Assert.Single(rows, x => x.EndedAt == null); Assert.Single(rows, x => x.EndedAt != null);
+        Assert.Equal(3, rows.Count); Assert.Single(rows, x => x.EndedAt == null); Assert.Equal(2, rows.Count(x => x.EndedAt != null));
     }
 
 }

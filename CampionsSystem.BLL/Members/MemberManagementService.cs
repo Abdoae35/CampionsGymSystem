@@ -46,9 +46,13 @@ public sealed partial class MemberManagementService(ApplicationDbContext db, ICu
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var search = request.Search.Trim().ToLowerInvariant();
+            var compact = System.Text.RegularExpressions.Regex.Replace(search, @"[\s().-]", "");
+            var phoneSearch = System.Text.RegularExpressions.Regex.IsMatch(compact, @"^[+]?[0-9]+$")
+                ? compact.TrimStart('0') : null;
+            if (string.IsNullOrEmpty(phoneSearch)) phoneSearch = null;
             long? code = long.TryParse(search, out var parsed) && parsed > 0 ? parsed : null;
             query = query.Where(m => m.FullName.ToLower().Contains(search) || m.PrimaryPhone.Contains(search)
-                || (m.PrimaryPhoneNormalized != null && m.PrimaryPhoneNormalized.Contains(search))
+                || (m.PrimaryPhoneNormalized != null && phoneSearch != null && m.PrimaryPhoneNormalized.Contains(phoneSearch))
                 || m.MemberCode.ToLower().Contains(search) || (code != null && m.ClientCode == code));
         }
         var count = await query.CountAsync(ct);

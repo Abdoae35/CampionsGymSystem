@@ -98,7 +98,7 @@ public sealed class MemberManagementTests : IAsyncLifetime
     }
     [Fact] public async Task CrossBranchReferralKeepsSalesEmployeeAndDoesNotExpandScope()
     {
-        Scoped("Members.Create", "Members.View", "Members.OwnSalesCustomers", "Members.CreateCrossBranch");
+        Scoped("Members.Create", "Members.View", "Members.OwnSalesCustomers", "Members.CreateCrossBranch", "Reports.ViewRevenue", "Expenses.View");
         var result = await service.CreateMemberAsync(NewMember(b.Id));
         Assert.Equal(b.Id, result.RegistrationBranch.Id); Assert.Equal(101, result.ClientCode);
         Assert.Equal("+441299999999", result.PrimaryPhoneNormalized);
@@ -140,11 +140,11 @@ public sealed class MemberManagementTests : IAsyncLifetime
         Assert.Equal(plan.Id, Assert.Single(result.EligibleFreelancePlans).PlanId);
         Assert.Empty(await db.MemberSubscriptions.ToListAsync());
     }
-    [Fact] public async Task ManagementExplicitlyAssignsOrCreatesHouseWithPermission()
+    [Fact] public async Task ManagementCreationRequiresExplicitSalesOwner()
     {
         Scoped("Members.Create", "Members.AssignSales");
         var request = NewMember(); request.CreationType = MemberCreationType.ManagementCreated;
-        var house = await service.CreateMemberAsync(request); Assert.True(house.IsHouse);
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateMemberAsync(request));
         request.PrimaryPhone = "01288888888"; request.SalesEmployeeId = sales.Id;
         var owned = await service.CreateMemberAsync(request); Assert.False(owned.IsHouse);
     }
@@ -197,13 +197,22 @@ public sealed class MemberManagementTests : IAsyncLifetime
             Source = GuestInvitationSource.Gym, CreatedByUserId = current.UserId };
         var checkIn = new CheckIn { MemberId = first.Id, BranchId = a.Id, CheckInType = CheckInType.Trial,
             CheckedInAt = access.Now, CreatedByUserId = current.UserId!.Value };
-        db.AddRange(invitation, checkIn); await db.SaveChangesAsync();
+        var plan = new MembershipPlan { Name = "Historical normal plan", CityId = a.CityId, DurationDays = 30 };
+        var subscription = new MemberSubscription { MemberId = first.Id, MembershipPlan = plan, CityId = a.CityId,
+            PurchasedAtBranchId = a.Id, StartDate = access.Today, EndDate = access.Today.AddDays(30), Status = SubscriptionStatus.Active };
+        var sale = new SaleTransaction { MemberId = first.Id, BranchId = a.Id, CreatedByUserId = current.UserId!.Value,
+            SaleType = SaleType.GymMembership, GrossAmount = 500, NetAmount = 500 };
+        db.AddRange(invitation, checkIn, subscription, sale); await db.SaveChangesAsync();
         Scoped("Members.ChangeStatus");
         var inactive = await service.ChangeMemberStatusAsync(first.Id, new() { IsActive = false, Reason = "Inactive" });
         Assert.False(inactive.IsActive); Assert.False(inactive.IsHouse); Assert.Equal(sales.Id, inactive.Employee?.Id);
         Assert.Equal(invitation.Id, (await db.GuestInvitations.SingleAsync()).Id);
         Assert.Equal(checkIn.Id, (await db.CheckIns.SingleAsync()).Id);
         Assert.Single(await db.MemberSalesAssignments.ToListAsync());
+        Assert.Equal(subscription.Id, (await db.MemberSubscriptions.SingleAsync()).Id);
+        Assert.Equal(SubscriptionStatus.Active, (await db.MemberSubscriptions.SingleAsync()).Status);
+        Assert.Equal(sale.Id, (await db.SaleTransactions.SingleAsync()).Id);
+        Assert.Equal(500, (await db.SaleTransactions.SingleAsync()).NetAmount);
         Assert.True((await service.ChangeMemberStatusAsync(first.Id, new() { IsActive = true })).IsActive);
         Assert.Equal(2, await db.AuditLogs.CountAsync(x => x.Action == "Member.StatusChanged"));
     }
@@ -274,6 +283,29 @@ public sealed class MemberManagementTests : IAsyncLifetime
         db.Add(new MemberSalesAssignment { MemberId = first.Id, SalesEmployeeId = sales.Id, AssignmentType = AssignmentType.Sales,
             AssignedAt = access.Now, AssignedByUserId = current.UserId!.Value });
         await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+    }
+    [Fact] public async Task NormalizedPhoneUniquenessAllowsSameDisplayInDifferentCountries()
+    {
+        first.PrimaryPhoneNormalized = "+201212345678";
+        second.PrimaryPhone = first.PrimaryPhone; second.PrimaryPhoneNormalized = "+441212345678";
+        await db.SaveChangesAsync();
+        second.PrimaryPhoneNormalized = first.PrimaryPhoneNormalized;
+        await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+    }
+    [Fact] public async Task ExplicitPermissionSetupIsIdempotentAndPreservesDisabledPermissions()
+    {
+        var owner = new Microsoft.AspNetCore.Identity.IdentityRole<Guid>("Owner") { Id = Guid.NewGuid(), NormalizedName = "OWNER" };
+        db.AddRange(owner, new Permission { Code = "Members.ChangeStatus", Name = "Status", Module = "Members", IsActive = false }); await db.SaveChangesAsync();
+        var setup = new MemberPermissionSetup(db); await setup.ConfigureAsync(); await setup.ConfigureAsync();
+        Assert.Equal(MemberPermissions.Codes.Length, await db.Permissions.CountAsync(p => MemberPermissions.Codes.Contains(p.Code)));
+        Assert.Equal(MemberPermissions.Codes.Length, await db.RolePermissions.CountAsync(x => x.RoleId == owner.Id));
+        Assert.False((await db.Permissions.SingleAsync(x => x.Code == "Members.ChangeStatus")).IsActive);
+    }
+    [Fact] public async Task GlobalBranchAccessDoesNotReplaceSalesReferralPermission()
+    {
+        Scoped("Members.Create", "Members.OwnSalesCustomers", "Branches.AccessAll");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.CreateMemberAsync(NewMember(b.Id)));
+        Assert.Equal(2, await db.Members.CountAsync());
     }
     private sealed class OwnerPermissions : IPermissionService
     {

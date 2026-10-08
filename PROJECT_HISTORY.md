@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member Management in progress on MemberManagement; latest checkpoint task 7.
-- Implemented current owner/history queries, permission-based eligible Sales assignment/reassignment, return-to-House, parent-row locking and preserved historical/legacy House rows. Thirty focused tests passed including full registration concurrency across connections and competing assignments with one active owner; build zero warnings/errors after analyzer cleanup; diff reviewed.
+- Member Management in progress on MemberManagement; latest checkpoint task 8.
+- Exposed nine thin Member API endpoints, registered services, added permission catalog/explicit guarded setup and default grants for newly seeded demo roles. Setup ran only on local development: nine Member permissions, zero Members, latest migration verified. Tightened NormalSales cross-branch permission even with global access and required explicit eligible Sales for normal ManagementCreated registration; FreelanceHouse is the explicit new-House path. Normalized formatted phone search and API/legacy migration regression tests added. Corrected one permission-count assertion (pre-existing unrelated permissions). Final full suite 315 passed, zero failed/skipped; build zero warnings/errors; diff reviewed.
 - Small verified commits/pushes authorized; subsequent tasks continue automatically.
 
 ## Work history
@@ -1206,6 +1206,14 @@ continue automatically on MemberManagement. No production database used.
 ### 2026-10-08 — Member Management task 7
 
 Implemented current owner/history queries, permission-based eligible Sales assignment/reassignment, return-to-House, parent-row locking and preserved historical/legacy House rows. Thirty focused tests passed including full registration concurrency across connections and competing assignments with one active owner; build zero warnings/errors after analyzer cleanup; diff reviewed.
+
+Workflow: build/test/diff reviewed before this task commit; commit/push authorized
+by user. Exact hashes/results will be recorded in final validation. Remaining tasks
+continue automatically on MemberManagement. No production database used.
+
+### 2026-10-08 — Member Management task 8
+
+Exposed nine thin Member API endpoints, registered services, added permission catalog/explicit guarded setup and default grants for newly seeded demo roles. Setup ran only on local development: nine Member permissions, zero Members, latest migration verified. Tightened NormalSales cross-branch permission even with global access and required explicit eligible Sales for normal ManagementCreated registration; FreelanceHouse is the explicit new-House path. Normalized formatted phone search and API/legacy migration regression tests added. Corrected one permission-count assertion (pre-existing unrelated permissions). Final full suite 315 passed, zero failed/skipped; build zero warnings/errors; diff reviewed.
 
 Workflow: build/test/diff reviewed before this task commit; commit/push authorized
 by user. Exact hashes/results will be recorded in final validation. Remaining tasks

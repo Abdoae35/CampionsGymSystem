@@ -98,8 +98,9 @@ public sealed partial class MemberManagementService
                 break;
             case MemberCreationType.ManagementCreated:
                 if (!user.Permissions.Contains("Members.AssignSales")) throw new UnauthorizedAccessException();
-                if (request.FreelancePlanId.HasValue) throw new BusinessRuleException("Use FreelanceHouse for Freelance eligibility.");
-                if (request.SalesEmployeeId.HasValue) owner = (await EligibleOwnerAsync(request.SalesEmployeeId.Value, ct)).Id;
+                if (request.FreelancePlanId.HasValue || !request.SalesEmployeeId.HasValue)
+                    throw new BusinessRuleException("ManagementCreated requires an explicit eligible Sales owner; use FreelanceHouse for Freelance eligibility.");
+                owner = (await EligibleOwnerAsync(request.SalesEmployeeId.Value, ct)).Id;
                 break;
             case MemberCreationType.FreelanceHouse:
                 if (!user.Permissions.Contains("FreelancePlans.ManageEligibleMembers")) throw new UnauthorizedAccessException();
@@ -107,8 +108,7 @@ public sealed partial class MemberManagementService
                     throw new BusinessRuleException("FreelanceHouse requires a Freelance plan and no Sales owner.");
                 break;
         }
-        if (request.CreationType == MemberCreationType.NormalSales && request.TargetRegistrationBranchId != user.CurrentBranchId
-            && !user.Permissions.Contains(BranchManagementService.AccessAllPermission))
+        if (request.CreationType == MemberCreationType.NormalSales && request.TargetRegistrationBranchId != user.CurrentBranchId)
         {
             if (user.CurrentBranchId is null || !user.Permissions.Contains("Members.CreateCrossBranch"))
                 throw new UnauthorizedAccessException();

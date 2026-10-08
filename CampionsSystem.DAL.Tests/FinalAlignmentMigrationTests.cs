@@ -15,7 +15,14 @@ public sealed class FinalAlignmentMigrationTests
         var user = new ApplicationUser { UserName = "final-upgrade" };
         var branch = new GymBranch { Name = "Legacy", City = new City { Name = "Legacy" } };
         var member = new Member { MemberCode = "FINAL-LEGACY", FullName = "Legacy", PrimaryPhone = "final-legacy", HomeBranch = branch, CreatedByUser = user };
-        db.AddRange(user, branch); await db.SaveChangesAsync();
+        db.AddRange(user, branch.City); await db.SaveChangesAsync();
+        branch.CityId = branch.City.Id;
+        // Insert only columns present at this historical migration boundary.
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO "GymBranches" ("Id", "CityId", "Name", "MaxBorrowedGymSessions", "QuickRefundWindowHours", "IsActive", "CreatedAt")
+            VALUES ({branch.Id}, {branch.CityId}, {branch.Name}, 2, 24, TRUE, {branch.CreatedAt});
+            """);
+        db.Attach(branch);
         // Insert with the legacy schema shape, not today's Member EF model.
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT INTO "Members" ("Id", "MemberCode", "FullName", "PrimaryPhone", "HomeBranchId", "CreatedByUserId", "CreatedAt", "IsActive", "IsPrimaryPhoneVerified")

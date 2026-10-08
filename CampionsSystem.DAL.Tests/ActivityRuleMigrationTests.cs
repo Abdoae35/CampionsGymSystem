@@ -21,8 +21,15 @@ public sealed class ActivityRuleMigrationTests
         var activity = new SportsActivity { Branch = branch, Name = "Legacy Boxing" };
         var package = new ActivityPackage { SportsActivity = activity, Name = "Legacy", DurationDays = 30, Price = 500 };
         var group = new GroupClass { Branch = branch, Name = "Legacy class", CoachEmployeeId = employee.Id };
-        db.AddRange(user, branch, package);
-        await db.SaveChangesAsync();
+        db.AddRange(user, branch.City); await db.SaveChangesAsync();
+        branch.CityId = branch.City.Id;
+        // Insert only columns present at this historical migration boundary.
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO "GymBranches" ("Id", "CityId", "Name", "MaxBorrowedGymSessions", "QuickRefundWindowHours", "IsActive", "CreatedAt")
+            VALUES ({branch.Id}, {branch.CityId}, {branch.Name}, 2, 24, TRUE, {branch.CreatedAt});
+            """);
+        db.Attach(branch);
+        db.Add(package); await db.SaveChangesAsync();
         // Insert the historical Employee shape before MemberId existed.
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT INTO "Employees" ("Id", "FullName", "Phone", "EmploymentType", "HireDate", "EmploymentStatus", "CreatedAt")
