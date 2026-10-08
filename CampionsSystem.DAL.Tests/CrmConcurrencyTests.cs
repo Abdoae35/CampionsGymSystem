@@ -56,7 +56,7 @@ public sealed class CrmConcurrencyTests : IAsyncLifetime
     private LeadManagementService Service(ApplicationDbContext db)
     {
         var user=new TestBranchUser(new(actor,"concurrent",null,null,[],
-            ["Leads.View","Leads.Manage","Leads.Assign","Leads.Convert","Members.Create","Members.AssignSales","Members.OwnSalesCustomers","Branches.AccessAll"],null));
+            ["Leads.View","Leads.Manage","Leads.Assign","Leads.Convert","Members.Create","Members.AssignSales","Members.OwnSalesCustomers","Branches.AccessAll","CRM.ManageMemberFollowUps"],null));
         var access=new OperationAccess(user,db,TimeProvider.System,Options.Create(new AuthContextOptions()));
         var capability=new Capabilities();var members=new MemberManagementService(db,user,access,capability);
         return new(db,user,access,capability,members);
@@ -104,4 +104,13 @@ public sealed class CrmConcurrencyTests : IAsyncLifetime
         await Task.WhenAll(Assign(one),Assign(two));
         await using var verify=Context();Assert.Equal(3,await verify.LeadAssignments.CountAsync());Assert.Equal(1,await verify.LeadAssignments.CountAsync(x=>x.EndedAt==null));
     }
+    [Fact] public async Task IndependentSessionsCannotDuplicateOpenMemberWork()
+    {
+        var lead=await PrepareLead();Guid member;
+        await using(var db=Context())member=(await Service(db).ConvertLeadAsync(lead,new(){TargetRegistrationBranchId=a,FullName="Member",PrimaryPhone="+201212345678"})).Id;
+        async Task<Guid> Open(){await using var db=Context();return await Service(db).OpenMemberFollowUpAsync(member,new(){Reason="Reactivation",DueAt=DateTimeOffset.UtcNow});}
+        var ids=await Task.WhenAll(Open(),Open());Assert.Equal(ids[0],ids[1]);
+        await using var verify=Context();Assert.Single(await verify.MemberFollowUpTasks.ToListAsync());
+    }
+
 }

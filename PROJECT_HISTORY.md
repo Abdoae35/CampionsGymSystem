@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 6: atomic Lead conversion.
-- Added assembly-internal Lead-ID-based Member creation, atomic conversion, Lead-owner preservation, explicit Freelance House exception and destination ClientCode. Persisted Lead phone is not reinterpreted by destination country; Member public creation/phone changes cannot bypass existing Leads. Lead assignments/schedule close at conversion; current Member owner can request converted historical Leads. 59 CRM/Member tests passed, plus changed historical visibility test passed; independent sessions prove one conversion/current assignment.
+- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 7: Member follow-up queues.
+- Added current-owner-derived cross-branch Member work, unified Lead/Member queues, House queue/distribution via existing Member assignment, completion and idempotent open/update. Internal future lifecycle method supports system actors; no status/purchase/attendance workflow redesigned or automatic inactivity invented. Initial EF projection failures fixed; five focused queue/concurrency tests passed. Existing Member status remains unchanged; tasks must be explicitly opened until lifecycle integration calls this method.
 - Verified build/focused tests; each completed task committed/pushed. Remaining tasks continue.
 - Development migration 20261008143406_AddCrmLeadManagement applied; production untouched.
 - Member Management complete (0790548); see chronological history for details.
@@ -1375,6 +1375,14 @@ task. No production operations. Remaining CRM tasks continue automatically.
 ### 2026-10-08 — CRM task 6: atomic Lead conversion
 
 Added assembly-internal Lead-ID-based Member creation, atomic conversion, Lead-owner preservation, explicit Freelance House exception and destination ClientCode. Persisted Lead phone is not reinterpreted by destination country; Member public creation/phone changes cannot bypass existing Leads. Lead assignments/schedule close at conversion; current Member owner can request converted historical Leads. 59 CRM/Member tests passed, plus changed historical visibility test passed; independent sessions prove one conversion/current assignment.
+
+Build zero warnings/errors; focused CRM tests passed; diff/whitespace reviewed.
+This task is committed and pushed to the current CRM feature branch before the next
+task. No production operations. Remaining CRM tasks continue automatically.
+
+### 2026-10-08 — CRM task 7: Member follow-up queues
+
+Added current-owner-derived cross-branch Member work, unified Lead/Member queues, House queue/distribution via existing Member assignment, completion and idempotent open/update. Internal future lifecycle method supports system actors; no status/purchase/attendance workflow redesigned or automatic inactivity invented. Initial EF projection failures fixed; five focused queue/concurrency tests passed. Existing Member status remains unchanged; tasks must be explicitly opened until lifecycle integration calls this method.
 
 Build zero warnings/errors; focused CRM tests passed; diff/whitespace reviewed.
 This task is committed and pushed to the current CRM feature branch before the next

@@ -33,7 +33,7 @@ public sealed class OperationAccess(ICurrentUserService current, ApplicationDbCo
         return user.UserId;
     }
 
-    public void Audit(Guid actor, Guid? branch, string action, string entityType, Guid id,
+    public void Audit(Guid? actor, Guid? branch, string action, string entityType, Guid id,
         object? before = null, object? after = null) => database.AuditLogs.Add(new AuditLog
         {
             UserId = actor, BranchId = branch, Action = action, EntityType = entityType, EntityId = id,
