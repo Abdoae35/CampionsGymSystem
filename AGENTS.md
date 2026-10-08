@@ -46,6 +46,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 - Development migration 20261008012831_AddGuestInvitations applied; catalog
   verified indexes/history trigger and Trial-only nullable CheckIn member.
 - Build zero warnings/errors; EF model drift clean; full suite 247 passed, zero failed/skipped.
-- Requested commit/push follows this verified checkpoint. See PROJECT_HISTORY.md for details.
+- Implementation commit 7d55dc3 pushed to origin/EmployeeManagement; hashes matched.
+  See PROJECT_HISTORY.md for details.
 - Future BLL must finalize phone matching/normalization, expiry and House threshold.
 - Portable history skill: skills/project-history-update/SKILL.md.
