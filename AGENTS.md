@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Member Management in progress on MemberManagement; latest task 5.
-- Implemented locked transactional profile updates with protected identifiers/ownership, dedicated Members.ChangePrimaryPhone permission, persisted canonical duplicate checks, verification reset on canonical changes and profile/phone audits. Unchanged legacy phones and persisted values survive branch calling-code changes. Nineteen focused tests passed; build zero warnings/errors; diff reviewed.
+- Member Management in progress on MemberManagement; latest task 6.
+- Implemented permission-gated locked active/inactive status changes and audits without deletion or ownership/lifecycle changes. Tests preserve Sales history, employee link, GuestInvitation and CheckIn references and verify status validation/scope/permission. Twenty-one focused tests passed; build zero warnings/errors; diff reviewed.
 - Complete remaining tasks automatically with build/tests/diff/commit/push.
 - No production database used. See PROJECT_HISTORY.md for chronology.
 - Portable history skill: skills/project-history-update/SKILL.md.

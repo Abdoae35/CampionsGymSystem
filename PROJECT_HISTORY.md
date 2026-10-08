@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member Management in progress on MemberManagement; latest checkpoint task 5.
-- Implemented locked transactional profile updates with protected identifiers/ownership, dedicated Members.ChangePrimaryPhone permission, persisted canonical duplicate checks, verification reset on canonical changes and profile/phone audits. Unchanged legacy phones and persisted values survive branch calling-code changes. Nineteen focused tests passed; build zero warnings/errors; diff reviewed.
+- Member Management in progress on MemberManagement; latest checkpoint task 6.
+- Implemented permission-gated locked active/inactive status changes and audits without deletion or ownership/lifecycle changes. Tests preserve Sales history, employee link, GuestInvitation and CheckIn references and verify status validation/scope/permission. Twenty-one focused tests passed; build zero warnings/errors; diff reviewed.
 - Small verified commits/pushes authorized; subsequent tasks continue automatically.
 
 ## Work history
@@ -1190,6 +1190,14 @@ continue automatically on MemberManagement. No production database used.
 ### 2026-10-08 — Member Management task 5
 
 Implemented locked transactional profile updates with protected identifiers/ownership, dedicated Members.ChangePrimaryPhone permission, persisted canonical duplicate checks, verification reset on canonical changes and profile/phone audits. Unchanged legacy phones and persisted values survive branch calling-code changes. Nineteen focused tests passed; build zero warnings/errors; diff reviewed.
+
+Workflow: build/test/diff reviewed before this task commit; commit/push authorized
+by user. Exact hashes/results will be recorded in final validation. Remaining tasks
+continue automatically on MemberManagement. No production database used.
+
+### 2026-10-08 — Member Management task 6
+
+Implemented permission-gated locked active/inactive status changes and audits without deletion or ownership/lifecycle changes. Tests preserve Sales history, employee link, GuestInvitation and CheckIn references and verify status validation/scope/permission. Twenty-one focused tests passed; build zero warnings/errors; diff reviewed.
 
 Workflow: build/test/diff reviewed before this task commit; commit/push authorized
 by user. Exact hashes/results will be recorded in final validation. Remaining tasks

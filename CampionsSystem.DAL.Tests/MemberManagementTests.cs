@@ -189,6 +189,33 @@ public sealed class MemberManagementTests : IAsyncLifetime
         var json = "{\"FullName\":\"Name\",\"PrimaryPhone\":\"01212345678\",\"" + field + "\":null}";
         Assert.Throws<System.Text.Json.JsonException>(() => System.Text.Json.JsonSerializer.Deserialize<UpdateMemberRequest>(json));
     }
+    [Fact] public async Task StatusPreservesOwnershipEmployeeInvitationAndCheckInHistory()
+    {
+        sales.MemberId = first.Id;
+        var invitation = new GuestInvitation { InviteeMemberId = first.Id, InviteeName = first.FullName,
+            InviteePhone = first.PrimaryPhone, InviteePhoneNormalized = "+201212345678", BranchId = a.Id,
+            Source = GuestInvitationSource.Gym, CreatedByUserId = current.UserId };
+        var checkIn = new CheckIn { MemberId = first.Id, BranchId = a.Id, CheckInType = CheckInType.Trial,
+            CheckedInAt = access.Now, CreatedByUserId = current.UserId!.Value };
+        db.AddRange(invitation, checkIn); await db.SaveChangesAsync();
+        Scoped("Members.ChangeStatus");
+        var inactive = await service.ChangeMemberStatusAsync(first.Id, new() { IsActive = false, Reason = "Inactive" });
+        Assert.False(inactive.IsActive); Assert.False(inactive.IsHouse); Assert.Equal(sales.Id, inactive.Employee?.Id);
+        Assert.Equal(invitation.Id, (await db.GuestInvitations.SingleAsync()).Id);
+        Assert.Equal(checkIn.Id, (await db.CheckIns.SingleAsync()).Id);
+        Assert.Single(await db.MemberSalesAssignments.ToListAsync());
+        Assert.True((await service.ChangeMemberStatusAsync(first.Id, new() { IsActive = true })).IsActive);
+        Assert.Equal(2, await db.AuditLogs.CountAsync(x => x.Action == "Member.StatusChanged"));
+    }
+    [Fact] public async Task StatusRejectsMissingStatusNoOpWrongBranchAndMissingPermission()
+    {
+        Scoped("Members.ChangeStatus");
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.ChangeMemberStatusAsync(first.Id, new()));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.ChangeMemberStatusAsync(first.Id, new() { IsActive = true }));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.ChangeMemberStatusAsync(second.Id, new() { IsActive = false }));
+        Scoped("Members.Edit");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.ChangeMemberStatusAsync(first.Id, new() { IsActive = false }));
+    }
     private sealed class OwnerPermissions : IPermissionService
     {
         public Task<HashSet<string>> GetUserPermissionsAsync(Guid id, CancellationToken cancellationToken = default)
