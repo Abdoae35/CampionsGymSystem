@@ -35,6 +35,10 @@ public sealed partial class MemberManagementService
                 if (!user.Permissions.Contains("Members.ChangePrimaryPhone")) throw new UnauthorizedAccessException();
                 var country = await db.GymBranches.Where(b => b.Id == member.HomeBranchId).Select(b => b.CountryCallingCode).SingleAsync(ct);
                 var normalized = PhoneNormalizer.Normalize(request.PrimaryPhone, country);
+                await PhoneIdentity.LockAsync(db,normalized,ct);
+                var leadId = await PhoneIdentity.FindLeadAsync(db,normalized,ct);
+                if (leadId.HasValue && !await db.Leads.AnyAsync(l=>l.Id==leadId && l.ConvertedMemberId==id,ct))
+                    throw new BusinessRuleException("An existing Lead uses this phone; reconcile through CRM first.");
                 await EnsurePhoneAvailableAsync(request.PrimaryPhone.Trim(), normalized, member.HomeBranchId, id, ct);
                 var phoneBefore = new { member.PrimaryPhone, member.PrimaryPhoneNormalized, member.IsPrimaryPhoneVerified, member.PrimaryPhoneVerifiedAt };
                 if (normalized != member.PrimaryPhoneNormalized)

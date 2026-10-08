@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.BLL.Crm;
 
 public sealed partial class LeadManagementService(ApplicationDbContext db, ICurrentUserService current,
-    OperationAccess access, IPermissionService permissions)
+    OperationAccess access, IPermissionService permissions, MemberManagementService members)
 {
     private async Task<CurrentUserContext> RequireAsync(string permission, CancellationToken ct)
     {
@@ -25,7 +25,14 @@ public sealed partial class LeadManagementService(ApplicationDbContext db, ICurr
         {
             if (!user.Permissions.Contains("Branches.AccessAll")) q = q.Where(l => l.BranchId == user.CurrentBranchId);
         }
-        else q = q.Where(l => Assignments().Any(a => a.LeadId == l.Id && a.SalesEmployeeId == user.EmployeeId));
+        else q = Owned(q,user.EmployeeId);
+        return q;
+    }
+    private IQueryable<Lead> Owned(IQueryable<Lead> q,Guid? employeeId)
+    {
+        q=q.Where(l=>Assignments().Any(a=>a.LeadId==l.Id&&a.SalesEmployeeId==employeeId)
+            ||l.Status==LeadStatus.Converted&&db.MemberSalesAssignments.Any(a=>a.MemberId==l.ConvertedMemberId
+                &&a.EndedAt==null&&a.AssignmentType==AssignmentType.Sales&&a.SalesEmployeeId==employeeId));
         return q;
     }
     private async Task<T> TransactionAsync<T>(Func<Task<T>> change, CancellationToken ct)
@@ -82,7 +89,11 @@ public sealed partial class LeadManagementService(ApplicationDbContext db, ICurr
         if (r.Search?.Length > 256 || r.Status.HasValue && !Enum.IsDefined(r.Status.Value) || r.FollowUp.HasValue && !Enum.IsDefined(r.FollowUp.Value))
             throw new BusinessRuleException("Invalid lead filters.");
         var q = Visible(user);
-        if (mine) q = q.Where(l => Assignments().Any(a => a.LeadId == l.Id && a.SalesEmployeeId == user.EmployeeId));
+        if (mine)
+        {
+            q=Owned(q,user.EmployeeId);
+            if(!r.Status.HasValue)q=q.Where(l=>l.Status!=LeadStatus.Converted&&l.Status!=LeadStatus.Lost&&l.Status!=LeadStatus.Inactive);
+        }
         if (r.BranchId.HasValue) q=q.Where(l=>l.BranchId==r.BranchId);
         if (r.Status.HasValue) q=q.Where(l=>l.Status==r.Status);
         if (r.SalesEmployeeId.HasValue) q=q.Where(l=>Assignments().Any(a=>a.LeadId==l.Id && a.SalesEmployeeId==r.SalesEmployeeId));

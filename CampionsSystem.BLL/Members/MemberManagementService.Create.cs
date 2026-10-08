@@ -114,12 +114,21 @@ public sealed partial class MemberManagementService
                 throw new UnauthorizedAccessException();
         }
         else BranchAccessService.EnsureScope(user, request.TargetRegistrationBranchId);
+        return await CreateCoreAsync(request,user,owner,null,null,ct);
+    }
+    private async Task<MemberDetails> CreateCoreAsync(CreateMemberRequest request, CurrentUserContext user, Guid? owner,
+        Guid? sourceLeadId, string? canonicalPhone, CancellationToken ct)
+    {
         return await TransactionAsync(async () =>
         {
             // Allocation locks this branch until commit and rechecks IsActive in the database.
             var code = await new BranchClientCodeGenerator(db).NextAsync(request.TargetRegistrationBranchId, ct);
             var branch = await db.GymBranches.AsNoTracking().SingleAsync(b => b.Id == request.TargetRegistrationBranchId, ct);
-            var normalized = PhoneNormalizer.Normalize(request.PrimaryPhone, branch.CountryCallingCode);
+            var normalized = canonicalPhone ?? PhoneNormalizer.Normalize(request.PrimaryPhone, branch.CountryCallingCode);
+            await PhoneIdentity.LockAsync(db,normalized,ct);
+            var existingLead = await PhoneIdentity.FindLeadAsync(db,normalized,ct);
+            if (existingLead.HasValue && existingLead != sourceLeadId)
+                throw new BusinessRuleException("An existing Lead uses this phone; use CRM lookup and conversion to preserve ownership.");
             await EnsurePhoneAvailableAsync(request.PrimaryPhone.Trim(), normalized, branch.Id, null, ct);
             if (request.CreationType == MemberCreationType.FreelanceHouse
                 && !await db.MembershipPlans.AnyAsync(p => p.Id == request.FreelancePlanId && p.IsActive
