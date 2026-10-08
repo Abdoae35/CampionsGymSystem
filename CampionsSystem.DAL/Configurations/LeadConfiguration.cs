@@ -21,7 +21,7 @@ public sealed class LeadConfiguration : IEntityTypeConfiguration<Lead>
         builder.HasIndex(x => x.ConvertedMemberId).IsUnique().HasFilter("\"ConvertedMemberId\" IS NOT NULL");
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
-        builder.Property(x => x.FullName).HasMaxLength(256).IsRequired();
+        builder.Property(x => x.FullName).HasMaxLength(256);
         builder.Property(x => x.Phone).HasMaxLength(64).IsRequired();
         builder.Property(x => x.Email).HasMaxLength(320);
         builder.Property(x => x.Source).HasMaxLength(256);

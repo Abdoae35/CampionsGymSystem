@@ -2029,7 +2029,6 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("character varying(320)");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Branches;
 using CampionsSystem.BLL.Members;
@@ -11,7 +12,7 @@ public sealed partial class LeadManagementService
     public async Task<LeadCreationResult> CreateLeadAsync(CreateLeadRequest r, CancellationToken ct = default)
     {
         var user=await RequireAsync("Leads.Manage",ct); BranchAccessService.EnsureScope(user,r.BranchId);
-        if (string.IsNullOrWhiteSpace(r.FullName)||r.FullName.Length>256||string.IsNullOrWhiteSpace(r.PrimaryPhone)||r.PrimaryPhone.Length>64
+        if (r.FullName?.Length>256||string.IsNullOrWhiteSpace(r.PrimaryPhone)||r.PrimaryPhone.Length>64
             ||r.SecondaryPhone?.Length>64||r.Email?.Length>320||r.Source?.Length>256||r.Notes?.Length>4096
             ||!string.IsNullOrWhiteSpace(r.Email)&&!new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(r.Email))
             throw new BusinessRuleException("Invalid lead profile.");
@@ -21,7 +22,7 @@ public sealed partial class LeadManagementService
         return await TransactionAsync(async()=>{
             await PhoneIdentity.LockAsync(db,phone,ct);
             var duplicate=await LookupAsync(user,phone,ct); if(duplicate is not null)return duplicate;
-            var lead=new Lead{BranchId=r.BranchId,FullName=r.FullName.Trim(),Phone=r.PrimaryPhone.Trim(),PhoneNormalized=phone,
+            var lead=new Lead{BranchId=r.BranchId,FullName=string.IsNullOrWhiteSpace(r.FullName)?null:r.FullName.Trim(),Phone=r.PrimaryPhone.Trim(),PhoneNormalized=phone,
                 SecondaryPhone=r.SecondaryPhone?.Trim(),Email=r.Email?.Trim(),Source=r.Source?.Trim(),Notes=r.Notes?.Trim(),
                 Status=LeadStatus.New,CreatedByUserId=user.UserId,CreatedAt=access.Now};
             db.Leads.Add(lead);
@@ -44,7 +45,26 @@ public sealed partial class LeadManagementService
         var results=new List<LeadCreationResult>();
         foreach(var row in rows)
         {
-            try { results.Add(await CreateLeadAsync(row,ct)); }
+            try { results.Add(row is null?new("Invalid",Error:"Lead row is required."):await CreateLeadAsync(row,ct)); }
+            catch(BusinessRuleException e){results.Add(new("Invalid",Error:e.Message));}
+            catch(UnauthorizedAccessException){results.Add(new("Invalid",Error:"Branch or action is not permitted."));}
+        }
+        return results;
+    }
+    // JSON rows bypass recursive MVC row validation so one invalid row does not reject a valid batch.
+    public async Task<IReadOnlyList<LeadCreationResult>> CreateLeadsBulkAsync(IReadOnlyList<System.Text.Json.JsonElement> rows,CancellationToken ct=default)
+    {
+        await RequireAsync("Leads.Assign",ct);await RequireAsync("Leads.Manage",ct);
+        if(rows.Count is <1 or >100)throw new BusinessRuleException("Batch must contain 1–100 leads.");
+        var results=new List<LeadCreationResult>();
+        foreach(var row in rows)
+        {
+            try
+            {
+                var request=row.Deserialize<CreateLeadRequest>(new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+                results.Add(request is null?new("Invalid",Error:"Lead row is required."):await CreateLeadAsync(request,ct));
+            }
+            catch(System.Text.Json.JsonException){results.Add(new("Invalid",Error:"Invalid lead JSON fields."));}
             catch(BusinessRuleException e){results.Add(new("Invalid",Error:e.Message));}
             catch(UnauthorizedAccessException){results.Add(new("Invalid",Error:"Branch or action is not permitted."));}
         }
@@ -53,8 +73,9 @@ public sealed partial class LeadManagementService
     public async Task<LeadCreationResult> LookupPhoneAsync(Guid branchId,string phone,CancellationToken ct=default)
     {
         var user=await RequireAsync("Leads.View",ct);BranchAccessService.EnsureScope(user,branchId);
-        var code=await db.GymBranches.Where(b=>b.Id==branchId&&b.IsActive).Select(b=>b.CountryCallingCode).SingleOrDefaultAsync(ct);
-        return await LookupAsync(user,PhoneNormalizer.Normalize(phone,code),ct)??new("NotFound");
+        var branch=await db.GymBranches.AsNoTracking().SingleOrDefaultAsync(b=>b.Id==branchId&&b.IsActive,ct)
+            ??throw new BusinessRuleException("An active operational branch is required.");
+        return await LookupAsync(user,PhoneNormalizer.Normalize(phone,branch.CountryCallingCode),ct)??new("NotFound");
     }
     private async Task<LeadCreationResult?> LookupAsync(CurrentUserContext user,string phone,CancellationToken ct)
     {

@@ -21,7 +21,7 @@ public sealed class LeadListRequest
 public sealed class CreateLeadRequest
 {
     public Guid BranchId { get; set; }
-    [Required,MaxLength(256)] public string FullName { get; set; } = "";
+    [MaxLength(256)] public string? FullName { get; set; }
     [Required,MaxLength(64)] public string PrimaryPhone { get; set; } = "";
     [MaxLength(64)] public string? SecondaryPhone { get; set; }
     [EmailAddress,MaxLength(320)] public string? Email { get; set; }
@@ -30,7 +30,7 @@ public sealed class CreateLeadRequest
 }
 public sealed record LeadAssignmentDetails(Guid Id, Guid SalesEmployeeId, string SalesEmployeeName,
     DateTimeOffset AssignedAt, DateTimeOffset? EndedAt, Guid AssignedByUserId, string? Reason);
-public sealed record LeadDetails(Guid Id, Guid BranchId, string BranchName, string FullName,
+public sealed record LeadDetails(Guid Id, Guid BranchId, string BranchName, string? FullName,
     string PrimaryPhone, string? PrimaryPhoneNormalized, string? SecondaryPhone, string? Email,
     string? Source, string? Notes, string Status, DateTimeOffset CreatedAt,
     DateTimeOffset? NextFollowUpAt, LeadAssignmentDetails? CurrentAssignment,
@@ -47,11 +47,13 @@ public sealed class LeadAssignmentRequest
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class LeadInteractionRequest
 {
+    [JsonConverter(typeof(JsonStringEnumConverter<InteractionType>))]
     public InteractionType InteractionType { get; set; }
     [Required,MaxLength(4096)] public string Notes { get; set; } = "";
     [MaxLength(256)] public string? Outcome { get; set; }
     public DateTimeOffset? ContactedAt { get; set; }
     public DateTimeOffset? NextFollowUpAt { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter<LeadStatus>))]
     public LeadStatus Status { get; set; } = LeadStatus.Contacted;
 }
 public sealed record LeadInteractionDetails(Guid Id, Guid EmployeeId, Guid? CreatedByUserId,
@@ -60,7 +62,8 @@ public sealed record LeadInteractionDetails(Guid Id, Guid EmployeeId, Guid? Crea
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class LeadStatusRequest
 {
-    public LeadStatus Status { get; set; }
+    [Required, JsonConverter(typeof(JsonStringEnumConverter<LeadStatus>))]
+    public LeadStatus? Status { get; set; }
     [MaxLength(2048)] public string? Reason { get; set; }
     public DateTimeOffset? NextFollowUpAt { get; set; }
 }
@@ -93,7 +96,7 @@ public sealed class MemberFollowUpRequest
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class UpdateLeadRequest
 {
-    [Required,MaxLength(256)] public string FullName { get; set; } = "";
+    [MaxLength(256)] public string? FullName { get; set; }
     [Required,MaxLength(64)] public string PrimaryPhone { get; set; } = "";
     [MaxLength(64)] public string? SecondaryPhone { get; set; }
     [EmailAddress,MaxLength(320)] public string? Email { get; set; }

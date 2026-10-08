@@ -7,10 +7,11 @@ using CampionsSystem.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+var configureCrmPermissions = args.Contains("--configure-crm-permissions", StringComparer.Ordinal);
 var configureBranchPermissions = args.Contains("--configure-branch-permissions", StringComparer.Ordinal);
 var configureMemberPermissions = args.Contains("--configure-member-permissions", StringComparer.Ordinal);
 var seedAuthDemo = args.Contains("--seed-auth-demo", StringComparer.Ordinal);
-var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--seed-auth-demo" && arg != "--configure-branch-permissions" && arg != "--configure-member-permissions").ToArray());
+var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--configure-crm-permissions" && arg != "--seed-auth-demo" && arg != "--configure-branch-permissions" && arg != "--configure-member-permissions").ToArray());
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -32,6 +33,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 
 builder.Services.AddGymAuthentication(builder.Configuration);
 builder.Services.AddScoped<DevelopmentAuthSeeder>();
+builder.Services.AddScoped<CampionsSystem.BLL.Crm.LeadManagementService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Crm.CrmPermissionSetup>();
 builder.Services.AddScoped<BranchManagementService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Members.MemberManagementService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Members.MemberPermissionSetup>();
@@ -56,6 +59,18 @@ var app = builder.Build();
 if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
     throw new InvalidOperationException(
         "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
+
+if (configureCrmPermissions)
+{
+    var target = new Npgsql.NpgsqlConnectionStringBuilder(app.Configuration.GetConnectionString("DefaultConnection"));
+    if (!app.Environment.IsDevelopment() || target.Host is not ("localhost" or "127.0.0.1" or "::1"))
+        throw new InvalidOperationException("CRM permission setup is allowed only in Development against localhost.");
+    await using (var scope = app.Services.CreateAsyncScope())
+        await scope.ServiceProvider.GetRequiredService<CampionsSystem.BLL.Crm.CrmPermissionSetup>().ConfigureAsync(app.Lifetime.ApplicationStopping);
+    Console.WriteLine("CRM permission setup completed; existing activation/grants preserved.");
+    await app.DisposeAsync();
+    return;
+}
 
 if (configureMemberPermissions)
 {

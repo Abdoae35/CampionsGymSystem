@@ -101,7 +101,7 @@ public sealed partial class LeadManagementService(ApplicationDbContext db, ICurr
         if (!string.IsNullOrWhiteSpace(r.Search))
         {
             var s=r.Search.Trim().ToLowerInvariant(); var compact=System.Text.RegularExpressions.Regex.Replace(s,@"[\s().-]","").TrimStart('0');
-            q=q.Where(l=>l.FullName.ToLower().Contains(s)||l.Phone.Contains(s)||l.PhoneNormalized!=null && l.PhoneNormalized.Contains(compact));
+            q=q.Where(l=>l.FullName!=null&&l.FullName.ToLower().Contains(s)||l.Phone.Contains(s)||l.PhoneNormalized!=null && compact.Length>0 && l.PhoneNormalized.Contains(compact));
         }
         if (r.FollowUp.HasValue)
         {

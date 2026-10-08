@@ -30,7 +30,7 @@ public sealed partial class LeadManagementService
                 CrossBranch=user.CurrentBranchId.HasValue&&t.Member.HomeBranchId!=user.CurrentBranchId});
         var leads=db.Leads.AsNoTracking().Where(l=>user.Permissions.Contains("Leads.View")&&l.NextFollowUpAt!=null&&l.Status!=LeadStatus.Lost&&l.Status!=LeadStatus.Converted&&l.Status!=LeadStatus.Inactive
             &&Assignments().Any(a=>a.LeadId==l.Id&&a.SalesEmployeeId==user.EmployeeId))
-            .Select(l=>new FollowUpRow{Id=l.Id,SubjectType="Lead",LeadId=l.Id,MemberId=null,Name=l.FullName,Phone=l.Phone,BranchId=l.BranchId,
+            .Select(l=>new FollowUpRow{Id=l.Id,SubjectType="Lead",LeadId=l.Id,MemberId=null,Name=l.FullName??l.Phone,Phone=l.Phone,BranchId=l.BranchId,
                 BranchName=l.Branch.Name,Reason="LeadFollowUp",DueAt=l.NextFollowUpAt!.Value,CrossBranch=user.CurrentBranchId.HasValue&&l.BranchId!=user.CurrentBranchId});
         return await WorkListAsync(memberTasks.Concat(leads),r,ct);
     }
@@ -115,6 +115,8 @@ public sealed partial class LeadManagementService
             var memberId=await db.MemberFollowUpTasks.Where(t=>t.Id==id&&t.CompletedAt==null).Select(t=>(Guid?)t.MemberId).SingleOrDefaultAsync(ct)
                 ??throw new BranchNotFoundException("Open follow-up not found.");
             var member=await LockMemberAsync(memberId,ct);BranchAccessService.EnsureScope(user,member.HomeBranchId);
+            if(!await db.MemberFollowUpTasks.AnyAsync(t=>t.Id==id&&t.CompletedAt==null,ct))
+                throw new BusinessRuleException("Follow-up was completed; reload before distribution.");
             if(await MemberOwners().AnyAsync(a=>a.MemberId==memberId,ct))throw new BusinessRuleException("Member already has an owner; use Member reassignment.");
             var result=await members.AssignSalesAsync(memberId,r,ct);
             access.Audit(user.UserId,member.HomeBranchId,"HouseMember.AssignedForFollowUp",nameof(Member),memberId,after:new{FollowUpId=id,r.SalesEmployeeId});

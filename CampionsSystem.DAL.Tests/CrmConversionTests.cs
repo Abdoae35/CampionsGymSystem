@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class CrmManagementTests
 {
-    private ConvertLeadRequest Conversion(LeadDetails l,Guid? branch=null)=>new(){FullName=l.FullName,PrimaryPhone=l.PrimaryPhone,TargetRegistrationBranchId=branch??a.Id};
+    private ConvertLeadRequest Conversion(LeadDetails l,Guid? branch=null)=>new(){FullName=l.FullName!,PrimaryPhone=l.PrimaryPhone,TargetRegistrationBranchId=branch??a.Id};
     [Fact] public async Task ManagerConversionKeepsOriginalOwnerAndDestinationCodeWithoutPurchase()
     {
         var l=await Lead();await service.AssignLeadAsync(l.Id,new(){SalesEmployeeId=ahmed.Id});

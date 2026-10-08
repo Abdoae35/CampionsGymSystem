@@ -8,7 +8,7 @@ public sealed class Lead
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;
-    public string FullName { get; set; } = null!;
+    public string? FullName { get; set; }
     public string Phone { get; set; } = null!;
     public string? PhoneNormalized { get; set; }
     public string? SecondaryPhone { get; set; }

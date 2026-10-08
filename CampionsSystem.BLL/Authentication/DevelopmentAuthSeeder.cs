@@ -20,7 +20,7 @@ public sealed class DevelopmentAuthSeeder(ApplicationDbContext database, UserMan
         .. CampionsSystem.BLL.Members.MemberPermissions.Codes, "MembershipPlans.View", "MembershipPlans.Manage",
         "Payments.View", "Payments.Create", "Payments.Refund", "Expenses.View", "Expenses.Create", "Expenses.Approve",
         "Shifts.View", "Shifts.Manage", "Private.View", "Private.Manage", "Activities.View", "Activities.Manage",
-        "Leads.View", "Leads.Manage", "Commission.View", "Commission.ClosePeriod", "Commission.ReopenPeriod",
+        .. CampionsSystem.BLL.Crm.CrmPermissions.Codes, "Commission.View", "Commission.ClosePeriod", "Commission.ReopenPeriod",
         "Commission.ManageRules", "Payroll.View", "Payroll.Manage", "Reports.View", "Reports.ViewRevenue", "AuditLogs.View",
         "Activities.ManageCoaches", "Activities.ViewCoachRevenue", "Classes.View", "Classes.Manage",
         "Classes.ViewAttendanceReport", "FreelancePlans.View", "FreelancePlans.Manage", "FreelancePlans.ManageEligibleMembers"
@@ -42,8 +42,8 @@ public sealed class DevelopmentAuthSeeder(ApplicationDbContext database, UserMan
         var grants = new Dictionary<string, string[]>
         {
             ["Owner"] = PermissionCodes,
-            ["BranchManager"] = ["Branches.View", "Employees.View", "Members.View", "Members.Create", "Members.Edit", "Members.AssignSales", "Members.ChangeStatus", "Members.ViewSalesHistory", "MembershipPlans.View", "Payments.View", "Payments.Create", "Expenses.View", "Expenses.Create", "Shifts.View", "Shifts.Manage", "Private.View", "Activities.View", "Leads.View", "Commission.View", "Reports.View"],
-            ["Sales"] = ["Members.View", "Members.Create", "Members.OwnSalesCustomers", "Members.CreateCrossBranch", "MembershipPlans.View", "Leads.View", "Leads.Manage"],
+            ["BranchManager"] = ["Branches.View", "Employees.View", "Members.View", "Members.Create", "Members.Edit", "Members.AssignSales", "Members.ChangeStatus", "Members.ViewSalesHistory", "MembershipPlans.View", "Payments.View", "Payments.Create", "Expenses.View", "Expenses.Create", "Shifts.View", "Shifts.Manage", "Private.View", "Activities.View", "Leads.View", "Leads.Manage", "Leads.Assign", "Leads.Convert", "CRM.ViewMemberFollowUps", "CRM.ManageMemberFollowUps", "CRM.ManageHouseFollowUps", "Commission.View", "Reports.View"],
+            ["Sales"] = ["Members.View", "Members.Create", "Members.OwnSalesCustomers", "Members.CreateCrossBranch", "MembershipPlans.View", "Leads.View", "Leads.Manage", "Leads.Convert", "CRM.ViewMemberFollowUps", "CRM.ManageMemberFollowUps"],
             ["Reception"] = ["Members.View", "Members.Create", "MembershipPlans.View", "Payments.View", "Payments.Create", "Shifts.View"],
             ["PrivateCoach"] = ["Private.View"],
             ["ClassesCoach"] = []
