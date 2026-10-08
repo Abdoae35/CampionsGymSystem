@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member Management in progress on MemberManagement; latest checkpoint task 6.
-- Implemented permission-gated locked active/inactive status changes and audits without deletion or ownership/lifecycle changes. Tests preserve Sales history, employee link, GuestInvitation and CheckIn references and verify status validation/scope/permission. Twenty-one focused tests passed; build zero warnings/errors; diff reviewed.
+- Member Management in progress on MemberManagement; latest checkpoint task 7.
+- Implemented current owner/history queries, permission-based eligible Sales assignment/reassignment, return-to-House, parent-row locking and preserved historical/legacy House rows. Thirty focused tests passed including full registration concurrency across connections and competing assignments with one active owner; build zero warnings/errors after analyzer cleanup; diff reviewed.
 - Small verified commits/pushes authorized; subsequent tasks continue automatically.
 
 ## Work history
@@ -1198,6 +1198,14 @@ continue automatically on MemberManagement. No production database used.
 ### 2026-10-08 — Member Management task 6
 
 Implemented permission-gated locked active/inactive status changes and audits without deletion or ownership/lifecycle changes. Tests preserve Sales history, employee link, GuestInvitation and CheckIn references and verify status validation/scope/permission. Twenty-one focused tests passed; build zero warnings/errors; diff reviewed.
+
+Workflow: build/test/diff reviewed before this task commit; commit/push authorized
+by user. Exact hashes/results will be recorded in final validation. Remaining tasks
+continue automatically on MemberManagement. No production database used.
+
+### 2026-10-08 — Member Management task 7
+
+Implemented current owner/history queries, permission-based eligible Sales assignment/reassignment, return-to-House, parent-row locking and preserved historical/legacy House rows. Thirty focused tests passed including full registration concurrency across connections and competing assignments with one active owner; build zero warnings/errors after analyzer cleanup; diff reviewed.
 
 Workflow: build/test/diff reviewed before this task commit; commit/push authorized
 by user. Exact hashes/results will be recorded in final validation. Remaining tasks

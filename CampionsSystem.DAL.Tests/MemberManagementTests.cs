@@ -216,9 +216,69 @@ public sealed class MemberManagementTests : IAsyncLifetime
         Scoped("Members.Edit");
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.ChangeMemberStatusAsync(first.Id, new() { IsActive = false }));
     }
+    [Fact] public async Task HouseAssignmentReassignmentAndReturnPreserveHistory()
+    {
+        var otherUser = new ApplicationUser { UserName = "other-sales" };
+        var other = new Employee { FullName = "Other Sales", User = otherUser, Phone = "other-sales", HireDate = access.Today };
+        db.Add(other); await db.SaveChangesAsync();
+        Scoped("Members.AssignSales", "Members.View", "Members.ViewSalesHistory", "Branches.AccessAll");
+        var assigned = await service.AssignSalesAsync(second.Id, new() { SalesEmployeeId = sales.Id, Reason = "House distribution" });
+        Assert.False(assigned.IsHouse); Assert.Equal(sales.Id, assigned.CurrentSalesOwner?.SalesEmployeeId);
+        var reassigned = await service.AssignSalesAsync(second.Id, new() { SalesEmployeeId = other.Id, Reason = "Reassigned" });
+        Assert.Equal(other.Id, reassigned.CurrentSalesOwner?.SalesEmployeeId);
+        var history = await service.GetSalesAssignmentHistoryAsync(second.Id);
+        Assert.Equal(2, history.Count); Assert.Single(history, x => x.EndedAt == null);
+        Assert.NotNull(history.Single(x => x.SalesEmployeeId == sales.Id).EndedAt);
+        Assert.Equal(other.Id, (await service.GetCurrentSalesAssignmentAsync(second.Id))?.SalesEmployeeId);
+        Assert.True((await service.ReturnMemberToHouseAsync(second.Id, new() { Reason = "Return" })).IsHouse);
+        Assert.Null(await service.GetCurrentSalesAssignmentAsync(second.Id));
+        Assert.Equal(2, (await service.GetSalesAssignmentHistoryAsync(second.Id)).Count);
+        Assert.False(await db.MemberSalesAssignments.AnyAsync(x => x.MemberId == second.Id && x.EndedAt == null));
+        Assert.Contains(await db.AuditLogs.ToListAsync(), x => x.Action == "Member.SalesReassigned");
+        Assert.Contains(await db.AuditLogs.ToListAsync(), x => x.Action == "Member.ReturnedToHouse");
+        Assert.Equal(a.Id, (await db.EmployeeBranchAssignments.SingleAsync()).BranchId);
+    }
+    [Fact] public async Task AssignmentRequiresPermissionScopeAndEligibleActiveSalesAccount()
+    {
+        Scoped("Members.OwnSalesCustomers");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.AssignSalesAsync(first.Id, new() { SalesEmployeeId = sales.Id }));
+        Scoped("Members.AssignSales");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.AssignSalesAsync(second.Id, new() { SalesEmployeeId = sales.Id }));
+        ownerPermissions.Enabled = false;
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.AssignSalesAsync(first.Id, new() { SalesEmployeeId = sales.Id }));
+        ownerPermissions.Enabled = true;
+        await db.Employees.Where(x => x.Id == sales.Id).ExecuteUpdateAsync(x => x.SetProperty(y => y.EmploymentStatus, EmploymentStatus.Suspended));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.AssignSalesAsync(first.Id, new() { SalesEmployeeId = sales.Id }));
+        Assert.Single(await db.MemberSalesAssignments.ToListAsync()); Assert.Empty(await db.AuditLogs.ToListAsync());
+    }
+    [Fact] public async Task HistoryAndReturnRequireTheirPermissions()
+    {
+        Scoped("Members.View");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.GetSalesAssignmentHistoryAsync(first.Id));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.ReturnMemberToHouseAsync(first.Id, new()));
+        Scoped("Members.ViewSalesHistory");
+        await Assert.ThrowsAsync<BranchNotFoundException>(() => service.GetSalesAssignmentHistoryAsync(second.Id));
+    }
+    [Fact] public async Task LegacyHouseRowsArePreservedWhenAssigningSales()
+    {
+        db.Add(new MemberSalesAssignment { MemberId = second.Id, AssignmentType = AssignmentType.House,
+            AssignedAt = access.Now, AssignedByUserId = current.UserId!.Value }); await db.SaveChangesAsync();
+        Scoped("Members.AssignSales", "Branches.AccessAll");
+        var result = await service.AssignSalesAsync(second.Id, new() { SalesEmployeeId = sales.Id });
+        Assert.False(result.IsHouse);
+        var rows = await db.MemberSalesAssignments.Where(x => x.MemberId == second.Id).ToListAsync();
+        Assert.Equal(2, rows.Count); Assert.NotNull(rows.Single(x => x.AssignmentType == AssignmentType.House).EndedAt);
+    }
+    [Fact] public async Task DatabaseRejectsTwoActiveAssignments()
+    {
+        db.Add(new MemberSalesAssignment { MemberId = first.Id, SalesEmployeeId = sales.Id, AssignmentType = AssignmentType.Sales,
+            AssignedAt = access.Now, AssignedByUserId = current.UserId!.Value });
+        await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+    }
     private sealed class OwnerPermissions : IPermissionService
     {
+        public bool Enabled { get; set; } = true;
         public Task<HashSet<string>> GetUserPermissionsAsync(Guid id, CancellationToken cancellationToken = default)
-            => Task.FromResult(new HashSet<string> { "Members.OwnSalesCustomers" });
+            => Task.FromResult(Enabled ? new HashSet<string> { "Members.OwnSalesCustomers" } : []);
     }
 }

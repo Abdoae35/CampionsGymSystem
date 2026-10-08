@@ -1,4 +1,7 @@
 using CampionsSystem.BLL.Members;
+using CampionsSystem.BLL.Authentication;
+using CampionsSystem.BLL.Operations;
+using Microsoft.Extensions.Options;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -35,13 +38,24 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
         await using var cn = new NpgsqlConnection(connection); await cn.OpenAsync();
         await using var command = new NpgsqlCommand($"DROP SCHEMA {schema} CASCADE", cn); await command.ExecuteNonQueryAsync();
     }
+    private int phoneCounter;
+    private MemberManagementService Service(ApplicationDbContext db)
+    {
+        var user = new TestBranchUser(new(actor, "concurrent-member", null, null, [],
+            ["Members.Create", "Members.AssignSales", "Branches.AccessAll"], null));
+        return new(db, user, new OperationAccess(user, db, TimeProvider.System, Options.Create(new AuthContextOptions())), new Capabilities());
+    }
+    private sealed class Capabilities : IPermissionService
+    {
+        public Task<HashSet<string>> GetUserPermissionsAsync(Guid id, CancellationToken cancellationToken = default)
+            => Task.FromResult(new HashSet<string> { "Members.OwnSalesCustomers" });
+    }
     private async Task<long> CreateAsync(Guid branch)
     {
-        await using var db = Context(); await using var transaction = await db.Database.BeginTransactionAsync();
-        var code = await new BranchClientCodeGenerator(db).NextAsync(branch);
-        db.Add(new Member { FullName = "Concurrent", PrimaryPhone = Guid.NewGuid().ToString("N"),
-            MemberCode = Guid.NewGuid().ToString("N"), ClientCode = code, HomeBranchId = branch, CreatedByUserId = actor });
-        await db.SaveChangesAsync(); await transaction.CommitAsync(); return code;
+        await using var db = Context();
+        var result = await Service(db).CreateMemberAsync(new() { FullName = "Concurrent", PrimaryPhone = "+44123456" + Interlocked.Increment(ref phoneCounter).ToString("D4"),
+            TargetRegistrationBranchId = branch, CreationType = MemberCreationType.ManagementCreated });
+        return result.ClientCode!.Value;
     }
     [Fact] public async Task IndependentConnectionsCreateUniqueSameBranchCodes()
     {
@@ -60,4 +74,24 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
         var other = CreateAsync(b); Assert.Equal(1, await other.WaitAsync(TimeSpan.FromSeconds(10)));
         await tx.RollbackAsync(); Assert.Equal(1, await CreateAsync(a));
     }
+    [Fact] public async Task ConcurrentAssignmentsSerializeAndRetainOneActiveOwner()
+    {
+        await CreateAsync(a);
+        Guid member, first, second;
+        await using (var db = Context())
+        {
+            member = await db.Members.Select(m => m.Id).SingleAsync();
+            var e1 = new Employee { FullName = "First", Phone = "first", UserId = actor, HireDate = new(2026,1,1) };
+            var e2 = new Employee { FullName = "Second", Phone = "second", User = new ApplicationUser { UserName = "second" }, HireDate = new(2026,1,1) };
+            db.AddRange(e1, e2); await db.SaveChangesAsync(); first = e1.Id; second = e2.Id;
+        }
+        async Task Assign(Guid employee)
+        {
+            await using var db = Context(); await Service(db).AssignSalesAsync(member, new() { SalesEmployeeId = employee });
+        }
+        await Task.WhenAll(Assign(first), Assign(second));
+        await using var check = Context(); var rows = await check.MemberSalesAssignments.Where(x => x.MemberId == member).ToListAsync();
+        Assert.Equal(2, rows.Count); Assert.Single(rows, x => x.EndedAt == null); Assert.Single(rows, x => x.EndedAt != null);
+    }
+
 }

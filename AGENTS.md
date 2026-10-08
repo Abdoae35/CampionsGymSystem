@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Member Management in progress on MemberManagement; latest task 6.
-- Implemented permission-gated locked active/inactive status changes and audits without deletion or ownership/lifecycle changes. Tests preserve Sales history, employee link, GuestInvitation and CheckIn references and verify status validation/scope/permission. Twenty-one focused tests passed; build zero warnings/errors; diff reviewed.
+- Member Management in progress on MemberManagement; latest task 7.
+- Implemented current owner/history queries, permission-based eligible Sales assignment/reassignment, return-to-House, parent-row locking and preserved historical/legacy House rows. Thirty focused tests passed including full registration concurrency across connections and competing assignments with one active owner; build zero warnings/errors after analyzer cleanup; diff reviewed.
 - Complete remaining tasks automatically with build/tests/diff/commit/push.
 - No production database used. See PROJECT_HISTORY.md for chronology.
 - Portable history skill: skills/project-history-update/SKILL.md.
