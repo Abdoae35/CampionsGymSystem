@@ -124,7 +124,8 @@ public sealed partial class MemberManagementService
             if (request.CreationType == MemberCreationType.FreelanceHouse
                 && !await db.MembershipPlans.AnyAsync(p => p.Id == request.FreelancePlanId && p.IsActive
                     && p.PlanCategory == PlanCategory.Freelance && p.CityId == branch.CityId
-                    && p.FreelanceCoachEmployee!.EmploymentStatus == EmploymentStatus.Active
+                    && p.FreelanceCoachEmployee!.EmploymentType == EmploymentType.Freelance
+                    && p.FreelanceCoachEmployee.EmploymentStatus == EmploymentStatus.Active
                     && p.FreelanceCoachEmployee.HireDate <= access.Today
                     && (p.FreelanceCoachEmployee.TerminationDate == null || p.FreelanceCoachEmployee.TerminationDate >= access.Today), ct))
                 throw new BusinessRuleException("An active Freelance plan/coach in the registration city is required.");

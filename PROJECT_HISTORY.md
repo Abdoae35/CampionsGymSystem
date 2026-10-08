@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member Management in progress on MemberManagement; latest checkpoint task 8.
-- Exposed nine thin Member API endpoints, registered services, added permission catalog/explicit guarded setup and default grants for newly seeded demo roles. Setup ran only on local development: nine Member permissions, zero Members, latest migration verified. Tightened NormalSales cross-branch permission even with global access and required explicit eligible Sales for normal ManagementCreated registration; FreelanceHouse is the explicit new-House path. Normalized formatted phone search and API/legacy migration regression tests added. Corrected one permission-count assertion (pre-existing unrelated permissions). Final full suite 315 passed, zero failed/skipped; build zero warnings/errors; diff reviewed.
+- Member Management in progress on MemberManagement; latest checkpoint task 9-validation-fix.
+- Final review tightened FreelanceHouse registration to require the coach still has Freelance employment type, matching existing Freelance plan validation; a later employee profile change cannot bypass it. Three targeted BLL/HTTP eligibility tests passed including rollback after type change; build zero warnings/errors; diff reviewed. Prior full run 315 passed before this fix; final full rerun and documentation checkpoint remain.
 - Small verified commits/pushes authorized; subsequent tasks continue automatically.
 
 ## Work history
@@ -1214,6 +1214,14 @@ continue automatically on MemberManagement. No production database used.
 ### 2026-10-08 — Member Management task 8
 
 Exposed nine thin Member API endpoints, registered services, added permission catalog/explicit guarded setup and default grants for newly seeded demo roles. Setup ran only on local development: nine Member permissions, zero Members, latest migration verified. Tightened NormalSales cross-branch permission even with global access and required explicit eligible Sales for normal ManagementCreated registration; FreelanceHouse is the explicit new-House path. Normalized formatted phone search and API/legacy migration regression tests added. Corrected one permission-count assertion (pre-existing unrelated permissions). Final full suite 315 passed, zero failed/skipped; build zero warnings/errors; diff reviewed.
+
+Workflow: build/test/diff reviewed before this task commit; commit/push authorized
+by user. Exact hashes/results will be recorded in final validation. Remaining tasks
+continue automatically on MemberManagement. No production database used.
+
+### 2026-10-08 — Member Management task 9-validation-fix
+
+Final review tightened FreelanceHouse registration to require the coach still has Freelance employment type, matching existing Freelance plan validation; a later employee profile change cannot bypass it. Three targeted BLL/HTTP eligibility tests passed including rollback after type change; build zero warnings/errors; diff reviewed. Prior full run 315 passed before this fix; final full rerun and documentation checkpoint remain.
 
 Workflow: build/test/diff reviewed before this task commit; commit/push authorized
 by user. Exact hashes/results will be recorded in final validation. Remaining tasks

@@ -307,6 +307,19 @@ public sealed class MemberManagementTests : IAsyncLifetime
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.CreateMemberAsync(NewMember(b.Id)));
         Assert.Equal(2, await db.Members.CountAsync());
     }
+    [Fact] public async Task FreelanceRegistrationRejectsCoachWhoseEmploymentTypeChanged()
+    {
+        var coach = new Employee { FullName = "Former Freelance", Phone = "former", HireDate = access.Today, EmploymentType = EmploymentType.Freelance };
+        var plan = new MembershipPlan { Name = "Existing special", CityId = a.CityId, DurationDays = 30,
+            PlanCategory = PlanCategory.Freelance, FreelanceCoachEmployee = coach };
+        db.Add(plan); await db.SaveChangesAsync();
+        await db.Employees.Where(e => e.Id == coach.Id).ExecuteUpdateAsync(x => x.SetProperty(e => e.EmploymentType, EmploymentType.Staff));
+        Scoped("Members.Create", "FreelancePlans.ManageEligibleMembers");
+        var request = NewMember(); request.CreationType = MemberCreationType.FreelanceHouse; request.FreelancePlanId = plan.Id;
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateMemberAsync(request));
+        Assert.Equal(2, await db.Members.CountAsync()); Assert.Empty(await db.MembershipPlanEligibleMembers.ToListAsync());
+        Assert.Empty(await db.AuditLogs.ToListAsync());
+    }
     private sealed class OwnerPermissions : IPermissionService
     {
         public bool Enabled { get; set; } = true;
