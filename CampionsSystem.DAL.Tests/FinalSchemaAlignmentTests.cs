@@ -93,7 +93,7 @@ public sealed class FinalSchemaAlignmentTests : IAsyncLifetime
         var subscription = new MemberSubscription { Member = member, MembershipPlan = plan, CityId = branch.CityId,
             PurchasedAtBranch = branch, StartDate = day.BusinessDate, EndDate = day.BusinessDate.AddDays(30) };
         db.Add(new MembershipSubscriptionTransaction { MemberSubscription = subscription, SaleTransaction = sale, MembershipPlan = plan,
-            PurchasedDurationDays = 30, PlanPriceSnapshot = 500, NetPriceSnapshot = 500, NewEndDate = subscription.EndDate, CreatedAt = actual });
+            PurchasedDurationDays = 30, PlanPriceSnapshot = 500, NetPriceSnapshot = 500, NewEndDate = subscription.EndDate!.Value, CreatedAt = actual });
         await db.SaveChangesAsync(); db.ChangeTracker.Clear();
         var batch = await db.MembershipSubscriptionTransactions.Include(x => x.SaleTransaction).ThenInclude(x => x.BusinessDay).SingleAsync();
         Assert.Equal(new DateOnly(2026, 10, 30), batch.SaleTransaction.BusinessDay!.BusinessDate);

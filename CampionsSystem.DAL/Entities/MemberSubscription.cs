@@ -6,6 +6,9 @@ namespace CampionsSystem.DAL.Entities;
 public sealed class MemberSubscription
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    // Non-null identifies an employment entitlement and preserves its historical owner.
+    public Guid? EmployeeId { get; set; }
+    public Employee? Employee { get; set; }
     public Guid MemberId { get; set; }
     public Member Member { get; set; } = null!;
     public Guid MembershipPlanId { get; set; }
@@ -15,7 +18,7 @@ public sealed class MemberSubscription
     public Guid PurchasedAtBranchId { get; set; }
     public GymBranch PurchasedAtBranch { get; set; } = null!;
     public DateOnly StartDate { get; set; }
-    public DateOnly EndDate { get; set; }
+    public DateOnly? EndDate { get; set; }
     public AccessMode AccessMode { get; set; }
     public int? TotalSessions { get; set; }
     public int? RemainingSessions { get; set; }

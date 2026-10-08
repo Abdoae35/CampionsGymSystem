@@ -309,3 +309,48 @@ No existing phone normalization strategy was found. This task stores the supplie
 canonical phone (required, nonblank, trimmed); future BLL must define and share a
 single normalization policy across guest/member matching before enabling issuance.
 No separate normalization algorithm is introduced by this domain migration.
+
+## Employee gym membership support
+
+Employee.MemberId is nullable, uniquely indexed and references Members with
+Restrict deletion. Employees can exist before a profile is linked; no automatic
+profile creation or personal-data copying is introduced.
+
+PlanCategory.Employee (value 2, stored as 'Employee') is a behavioral/system type,
+independent of the dynamic MembershipPlanCategory audience. Employee plans require
+Price = 0, Unlimited access, no session count, no Freelance Coach and
+DurationDays = 0 (no fixed duration). Normal/Freelance still require positive
+duration and retain their previous rules. No deterministic plan row is seeded.
+Employee category itself marks internal-only entitlement plans; future normal
+purchase/catalog services must exclude it.
+
+MemberSubscription.EmployeeId is an optional restricted Employees FK. Non-null
+identifies employment entitlement and preserves its historical owner independent
+of later plan/profile edits. Future BLL must ensure Employee.MemberId matches the
+subscription MemberId and the plan is Employee type; cross-table matching is not
+a CHECK constraint. The explicit relationship avoids deriving old ownership from
+a mutable plan or current employee profile link.
+
+EndDate is nullable only for employee periods. Open employee periods are
+Scheduled/Active, Unlimited, without counters or EndDate; closed employee periods
+are Expired/Cancelled with a real EndDate >= StartDate. Normal/Freelance subscriptions
+still require EndDate. Unique partial indexes WHERE EmployeeId IS NOT NULL AND
+EndDate IS NULL enforce one open period per employee and per member. Historical
+closed periods remain alongside new rehire periods; no future year is fabricated.
+EmployeeId/StartDate and the original unfiltered MemberId lookup support history.
+
+Subscriptions already allow zero purchase transactions. Employee memberships
+therefore create no purchase batch, sale, payment or revenue; required paid
+transaction FKs and dates remain unchanged. Paid transaction category snapshots
+continue accepting only Normal/Freelance. The existing Freelance renewal entry
+point rejects employee-owned periods rather than converting an entitlement.
+
+CheckIns is unchanged: use Gym + MemberSubscriptionId + linked MemberId, with
+SessionConsumed false. Future BLL verifies Active employment and employment dates.
+EF SaveChanges protects employee period ownership/start/plan, rejects deletion,
+and prevents modifying closed periods. This tracked guard does not intercept
+raw SQL/bulk writes; production write permissions and future services must preserve
+history. Restrict FKs protect referenced employee/member/plan/check-in history.
+
+EmploymentStatus remains Active/Resigned/Suspended. Permanent departures currently
+use Resigned and TerminationDate; no separate Terminated API/status is introduced.

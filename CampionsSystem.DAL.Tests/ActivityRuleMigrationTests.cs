@@ -20,9 +20,15 @@ public sealed class ActivityRuleMigrationTests
         var member = new Member { MemberCode = "L-1", FullName = "Legacy member", PrimaryPhone = "legacy-member", HomeBranch = branch, CreatedByUser = user };
         var activity = new SportsActivity { Branch = branch, Name = "Legacy Boxing" };
         var package = new ActivityPackage { SportsActivity = activity, Name = "Legacy", DurationDays = 30, Price = 500 };
-        var group = new GroupClass { Branch = branch, Name = "Legacy class", CoachEmployee = employee };
-        db.AddRange(user, branch, package, group);
+        var group = new GroupClass { Branch = branch, Name = "Legacy class", CoachEmployeeId = employee.Id };
+        db.AddRange(user, branch, package);
         await db.SaveChangesAsync();
+        // Insert the historical Employee shape before MemberId existed.
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO "Employees" ("Id", "FullName", "Phone", "EmploymentType", "HireDate", "EmploymentStatus", "CreatedAt")
+            VALUES ({employee.Id}, {employee.FullName}, {employee.Phone}, 'Staff', {employee.HireDate}, 'Active', {employee.CreatedAt});
+            """);
+        db.Add(group); await db.SaveChangesAsync();
         // Insert with the legacy schema shape, not today's Member EF model.
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT INTO "Members" ("Id", "MemberCode", "FullName", "PrimaryPhone", "HomeBranchId", "CreatedByUserId", "CreatedAt", "IsActive", "IsPrimaryPhoneVerified")

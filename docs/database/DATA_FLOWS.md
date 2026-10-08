@@ -450,3 +450,22 @@ HouseClientInactiveAfterDays is a proposed future configurable threshold; there
 is no general settings subsystem to extend now. End the previous assignment and
 create the new assignment; preserve history. Freelance eligibility remains
 MembershipPlanEligibleMembers, independent of future normal-plan purchases.
+
+## EMPLOYEE GYM ACCESS — FUTURE
+
+Employee -> Member Profile -> Employee Membership -> Unlimited Gym Access
+
+When Employee is Active, a Member profile exists and there is no open employee
+membership, future BLL creates a Scheduled/Active Unlimited subscription with
+EmployeeId and null EndDate using an Employee plan. No financial rows are created.
+
+Scan Employee Member QR -> find Employee Membership -> verify current Active
+employment and dates -> normal Gym CheckIn -> no session deduction.
+
+Employee suspended or permanently leaves -> employee membership closes
+(Expired/Cancelled, actual EndDate) -> old period retained.
+
+Employee returns -> new Employee Membership period; never reopen the old period.
+The existing Resigned + TerminationDate representation covers permanent departure.
+Lifecycle, linking and access verification are deferred until Member Management/
+Subscription services; status changes do not automatically create/close periods now.

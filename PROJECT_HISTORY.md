@@ -16,9 +16,9 @@ it does not replace checking the actual repository.
 - `CampionsGymSystem.slnx`: solution file.
 - Intended scope includes gym operations, transactions, payments, and leads.
   PostgreSQL is selected; the 26-module EF persistence schema is implemented.
-  The current aligned model has 75 application tables plus seven Identity tables.
-  Local development migrations through AddMembershipBenefits were explicitly authorized
-  and applied on 2026-10-07. Production rollout remains separate.
+  The current aligned model has 76 application tables plus seven Identity tables.
+  Local development migrations through AddEmployeeGymMembershipSupport were explicitly
+  authorized and applied on 2026-10-08. Production rollout remains separate.
   Payment provider and business workflows remain to be implemented.
 
 ## User preferences and workflow
@@ -43,13 +43,14 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- One-time guest invitation domain/database update implemented on the existing
-  EmployeeManagement branch; no Freelance schema redesign or Member Management.
-- Development migration 20261008012831_AddGuestInvitations applied successfully.
-  Catalog confirms indexes/trigger and guest-capable Trial check-ins.
-- Build zero warnings/errors; EF no model drift; full suite 247 passed, zero failed/skipped.
-- Implementation commit 7d55dc3 pushed to origin/EmployeeManagement; remote hash verified.
-- Phone identity policy, expiry and House inactivity threshold remain future BLL.
+- Employee gym membership domain/database support implemented on DataBaseInit.
+- Development migration 20261008014844_AddEmployeeGymMembershipSupport applied;
+  existing employee/plan/subscription/sale counts preserved; production untouched.
+- Nullable unique Employee.MemberId and historical MemberSubscription.EmployeeId;
+  Employee plans are free/Unlimited; open employee periods use null EndDate.
+- Build zero warnings/errors; 17 focused tests and full suite 264 passed, zero failed/skipped; EF drift clean.
+- Commit/push requested after verification. Member Management remains unstarted.
+- Future BLL owns activation/deactivation, employment access checks and link validation.
 
 ## Work history
 
@@ -1071,3 +1072,65 @@ Implementation and required checkpoint committed as 7d55dc3 and pushed to
 origin/EmployeeManagement. Local/remote hashes matched and working tree was clean.
 A final documentation checkpoint records that completed Git state. No Member Management, invitation API/redemption service,
 Excel import, inactive House report, redistribution UI or frontend started.
+
+
+## 2026-10-08 — Employee gym membership domain/database support
+
+Request: inspect existing schema, make the smallest employment entitlement update,
+apply a new Development migration, verify full suite/drift, document and commit/push;
+stop before Member Management.
+
+Started clean on DataBaseInit at 2f88184. Existing Unlimited mode, MemberSubscription
+without purchase transactions, Gym CheckIn shape and employment statuses/dates
+already support the foundation. No existing Employee–Member link or Employee plan
+type existed; EndDate was required. No personal data copied or plan/profile seeded.
+
+Added nullable unique Employee.MemberId -> Member, Restrict. Added behavioral
+PlanCategory.Employee (stable value 2); checks enforce zero price, Unlimited,
+no session count/Coach and DurationDays = 0 (no fixed duration). Normal/Freelance
+positive duration/rules remain. No dynamic audience category changes. Category
+marks internal-only plans; future catalog/customer purchase BLL must exclude them.
+
+Added nullable MemberSubscription.EmployeeId -> Employee, Restrict, to retain
+historical owner independently of mutable plan/profile links. Made EndDate nullable
+only for open employee entitlements via CHECK. Employee periods are Unlimited:
+Scheduled/Active with null EndDate, or Expired/Cancelled with actual EndDate.
+Normal/Freelance still require EndDate. Partial unique indexes prevent duplicate
+open employee/member entitlements; history lookup index and old Member index kept.
+Paid purchase transaction/payment FKs and paid snapshot dates remain required;
+employee entitlements need no purchase batch or finance/commission rows.
+
+EF tracked saves preserve employee period ownership/start/plan, reject deletion
+and prevent changes to closed periods. Raw SQL/bulk writes bypass this guard,
+documented explicitly. Existing Freelance renewal rejects employee-owned periods.
+Paid date assignments and three existing test fixtures adapted for nullable
+subscription EndDate; no purchase/lifecycle/check-in service introduced.
+
+Created 20261008014844_AddEmployeeGymMembershipSupport, designer/snapshot and
+reviewed upgrade SQL. Up changes only Employees, MembershipPlans and
+MemberSubscriptions: nullable columns/EndDate, constraints, indexes and two FKs.
+No previous migration edits, data rewrites or destructive table/column drops.
+Down was not applied; removed generated fake minimum date default so rollback
+requires explicit reconciliation. Development update completed Done; read-only
+localhost campions_gym catalog confirms latest migration, nullable columns,
+unique indexes and unchanged counts: two employees, zero plans/subscriptions/sales.
+Production untouched. Updated schema/flows/BLL rules/local database guide.
+
+Focused tests: initial 15/16 passed; corrected uniqueness fixture to avoid EF
+one-to-one fixup automatically unlinking the prior employee, so the test exercises
+a real DB conflict. Focused rerun 17 passed including Freelance renewal protection.
+First full suite 263/264 passed: historical migration fixture used current Employee
+EF shape before MemberId existed. Corrected it to insert legacy Employee columns
+explicitly, retaining its historical boundary/assertions. Employee uniqueness tests
+also isolate employee and member conflicts independently. Final FULL suite 264 passed, zero failed/skipped.
+Builds zero warnings/errors; EF no model changes since migration. Diff/snapshot/
+SQL scope and whitespace reviewed.
+
+Future BLL: create when Active + linked Member + no open entitlement; close on
+suspension/departure; rehire creates a new subscription ID, never reopens history.
+Validate Employee/Member/Employee-plan consistency and current employment at access,
+keep all finance/commissions absent and reject overlapping closed historical periods.
+Existing Resigned + TerminationDate represents permanent departure; no new
+Terminated status/API behavior introduced. No lifecycle automation, Member Management,
+separate EmployeeCheckIn, frontend or next module started. Commit/push pending final
+full verification and checkpoint (all passed).

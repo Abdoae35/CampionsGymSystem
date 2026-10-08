@@ -29,7 +29,7 @@ public sealed class MembershipBenefitsTests : IAsyncLifetime
         var sale = new SaleTransaction { Member = member, Branch = branch, CreatedByUser = user,
             SaleType = SaleType.GymMembership, GrossAmount = 1500, NetAmount = 1500 };
         transaction = new MembershipSubscriptionTransaction { MemberSubscription = subscription, MembershipPlan = plan,
-            SaleTransaction = sale, PurchasedDurationDays = 90, PlanPriceSnapshot = 1500, NetPriceSnapshot = 1500, NewEndDate = subscription.EndDate };
+            SaleTransaction = sale, PurchasedDurationDays = 90, PlanPriceSnapshot = 1500, NetPriceSnapshot = 1500, NewEndDate = subscription.EndDate!.Value };
         db.Add(transaction);
         await db.SaveChangesAsync();
     }

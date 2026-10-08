@@ -1207,6 +1207,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<Guid?>("MemberId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -1219,6 +1222,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MemberId")
+                        .IsUnique();
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -2401,7 +2407,10 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateOnly>("EndDate")
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
                     b.Property<Guid>("MemberId")
@@ -2431,17 +2440,29 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("CityId");
 
+                    b.HasIndex("EmployeeId")
+                        .IsUnique()
+                        .HasFilter("\"EmployeeId\" IS NOT NULL AND \"EndDate\" IS NULL");
+
                     b.HasIndex("MemberId");
 
                     b.HasIndex("MembershipPlanId");
 
                     b.HasIndex("PurchasedAtBranchId");
 
+                    b.HasIndex("EmployeeId", "StartDate");
+
+                    b.HasIndex(new[] { "MemberId" }, "IX_MemberSubscriptions_OpenEmployeeMember")
+                        .IsUnique()
+                        .HasFilter("\"EmployeeId\" IS NOT NULL AND \"EndDate\" IS NULL");
+
                     b.ToTable("MemberSubscriptions", null, t =>
                         {
                             t.HasCheckConstraint("CK_MemberSubscriptions_AccessMode", "\"AccessMode\" IN ('Unlimited', 'SessionBased')");
 
                             t.HasCheckConstraint("CK_MemberSubscriptions_AccessSessions", "(\"AccessMode\" = 'Unlimited' AND \"TotalSessions\" IS NULL AND \"RemainingSessions\" IS NULL) OR (\"AccessMode\" = 'SessionBased' AND \"TotalSessions\" IS NOT NULL AND \"RemainingSessions\" IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_MemberSubscriptions_EmploymentPeriod", "(\"EmployeeId\" IS NULL AND \"EndDate\" IS NOT NULL) OR (\"EmployeeId\" IS NOT NULL AND \"AccessMode\" = 'Unlimited' AND ((\"EndDate\" IS NULL AND \"Status\" IN ('Scheduled', 'Active')) OR (\"EndDate\" IS NOT NULL AND \"Status\" IN ('Expired', 'Cancelled'))))");
 
                             t.HasCheckConstraint("CK_MemberSubscriptions_RemainingSessions", "\"RemainingSessions\" >= 0");
 
@@ -2610,11 +2631,13 @@ namespace CampionsSystem.DAL.Migrations
 
                             t.HasCheckConstraint("CK_MembershipPlans_AccessSessions", "(\"AccessMode\" = 'Unlimited' AND \"SessionCount\" IS NULL) OR (\"AccessMode\" = 'SessionBased' AND \"SessionCount\" IS NOT NULL AND \"SessionCount\" > 0)");
 
-                            t.HasCheckConstraint("CK_MembershipPlans_DurationDays", "\"DurationDays\" > 0");
+                            t.HasCheckConstraint("CK_MembershipPlans_DurationDays", "(\"PlanCategory\" = 'Employee' AND \"DurationDays\" = 0) OR (\"PlanCategory\" <> 'Employee' AND \"DurationDays\" > 0)");
+
+                            t.HasCheckConstraint("CK_MembershipPlans_Employee", "\"PlanCategory\" <> 'Employee' OR (\"Price\" = 0 AND \"AccessMode\" = 'Unlimited' AND \"SessionCount\" IS NULL)");
 
                             t.HasCheckConstraint("CK_MembershipPlans_IncludedFreezeDays", "\"IncludedFreezeDays\" >= 0");
 
-                            t.HasCheckConstraint("CK_MembershipPlans_PlanCategoryCoach", "(\"PlanCategory\" = 'Normal' AND \"FreelanceCoachEmployeeId\" IS NULL) OR (\"PlanCategory\" = 'Freelance' AND \"FreelanceCoachEmployeeId\" IS NOT NULL)");
+                            t.HasCheckConstraint("CK_MembershipPlans_PlanCategoryCoach", "(\"PlanCategory\" IN ('Normal', 'Employee') AND \"FreelanceCoachEmployeeId\" IS NULL) OR (\"PlanCategory\" = 'Freelance' AND \"FreelanceCoachEmployeeId\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_MembershipPlans_Price", "\"Price\" >= 0");
 
@@ -4628,10 +4651,17 @@ namespace CampionsSystem.DAL.Migrations
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.Employee", b =>
                 {
+                    b.HasOne("CampionsSystem.DAL.Entities.Member", "Member")
+                        .WithOne()
+                        .HasForeignKey("CampionsSystem.DAL.Entities.Employee", "MemberId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Member");
 
                     b.Navigation("User");
                 });
@@ -5223,6 +5253,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Member", "Member")
                         .WithMany("Subscriptions")
                         .HasForeignKey("MemberId")
@@ -5242,6 +5277,8 @@ namespace CampionsSystem.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("City");
+
+                    b.Navigation("Employee");
 
                     b.Navigation("Member");
 

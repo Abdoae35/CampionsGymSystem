@@ -96,6 +96,17 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        foreach (var entry in ChangeTracker.Entries<MemberSubscription>()
+                     .Where(x => x.OriginalValues.GetValue<Guid?>(nameof(MemberSubscription.EmployeeId)) is not null))
+        {
+            if (entry.State == EntityState.Deleted
+                || (entry.State == EntityState.Modified &&
+                    (entry.OriginalValues.GetValue<DateOnly?>(nameof(MemberSubscription.EndDate)) is not null
+                     || new[] { nameof(MemberSubscription.EmployeeId), nameof(MemberSubscription.MemberId),
+                         nameof(MemberSubscription.MembershipPlanId), nameof(MemberSubscription.StartDate) }
+                         .Any(name => entry.Property(name).IsModified))))
+                throw new InvalidOperationException("Employee membership ownership and closed periods are historical records.");
+        }
         foreach (var entry in ChangeTracker.Entries<ActivitySubscriptionTransaction>().Where(x => x.State == EntityState.Modified))
             if (new[] { nameof(ActivitySubscriptionTransaction.ActivityCoachIdSnapshot), nameof(ActivitySubscriptionTransaction.CoachPercentageSnapshot),
                     nameof(ActivitySubscriptionTransaction.ActivityPackageId), nameof(ActivitySubscriptionTransaction.SaleTransactionId),

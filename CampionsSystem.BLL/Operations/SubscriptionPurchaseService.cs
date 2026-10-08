@@ -90,7 +90,7 @@ public sealed class SubscriptionPurchaseService(ApplicationDbContext db, Operati
                 ?? throw new BusinessRuleException("Subscription not found.")
             : new MemberSubscription { MemberId = request.MemberId, CityId = plan.CityId, PurchasedAtBranchId = request.BranchId,
                 StartDate = access.Today, AccessMode = plan.AccessMode, Status = SubscriptionStatus.Scheduled };
-        if (subscription.MemberId != request.MemberId || subscription.CityId != plan.CityId || subscription.AccessMode != plan.AccessMode)
+        if (subscription.EmployeeId is not null || subscription.MemberId != request.MemberId || subscription.CityId != plan.CityId || subscription.AccessMode != plan.AccessMode)
             throw new BusinessRuleException("Renewal context does not match.");
         var previousEnd = request.ExistingSubscriptionId.HasValue ? subscription.EndDate : (DateOnly?)null;
         subscription.MembershipPlanId = plan.Id;
@@ -121,7 +121,7 @@ public sealed class SubscriptionPurchaseService(ApplicationDbContext db, Operati
             FreelanceCoachEmployeeIdSnapshot = employee.Id, PlanPriceSnapshot = plan.Price, NetPriceSnapshot = plan.Price,
             PurchasedDurationDays = plan.DurationDays, PurchasedSessions = plan.SessionCount,
             TransactionType = request.ExistingSubscriptionId.HasValue ? SubscriptionTransactionType.Renewal : SubscriptionTransactionType.Initial,
-            PreviousEndDate = previousEnd, NewEndDate = subscription.EndDate, CreatedAt = access.Now };
+            PreviousEndDate = previousEnd, NewEndDate = subscription.EndDate!.Value, CreatedAt = access.Now };
         db.Add(batch);
         access.Audit(actor, request.BranchId, "FreelancePlan.PurchasedAsHouse", nameof(MembershipSubscriptionTransaction), batch.Id,
             after: new { request.MemberId, plan.Id, CoachEmployeeId = employee.Id, GymAmount = plan.Price });

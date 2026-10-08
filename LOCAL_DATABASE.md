@@ -25,7 +25,7 @@ dotnet run --project CampionsSystem.API/CampionsSystem.csproj --launch-profile h
 
 Open http://localhost:5236/health/database in development. A working connection
 returns `{"status":"healthy"}`; connection failures return HTTP 503. This route
-is not registered in production. All eight migrations through `20261008012831_AddGuestInvitations` have been applied
+is not registered in production. All nine migrations through `20261008014844_AddEmployeeGymMembershipSupport` have been applied
 locally (2026-10-08): 76 application tables, seven Identity tables and EF migration history.
 
 ## Manage the connection
@@ -151,3 +151,16 @@ entry, invitation indexes, history trigger and nullable CheckIns.MemberId.
 Only Trial check-ins may omit MemberId; existing access types retain the member
 requirement. No production update or existing-table data rewrite was performed.
 The reviewed upgrade SQL is docs/database/AddGuestInvitations.sql.
+
+
+### Employee gym membership support
+
+On 2026-10-08, 20261008014844_AddEmployeeGymMembershipSupport was applied to the
+verified localhost campions_gym Development database. Adds nullable unique
+Employees.MemberId, nullable MemberSubscriptions.EmployeeId with restricted FKs,
+employee plan constraints, open-period uniqueness and nullable EndDate for employee
+entitlements only. The existing two employees and zero plans/subscriptions/sales
+remain unchanged. No plan/member/subscription was seeded. Production untouched.
+Reviewed upgrade SQL: docs/database/AddEmployeeGymMembershipSupport.sql.
+Rollback requires explicit reconciliation of employee plans/open periods and must
+not invent expiration dates; Down has not been applied.

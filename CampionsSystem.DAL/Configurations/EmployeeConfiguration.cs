@@ -14,6 +14,8 @@ public sealed class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             table.HasCheckConstraint("CK_Employees_EmploymentStatus", "\"EmploymentStatus\" IN ('Active', 'Resigned', 'Suspended')");
             table.HasCheckConstraint("CK_Employees_HireDateTerminationDate", "\"TerminationDate\" >= \"HireDate\"");
         });
+        builder.HasOne(x => x.Member).WithOne().HasForeignKey<Employee>(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.MemberId).IsUnique();
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.FullName).HasMaxLength(256).IsRequired();

@@ -179,6 +179,20 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
         var batch = await db.MembershipSubscriptionTransactions.FindAsync(purchase.TransactionId);
         Assert.Equal(employee.Id, batch!.FreelanceCoachEmployeeIdSnapshot); Assert.Equal(300, purchase.GymAmountDue);
     }
+    [Fact] public async Task FreelanceRenewalCannotConvertEmployeeEntitlementIntoPurchase()
+    {
+        var employeePlan = new MembershipPlan { Name = "Staff access", CityId = branch.CityId,
+            PlanCategory = PlanCategory.Employee, AccessMode = AccessMode.Unlimited };
+        var entitlement = new MemberSubscription { EmployeeId = employee.Id, MemberId = member.Id,
+            MembershipPlan = employeePlan, CityId = branch.CityId, PurchasedAtBranchId = branch.Id,
+            StartDate = access.Today, Status = SubscriptionStatus.Active };
+        db.Add(entitlement); await db.SaveChangesAsync();
+        var freelancePlan = await Plan();
+        await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            purchases.PurchaseFreelanceAsync(new(member.Id, freelancePlan, branch.Id, entitlement.Id)));
+        Assert.Empty(await db.SaleTransactions.ToListAsync()); Assert.Null(entitlement.EndDate);
+        Assert.Equal(employeePlan.Id, entitlement.MembershipPlanId);
+    }
     [Fact] public async Task FreelancePlanRequiresActiveFreelanceCoach()
     { await Assert.ThrowsAsync<BusinessRuleException>(() => plans.SaveAsync(null, new(branch.CityId, substitute.Id, "Invalid", 300, 30, AccessMode.Unlimited, null))); }
     [Fact] public async Task FreelancePurchaseHasNoSalesCommissionAndPreservesOldOwnership()

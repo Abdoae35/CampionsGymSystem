@@ -41,12 +41,12 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- One-time GuestInvitation domain/database update on EmployeeManagement; no
-  Freelance schema changes or Member Management started.
-- Development migration 20261008012831_AddGuestInvitations applied; catalog
-  verified indexes/history trigger and Trial-only nullable CheckIn member.
-- Build zero warnings/errors; EF model drift clean; full suite 247 passed, zero failed/skipped.
-- Implementation commit 7d55dc3 pushed to origin/EmployeeManagement; hashes matched.
-  See PROJECT_HISTORY.md for details.
-- Future BLL must finalize phone matching/normalization, expiry and House threshold.
+- Employee gym membership support implemented on DataBaseInit; no Member Management.
+- Development migration 20261008014844_AddEmployeeGymMembershipSupport applied,
+  catalog verified; existing counts preserved, production untouched.
+- Free Unlimited Employee plan type, optional unique Employee–Member link and
+  explicit historical subscription owner; null EndDate only for open employee periods.
+- Build zero warnings/errors; full suite 264 passed, zero failed/skipped; EF drift clean.
+- Requested scoped commit/push follows verification. See PROJECT_HISTORY.md.
+- Lifecycle, employment access checks and cross-record validation remain future BLL.
 - Portable history skill: skills/project-history-update/SKILL.md.

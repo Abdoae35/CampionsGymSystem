@@ -326,3 +326,32 @@ safe. Code generation and offline synchronization are not implemented in this ta
   coach-share, envelope or percentage-settlement columns are introduced.
 - AuditLogs remains the audit mechanism for invitations, eligibility changes
   and House redistribution. No second audit system or workflow is implemented.
+
+## Employee gym membership — future BLL
+
+- Automatically create an employee membership later only when employment is Active,
+  a linked Member exists and no open employee period exists. No creation/linking
+  or lifecycle automation is implemented in this database task.
+- Access requires Active employment, valid employment dates and a valid employee
+  subscription; subscription status alone is insufficient. Suspended or departed
+  employees cannot enter on this benefit. Current permanent departure is represented
+  by Resigned + TerminationDate, not a new Terminated status.
+- Employee plans are internal/system-only. Exclude them from customer sale/catalog
+  workflows and commissions. Validate plan type, subscription EmployeeId and linked
+  MemberId together; the database does not enforce cross-table equivalence.
+- Employee memberships create no SaleTransaction, Payment, PaymentPart,
+  FinancialTransaction, Sales/Coach commission or revenue. Subscription does not
+  require a purchase batch. The database cannot prohibit arbitrary unrelated
+  finance rows; future BLL must avoid generating them.
+- Open employment entitlements have null EndDate; no fake 2099/9999 expiration.
+  Normal/Freelance retain required expiration. Employee plans use DurationDays = 0
+  as no fixed duration, never to calculate a zero-day purchase.
+- Close/deactivate on suspension or departure with a real end date. Rehire creates
+  a new subscription ID and period; preserve old ownership and access history.
+  The DB prevents duplicate open periods per employee/member. BLL must reject
+  overlapping historical date ranges and ensure changes are atomic.
+- Tracked EF saves reject employee-period deletion/reassignment and changes to
+  closed periods; raw SQL/bulk operations bypass that guard and must be restricted
+  operationally. Future services also preserve Employee–Member identity links.
+- Benefits continue without a paid transaction only as the employee gym entitlement;
+  the existing purchase-batch Membership Benefits system is not redesigned.

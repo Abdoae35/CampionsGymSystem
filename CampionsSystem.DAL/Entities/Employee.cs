@@ -6,6 +6,8 @@ namespace CampionsSystem.DAL.Entities;
 public sealed class Employee
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid? MemberId { get; set; }
+    public Member? Member { get; set; }
     public Guid? UserId { get; set; }
     public ApplicationUser? User { get; set; }
     public string FullName { get; set; } = null!;

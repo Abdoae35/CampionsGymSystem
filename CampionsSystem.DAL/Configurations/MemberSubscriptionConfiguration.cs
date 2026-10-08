@@ -10,6 +10,8 @@ public sealed class MemberSubscriptionConfiguration : IEntityTypeConfiguration<M
     {
         builder.ToTable("MemberSubscriptions", table =>
         {
+            table.HasCheckConstraint("CK_MemberSubscriptions_EmploymentPeriod",
+                "(\"EmployeeId\" IS NULL AND \"EndDate\" IS NOT NULL) OR (\"EmployeeId\" IS NOT NULL AND \"AccessMode\" = 'Unlimited' AND ((\"EndDate\" IS NULL AND \"Status\" IN ('Scheduled', 'Active')) OR (\"EndDate\" IS NOT NULL AND \"Status\" IN ('Expired', 'Cancelled'))))");
             table.HasCheckConstraint("CK_MemberSubscriptions_AccessMode", "\"AccessMode\" IN ('Unlimited', 'SessionBased')");
             table.HasCheckConstraint("CK_MemberSubscriptions_TotalSessions", "\"TotalSessions\" >= 0");
             table.HasCheckConstraint("CK_MemberSubscriptions_RemainingSessions", "\"RemainingSessions\" >= 0");
@@ -18,6 +20,12 @@ public sealed class MemberSubscriptionConfiguration : IEntityTypeConfiguration<M
             table.HasCheckConstraint("CK_MemberSubscriptions_SessionBounds", "\"RemainingSessions\" <= \"TotalSessions\" AND ((\"TotalSessions\" IS NULL) = (\"RemainingSessions\" IS NULL))");
             table.HasCheckConstraint("CK_MemberSubscriptions_AccessSessions", "(\"AccessMode\" = 'Unlimited' AND \"TotalSessions\" IS NULL AND \"RemainingSessions\" IS NULL) OR (\"AccessMode\" = 'SessionBased' AND \"TotalSessions\" IS NOT NULL AND \"RemainingSessions\" IS NOT NULL)");
         });
+        builder.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.EmployeeId).IsUnique().HasFilter("\"EmployeeId\" IS NOT NULL AND \"EndDate\" IS NULL");
+        builder.HasIndex(x => x.MemberId, "IX_MemberSubscriptions_OpenEmployeeMember").IsUnique()
+            .HasFilter("\"EmployeeId\" IS NOT NULL AND \"EndDate\" IS NULL");
+        builder.HasIndex(x => x.MemberId);
+        builder.HasIndex(x => new { x.EmployeeId, x.StartDate });
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Member).WithMany(x => x.Subscriptions).HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.MembershipPlan).WithMany().HasForeignKey(x => x.MembershipPlanId).OnDelete(DeleteBehavior.Restrict);

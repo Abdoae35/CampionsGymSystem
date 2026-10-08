@@ -97,7 +97,7 @@ public sealed class GuestInvitationTests : IAsyncLifetime
         var grant = new MemberSubscriptionBenefit { MembershipBenefit = new MembershipBenefit { Code = "GUEST", Name = "Guest Invitations" },
             BenefitCodeSnapshot = "GUEST", BenefitNameSnapshot = "Guest Invitations", GrantedQuantity = 3,
             MembershipSubscriptionTransaction = new MembershipSubscriptionTransaction { MemberSubscription = subscription,
-                MembershipPlan = plan, PurchasedDurationDays = 30, NewEndDate = subscription.EndDate,
+                MembershipPlan = plan, PurchasedDurationDays = 30, NewEndDate = subscription.EndDate!.Value,
                 SaleTransaction = new SaleTransaction { Member = member, BranchId = branch.Id, CreatedByUserId = user.Id, SaleType = SaleType.GymMembership } } };
         var row = Invitation(); row.Source = GuestInvitationSource.Member; row.InvitedByMember = member;
         row.SourceSubscriptionBenefit = grant; db.Add(row); await db.SaveChangesAsync();

@@ -11,15 +11,16 @@ public sealed class MembershipPlanConfiguration : IEntityTypeConfiguration<Membe
         builder.ToTable("MembershipPlans", table =>
         {
             table.HasCheckConstraint("CK_MembershipPlans_AccessMode", "\"AccessMode\" IN ('Unlimited', 'SessionBased')");
-            table.HasCheckConstraint("CK_MembershipPlans_DurationDays", "\"DurationDays\" > 0");
+            table.HasCheckConstraint("CK_MembershipPlans_DurationDays", "(\"PlanCategory\" = 'Employee' AND \"DurationDays\" = 0) OR (\"PlanCategory\" <> 'Employee' AND \"DurationDays\" > 0)");
             table.HasCheckConstraint("CK_MembershipPlans_SessionCount", "\"SessionCount\" > 0");
+            table.HasCheckConstraint("CK_MembershipPlans_Employee", "\"PlanCategory\" <> 'Employee' OR (\"Price\" = 0 AND \"AccessMode\" = 'Unlimited' AND \"SessionCount\" IS NULL)");
             table.HasCheckConstraint("CK_MembershipPlans_Price", "\"Price\" >= 0");
             table.HasCheckConstraint("CK_MembershipPlans_IncludedFreezeDays", "\"IncludedFreezeDays\" >= 0");
             table.HasCheckConstraint("CK_MembershipPlans_AccessSessions", "(\"AccessMode\" = 'Unlimited' AND \"SessionCount\" IS NULL) OR (\"AccessMode\" = 'SessionBased' AND \"SessionCount\" IS NOT NULL AND \"SessionCount\" > 0)");
         });
         builder.ToTable("MembershipPlans", table => table.HasCheckConstraint(
             "CK_MembershipPlans_PlanCategoryCoach",
-            "(\"PlanCategory\" = 'Normal' AND \"FreelanceCoachEmployeeId\" IS NULL) OR (\"PlanCategory\" = 'Freelance' AND \"FreelanceCoachEmployeeId\" IS NOT NULL)"));
+            "(\"PlanCategory\" IN ('Normal', 'Employee') AND \"FreelanceCoachEmployeeId\" IS NULL) OR (\"PlanCategory\" = 'Freelance' AND \"FreelanceCoachEmployeeId\" IS NOT NULL)"));
         builder.Property(x => x.PlanCategory).HasConversion<string>().HasMaxLength(40);
         builder.HasOne(x => x.FreelanceCoachEmployee).WithMany().HasForeignKey(x => x.FreelanceCoachEmployeeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => new { x.PlanCategory, x.FreelanceCoachEmployeeId, x.IsActive });
