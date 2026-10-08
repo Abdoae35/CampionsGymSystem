@@ -25,19 +25,27 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
         await using var admin = new NpgsqlConnection(config.ConnectionString); await admin.OpenAsync();
         await using var command = new NpgsqlCommand($"CREATE SCHEMA {schema}", admin); await command.ExecuteNonQueryAsync();
         config.SearchPath = schema; connection = config.ConnectionString;
-        await using var db = Context();
-        await db.Database.ExecuteSqlRawAsync(db.GetService<IMigrator>().GenerateScript());
-        var user = new ApplicationUser { UserName = "concurrent-member" }; actor = user.Id;
-        var first = new GymBranch { Name = "A", City = new City { Name = "Concurrent city" } };
-        var second = new GymBranch { Name = "B", City = first.City };
-        var sales = new Employee { FullName = "Concurrent Sales", Phone = "sales", UserId = actor, HireDate = new(2026,1,1) };
-        owner = sales.Id; a = first.Id; b = second.Id; db.AddRange(user, first, second, sales); await db.SaveChangesAsync();
+        try
+        {
+            await using var db = Context();
+            await db.Database.ExecuteSqlRawAsync(db.GetService<IMigrator>().GenerateScript());
+            var user = new ApplicationUser { UserName = "concurrent-member" }; actor = user.Id;
+            var first = new GymBranch { Name = "A", City = new City { Name = "Concurrent city" } };
+            var second = new GymBranch { Name = "B", City = first.City };
+            var sales = new Employee { FullName = "Concurrent Sales", Phone = "sales", UserId = actor, HireDate = new(2026,1,1) };
+            owner = sales.Id; a = first.Id; b = second.Id; db.AddRange(user, first, second, sales); await db.SaveChangesAsync();
+        }
+        catch
+        {
+            await DisposeAsync();
+            throw;
+        }
     }
     public async Task DisposeAsync()
     {
         if (connection is null) return;
         await using var cn = new NpgsqlConnection(connection); await cn.OpenAsync();
-        await using var command = new NpgsqlCommand($"DROP SCHEMA {schema} CASCADE", cn); await command.ExecuteNonQueryAsync();
+        await using var command = new NpgsqlCommand($"DROP SCHEMA IF EXISTS {schema} CASCADE", cn); await command.ExecuteNonQueryAsync();
     }
     private int phoneCounter;
     private MemberManagementService Service(ApplicationDbContext db)

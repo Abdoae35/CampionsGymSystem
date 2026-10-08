@@ -44,7 +44,8 @@ it does not replace checking the actual repository.
 ## Current state
 
 - Member Management backend complete on MemberManagement; application commits pushed
-  through fa55633, with final documentation/history checkpoint accompanying completion.
+  through fa55633; documentation c5d38c6 pushed. Final test-fixture cleanup
+  removes abandoned empty schemas and handles initialization failure.
 - New migration 20261008110432_AddBranchClientCodeSequenceSupport applied only locally;
   Members=0 and branches=2 preserved. Nine Member permissions configured explicitly.
 - Final build zero warnings/errors; full suite 316 passed, zero failed/skipped; EF drift clean.
@@ -1280,3 +1281,21 @@ The normalizer is deliberately basic; future imports must maintain counters unde
 locking. Existing linked-member and all historical relationships are preserved. No purchase,
 renewal/freeze, payments, commissions/targets/rates, payroll, check-in processing, invitation
 redemption, Excel import or frontend was introduced by this feature.
+
+### 2026-10-08 — Member Management final test fixture cleanup
+
+Final cleanup inspection found three empty gym_member_concurrent_* schemas left by
+the initial failed migration-test initialization. Verified test-user ownership and
+zero relations, then dropped only those empty generated test schemas (no CASCADE and
+no development/application data touched). Hardened MemberClientCodeConcurrencyTests
+initialization with catch/dispose and idempotent IF EXISTS disposal so future setup
+failures do not leave schemas behind.
+
+Verification after the fixture change: dotnet build succeeded with zero warnings/errors;
+full suite again 316 passed, zero failed/skipped. Post-suite Member concurrency schema
+count is zero. Whitespace/diff reviewed; application/model unchanged and prior EF drift
+check remains clean. Documentation commit c5d38c6 was pushed and local/remote hashes
+matched before this cleanup. This separately verified test-only completion checkpoint
+is committed/pushed as the final small increment; final response reports its hash and
+remote equality without recursive logging. No known unresolved feature issues; branch
+calling-code/staff-capability configuration remains an explicit deployment obligation.

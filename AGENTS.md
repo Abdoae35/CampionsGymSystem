@@ -42,7 +42,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 ## Current handoff
 
 - Member Management backend complete on MemberManagement; implementation pushed through
-  fa55633, with final documentation/history checkpoint accompanying completion.
+  fa55633; documentation c5d38c6 pushed. Test fixture cleanup handles setup failures.
 - Branch-local atomic ClientCode, display/canonical phones, Sales/referral/House workflows,
   scoped API, ownership history, status, permissions and audit implemented.
 - Development migration 20261008110432_AddBranchClientCodeSequenceSupport applied;
