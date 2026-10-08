@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member Management in progress on MemberManagement; latest checkpoint task 1.
-- Added member profile/query/ownership contracts following Employee DTO conventions, explicit creation types, and rejection of unknown write fields. Existing ClientCode tests: 11 passed, zero failed/skipped. Build: zero warnings/errors. Confirmed configurable branch calling code, persisted normalized phone and permission-based Sales capability decisions; no schema change in task 1.
+- Member Management in progress on MemberManagement; latest checkpoint task 2.
+- Implemented branch-scoped member list/search/details with pagination, status, branch, ClientCode, House and Sales filters, derived ownership, employee link and lightweight Freelance eligibility. Five focused PostgreSQL tests passed; build zero warnings/errors. Normalized-phone search follows in schema prerequisite task 3.
 - Small verified commits/pushes authorized; subsequent tasks continue automatically.
 
 ## Work history
@@ -1158,6 +1158,14 @@ results belong to the preceding feature and were not rerun for this investigatio
 ### 2026-10-08 — Member Management task 1
 
 Added member profile/query/ownership contracts following Employee DTO conventions, explicit creation types, and rejection of unknown write fields. Existing ClientCode tests: 11 passed, zero failed/skipped. Build: zero warnings/errors. Confirmed configurable branch calling code, persisted normalized phone and permission-based Sales capability decisions; no schema change in task 1.
+
+Workflow: build/test/diff reviewed before this task commit; commit/push authorized
+by user. Exact hashes/results will be recorded in final validation. Remaining tasks
+continue automatically on MemberManagement. No production database used.
+
+### 2026-10-08 — Member Management task 2
+
+Implemented branch-scoped member list/search/details with pagination, status, branch, ClientCode, House and Sales filters, derived ownership, employee link and lightweight Freelance eligibility. Five focused PostgreSQL tests passed; build zero warnings/errors. Normalized-phone search follows in schema prerequisite task 3.
 
 Workflow: build/test/diff reviewed before this task commit; commit/push authorized
 by user. Exact hashes/results will be recorded in final validation. Remaining tasks
