@@ -148,6 +148,47 @@ public sealed class MemberManagementTests : IAsyncLifetime
         request.PrimaryPhone = "01288888888"; request.SalesEmployeeId = sales.Id;
         var owned = await service.CreateMemberAsync(request); Assert.False(owned.IsHouse);
     }
+    private UpdateMemberRequest UpdatedProfile(string? phone = null) => new()
+        { FullName = "Updated Alpha", PrimaryPhone = phone ?? first.PrimaryPhone, SecondaryPhone = "01222222222", Notes = "Profile note" };
+    [Fact] public async Task ProfileUpdatePreservesIdentifiersOwnershipAndLegacyPhone()
+    {
+        Scoped("Members.Edit"); var result = await service.UpdateMemberAsync(first.Id, UpdatedProfile());
+        Assert.Equal(first.Id, result.Id); Assert.Equal(100, result.ClientCode); Assert.Equal(a.Id, result.RegistrationBranch.Id);
+        Assert.Equal(first.MemberCode, result.MemberCode); Assert.Equal(sales.Id, result.CurrentSalesOwner?.SalesEmployeeId);
+        Assert.Null(result.PrimaryPhoneNormalized); Assert.Equal("Updated Alpha", result.FullName);
+        Assert.Contains(await db.AuditLogs.ToListAsync(), x => x.Action == "Member.Updated");
+    }
+    [Fact] public async Task PhoneChangeRequiresDedicatedPermissionAndResetsVerification()
+    {
+        first.IsPrimaryPhoneVerified = true; first.PrimaryPhoneVerifiedAt = access.Now; await db.SaveChangesAsync();
+        Scoped("Members.Edit");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.UpdateMemberAsync(first.Id, UpdatedProfile("01277777777")));
+        Scoped("Members.Edit", "Members.ChangePrimaryPhone");
+        var result = await service.UpdateMemberAsync(first.Id, UpdatedProfile("01277777777"));
+        Assert.Equal("+201277777777", result.PrimaryPhoneNormalized); Assert.False(result.IsPrimaryPhoneVerified);
+        Assert.Null((await db.Members.SingleAsync(x => x.Id == first.Id)).PrimaryPhoneVerifiedAt);
+        Assert.Contains(await db.AuditLogs.ToListAsync(), x => x.Action == "Member.PrimaryPhoneChanged");
+    }
+    [Fact] public async Task BranchCountryChangeDoesNotRewriteExistingNormalizedPhone()
+    {
+        first.PrimaryPhoneNormalized = "+201212345678"; await db.SaveChangesAsync();
+        await db.GymBranches.Where(x => x.Id == a.Id).ExecuteUpdateAsync(x => x.SetProperty(y => y.CountryCallingCode, "+44"));
+        Scoped("Members.Edit"); var result = await service.UpdateMemberAsync(first.Id, UpdatedProfile());
+        Assert.Equal("+201212345678", result.PrimaryPhoneNormalized);
+    }
+    [Fact] public async Task ProfileUpdateDeniesOtherBranchDuplicatesAndMissingPermission()
+    {
+        Scoped("Members.Edit", "Members.ChangePrimaryPhone");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.UpdateMemberAsync(second.Id, UpdatedProfile()));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => service.UpdateMemberAsync(first.Id, UpdatedProfile(second.PrimaryPhone)));
+        Scoped("Members.View"); await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.UpdateMemberAsync(first.Id, UpdatedProfile()));
+    }
+    [Theory] [InlineData("Id")] [InlineData("ClientCode")] [InlineData("RegistrationBranchId")] [InlineData("SalesEmployeeId")]
+    public void UpdateContractRejectsProtectedFields(string field)
+    {
+        var json = "{\"FullName\":\"Name\",\"PrimaryPhone\":\"01212345678\",\"" + field + "\":null}";
+        Assert.Throws<System.Text.Json.JsonException>(() => System.Text.Json.JsonSerializer.Deserialize<UpdateMemberRequest>(json));
+    }
     private sealed class OwnerPermissions : IPermissionService
     {
         public Task<HashSet<string>> GetUserPermissionsAsync(Guid id, CancellationToken cancellationToken = default)
