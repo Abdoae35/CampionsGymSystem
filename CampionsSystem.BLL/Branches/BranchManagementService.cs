@@ -19,7 +19,7 @@ public sealed class BranchManagementService(ApplicationDbContext database, ICurr
 
     private static readonly System.Linq.Expressions.Expression<Func<GymBranch, BranchDetails>> Details =
         x => new BranchDetails(x.Id, x.Name, x.CityId, x.City.Name, x.Address, x.Phone,
-            x.IsActive, x.MaxBorrowedGymSessions, x.QuickRefundWindowHours);
+            x.IsActive, x.MaxBorrowedGymSessions, x.QuickRefundWindowHours, x.CountryCallingCode);
 
     public async Task<IReadOnlyList<BranchDetails>> ListAsync(CancellationToken ct = default)
     {
@@ -42,6 +42,7 @@ public sealed class BranchManagementService(ApplicationDbContext database, ICurr
         var user = await RequireAsync("Branches.Manage", id, ct);
         if (request.CityId == Guid.Empty || string.IsNullOrWhiteSpace(request.Name) || request.Name.Trim().Length > 256
             || request.Address?.Length > 256 || request.Phone?.Length > 64
+            || (request.CountryCallingCode != null && !System.Text.RegularExpressions.Regex.IsMatch(request.CountryCallingCode, @"^[+][1-9][0-9]{0,2}$"))
             || request.MaxBorrowedGymSessions < 0 || request.QuickRefundWindowHours < 0)
             throw new BusinessRuleException("Invalid branch details.");
         var branch = id.HasValue ? await database.GymBranches.SingleOrDefaultAsync(x => x.Id == id, ct)
@@ -50,14 +51,15 @@ public sealed class BranchManagementService(ApplicationDbContext database, ICurr
         if (!await database.Cities.AnyAsync(x => x.Id == request.CityId && (x.IsActive || (id != null && x.Id == branch.CityId)), ct))
             throw new BusinessRuleException("An active city is required.");
         var before = id.HasValue ? new { branch.Name, branch.CityId, branch.Address, branch.Phone, branch.IsActive,
-            branch.MaxBorrowedGymSessions, branch.QuickRefundWindowHours } : null;
+            branch.MaxBorrowedGymSessions, branch.QuickRefundWindowHours, branch.CountryCallingCode } : null;
         var wasActive = branch.IsActive;
         branch.Name = request.Name.Trim(); branch.CityId = request.CityId; branch.Address = request.Address?.Trim();
+        branch.CountryCallingCode = request.CountryCallingCode;
         branch.Phone = request.Phone?.Trim(); branch.IsActive = request.IsActive;
         branch.MaxBorrowedGymSessions = request.MaxBorrowedGymSessions; branch.QuickRefundWindowHours = request.QuickRefundWindowHours;
         if (!id.HasValue) database.GymBranches.Add(branch);
         var after = new { branch.Name, branch.CityId, branch.Address, branch.Phone, branch.IsActive,
-            branch.MaxBorrowedGymSessions, branch.QuickRefundWindowHours };
+            branch.MaxBorrowedGymSessions, branch.QuickRefundWindowHours, branch.CountryCallingCode };
         access.Audit(user.UserId, branch.Id, id.HasValue ? "Branch.Updated" : "Branch.Created", nameof(GymBranch), branch.Id, before, after);
         if (id.HasValue && wasActive != branch.IsActive)
             access.Audit(user.UserId, branch.Id, branch.IsActive ? "Branch.Activated" : "Branch.Deactivated", nameof(GymBranch), branch.Id, before, after);

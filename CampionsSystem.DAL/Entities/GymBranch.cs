@@ -10,6 +10,8 @@ public sealed class GymBranch
     public City City { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string? Address { get; set; }
+    public string? CountryCallingCode { get; set; }
+    public long LastMemberClientCode { get; set; }
     public string? Phone { get; set; }
     public int MaxBorrowedGymSessions { get; set; }
     public int QuickRefundWindowHours { get; set; }

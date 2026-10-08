@@ -10,10 +10,14 @@ public sealed class GymBranchConfiguration : IEntityTypeConfiguration<GymBranch>
     {
         builder.ToTable("GymBranches", table =>
         {
+            table.HasCheckConstraint("CK_GymBranches_CountryCallingCode", "\"CountryCallingCode\" IS NULL OR \"CountryCallingCode\" ~ '^[+][1-9][0-9]*$' AND length(\"CountryCallingCode\") BETWEEN 2 AND 4");
+            table.HasCheckConstraint("CK_GymBranches_LastMemberClientCode", "\"LastMemberClientCode\" >= 0");
             table.HasCheckConstraint("CK_GymBranches_MaxBorrowedGymSessions", "\"MaxBorrowedGymSessions\" >= 0");
             table.HasCheckConstraint("CK_GymBranches_QuickRefundWindowHours", "\"QuickRefundWindowHours\" >= 0");
         });
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.CountryCallingCode).HasMaxLength(4);
+        builder.Property(x => x.LastMemberClientCode).HasDefaultValue(0L);
         builder.HasOne(x => x.City).WithMany(x => x.Branches).HasForeignKey(x => x.CityId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Name).HasMaxLength(256).IsRequired();
         builder.Property(x => x.Address).HasMaxLength(256);

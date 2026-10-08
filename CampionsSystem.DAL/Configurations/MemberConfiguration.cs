@@ -11,8 +11,10 @@ public sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
         builder.ToTable("Members", table =>
         {
             table.HasCheckConstraint("CK_Members_ClientCode_Positive", "\"ClientCode\" > 0");
+            table.HasCheckConstraint("CK_Members_PrimaryPhoneNormalized", "\"PrimaryPhoneNormalized\" IS NULL OR \"PrimaryPhoneNormalized\" ~ '^[+][1-9][0-9]*$' AND length(\"PrimaryPhoneNormalized\") BETWEEN 8 AND 16");
         });
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.PrimaryPhoneNormalized).HasMaxLength(16);
         builder.Property(x => x.ClientCode).HasColumnType("bigint").IsRequired(false);
         builder.Property(x => x.MemberCode).HasMaxLength(64).IsRequired();
         builder.Property(x => x.FullName).HasMaxLength(256).IsRequired();
@@ -29,6 +31,7 @@ public sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
             .HasFilter("\"ClientCode\" IS NOT NULL");
         builder.HasIndex(x => x.HomeBranchId);
         builder.HasIndex(x => x.MemberCode).IsUnique();
-        builder.HasIndex(x => x.PrimaryPhone).IsUnique();
+        builder.HasIndex(x => x.PrimaryPhone);
+        builder.HasIndex(x => x.PrimaryPhoneNormalized).IsUnique().HasFilter("\"PrimaryPhoneNormalized\" IS NOT NULL");
     }
 }

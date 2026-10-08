@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Member Management in progress on MemberManagement; latest task 2.
-- Implemented branch-scoped member list/search/details with pagination, status, branch, ClientCode, House and Sales filters, derived ownership, employee link and lightweight Freelance eligibility. Five focused PostgreSQL tests passed; build zero warnings/errors. Normalized-phone search follows in schema prerequisite task 3.
+- Member Management in progress on MemberManagement; latest task 3.
+- Added atomic branch counter allocation, branch CountryCallingCode settings, shared configurable phone normalization and persisted normalized Member phone with unique partial index. Migration 20261008110432_AddBranchClientCodeSequenceSupport applied only to local development; zero Members and two branches preserved, calling codes remain unconfigured. Safe international backfill only; ambiguous legacy phones stay null. Focused tests 81 passed, zero failed/skipped; build zero warnings/errors; EF drift clean. Fixed migration SQL/test-runner formatting incompatibility before commit.
 - Complete remaining tasks automatically with build/tests/diff/commit/push.
 - No production database used. See PROJECT_HISTORY.md for chronology.
 - Portable history skill: skills/project-history-update/SKILL.md.

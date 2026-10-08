@@ -10,6 +10,7 @@ public sealed class Member
     public string MemberCode { get; set; } = null!;
     public string FullName { get; set; } = null!;
     public string PrimaryPhone { get; set; } = null!;
+    public string? PrimaryPhoneNormalized { get; set; }
     public string? SecondaryPhone { get; set; }
     public bool IsPrimaryPhoneVerified { get; set; }
     public DateTimeOffset? PrimaryPhoneVerifiedAt { get; set; }

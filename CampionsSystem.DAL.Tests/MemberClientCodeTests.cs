@@ -109,11 +109,17 @@ public sealed class MemberClientCodeTests : IAsyncLifetime
         var creator = new ApplicationUser { UserName = "legacy-scoping" };
         var home = new GymBranch { Name = "Legacy home", City = new City { Name = "Legacy city" } };
         var member = new Member { ClientCode = 1500, MemberCode = "LEGACY", FullName = "Legacy", PrimaryPhone = "legacy", HomeBranch = home, CreatedByUser = creator };
-        old.Add(member); await old.SaveChangesAsync();
+        old.Add(creator); old.Add(home.City); await old.SaveChangesAsync();
+        await old.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO "GymBranches" ("Id", "CityId", "Name", "MaxBorrowedGymSessions", "QuickRefundWindowHours", "IsActive", "CreatedAt")
+            VALUES ({home.Id}, {home.City.Id}, {home.Name}, 2, 24, true, {home.CreatedAt});
+            INSERT INTO "Members" ("Id", "ClientCode", "MemberCode", "FullName", "PrimaryPhone", "HomeBranchId", "IsPrimaryPhoneVerified", "IsActive", "CreatedByUserId", "CreatedAt")
+            VALUES ({member.Id}, {member.ClientCode}, {member.MemberCode}, {member.FullName}, {member.PrimaryPhone}, {home.Id}, false, true, {creator.Id}, {member.CreatedAt});
+            """);
         var sql = old.GetService<IMigrator>().GenerateScript("AddMemberClientCode", "ScopeMemberClientCodeByHomeBranch")
             .Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
         await old.Database.ExecuteSqlRawAsync(sql); old.ChangeTracker.Clear();
-        var stored = await old.Members.AsNoTracking().SingleAsync();
+        var stored = await old.Members.AsNoTracking().Select(m => new { m.Id, m.ClientCode, m.HomeBranchId, m.MemberCode, m.CreatedByUserId }).SingleAsync();
         Assert.Equal(member.Id, stored.Id); Assert.Equal(1500L, stored.ClientCode); Assert.Equal(home.Id, stored.HomeBranchId);
         Assert.Equal("LEGACY", stored.MemberCode); Assert.Equal(creator.Id, stored.CreatedByUserId);
     }

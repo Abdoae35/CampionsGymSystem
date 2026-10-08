@@ -47,6 +47,7 @@ public sealed partial class MemberManagementService(ApplicationDbContext db, ICu
             var search = request.Search.Trim().ToLowerInvariant();
             long? code = long.TryParse(search, out var parsed) && parsed > 0 ? parsed : null;
             query = query.Where(m => m.FullName.ToLower().Contains(search) || m.PrimaryPhone.Contains(search)
+                || (m.PrimaryPhoneNormalized != null && m.PrimaryPhoneNormalized.Contains(search))
                 || m.MemberCode.ToLower().Contains(search) || (code != null && m.ClientCode == code));
         }
         var count = await query.CountAsync(ct);
@@ -77,7 +78,7 @@ public sealed partial class MemberManagementService(ApplicationDbContext db, ICu
             .OrderBy(e => e.MembershipPlan.Name).Select(e => new EligibleFreelancePlan(e.MembershipPlanId,
                 e.MembershipPlan.Name, e.MembershipPlan.FreelanceCoachEmployee!.FullName)).ToListAsync(ct);
         return new(member.Id, member.ClientCode, member.MemberCode, member.FullName, member.PrimaryPhone,
-            null, member.SecondaryPhone, member.IsPrimaryPhoneVerified, member.DateOfBirth, member.Gender,
+            member.PrimaryPhoneNormalized, member.SecondaryPhone, member.IsPrimaryPhoneVerified, member.DateOfBirth, member.Gender,
             member.Notes, member.IsActive, new(member.HomeBranchId, member.HomeBranch.Name), member.CreatedAt,
             owner, employee, eligible);
     }

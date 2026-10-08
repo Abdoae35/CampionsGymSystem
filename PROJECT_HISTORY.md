@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member Management in progress on MemberManagement; latest checkpoint task 2.
-- Implemented branch-scoped member list/search/details with pagination, status, branch, ClientCode, House and Sales filters, derived ownership, employee link and lightweight Freelance eligibility. Five focused PostgreSQL tests passed; build zero warnings/errors. Normalized-phone search follows in schema prerequisite task 3.
+- Member Management in progress on MemberManagement; latest checkpoint task 3.
+- Added atomic branch counter allocation, branch CountryCallingCode settings, shared configurable phone normalization and persisted normalized Member phone with unique partial index. Migration 20261008110432_AddBranchClientCodeSequenceSupport applied only to local development; zero Members and two branches preserved, calling codes remain unconfigured. Safe international backfill only; ambiguous legacy phones stay null. Focused tests 81 passed, zero failed/skipped; build zero warnings/errors; EF drift clean. Fixed migration SQL/test-runner formatting incompatibility before commit.
 - Small verified commits/pushes authorized; subsequent tasks continue automatically.
 
 ## Work history
@@ -1166,6 +1166,14 @@ continue automatically on MemberManagement. No production database used.
 ### 2026-10-08 — Member Management task 2
 
 Implemented branch-scoped member list/search/details with pagination, status, branch, ClientCode, House and Sales filters, derived ownership, employee link and lightweight Freelance eligibility. Five focused PostgreSQL tests passed; build zero warnings/errors. Normalized-phone search follows in schema prerequisite task 3.
+
+Workflow: build/test/diff reviewed before this task commit; commit/push authorized
+by user. Exact hashes/results will be recorded in final validation. Remaining tasks
+continue automatically on MemberManagement. No production database used.
+
+### 2026-10-08 — Member Management task 3
+
+Added atomic branch counter allocation, branch CountryCallingCode settings, shared configurable phone normalization and persisted normalized Member phone with unique partial index. Migration 20261008110432_AddBranchClientCodeSequenceSupport applied only to local development; zero Members and two branches preserved, calling codes remain unconfigured. Safe international backfill only; ambiguous legacy phones stay null. Focused tests 81 passed, zero failed/skipped; build zero warnings/errors; EF drift clean. Fixed migration SQL/test-runner formatting incompatibility before commit.
 
 Workflow: build/test/diff reviewed before this task commit; commit/push authorized
 by user. Exact hashes/results will be recorded in final validation. Remaining tasks
