@@ -41,13 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Employee gym membership support implemented on DataBaseInit; no Member Management.
-- Development migration 20261008014844_AddEmployeeGymMembershipSupport applied,
-  catalog verified; existing counts preserved, production untouched.
-- Free Unlimited Employee plan type, optional unique Employee–Member link and
-  explicit historical subscription owner; null EndDate only for open employee periods.
-- Build zero warnings/errors; full suite 264 passed, zero failed/skipped; EF drift clean.
-- Implementation fee5f5a pushed to origin/DataBaseInit; hashes matched.
-  See PROJECT_HISTORY.md for details.
-- Lifecycle, employment access checks and cross-record validation remain future BLL.
+- Member Management in progress on MemberManagement; latest task 1.
+- Added member profile/query/ownership contracts following Employee DTO conventions, explicit creation types, and rejection of unknown write fields. Existing ClientCode tests: 11 passed, zero failed/skipped. Build: zero warnings/errors. Confirmed configurable branch calling code, persisted normalized phone and permission-based Sales capability decisions; no schema change in task 1.
+- Complete remaining tasks automatically with build/tests/diff/commit/push.
+- No production database used. See PROJECT_HISTORY.md for chronology.
 - Portable history skill: skills/project-history-update/SKILL.md.

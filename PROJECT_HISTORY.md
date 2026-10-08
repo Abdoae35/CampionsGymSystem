@@ -43,14 +43,9 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Employee gym membership domain/database support implemented on DataBaseInit.
-- Development migration 20261008014844_AddEmployeeGymMembershipSupport applied;
-  existing employee/plan/subscription/sale counts preserved; production untouched.
-- Nullable unique Employee.MemberId and historical MemberSubscription.EmployeeId;
-  Employee plans are free/Unlimited; open employee periods use null EndDate.
-- Build zero warnings/errors; 17 focused tests and full suite 264 passed, zero failed/skipped; EF drift clean.
-- Implementation fee5f5a committed/pushed to origin/DataBaseInit; hashes matched. Member Management remains unstarted.
-- Future BLL owns activation/deactivation, employment access checks and link validation.
+- Member Management in progress on MemberManagement; latest checkpoint task 1.
+- Added member profile/query/ownership contracts following Employee DTO conventions, explicit creation types, and rejection of unknown write fields. Existing ClientCode tests: 11 passed, zero failed/skipped. Build: zero warnings/errors. Confirmed configurable branch calling code, persisted normalized phone and permission-based Sales capability decisions; no schema change in task 1.
+- Small verified commits/pushes authorized; subsequent tasks continue automatically.
 
 ## Work history
 
@@ -1135,3 +1130,35 @@ Terminated status/API behavior introduced. No lifecycle automation, Member Manag
 separate EmployeeCheckIn, frontend or next module started. Implementation committed as fee5f5a and pushed to origin/DataBaseInit after all
 checks passed. Local/remote hashes matched and working tree was clean. Final
 documentation checkpoint records the completed Git state.
+
+### 2026-10-08 — Member Management inspection paused for business decisions
+
+Requested: complete Member Management in nine separately verified commits, push each
+successful task automatically, then provide one comprehensive final report.
+This authorization applies to Member Management and supersedes waiting between tasks.
+
+Inspected project history/skills, Member configuration/client-code tests, current-user
+and branch context, Employee Management patterns, permission setup/seeder, assignment
+constraints, Freelance eligibility service and schema/business-rule documentation.
+Existing Guid PK, nullable positive branch-scoped ClientCode, globally unique MemberCode,
+HomeBranchId registration origin, globally unique PrimaryPhone, boolean IsActive,
+Employee.MemberId link and one-current-assignment partial unique index can be reused.
+No Member Management service/controller or shared phone normalizer currently exists.
+
+Paused under the user's explicit ambiguity rule: canonical phone normalization is
+undecided (documented explicitly in existing business rules), and Sales eligibility
+has no structured employee designation; Members.Create is shared by Sales, Reception
+and BranchManager. Need decisions on canonical country/phone policy and permission-based
+Sales eligibility before creating contracts/behavior. No application/schema/database
+changes, builds or tests performed. Initial working tree was clean. No commit/push;
+only this required history/handoff checkpoint is modified. Remaining: finish inspection
+and execute tasks 1–9 once business decisions are supplied. Prior 264-test/build/drift
+results belong to the preceding feature and were not rerun for this investigation.
+
+### 2026-10-08 — Member Management task 1
+
+Added member profile/query/ownership contracts following Employee DTO conventions, explicit creation types, and rejection of unknown write fields. Existing ClientCode tests: 11 passed, zero failed/skipped. Build: zero warnings/errors. Confirmed configurable branch calling code, persisted normalized phone and permission-based Sales capability decisions; no schema change in task 1.
+
+Workflow: build/test/diff reviewed before this task commit; commit/push authorized
+by user. Exact hashes/results will be recorded in final validation. Remaining tasks
+continue automatically on MemberManagement. No production database used.
