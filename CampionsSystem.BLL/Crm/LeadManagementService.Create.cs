@@ -97,6 +97,9 @@ public sealed partial class LeadManagementService
     // Same effective capability/account rules as Member ownership. Lead distribution stays operationally local.
     private async Task ValidateOwnerAsync(Guid employeeId,Guid branchId,CancellationToken ct)
     {
+        // Serialize eligibility with employment status changes; transfers retain existing ownership.
+        await db.Employees.FromSqlInterpolated($"SELECT * FROM \"Employees\" WHERE \"Id\" = {employeeId} FOR SHARE")
+            .AsNoTracking().ToListAsync(ct);
         var e=await db.Employees.AsNoTracking().Include(e=>e.User).SingleOrDefaultAsync(e=>e.Id==employeeId,ct);
         if(e?.UserId is not Guid uid||e.User is not{IsActive:true}||e.User.LockoutEnabled&&e.User.LockoutEnd>access.Now
             ||e.EmploymentStatus!=EmploymentStatus.Active||e.HireDate>access.Today||e.TerminationDate<access.Today

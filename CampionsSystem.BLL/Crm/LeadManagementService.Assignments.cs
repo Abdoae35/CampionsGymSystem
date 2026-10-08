@@ -12,6 +12,8 @@ public sealed partial class LeadManagementService
         return await TransactionAsync(async()=>{
             var lead=await LockedAsync(id,user,ct);
             if(lead.Status==LeadStatus.Converted)throw new BusinessRuleException("Use Member ownership management after conversion.");
+            // Ownership permits follow-up, not management distribution outside the current scope.
+            CampionsSystem.BLL.Branches.BranchAccessService.EnsureScope(user,lead.BranchId);
             await ValidateOwnerAsync(r.SalesEmployeeId,lead.BranchId,ct);
             var old=await db.LeadAssignments.SingleOrDefaultAsync(a=>a.LeadId==id&&a.EndedAt==null,ct);
             if(old is not null)

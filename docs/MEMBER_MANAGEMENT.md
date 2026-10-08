@@ -269,3 +269,16 @@ CRM queues permit lightweight owned cross-branch contact data without expanding 
 Member list/details branch rules. Member status behavior remains unchanged: automatic
 CRM task creation on status, expiry or attendance is a future integration; explicit
 CRM task opening is available now. See [CRM management](CRM_LEADS.md).
+
+## Employee branch transfer and inactive employment
+
+Sales ownership belongs to the employee, independently of their current branch.
+Employee A → B preserves all existing MemberSalesAssignments, registration branches
+and historical transactions. CRM work remains accessible only for owned subjects;
+this grants no general access to old-branch Members, finance or employees.
+
+Non-active employment (Resigned/Suspended) closes current Sales assignments without
+deleting history: Members become House, open CRM tasks enter management queues and
+Leads become unassigned redistribution work. Reactivation does not restore ownership.
+Future commission credit uses employee plus actual sale/payment branch, not employment
+branch. Commission processing remains future scope.

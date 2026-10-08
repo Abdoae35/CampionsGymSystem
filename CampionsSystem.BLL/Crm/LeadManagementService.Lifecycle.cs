@@ -15,7 +15,11 @@ public sealed partial class LeadManagementService
         return await TransactionAsync(async()=>{
             var lead=await LockedAsync(id,user,ct);
             if(lead.Status==LeadStatus.Converted)throw new BusinessRuleException("Converted leads cannot change lifecycle.");
-            if(lead.Status is LeadStatus.Lost or LeadStatus.Inactive&&!user.Permissions.Contains("Leads.Assign"))throw new UnauthorizedAccessException();
+            if(lead.Status is LeadStatus.Lost or LeadStatus.Inactive)
+            {
+                if(!user.Permissions.Contains("Leads.Assign"))throw new UnauthorizedAccessException();
+                CampionsSystem.BLL.Branches.BranchAccessService.EnsureScope(user,lead.BranchId);
+            }
             var contacted=await db.LeadInteractions.AnyAsync(i=>i.LeadId==id,ct);
             if(r.Status==LeadStatus.New&&contacted||r.Status is LeadStatus.Contacted or LeadStatus.Interested&&!contacted)
                 throw new BusinessRuleException("Status must reflect contact history; use FollowUp when retrying contacted leads.");

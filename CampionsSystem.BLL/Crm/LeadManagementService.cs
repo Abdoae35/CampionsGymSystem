@@ -23,7 +23,10 @@ public sealed partial class LeadManagementService(ApplicationDbContext db, ICurr
         var q = db.Leads.AsNoTracking();
         if (user.Permissions.Contains("Leads.Assign"))
         {
-            if (!user.Permissions.Contains("Branches.AccessAll")) q = q.Where(l => l.BranchId == user.CurrentBranchId);
+            if (!user.Permissions.Contains("Branches.AccessAll")) q = q.Where(l => l.BranchId == user.CurrentBranchId
+                || Assignments().Any(a => a.LeadId == l.Id && a.SalesEmployeeId == user.EmployeeId)
+                || l.Status == LeadStatus.Converted && db.MemberSalesAssignments.Any(a => a.MemberId == l.ConvertedMemberId
+                    && a.EndedAt == null && a.AssignmentType == AssignmentType.Sales && a.SalesEmployeeId == user.EmployeeId));
         }
         else q = Owned(q,user.EmployeeId);
         return q;

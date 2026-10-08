@@ -29,8 +29,23 @@ A partial unique LeadId index permits at most one row with EndedAt null. Distrib
 locks the Lead, closes the previous row, saves, then inserts its successor. Targets
 must have active employment/account, no active lockout, effective
 Members.OwnSalesCustomers, and a current primary assignment in the Lead's branch.
-No cross-branch Lead distribution policy is invented. Existing assignments survive
-employee transfer/termination; management must review and reassign them explicitly.
+No cross-branch Lead distribution policy is invented. Existing assignments survive employee branch transfers. Ownership follows the employee,
+so My Leads and My Follow-ups include their previously assigned Leads from old branches.
+New assignments still require the target's current operational branch; after A → B,
+new B Leads may join their existing A Leads. Distribution/reactivation management
+remains branch-scoped, even if an employee personally owns an old-branch Lead.
+
+Changing employment to non-active (Resigned or Suspended) closes current Sales Member
+and Lead assignments atomically, preserving rows and contact history. Members become
+House; open Member tasks appear in the management House queue. Leads retain their
+branch, status and schedule and appear in their branch's unassigned management list.
+Nobody is assigned randomly, and reactivation does not restore closed ownership.
+Future-dated assignments must be reconciled before this status change can complete.
+Eligibility checks hold employee row locks until commit to serialize with termination.
+Branch transfer never calls this ownership-closing workflow. Historical transactions
+and Member registration branches remain unchanged. Future commission buckets use the
+actual sale/payment branch plus employee, regardless of employment branch; no
+commission calculation is implemented here.
 Member ownership during conversion can cross branches and is not transferred with
 an employee's operational assignment.
 

@@ -43,17 +43,16 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- CRM backend implemented on CRM-/-Leads-&-Follow-up-Management; eight verified task
-  commits pushed through 68a0ec6. Final docs/Postman completion commit accompanies this checkpoint.
-- Leads, distribution/history, interactions/scheduling, lifecycle, atomic owner-preserving
-  conversion and current-owner/House Member work implemented; 19 routes, 21 Postman examples.
-- Both development-only CRM migrations applied; seven CRM codes provisioned; business
-  counts unchanged (zero CRM/Member rows, two branches). Production untouched.
-- Final build zero warnings/errors; full suite 354 passed, zero failed/skipped; EF drift clean.
-- Automatic Member status/expiry/attendance task generation is NOT wired: manual opening
-  and internal lifecycle integration are ready. Staff grants/country codes need explicit setup.
-- See docs/CRM_LEADS.md and PROJECT_HISTORY.md for behavior, limitations and commit chronology.
-- Portable history skill: skills/project-history-update/SKILL.md.
+- Cross-feature Sales ownership correction in progress on CRM-/-Leads-&-Follow-up-Management.
+- Branch transfer preserves Member/Lead ownership; scoped managers also retain access to
+  their personally owned old-branch Leads. New distribution remains branch-scoped.
+- Non-active employment closes current assignments to House/unassigned management work,
+  retaining history. Eligibility locks serialize registration/assignment with termination.
+- Build zero warnings/errors; 52 relevant tests plus one independent-session race passed.
+- First correction commit/push accompanies this checkpoint; operational non-owner conversion
+  authorization and final full suite/EF verification remain next within this requested task.
+- No schema changes or production operations. Existing CRM automatic lifecycle integrations
+  remain deferred. See PROJECT_HISTORY.md; portable history skill in skills/project-history-update.
 
 ## Work history
 
@@ -1448,3 +1447,27 @@ codes require explicit configuration; populated legacy databases require ambigui
 assignment/conversion reconciliation before rollout. Known old Sales owners must be
 preserved by future import. No known unresolved issues in the implemented CRM backend;
 automatic lifecycle generation and production rollout remain the documented limitations.
+
+### 2026-10-08 — Sales ownership correction: transfer and inactive employment
+
+Requested a bounded cross-feature correction, with verified small commits/pushes and
+no next major feature. Inspection found transfers already preserve assignments and
+ordinary Sales ownership queries already ignore employee branch. However, callers
+with Leads.Assign lost their personally owned old-branch visibility. Fixed that union
+while keeping distribution and lost-Lead management reactivation branch-scoped.
+
+Employee non-active status previously left ownership open. Resigned/Suspended now
+close current Sales Member/Lead assignments atomically with status and audits; Members
+become House, Leads retain profiles/schedules/history as unassigned management work.
+Reactivation does not restore ownership, and transfers never invoke closure. Future
+assignment dates reject/rollback status changes for reconciliation. Transaction-held
+employee share locks and in-transaction Member creation revalidation serialize new
+ownership with termination. No database migration, finance changes or production use.
+
+Added five parameterized transfer/status/rollback cases and one independent-session
+termination/conversion race. Relevant CRM/Employee/transfer suite: 52 passed; added race:
+1 passed. Build zero warnings/errors; reviewed changes, new files and whitespace.
+Initial sandbox build stalled and cancellation was requested; approved build completed.
+Updated CRM/Member/business-rule docs. This checkpoint accompanies first correction
+commit/push; exact hash is recorded by the final checkpoint. Conversion authorization
+correction and final full-suite/EF/Git checks remain within this task.

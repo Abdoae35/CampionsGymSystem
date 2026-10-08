@@ -113,4 +113,29 @@ public sealed class CrmConcurrencyTests : IAsyncLifetime
         await using var verify=Context();Assert.Single(await verify.MemberFollowUpTasks.ToListAsync());
     }
 
+    [Fact] public async Task TerminationRacingConversionCannotLeaveActiveSalesOwnership()
+    {
+        var lead=await PrepareLead();
+        async Task Convert()
+        {
+            await using var db=Context();
+            try { await Service(db).ConvertLeadAsync(lead,new(){TargetRegistrationBranchId=a,FullName="Member",PrimaryPhone="+201212345678"}); }
+            catch(BusinessRuleException) { /* Termination won: unassigned Lead cannot convert normally. */ }
+        }
+        async Task Terminate()
+        {
+            await using var db=Context();
+            var current=new TestBranchUser(new(actor,"manager",null,null,[],["Employees.Manage","Branches.AccessAll"],null));
+            var access=new OperationAccess(current,db,TimeProvider.System,Options.Create(new AuthContextOptions()));
+            var branches=new CampionsSystem.BLL.Branches.EmployeeBranchAssignmentService(db,current,access);
+            var employees=new CampionsSystem.BLL.Employees.EmployeeManagementService(db,current,access,new(db),branches);
+            await employees.ChangeStatusAsync(owner,new(){Status=CampionsSystem.DAL.Enums.EmploymentStatus.Resigned});
+        }
+        await Task.WhenAll(Convert(),Terminate());
+        await using var verify=Context();
+        Assert.False(await verify.MemberSalesAssignments.AnyAsync(x=>x.SalesEmployeeId==owner&&x.EndedAt==null));
+        Assert.False(await verify.LeadAssignments.AnyAsync(x=>x.SalesEmployeeId==owner&&x.EndedAt==null));
+        Assert.Equal(CampionsSystem.DAL.Enums.EmploymentStatus.Resigned,(await verify.Employees.SingleAsync()).EmploymentStatus);
+    }
+
 }

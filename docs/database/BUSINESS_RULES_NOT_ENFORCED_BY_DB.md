@@ -285,9 +285,9 @@ not controllers, entity methods, or database triggers.
   home branch. Future SessionBased check-ins consume shared sessions; Unlimited does not.
 - Money received/spent at B belongs to B's sale/payment/ledger/expense even if a member
   registered at A. Subsequent employee/member transfers do not rewrite these facts.
-- Sales client/lead/follow-up/future-shift/payroll consequences of employee transfers are
-  deferred to their own features. No automatic reassignment or finance/check-in workflow
-  was implemented. See ../branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md.
+- Sales Member/Lead ownership survives employee branch transfers. Non-active employment
+  closes current ownership with history preserved. Future-shift/payroll consequences
+  remain deferred; no finance/check-in workflow was implemented. See ../branches/BRANCH_MANAGEMENT.md and BRANCH_ISOLATION.md.
 
 ## Member registration branch and legacy ClientCode
 
@@ -391,7 +391,8 @@ Lifecycle timestamp/state consistency, append-only interaction workflow, next-co
 ordering, safe owner-preserving conversion and explicit Freelance House exceptions
 are BLL rules. Legacy nullable canonical phones/actors/dates are not guessed. Existing
 historical assignment/conversion duplicates must be reconciled before deploying new
-uniqueness on another populated database. No ownership is silently changed on employee
-transfer/termination. No automatic inactivity/expiry/attendance scanner exists; CRM
+uniqueness on another populated database. Employee branch transfers preserve Lead/Member ownership independently of employment
+branch. Non-active status changes close current Sales assignments to House/unassigned
+management work, with audits and history retained; reactivation does not restore them. No automatic inactivity/expiry/attendance scanner exists; CRM
 work is opened manually or through the internal integration method. Legacy import
 must preserve original Sales/House ownership. See [CRM](../CRM_LEADS.md).

@@ -46,6 +46,9 @@ public sealed partial class MemberManagementService
     }
     private async Task<Employee> EligibleOwnerAsync(Guid id, CancellationToken ct)
     {
+        if (db.Database.CurrentTransaction is not null)
+            await db.Employees.FromSqlInterpolated($"SELECT * FROM \"Employees\" WHERE \"Id\" = {id} FOR SHARE")
+                .AsNoTracking().ToListAsync(ct);
         var employee = await db.Employees.AsNoTracking().Include(e => e.User).SingleOrDefaultAsync(e => e.Id == id, ct);
         if (employee?.UserId is not Guid userId || employee.User is not { IsActive: true }
             || (employee.User.LockoutEnabled && employee.User.LockoutEnd > access.Now)
@@ -121,6 +124,8 @@ public sealed partial class MemberManagementService
     {
         return await TransactionAsync(async () =>
         {
+            // Revalidate under a transaction-held employee lock so termination cannot race registration.
+            if (owner.HasValue) await EligibleOwnerAsync(owner.Value, ct);
             // Allocation locks this branch until commit and rechecks IsActive in the database.
             var code = await new BranchClientCodeGenerator(db).NextAsync(request.TargetRegistrationBranchId, ct);
             var branch = await db.GymBranches.AsNoTracking().SingleAsync(b => b.Id == request.TargetRegistrationBranchId, ct);

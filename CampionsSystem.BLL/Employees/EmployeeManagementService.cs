@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CampionsSystem.BLL.Employees;
 
-public sealed class EmployeeManagementService(ApplicationDbContext database, ICurrentUserService current,
+public sealed partial class EmployeeManagementService(ApplicationDbContext database, ICurrentUserService current,
     OperationAccess access, EmployeeBranchResolver resolver, EmployeeBranchAssignmentService assignments)
 {
     private async Task<CurrentUserContext> RequireAsync(string permission, CancellationToken ct)
@@ -177,6 +177,8 @@ public sealed class EmployeeManagementService(ApplicationDbContext database, ICu
             var before = new { employee.EmploymentStatus, employee.TerminationDate };
             employee.EmploymentStatus = request.Status.Value;
             employee.TerminationDate = request.Status == DAL.Enums.EmploymentStatus.Resigned ? access.Today : null;
+            if (request.Status != DAL.Enums.EmploymentStatus.Active)
+                await CloseSalesOwnershipAsync(id, user.UserId, request.Reason, ct);
             access.Audit(user.UserId, branch?.Id, "EmployeeStatusChanged", nameof(Employee), id, before,
                 new { employee.EmploymentStatus, employee.TerminationDate, Reason = request.Reason?.Trim() });
             await database.SaveChangesAsync(ct);
