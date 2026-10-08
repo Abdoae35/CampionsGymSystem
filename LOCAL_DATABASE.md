@@ -164,3 +164,20 @@ remain unchanged. No plan/member/subscription was seeded. Production untouched.
 Reviewed upgrade SQL: docs/database/AddEmployeeGymMembershipSupport.sql.
 Rollback requires explicit reconciliation of employee plans/open periods and must
 not invent expiration dates; Down has not been applied.
+
+## Member Management prerequisites (2026-10-08)
+
+Applied 20261008110432_AddBranchClientCodeSequenceSupport only to local development.
+Members=0 and GymBranches=2 were preserved. Added branch counter/calling-code settings
+and canonical Member phones; no table additions or old migration edits. Reviewed SQL:
+`docs/database/AddBranchClientCodeSequenceSupport.sql`. Existing branch calling codes
+remain unconfigured: use authorized branch update to set each actual code before entering
+local Member phones. International + inputs need no branch country assumption.
+
+The guarded explicit `--configure-member-permissions` command was run locally and
+provisioned nine Member permission codes, preserving activation/custom grants and granting
+the existing Owner bootstrap role. No demo reseed or production changes were performed.
+Existing Sales/Reception/custom roles require explicit capability grants appropriate to
+normal Sales, management-assigned or FreelanceHouse registration. See
+[Member Management](docs/MEMBER_MANAGEMENT.md) for payloads, permission matrix, legacy
+reconciliation, counter/import rules and deployment guidance.

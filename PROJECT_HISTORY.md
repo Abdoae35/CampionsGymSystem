@@ -43,9 +43,15 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member Management in progress on MemberManagement; latest checkpoint task 9-validation-fix.
-- Final review tightened FreelanceHouse registration to require the coach still has Freelance employment type, matching existing Freelance plan validation; a later employee profile change cannot bypass it. Three targeted BLL/HTTP eligibility tests passed including rollback after type change; build zero warnings/errors; diff reviewed. Prior full run 315 passed before this fix; final full rerun and documentation checkpoint remain.
-- Small verified commits/pushes authorized; subsequent tasks continue automatically.
+- Member Management backend complete on MemberManagement; application commits pushed
+  through fa55633, with final documentation/history checkpoint accompanying completion.
+- New migration 20261008110432_AddBranchClientCodeSequenceSupport applied only locally;
+  Members=0 and branches=2 preserved. Nine Member permissions configured explicitly.
+- Final build zero warnings/errors; full suite 316 passed, zero failed/skipped; EF drift clean.
+- Configure actual CountryCallingCode values on the two existing branches and grant
+  appropriate capabilities to existing staff before using local-number registration.
+- Production untouched. Legacy ambiguous phones on other databases require explicit
+  reconciliation; purchase/commission/attendance/frontend workflows remain out of scope.
 
 ## Work history
 
@@ -1226,3 +1232,51 @@ Final review tightened FreelanceHouse registration to require the coach still ha
 Workflow: build/test/diff reviewed before this task commit; commit/push authorized
 by user. Exact hashes/results will be recorded in final validation. Remaining tasks
 continue automatically on MemberManagement. No production database used.
+
+### 2026-10-08 — Member Management task 9: documentation and final validation
+
+Completed the requested Member Management backend and updated docs/MEMBER_MANAGEMENT.md,
+database SCHEMA/DATA_FLOWS/BUSINESS_RULES_NOT_ENFORCED_BY_DB, LOCAL_DATABASE.md and this
+handoff. Documented actual API/contracts, Guid versus ClientCode versus MemberCode,
+normal authenticated Sales ownership, permission-gated cross-branch registration,
+Freelance House eligibility, immutable registration/profile boundaries, assignment
+history/reassignment/return-to-House, canonical/display phones and deployment obligations.
+Normal ManagementCreated registration explicitly requires eligible Sales; no accidental
+House default. Coach employment type is revalidated at Freelance registration.
+
+Final verification after the last code fix: dotnet build succeeded, zero warnings/errors;
+full solution tests 316 passed, zero failed/skipped (52 added versus baseline 264).
+EF reported no model changes since AddBranchClientCodeSequenceSupport. Final diff and
+old-migration preservation reviewed; whitespace check clean. Local catalog verified nine
+Member permissions, zero Members and latest migration 20261008110432; two existing branches
+and their unconfigured calling codes preserved. No production database touched.
+
+Earlier failures were corrected before affected commits: sandbox build tooling stalled
+and ultimately exited without compiler diagnostics (approved external builds passed);
+regex quantifiers conflicted with the test SQL runner; a permission setup assertion
+incorrectly counted unrelated pre-existing permissions. Historical migration fixtures
+now insert original branch/member columns without changing migration boundaries.
+
+Implementation commits, each pushed successfully in chronological order:
+- d419b2f feat(members): add member management contracts
+- a92a3c1 feat(members): add member queries and details
+- d73b694 feat(members): add safe branch client code generation
+- 83452d9 feat(members): add member creation workflow
+- 52ba7be feat(members): add member profile updates
+- ba3e7c0 feat(members): add member status management
+- 507af84 feat(members): add sales ownership management
+- d7cbf30 feat(members): expose member management api
+- fa55633 fix(members): validate current freelance coach eligibility
+
+This checkpoint accompanies the requested docs(members): document member management flows
+commit; its commit/push and local/remote equality are the final Git steps, reported in
+the final response rather than recursively editing this checkpoint with its own hash.
+
+No known unresolved Member Management implementation issues. Operational rollout requires
+actual branch calling-code configuration and explicit capabilities for existing staff:
+custom roles are preserved, not silently regranted. Unresolved legacy phones remain nullable
+and need administrative reconciliation on any other database containing ambiguous data.
+The normalizer is deliberately basic; future imports must maintain counters under branch
+locking. Existing linked-member and all historical relationships are preserved. No purchase,
+renewal/freeze, payments, commissions/targets/rates, payroll, check-in processing, invitation
+redemption, Excel import or frontend was introduced by this feature.

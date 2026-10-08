@@ -295,9 +295,10 @@ HomeBranchId represents the original registration branch for ClientCode identity
 Preserve that context independently from later check-ins, purchases or staff moves.
 ClientCode is nullable for uncoded legacy members and unique per HomeBranchId when
 present; positive values are enforced by the DB. Import must retain exact old codes,
-never silently renumber. No fake backfill is performed. Future new-member code
-allocation requires branch-local concurrency safety; plain unprotected MAX+1 is not
-safe. Code generation and offline synchronization are not implemented in this task.
+never silently renumber. No fake backfill is performed. New-member allocation now
+uses the branch counter atomically in Member Management;
+plain unprotected request-time MAX+1 remains prohibited. Offline synchronization and
+import are not implemented. Future imports must advance the counter under branch locking.
 
 ## Guest invitations and House customers
 
@@ -306,9 +307,9 @@ safe. Code generation and offline synchronization are not implemented in this ta
   identity/status and no redeemed deletion. BLL must match phone/member identities
   across records, normalize consistently, and handle changed/shared phone numbers;
   indexes cannot identify a human using different unlinked identities.
-- No shared phone normalizer currently exists. Define one canonical policy in
-  future BLL before exposing issuance/redemption; database trimming/nonblank checks
-  are not phone normalization or verification.
+- Member Management now provides shared PhoneNormalizer using configured branch calling
+  codes and persists Members.PrimaryPhoneNormalized. Future invitation issuance/redemption
+  must reuse that canonical policy; trimming alone is not normalization or verification.
 - Future BLL requires Available before redemption, validates that a linked
   CheckIn is Trial and matches the invitee/actual branch, and writes atomically.
   The FK alone does not enforce these cross-record facts.
@@ -355,3 +356,24 @@ safe. Code generation and offline synchronization are not implemented in this ta
   operationally. Future services also preserve Employee–Member identity links.
 - Benefits continue without a paid transaction only as the employee gym entitlement;
   the existing purchase-batch Membership Benefits system is not redesigned.
+
+## Member Management service-enforced rules (implemented)
+
+See [Member Management](../MEMBER_MANAGEMENT.md) for the complete implemented contract.
+NormalSales resolves the authenticated eligible employee; normal ManagementCreated
+requires explicit eligible Sales selection and assignment permission. Normal registrations
+never default to House. FreelanceHouse explicitly creates eligibility and no Sales row.
+House is derived from no current Sales-type row; legacy House rows remain history.
+Assign/reassign/return-to-House lock the Member, preserve old rows and audit atomically.
+CreateCrossBranch authorizes only NormalSales creation, never broadens member/finance scope.
+HomeBranchId, ClientCode, MemberCode and ownership cannot be changed by profile update.
+Primary-phone edits require dedicated permission; canonical changes reset verification.
+Status changes preserve relationships and do not implement employment/subscription lifecycle.
+
+Database uniqueness protects canonical phones, branch ClientCodes and one current assignment;
+BLL validates eligible active Sales/account/effective permissions and active target branches.
+New/changed phones are canonicalized; nullable unresolved legacy phones require administrative
+reconciliation. Branch calling-code edits never bulk rewrite stored canonical phones.
+Raw SQL/bulk writes bypass service authorization/immutability; operational grants must prevent
+uncontrolled writes. Imports/corrections/counter maintenance are future explicit workflows.
+Commission attribution remains future BLL and must use actual revenue per branch independently.

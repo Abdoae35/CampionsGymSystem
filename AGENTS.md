@@ -41,8 +41,14 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Member Management in progress on MemberManagement; latest task 9-validation-fix.
-- Final review tightened FreelanceHouse registration to require the coach still has Freelance employment type, matching existing Freelance plan validation; a later employee profile change cannot bypass it. Three targeted BLL/HTTP eligibility tests passed including rollback after type change; build zero warnings/errors; diff reviewed. Prior full run 315 passed before this fix; final full rerun and documentation checkpoint remain.
-- Complete remaining tasks automatically with build/tests/diff/commit/push.
-- No production database used. See PROJECT_HISTORY.md for chronology.
+- Member Management backend complete on MemberManagement; implementation pushed through
+  fa55633, with final documentation/history checkpoint accompanying completion.
+- Branch-local atomic ClientCode, display/canonical phones, Sales/referral/House workflows,
+  scoped API, ownership history, status, permissions and audit implemented.
+- Development migration 20261008110432_AddBranchClientCodeSequenceSupport applied;
+  nine Member permissions configured. Existing zero Members/two branches preserved.
+- Final build zero warnings/errors; full suite 316 passed, zero failed/skipped; EF drift clean.
+- Configure actual branch CountryCallingCode and existing staff capability grants before
+  local-number registration. Production untouched; purchase/lifecycle/finance out of scope.
+- See docs/MEMBER_MANAGEMENT.md and PROJECT_HISTORY.md for details and commit chronology.
 - Portable history skill: skills/project-history-update/SKILL.md.

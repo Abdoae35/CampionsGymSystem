@@ -18,7 +18,7 @@ is numeric(18,2); rates numeric(5,2); timestamps are UTC timestamptz.
 | EmployeeBranchAssignments | Effective-dated branch assignment history | EmployeeId → Employees, BranchId → GymBranches, AssignedByUserId → AspNetUsers |
 | EmployeeLeaveRequests | Pending/approved/rejected leave and review | EmployeeId → Employees, optional ReviewedByUserId → AspNetUsers |
 | EmployeeSalarySettings | Effective-dated salary history | EmployeeId → Employees, CreatedByUserId → AspNetUsers |
-| Members | Member profile, unique MemberCode, nullable positive branch-scoped legacy ClientCode (bigint), and phone | HomeBranchId → GymBranches, CreatedByUserId → AspNetUsers |
+| Members | Member profile, unique MemberCode, nullable positive branch-scoped ClientCode (bigint), display phone and unique normalized phone | HomeBranchId → GymBranches, CreatedByUserId → AspNetUsers |
 | MemberSalesAssignments | Current sales/house owner and assignment history | MemberId → Members, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
 | Leads | Branch CRM prospect and conversion | BranchId → GymBranches, ConvertedMemberId → Members, CreatedByUserId → AspNetUsers |
 | LeadAssignments | Sales ownership history | LeadId → Leads, SalesEmployeeId → Employees, AssignedByUserId → AspNetUsers |
@@ -254,8 +254,9 @@ and future Excel imports. The same number may occur in different registration br
 Partial unique IX_Members_HomeBranchId_ClientCode enforces uniqueness of
 (HomeBranchId, ClientCode) WHERE ClientCode IS NOT NULL. Multiple uncoded members may
 remain null. CK_Members_ClientCode_Positive (>0) rejects zero/negative values when
-present. There is no default, sequence, backfill or code generation. Existing string
-MemberCode and its separate unique index remain unchanged.
+present. New registrations allocate codes atomically using GymBranches.LastMemberClientCode
+in their transaction; existing uncoded records remain null. Existing string MemberCode
+and its separate unique index remain unchanged.
 
 The previously applied 20261007182227_AddMemberClientCode remains unchanged.
 New 20261007183558_ScopeMemberClientCodeByHomeBranch replaces only its global code
@@ -354,3 +355,18 @@ history. Restrict FKs protect referenced employee/member/plan/check-in history.
 
 EmploymentStatus remains Active/Resigned/Suspended. Permanent departures currently
 use Resigned and TerminationDate; no separate Terminated API/status is introduced.
+
+## Member Management implementation (2026-10-08)
+
+Migration 20261008110432_AddBranchClientCodeSequenceSupport adds nullable
+GymBranches.CountryCallingCode (1–3 digit calling code with +), nonnegative bigint
+LastMemberClientCode default 0 and nullable Members.PrimaryPhoneNormalized (16).
+Three basic checks validate these fields. PrimaryPhoneNormalized has a globally
+unique partial index where nonnull; PrimaryPhone's index becomes nonunique so
+identical local displays can belong to different countries. Existing Guid PK,
+branch-local ClientCode unique index and one-current-assignment constraint remain.
+Counters start above existing codes; only unique unambiguous international phones
+are backfilled. Branch calling codes/local legacy phones are never guessed.
+Applied to local development only; no Members existed to reconcile. No new tables.
+See [Member Management](../MEMBER_MANAGEMENT.md) for API, ownership, security,
+normalization, deployment and verification details.

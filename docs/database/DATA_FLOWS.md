@@ -1,7 +1,7 @@
 # Purchase, attendance and commission flows
 
-These are specifications for later BLL services; no workflows or triggers are
-implemented here. Use existing authorization, branch consistency, idempotency and
+The numbered purchase/attendance diagrams are business specifications. The Member
+Management section below describes the implemented registration and ownership workflows. Use existing authorization, branch consistency, idempotency and
 ledger validation rules. All related writes in each flow use one database transaction.
 Prefer deactivation over deleting products/employees. Historical FKs use Restrict.
 
@@ -469,3 +469,38 @@ Employee returns -> new Employee Membership period; never reopen the old period.
 The existing Resigned + TerminationDate representation covers permanent departure.
 Lifecycle, linking and access verification are deferred until Member Management/
 Subscription services; status changes do not automatically create/close periods now.
+
+## Member Management (implemented)
+
+```mermaid
+flowchart LR
+    Sales[Authenticated eligible Sales] --> Normal[NormalSales registration]
+    Normal --> Branch[Select active registration branch]
+    Branch --> Code[Atomic branch ClientCode allocation]
+    Code --> Member[Member profile and normalized phone]
+    Member --> Owner[Current Sales assignment to authenticated employee]
+    Owner --> Audit[Audit and transaction commit]
+```
+
+Cross-branch referral: Sales Ahmed stays in Branch A → customer chooses Branch B →
+registration origin B → ClientCode from B → owner Ahmed from A. Requires the specific
+referral capability. It grants no general B member/employee/financial access. Future
+revenue is attributed to B and eligible commission to Ahmed, with separate per-branch
+target buckets; no commission or purchase logic is implemented by registration.
+
+```mermaid
+flowchart LR
+    Coach[Freelance special offer] --> Register[Authorized FreelanceHouse registration]
+    Register --> Profile[Member and plan eligibility]
+    Profile --> House[No Sales assignment: House]
+    House --> Manager[Authorized management assignment]
+    Manager --> Sales[Append current Sales assignment]
+    Sales --> Reassign[Close current row and append successor]
+    Sales --> Return[Close current row: return to House]
+```
+
+Freelance registration creates no subscription, payment, sale or check-in. A normal
+management-created registration must explicitly select eligible Sales; a normal Sales
+registration resolves the actor. Reassignment/House return preserve all prior rows.
+Profile edits cannot change registration origin, identifiers or ownership. Status
+Active/Inactive preserves all related history. See [Member Management](../MEMBER_MANAGEMENT.md).
