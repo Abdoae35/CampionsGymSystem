@@ -43,6 +43,10 @@ it does not replace checking the actual repository.
 
 ## Current state
 
+- Postman now includes all nine Member routes (eleven examples including three create
+  workflows), shared bearer token, optional filters and memberId capture. README updated.
+  Member implementation is pushed through 068ad51; Postman completion checkpoint follows.
+
 - Member Management backend complete on MemberManagement; application commits pushed
   through fa55633; documentation c5d38c6 pushed. Final test-fixture cleanup
   removes abandoned empty schemas and handles initialization failure.
@@ -1299,3 +1303,35 @@ matched before this cleanup. This separately verified test-only completion check
 is committed/pushed as the final small increment; final response reports its hash and
 remote equality without recursive logging. No known unresolved feature issues; branch
 calling-code/staff-capability configuration remains an explicit deployment obligation.
+
+### 2026-10-08 — Member Postman coverage check
+
+User asked whether Member APIs were added to Postman. Inspected tracked collection
+files and searched for /api/members: the existing collection covers Auth, Branches
+and Employees, but contains no Member requests. Member routes are documented in
+docs/MEMBER_MANAGEMENT.md. No collection or application changes were made; adding
+the nine Member requests remains outstanding. No build/tests were needed for this
+read-only investigation. Feature commits are pushed through 068ad51; this history
+and handoff checkpoint remains uncommitted, with no new commit/push performed.
+
+### 2026-10-08 — Add Member Management Postman requests
+
+Requested adding the implemented Member APIs to the existing collection. Updated
+postman/Campions.Auth.postman_collection.json with folder 6, all nine routes and
+11 examples (three explicit alternative creation workflows). Added shared-token
+auth, optional list filters, profile/ID variables, memberId capture after creation,
+and response status checks. Updated postman/README.md with re-import instructions,
+variables, permissions, phone setup and workflow distinctions. Preserved existing
+requests and kept tokens/passwords empty; private environment untouched.
+
+Verification: parsed JSON; checked exact nine-route coverage, eleven examples,
+three creation types, body shape, variable references and bearer auth. Executed all
+11 response scripts with mock responses and verified create ID capture. Build passed
+with zero warnings/errors; full tests 316 passed, zero failed/skipped. Reviewed diff
+and whitespace. No live Postman requests/database writes were performed; no app or
+schema changes. Legacy Git lacks branch --show-current, so used symbolic-ref; sandbox
+process inspection was unavailable and unnecessary after tests completed normally.
+
+This checkpoint includes the prior coverage investigation and accompanies the
+requested verified Postman commit/push on MemberManagement; final response reports
+the resulting hash and remote outcome without recursively editing this entry.

@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Campions API - Auth, Branches and Employees",
-    "description": "Login first; the collection saves accessToken automatically. Includes both authentication endpoints and all eight branch/employee assignment endpoints. Set the documented ID/date variables before management requests. Optional auth tests intentionally exercise errors.",
+    "name": "Campions API - Auth, Branches, Employees and Members",
+    "description": "Login first; accessToken is saved automatically. Includes authentication, branch, employee and all nine Member Management endpoints. Set ID/date/profile variables deliberately and send modifying requests individually. Optional auth tests intentionally exercise errors.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -47,6 +47,46 @@
     },
     {
       "key": "employeeHireDate",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberRegistrationBranchId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salesEmployeeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "freelancePlanId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberFullName",
+      "value": "Example member",
+      "type": "string"
+    },
+    {
+      "key": "memberPrimaryPhone",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberSearch",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "memberClientCode",
       "value": "",
       "type": "string"
     }
@@ -652,6 +692,492 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"status\": \"Suspended\",\n  \"reason\": \"Example management review\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Member management",
+      "description": "All nine Member routes, with three alternative create examples. Select one creation workflow; send writes individually. Login first with the required permissions. Configure actual branch CountryCallingCode for local phone input; international + input is also supported. No subscriptions or payments are created.",
+      "item": [
+        {
+          "name": "List, search and filter members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/members?page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "members"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                },
+                {
+                  "key": "search",
+                  "value": "{{memberSearch}}",
+                  "disabled": true
+                },
+                {
+                  "key": "registrationBranchId",
+                  "value": "{{memberRegistrationBranchId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "clientCode",
+                  "value": "{{memberClientCode}}",
+                  "disabled": true
+                },
+                {
+                  "key": "isActive",
+                  "value": "true",
+                  "disabled": true
+                },
+                {
+                  "key": "salesEmployeeId",
+                  "value": "{{salesEmployeeId}}",
+                  "disabled": true
+                },
+                {
+                  "key": "houseOnly",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.View plus registration-branch scope. Enable optional filters as needed. ClientCode is branch-local; pair it with registrationBranchId. Cross-branch ownership alone does not grant browsing access."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Member details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/members/{{memberId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.View plus registration-branch scope. Includes current owner, derived House state, employee link and lightweight Freelance eligibility."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create normal Sales member / cross-branch referral",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/members",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.Create and Members.OwnSalesCustomers; current active linked employee becomes owner automatically. Set memberRegistrationBranchId to an active target. Another branch additionally requires Members.CreateCrossBranch; no employee transfer or broader access is granted. Successful creation saves memberId. Set a unique valid memberPrimaryPhone before sending.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{memberFullName}}\",\n  \"primaryPhone\": \"{{memberPrimaryPhone}}\",\n  \"secondaryPhone\": null,\n  \"dateOfBirth\": null,\n  \"gender\": null,\n  \"notes\": null,\n  \"targetRegistrationBranchId\": \"{{memberRegistrationBranchId}}\",\n  \"creationType\": \"NormalSales\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"memberId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create member with management-selected Sales owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/members",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.Create and Members.AssignSales plus target branch scope. salesEmployeeId must identify an active employee/user with Members.OwnSalesCustomers. Manager does not need ownership capability. Successful creation saves memberId. Set a unique valid memberPrimaryPhone before sending.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{memberFullName}}\",\n  \"primaryPhone\": \"{{memberPrimaryPhone}}\",\n  \"secondaryPhone\": null,\n  \"dateOfBirth\": null,\n  \"gender\": null,\n  \"notes\": null,\n  \"targetRegistrationBranchId\": \"{{memberRegistrationBranchId}}\",\n  \"creationType\": \"ManagementCreated\",\n  \"salesEmployeeId\": \"{{salesEmployeeId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"memberId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Freelance special-offer House member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/members",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.Create and FreelancePlans.ManageEligibleMembers plus target branch scope. Plan/coach must be eligible for target branch city. Creates eligibility without Sales assignment, subscription or payment. Successful creation saves memberId. Set a unique valid memberPrimaryPhone before sending.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{memberFullName}}\",\n  \"primaryPhone\": \"{{memberPrimaryPhone}}\",\n  \"secondaryPhone\": null,\n  \"dateOfBirth\": null,\n  \"gender\": null,\n  \"notes\": null,\n  \"targetRegistrationBranchId\": \"{{memberRegistrationBranchId}}\",\n  \"creationType\": \"FreelanceHouse\",\n  \"freelancePlanId\": \"{{freelancePlanId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"memberId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update member profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/members/{{memberId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.Edit plus branch scope; primary-phone changes additionally require Members.ChangePrimaryPhone. Full profile replacement: retain real values from details. Id, ClientCode, registration branch and ownership cannot be updated here.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"{{memberFullName}}\",\n  \"primaryPhone\": \"{{memberPrimaryPhone}}\",\n  \"secondaryPhone\": null,\n  \"dateOfBirth\": null,\n  \"gender\": null,\n  \"notes\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change member status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/status",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.ChangeStatus plus branch scope. Set isActive true to reactivate. No deletion; all history remains.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false,\n  \"reason\": \"Example management review\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current Sales assignment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/sales-assignment",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.View plus branch scope. House has no current assignment (204 or null response)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Current assignment or House\", () => pm.expect(pm.response.code).to.be.oneOf([200, 204]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sales assignment history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/sales-history",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.ViewSalesHistory plus branch scope. Previous assignments remain preserved."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assign or reassign Sales owner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/assign-sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.AssignSales plus member branch scope. Target active employee/user needs Members.OwnSalesCustomers; may work in another branch. Closes previous assignment and preserves history.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"salesEmployeeId\": \"{{salesEmployeeId}}\",\n  \"reason\": \"Example authorized assignment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Return member to House",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/return-to-house",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Members.AssignSales plus member branch scope. Closes current assignment without deleting history; no new assignment is created.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Example authorized return to House\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

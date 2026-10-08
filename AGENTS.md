@@ -41,6 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
+- Postman Member folder now covers all nine routes with eleven examples, shared token,
+  filters and ID capture. README includes variables, permissions and re-import steps.
+  Feature implementation pushed through 068ad51; see history for Postman verification.
+
 - Member Management backend complete on MemberManagement; implementation pushed through
   fa55633; documentation c5d38c6 pushed. Test fixture cleanup handles setup failures.
 - Branch-local atomic ClientCode, display/canonical phones, Sales/referral/House workflows,

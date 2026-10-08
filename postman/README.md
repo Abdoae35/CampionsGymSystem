@@ -1,7 +1,7 @@
 # Simple manual API testing
 
 1. Start the API: `dotnet run --project CampionsSystem.API --launch-profile http`.
-2. Import `Campions.Auth.postman_collection.json`. Open **Campions API - Auth, Branches and Employees**.
+2. Import `Campions.Auth.postman_collection.json`. Open **Campions API - Auth, Branches, Employees and Members**.
 3. Select the **Campions Auth - LOCAL PRIVATE** environment (contains demoPassword).
 4. Send **1. Login**. Default username is `dev.reception`; change it in Body for another account.
 5. Send **2. Current user**. Login saves the token in this collection and Current user sends it automatically. No copying/pasting.
@@ -10,7 +10,7 @@ The authentication endpoints are POST /api/auth/login and GET /api/auth/me.
 The collection also includes all eight implemented branch/employee assignment routes.
 Leave **Optional automated test cases** collapsed. They are examples of successful/failed requests to the same endpoints, not separate APIs. Some intentionally return 401.
 
-If you previously imported the old collection, use the new **Campions API - Auth, Branches and Employees** collection. Your imported Postman copy does not update when repository files change.
+If you previously imported the old collection, use the new **Campions API - Auth, Branches, Employees and Members** collection. Your imported Postman copy does not update when repository files change.
 
 Login must return 200 and run its Scripts / Post-response script. Current user sends the latest login token; logging in as another account replaces it. If token expires, send Login again. The collection starts with an empty token and passwords are never committed. Do not share/export a collection after login without clearing accessToken.
 
@@ -69,3 +69,52 @@ Status accepts Active, Suspended, Resigned; Resigned is the current ended-employ
 name. No delete or account/role management requests are provided. Existing branch
 assignment/transfer requests remain in folder 4. See
 [employee management](../docs/employees/EMPLOYEE_MANAGEMENT.md) for complete rules.
+
+## Member management requests
+
+Folder **6. Member management** covers all nine Member endpoints with eleven requests:
+list/search/filter, details, three alternative creation workflows, profile update,
+status, current Sales assignment, Sales history, assign/reassign and return to House.
+Re-import the updated collection; an existing imported copy does not update automatically.
+Login first; every request uses the saved accessToken.
+
+Set collection variables before sending:
+
+| Variable | Purpose |
+| --- | --- |
+| memberId | Existing member; successful creation captures the returned ID |
+| memberRegistrationBranchId | Active target registration branch or optional list filter |
+| memberFullName | Profile name for create/update |
+| memberPrimaryPhone | Valid unique display phone; retain current value during profile update |
+| salesEmployeeId | Eligible owner for management creation/assignment or list filter |
+| freelancePlanId | Eligible active Freelance plan for FreelanceHouse creation |
+| memberSearch | Optional name, phone, MemberCode or ClientCode search |
+| memberClientCode | Optional branch-local numeric ClientCode filter |
+
+The list request has disabled optional query parameters: enable only desired filters
+in Postman's Params tab. It includes search, registrationBranchId, clientCode,
+isActive, salesEmployeeId and houseOnly, with page/pageSize enabled by default.
+ClientCode alone is not globally unique; use registrationBranchId with clientCode
+to identify a branch-local customer number.
+
+NormalSales requires Members.Create and Members.OwnSalesCustomers; the current linked
+active employee becomes owner. For a cross-branch referral, select the other branch
+and grant Members.CreateCrossBranch. Ownership does not grant other-branch browsing
+or financial access. ManagementCreated requires Members.AssignSales and an explicit
+eligible salesEmployeeId. FreelanceHouse requires FreelancePlans.ManageEligibleMembers
+and an eligible freelancePlanId; no Sales assignment is created.
+
+Reads require Members.View, except history which needs Members.ViewSalesHistory.
+Profile update needs Members.Edit, plus Members.ChangePrimaryPhone for a primary-phone
+change. Status needs Members.ChangeStatus. Assignment and return to House need
+Members.AssignSales. All operations retain existing branch scope rules. Owner eligibility
+is Members.OwnSalesCustomers, separate from assignment authority.
+
+Configure the branch's actual CountryCallingCode through branch settings before using
+local phone input; do not guess a country code. International input starting with + is
+accepted directly. PUT replaces the editable profile; retain real values and omit immutable
+Id, ClientCode, registration branch and Sales ownership fields. None of these requests
+creates a subscription/payment. Send writes individually against intended development
+records; the three creation requests are alternatives, not a sequence. Examples were
+validated without sending modifying requests to the development database. See
+[Member Management](../docs/MEMBER_MANAGEMENT.md) for complete rules and setup.
