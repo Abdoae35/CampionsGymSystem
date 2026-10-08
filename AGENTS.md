@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 2: creation and queries.
-- Implemented branch-secured Lead creation/list/details, bounded per-row bulk results and privacy-safe walk-in lookup. Shared PhoneIdentity helper handles safe legacy/canonical matching and transaction phone locks. Seven CRM tests passed. Initial constructor mismatch fixed before verification; task 1 pushed as 285696b to current CRM branch (an initial MemberManagement push was a no-op).
+- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 3: assignment and My Leads.
+- Added locked assignment/reassignment, current/history queries and authenticated My Leads. Active account/capability and operational branch eligibility enforced; history preserved. Eleven CRM tests passed; one test analyzer warning corrected before clean build.
 - Verified build/focused tests; each completed task committed/pushed. Remaining tasks continue.
 - Development migration 20261008143406_AddCrmLeadManagement applied; production untouched.
 - Member Management complete (0790548); see chronological history for details.
