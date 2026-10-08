@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 3: assignment and My Leads.
-- Added locked assignment/reassignment, current/history queries and authenticated My Leads. Active account/capability and operational branch eligibility enforced; history preserved. Eleven CRM tests passed; one test analyzer warning corrected before clean build.
+- CRM in progress on CRM-/-Leads-&-Follow-up-Management: task 4: contact history and scheduling.
+- Added append-only contacts, paged interaction history, latest-contact scheduling and gym-timezone Today/Overdue/Upcoming filters. Backdated contacts cannot overwrite newer scheduling. Three focused interaction tests passed.
 - Verified build/focused tests; each completed task committed/pushed. Remaining tasks continue.
 - Development migration 20261008143406_AddCrmLeadManagement applied; production untouched.
 - Member Management complete (0790548); see chronological history for details.
