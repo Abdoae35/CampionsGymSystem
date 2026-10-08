@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Member Management in progress on MemberManagement; latest checkpoint task 3.
-- Added atomic branch counter allocation, branch CountryCallingCode settings, shared configurable phone normalization and persisted normalized Member phone with unique partial index. Migration 20261008110432_AddBranchClientCodeSequenceSupport applied only to local development; zero Members and two branches preserved, calling codes remain unconfigured. Safe international backfill only; ambiguous legacy phones stay null. Focused tests 81 passed, zero failed/skipped; build zero warnings/errors; EF drift clean. Fixed migration SQL/test-runner formatting incompatibility before commit.
+- Member Management in progress on MemberManagement; latest checkpoint task 4.
+- Implemented transactional member creation: authenticated eligible Sales ownership, permission-gated cross-branch referral, explicit management assignment/House creation, Freelance House eligibility, normalized/legacy duplicate checks, target-branch counter and audits. Registration creates no subscription/payment/sale/check-in. Eleven focused tests passed; build zero warnings/errors; diff reviewed.
 - Small verified commits/pushes authorized; subsequent tasks continue automatically.
 
 ## Work history
@@ -1174,6 +1174,14 @@ continue automatically on MemberManagement. No production database used.
 ### 2026-10-08 — Member Management task 3
 
 Added atomic branch counter allocation, branch CountryCallingCode settings, shared configurable phone normalization and persisted normalized Member phone with unique partial index. Migration 20261008110432_AddBranchClientCodeSequenceSupport applied only to local development; zero Members and two branches preserved, calling codes remain unconfigured. Safe international backfill only; ambiguous legacy phones stay null. Focused tests 81 passed, zero failed/skipped; build zero warnings/errors; EF drift clean. Fixed migration SQL/test-runner formatting incompatibility before commit.
+
+Workflow: build/test/diff reviewed before this task commit; commit/push authorized
+by user. Exact hashes/results will be recorded in final validation. Remaining tasks
+continue automatically on MemberManagement. No production database used.
+
+### 2026-10-08 — Member Management task 4
+
+Implemented transactional member creation: authenticated eligible Sales ownership, permission-gated cross-branch referral, explicit management assignment/House creation, Freelance House eligibility, normalized/legacy duplicate checks, target-branch counter and audits. Registration creates no subscription/payment/sale/check-in. Eleven focused tests passed; build zero warnings/errors; diff reviewed.
 
 Workflow: build/test/diff reviewed before this task commit; commit/push authorized
 by user. Exact hashes/results will be recorded in final validation. Remaining tasks

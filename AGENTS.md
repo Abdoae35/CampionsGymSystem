@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Member Management in progress on MemberManagement; latest task 3.
-- Added atomic branch counter allocation, branch CountryCallingCode settings, shared configurable phone normalization and persisted normalized Member phone with unique partial index. Migration 20261008110432_AddBranchClientCodeSequenceSupport applied only to local development; zero Members and two branches preserved, calling codes remain unconfigured. Safe international backfill only; ambiguous legacy phones stay null. Focused tests 81 passed, zero failed/skipped; build zero warnings/errors; EF drift clean. Fixed migration SQL/test-runner formatting incompatibility before commit.
+- Member Management in progress on MemberManagement; latest task 4.
+- Implemented transactional member creation: authenticated eligible Sales ownership, permission-gated cross-branch referral, explicit management assignment/House creation, Freelance House eligibility, normalized/legacy duplicate checks, target-branch counter and audits. Registration creates no subscription/payment/sale/check-in. Eleven focused tests passed; build zero warnings/errors; diff reviewed.
 - Complete remaining tasks automatically with build/tests/diff/commit/push.
 - No production database used. See PROJECT_HISTORY.md for chronology.
 - Portable history skill: skills/project-history-update/SKILL.md.

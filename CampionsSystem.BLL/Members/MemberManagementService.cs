@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CampionsSystem.BLL.Members;
 
-public sealed partial class MemberManagementService(ApplicationDbContext db, ICurrentUserService current)
+public sealed partial class MemberManagementService(ApplicationDbContext db, ICurrentUserService current,
+    OperationAccess access, IPermissionService permissions)
 {
     private async Task<CurrentUserContext> RequireAsync(string permission, CancellationToken ct)
     {
@@ -77,9 +78,11 @@ public sealed partial class MemberManagementService(ApplicationDbContext db, ICu
             .Where(e => e.MemberId == member.Id && e.MembershipPlan.PlanCategory == PlanCategory.Freelance)
             .OrderBy(e => e.MembershipPlan.Name).Select(e => new EligibleFreelancePlan(e.MembershipPlanId,
                 e.MembershipPlan.Name, e.MembershipPlan.FreelanceCoachEmployee!.FullName)).ToListAsync(ct);
+        var registration = await db.GymBranches.AsNoTracking().Where(b => b.Id == member.HomeBranchId)
+            .Select(b => new BranchContext(b.Id, b.Name)).SingleAsync(ct);
         return new(member.Id, member.ClientCode, member.MemberCode, member.FullName, member.PrimaryPhone,
             member.PrimaryPhoneNormalized, member.SecondaryPhone, member.IsPrimaryPhoneVerified, member.DateOfBirth, member.Gender,
-            member.Notes, member.IsActive, new(member.HomeBranchId, member.HomeBranch.Name), member.CreatedAt,
+            member.Notes, member.IsActive, registration, member.CreatedAt,
             owner, employee, eligible);
     }
 }
