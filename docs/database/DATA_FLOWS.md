@@ -530,3 +530,21 @@ Members. No owner -> House management queue -> existing Member assignment workfl
 -> new owner's queue. Reassignment dynamically moves current work. Automatic Member
 status/expiry/attendance task generation is not wired; internal CRM lifecycle method
 is provided for future callers. Full detail: [CRM management](../CRM_LEADS.md).
+
+## Employee movement and operational Lead conversion
+
+Employee A → B changes employment branch assignment only: existing Members and Leads
+remain owned by that employee, and My Leads/My Follow-ups retain their old-branch work.
+New B Leads may be distributed to them; new assignments still validate current branch.
+No registration branch, Lead operational branch or historical transaction is rewritten.
+
+Non-active employment → close current Sales assignment rows → Members become House
+and Leads become unassigned redistribution work → management explicitly assigns later.
+History remains; reactivating employment does not restore closed assignments.
+
+Lead owner Ahmed → customer received by authorized Ali → Ali converts in his permitted
+registration branch → Member owner Ahmed; creation/conversion audit actor Ali. Conversion
+requires Leads.Convert + Members.Create and active employment, not Members.AssignSales.
+Registering outside Ali's current branch requires Members.CreateCrossBranch. Source
+Lead branch does not grant browsing or finance scope. Future commission bucket remains
+employee + actual sale/payment branch, independently of employee's current branch.

@@ -111,8 +111,13 @@ Phone lookup order: existing Member -> existing Lead -> NotFound. Canonical matc
 also considers safely derivable legacy display phones without rewriting them.
 Lookup requires branch scope and an active operational branch. It reports existence
 across branches but exposes record IDs/details only when independently permitted.
-An inaccessible result requires an authorized owner/manager to act; random Sales
-cannot convert or take ownership merely because the customer visited their desk.
+An inaccessible lookup does not reveal private Lead details. An active registration
+employee with Leads.Convert and Members.Create may perform the dedicated conversion
+using the known Lead ID and matching phone, even when they are not its owner. This
+narrow operation never grants general Lead visibility or assignment authority.
+Phone lookup returns only ExistingLeadId for such an operator when private Lead details
+are inaccessible, so the walk-in can be converted without a manager handing over the ID.
+Other duplicate results still withhold inaccessible IDs/details.
 
 Existing Member -> use the existing profile; ownership is unchanged.
 Existing Lead owned by Ahmed -> customer visits Mohamed -> authorized conversion
@@ -125,15 +130,16 @@ ambiguous/duplicate legacy data is separate from normal workflows.
 
 Conversion flow:
 
-1. Require Leads.Convert and Members.Create; only the assigned employee or a
-   branch-authorized manager (Leads.Assign) can convert.
+1. Require Leads.Convert and Members.Create plus an active linked employee. The
+   registration operator may differ from the Lead owner; no Leads.Assign or
+   Members.AssignSales grant is required. Validate destination branch/referral scope.
 2. Start/join transaction and lock/reload Lead; check active, not already converted.
 3. Resolve current Lead owner; normal unassigned Leads must be assigned first.
 4. Validate complete Member profile, active destination branch, owner capability
-   and cross-branch referral permission when destination differs from Lead branch.
+   and cross-branch referral permission when destination differs from the actor's current branch.
 5. Use assembly-internal MemberManagementService.CreateMemberFromLeadAsync. It accepts
    Lead ID and independently resolves/authenticates ownership, never an API-supplied
-   trusted SalesEmployeeId. Broad Members.AssignSales is not needed for owner conversion.
+   trusted SalesEmployeeId. Broad Members.AssignSales is not needed for operational conversion.
 6. Reuse Member creation/core validation, target branch atomic ClientCode generator,
    canonical phone uniqueness, ownership, Freelance eligibility and Member audits.
 7. Preserve the Lead's stored canonical phone when destination uses another country
@@ -149,7 +155,11 @@ row locks prevent double conversion/reassignment, including independent connecti
 
 Cross-branch example: Ahmed operates in A, Lead in A, customer chooses B -> Member
 registration branch B -> ClientCode from B -> Sales owner Ahmed -> Ahmed remains in A.
-Members.CreateCrossBranch is required for normal cross-branch conversion. This grants
+Members.CreateCrossBranch is required when the converting employee registers outside
+their current branch. If Ali works in B, he may convert Ahmed's A Lead into B with
+Leads.Convert + Members.Create, without acquiring ownership or branch A browsing.
+CreatedByUserId and the Lead.Converted audit actor record Ali; MemberSalesAssignment
+remains Ahmed. The Lead's operational branch is preserved. This grants
 no other-branch employee, Member, finance, vault or payroll browsing. Future paid revenue
 belongs to B; future commission attribution is Ahmed+B. Branch target buckets must never
 be combined. No revenue/commission calculations exist in this feature.
@@ -214,7 +224,7 @@ are 401, 403, 404, 400 business validation and 409 concurrency conflicts.
 | POST | /api/leads/{id}/interactions | Leads.Manage; append contact and schedule |
 | GET | /api/leads/{id}/interactions | Leads.View; paged history |
 | PATCH | /api/leads/{id}/status | Leads.Manage; lifecycle; reactivation also Leads.Assign |
-| POST | /api/leads/{id}/convert | Leads.Convert + Members.Create; owner/manager and workflow guards |
+| POST | /api/leads/{id}/convert | Leads.Convert + Members.Create; active employee and destination/referral guards |
 | GET | /api/crm/my-follow-ups | CRM.ViewMemberFollowUps; owned Lead/Member work |
 | GET | /api/crm/house-follow-ups | CRM.ManageHouseFollowUps; management House queue |
 | POST | /api/crm/members/{id}/follow-ups | CRM.ManageMemberFollowUps; owner or scoped Members.AssignSales manager |
@@ -240,7 +250,7 @@ setup; it never runs on normal API startup.
 Audit actions: Lead.Created, Lead.Updated, Lead.Assigned, Lead.Reassigned,
 Lead.InteractionAdded, Lead.StatusChanged, Lead.MarkedLost, Lead.Reactivated,
 Lead.Converted, FollowUp.Created, FollowUp.Updated, FollowUp.Completed,
-HouseMember.AssignedForFollowUp, existing Member registration/ownership/eligibility
+HouseMember.AssignedForFollowUp, Lead.Unassigned on inactive employment, existing Member registration/ownership/eligibility
 events, and Permission.CrmAccessConfigured. Existing actor/branch/entity/old-new/time
 context is reused. The current helper does not add HTTP IP/device metadata.
 
@@ -286,3 +296,7 @@ two branches. Postman checks cover nineteen routes/twenty-one examples, all resp
 and pre-request scripts, ID capture and + phone encoding; previous folders preserved.
 No live modifying Postman requests were executed. Automatic lifecycle generation and
 production rollout remain separate integrations as described above.
+
+Correction verification (2026-10-09): build zero warnings/errors; full suite 370 passed,
+zero failed/skipped, including 16 added transfer/termination/conversion cases. EF drift
+clean; no schema changes. Postman lookup reference capture and scripts verified.

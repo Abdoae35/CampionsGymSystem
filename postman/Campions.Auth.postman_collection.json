@@ -1308,7 +1308,7 @@
                 }
               ]
             },
-            "description": "Leads.View. Sales see assigned Leads; Leads.Assign managers see scoped branch Leads. Enable optional filters; no branch bypass."
+            "description": "Leads.View. Sales see assigned Leads across transfers; Leads.Assign managers see scoped branch Leads plus personally owned Leads. Enable optional filters; no branch bypass."
           },
           "event": [
             {
@@ -1368,7 +1368,7 @@
                 }
               ]
             },
-            "description": "Leads.View and active operational branch scope. Member first, then Lead, then NotFound. Inaccessible duplicate details/IDs are withheld. Script URL-encodes + input correctly."
+            "description": "Leads.View and active operational branch scope. Member first, then Lead, then NotFound. Inaccessible private details are withheld. Active employees with Leads.Convert + Members.Create receive ExistingLeadId for phone-selected conversion only. Script URL-encodes + input correctly."
           },
           "event": [
             {
@@ -1385,7 +1385,12 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const result = pm.response.json();",
+                  "  const id = result.existingLeadId || (result.lead && result.lead.id);",
+                  "  if (id) pm.collectionVariables.set(\"leadId\", id);",
+                  "}"
                 ]
               }
             }
@@ -1841,7 +1846,7 @@
                 }
               ]
             },
-            "description": "Leads.Convert + Members.Create; current owner or Leads.Assign manager. Normal conversion needs an assigned eligible owner. Cross-branch requires Members.CreateCrossBranch. No arbitrary owner, subscription or payment. Preserves canonical Lead phone; saves memberId.",
+            "description": "Leads.Convert + Members.Create and active linked employee; authorized non-owners may register without assignment grants. Lead owner is preserved; converter is audit/creation actor. Normal conversion needs an assigned eligible owner. Destination outside actor current branch requires Members.CreateCrossBranch. No arbitrary owner, subscription or payment. Preserves canonical Lead phone; saves memberId.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"fullName\": \"{{memberFullName}}\",\n  \"primaryPhone\": \"{{leadPrimaryPhone}}\",\n  \"targetRegistrationBranchId\": \"{{memberRegistrationBranchId}}\",\n  \"secondaryPhone\": null,\n  \"dateOfBirth\": null,\n  \"gender\": null,\n  \"notes\": null\n}",

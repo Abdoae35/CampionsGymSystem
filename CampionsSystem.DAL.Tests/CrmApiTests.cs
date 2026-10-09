@@ -102,4 +102,43 @@ public sealed partial class AuthenticationApiTests
         using var valid=await client.PostAsJsonAsync($"/api/leads/{l.Id}/convert",new{targetRegistrationBranchId=data.Source,primaryPhone=l.PrimaryPhone,fullName="Actual customer name"});Assert.Equal(HttpStatusCode.OK,valid.StatusCode);
     }
 
+    [Fact] public async Task AuthorizedRegistrationOperatorConvertsForeignLeadWithoutBrowsingOrAssignmentGrants()
+    {
+        var data=await BranchFixture();await GrantCrm("Leads.View","Leads.Convert","Members.Create","Members.View");await Authenticate();
+        Guid leadId,ownerId;
+        await using(var scope=factory.Services.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var user=new ApplicationUser{UserName="absent-original-owner"};
+            var users=scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<ApplicationUser>>();
+            Assert.True((await users.CreateAsync(user,password)).Succeeded);
+            var owner=new Employee{UserId=user.Id,FullName="Ahmed",Phone="absent-sales",HireDate=BranchToday};ownerId=owner.Id;
+            var permission=new Permission{Code="Members.OwnSalesCustomers",Name="Own",Module="Members"};
+            var lead=new Lead{BranchId=data.Target,FullName="Walk-in",Phone="+201212345678",PhoneNormalized="+201212345678",CreatedByUserId=userId};leadId=lead.Id;
+            db.AddRange(owner,permission,lead,new EmployeeBranchAssignment{Employee=owner,BranchId=data.Target,StartDate=BranchToday,IsPrimary=true,AssignedByUserId=userId},
+                new UserPermissionOverride{UserId=user.Id,Permission=permission,Effect=CampionsSystem.DAL.Enums.PermissionOverrideEffect.Allow},
+                new LeadAssignment{Lead=lead,SalesEmployee=owner,AssignedAt=DateTimeOffset.UtcNow,AssignedByUserId=userId});
+            await db.SaveChangesAsync();
+        }
+        using(var lookup=await client.GetAsync($"/api/leads/lookup?branchId={data.Source}&phone=%2B201212345678"))
+        {
+            Assert.Equal(HttpStatusCode.OK,lookup.StatusCode);var reference=(await lookup.Content.ReadFromJsonAsync<LeadCreationResult>())!;
+            Assert.Equal(leadId,reference.ExistingLeadId);Assert.Null(reference.Lead);
+        }
+        using(var hidden=await client.GetAsync($"/api/leads/{leadId}"))Assert.Equal(HttpStatusCode.NotFound,hidden.StatusCode);
+        using(var assign=await client.PostAsJsonAsync($"/api/leads/{leadId}/assign",new{salesEmployeeId=data.Employee}))Assert.Equal(HttpStatusCode.Forbidden,assign.StatusCode);
+        using var converted=await client.PostAsJsonAsync($"/api/leads/{leadId}/convert",new{targetRegistrationBranchId=data.Source,fullName="Walk-in",primaryPhone="+201212345678"});
+        Assert.Equal(HttpStatusCode.OK,converted.StatusCode);var member=(await converted.Content.ReadFromJsonAsync<MemberDetails>())!;
+        Assert.Equal(ownerId,member.CurrentSalesOwner?.SalesEmployeeId);Assert.Equal(data.Source,member.RegistrationBranch.Id);
+        await using(var scope=factory.Services.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            Assert.Equal(userId,(await db.Members.SingleAsync(x=>x.Id==member.Id)).CreatedByUserId);
+            Assert.Equal(userId,(await db.AuditLogs.SingleAsync(x=>x.Action=="Lead.Converted")).UserId);
+            Assert.False(await db.MemberSalesAssignments.AnyAsync(x=>x.SalesEmployeeId==data.Employee));
+        }
+        using var hiddenAfter=await client.GetAsync($"/api/leads/{leadId}");Assert.Equal(HttpStatusCode.NotFound,hiddenAfter.StatusCode);
+        using var otherBranch=await client.GetAsync($"/api/branches/{data.Target}/employees");Assert.Equal(HttpStatusCode.Forbidden,otherBranch.StatusCode);
+    }
+
 }

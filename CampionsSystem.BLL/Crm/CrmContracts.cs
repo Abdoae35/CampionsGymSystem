@@ -36,8 +36,8 @@ public sealed record LeadDetails(Guid Id, Guid BranchId, string BranchName, stri
     DateTimeOffset? NextFollowUpAt, LeadAssignmentDetails? CurrentAssignment,
     Guid? ConvertedMemberId, DateTimeOffset? ConvertedAt, DateTimeOffset? LostAt, string? LostReason);
 public sealed record LeadListResult(IReadOnlyList<LeadDetails> Items, int TotalCount, int Page, int PageSize);
-// Duplicate IDs/details are returned only when independently visible to the caller.
-public sealed record LeadCreationResult(string Result, LeadDetails? Lead = null, Guid? ExistingMemberId = null, string? Error = null);
+// Private details require visibility. A phone lookup may expose only a Lead ID to an authorized conversion operator.
+public sealed record LeadCreationResult(string Result, LeadDetails? Lead = null, Guid? ExistingMemberId = null, string? Error = null, Guid? ExistingLeadId = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class LeadAssignmentRequest
 {

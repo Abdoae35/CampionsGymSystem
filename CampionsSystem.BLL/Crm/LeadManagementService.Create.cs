@@ -75,7 +75,16 @@ public sealed partial class LeadManagementService
         var user=await RequireAsync("Leads.View",ct);BranchAccessService.EnsureScope(user,branchId);
         var branch=await db.GymBranches.AsNoTracking().SingleOrDefaultAsync(b=>b.Id==branchId&&b.IsActive,ct)
             ??throw new BusinessRuleException("An active operational branch is required.");
-        return await LookupAsync(user,PhoneNormalizer.Normalize(phone,branch.CountryCallingCode),ct)??new("NotFound");
+        var normalized=PhoneNormalizer.Normalize(phone,branch.CountryCallingCode);
+        var result=await LookupAsync(user,normalized,ct)??new("NotFound");
+        if(result.Result=="AlreadyLead" && result.Lead is null && user.EmployeeId.HasValue
+            && user.Permissions.Contains("Leads.Convert") && user.Permissions.Contains("Members.Create"))
+        {
+            await members.RequireLeadConversionAccessAsync(branchId,false,ct);
+            // Phone-selected registration reference only; no owner/profile/history or general scope is exposed.
+            result=result with {ExistingLeadId=await PhoneIdentity.FindLeadAsync(db,normalized,ct)};
+        }
+        return result;
     }
     private async Task<LeadCreationResult?> LookupAsync(CurrentUserContext user,string phone,CancellationToken ct)
     {

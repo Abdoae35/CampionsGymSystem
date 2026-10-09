@@ -144,7 +144,11 @@ date filters and can filter branchId. Calendar dates use the configured gym time
 Leads.View/Manage are reused; Leads.Assign is branch management/distribution authority,
 Leads.Convert is conversion authority, and Members.OwnSalesCustomers is ownership
 eligibility. Conversion also needs Members.Create, plus Members.CreateCrossBranch for
-normal referral to a different branch. Freelance conversion additionally requires
+normal registration outside the conversion actor's current branch. An active employee
+may convert another employee's Lead without Leads.Assign or Members.AssignSales;
+phone lookup exposes only ExistingLeadId when private Lead details are inaccessible,
+and captures it as leadId. The original Lead owner becomes Member owner and the converter remains the audit/
+creation actor. This grants no general old-branch Lead browsing. Freelance conversion additionally requires
 FreelancePlans.ManageEligibleMembers and destination scope; it is explicitly House.
 Managers without ownership capability can assign to eligible Sales. Invalid/duplicate
 bulk rows return row-level results; bounds are 1–100 rows.

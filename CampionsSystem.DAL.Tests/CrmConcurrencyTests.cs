@@ -56,7 +56,7 @@ public sealed class CrmConcurrencyTests : IAsyncLifetime
     private LeadManagementService Service(ApplicationDbContext db)
     {
         var user=new TestBranchUser(new(actor,"concurrent",null,null,[],
-            ["Leads.View","Leads.Manage","Leads.Assign","Leads.Convert","Members.Create","Members.AssignSales","Members.OwnSalesCustomers","Branches.AccessAll","CRM.ManageMemberFollowUps"],null));
+            ["Leads.View","Leads.Manage","Leads.Assign","Leads.Convert","Members.Create","Members.AssignSales","Members.OwnSalesCustomers","Branches.AccessAll","CRM.ManageMemberFollowUps"],new(a,"A")){EmployeeId=owner});
         var access=new OperationAccess(user,db,TimeProvider.System,Options.Create(new AuthContextOptions()));
         var capability=new Capabilities();var members=new MemberManagementService(db,user,access,capability);
         return new(db,user,access,capability,members);

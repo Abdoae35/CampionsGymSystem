@@ -8,9 +8,12 @@ public sealed partial class LeadManagementService
 {
     public async Task<MemberDetails> ConvertLeadAsync(Guid id,ConvertLeadRequest r,CancellationToken ct=default)
     {
-        var user=await RequireAsync("Leads.Convert",ct);
+        var user=await members.RequireLeadConversionAccessAsync(r.TargetRegistrationBranchId,r.FreelancePlanId.HasValue,ct);
         return await TransactionAsync(async()=>{
-            var lead=await LockedAsync(id,user,ct);
+            // Conversion alone may resolve another employee's Lead; normal list/detail visibility stays unchanged.
+            var lead=await db.Leads.FromSqlInterpolated($"SELECT * FROM \"Leads\" WHERE \"Id\" = {id} FOR UPDATE").SingleOrDefaultAsync(ct)
+                ??throw new CampionsSystem.BLL.Branches.BranchNotFoundException("Lead not found.");
+            await db.Entry(lead).ReloadAsync(ct);
             if(lead.Status is LeadStatus.Converted or LeadStatus.Lost or LeadStatus.Inactive||lead.ConvertedMemberId.HasValue)
                 throw new BusinessRuleException("An active unconverted Lead is required.");
             var assignment=await db.LeadAssignments.SingleOrDefaultAsync(a=>a.LeadId==id&&a.EndedAt==null,ct);

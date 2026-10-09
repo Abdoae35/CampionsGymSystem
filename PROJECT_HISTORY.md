@@ -43,16 +43,19 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Cross-feature Sales ownership correction in progress on CRM-/-Leads-&-Follow-up-Management.
-- Branch transfer preserves Member/Lead ownership; scoped managers also retain access to
-  their personally owned old-branch Leads. New distribution remains branch-scoped.
-- Non-active employment closes current assignments to House/unassigned management work,
-  retaining history. Eligibility locks serialize registration/assignment with termination.
-- Build zero warnings/errors; 52 relevant tests plus one independent-session race passed.
-- First correction commit/push accompanies this checkpoint; operational non-owner conversion
-  authorization and final full suite/EF verification remain next within this requested task.
-- No schema changes or production operations. Existing CRM automatic lifecycle integrations
-  remain deferred. See PROJECT_HISTORY.md; portable history skill in skills/project-history-update.
+- CRM Sales ownership correction completed on CRM-/-Leads-&-Follow-up-Management.
+- Transfers preserve Member/Lead assignments and owned old-branch follow-up visibility;
+  new Lead distribution still validates the employee's current operational branch.
+- Non-active employment closes current ownership to House/unassigned management work;
+  history remains, no random reassignment, reactivation does not restore closed ownership.
+- Active authorized employees may convert another owner's Lead; locked current owner wins,
+  destination/referral scope applies, converter is creation/audit actor. Phone lookup can
+  return an ID-only conversion reference without exposing private Lead details.
+- Final build zero warnings/errors; full suite 370 passed, zero failed/skipped; EF drift clean.
+- First correction 52a58a5 pushed; final conversion/docs/Postman commit accompanies this
+  checkpoint. No schema changes/production operations. Stop here; no next feature started.
+- CRM automatic Member status/expiry/attendance task generation remains deferred.
+- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
 
@@ -1471,3 +1474,44 @@ Initial sandbox build stalled and cancellation was requested; approved build com
 Updated CRM/Member/business-rule docs. This checkpoint accompanies first correction
 commit/push; exact hash is recorded by the final checkpoint. Conversion authorization
 correction and final full-suite/EF/Git checks remain within this task.
+
+### 2026-10-09 — Operational Lead conversion correction and final validation
+
+Completed the confirmed correction only; no next major feature started. First verified
+commit 52a58a5 (fix(crm): preserve sales ownership across employee transfers) pushed
+successfully to the current CRM branch. Lead conversion previously required owner or
+scoped manager. It now requires an active linked employee with Leads.Convert and
+Members.Create, plus destination branch/referral security; Leads.Assign and
+Members.AssignSales are not required. Cross-branch registration is relative to the
+operator's current branch, not the Lead's historical operational branch. The locked
+current Lead assignment always supplies the Member owner; creator and Lead.Converted
+audit actor remain the registration operator. Original operational/registration facts,
+Freelance House exceptions, phone identity and no-purchase behavior remain intact.
+
+Walk-in lookup previously withheld even the conversion reference from authorized
+non-owners. Added optional ExistingLeadId for phone-selected, authorized active
+registration operators only; private Lead details/list access remain protected. No
+new API route or permission. Updated Postman guidance and lookup ID capture, CRM
+docs, data flows and handoff. No schema/migration/database update required; production
+untouched. Assignment eligibility locks also protect termination racing conversion.
+
+Validation: final build zero warnings/errors. Full solution suite 370 passed, zero
+failed/skipped (16 added cases over 354 baseline). Covers transfer with/without Lead
+distribution capability, old/new branch Leads, current ownership and interaction
+access, historical transaction/registration preservation, non-active employment and
+redistribution, rollback, independent-session termination/conversion, operational
+non-owner conversion before/after transfer, actor attribution, latest reassignment,
+capability/employment/destination denials, phone protection and actual HTTP privacy/
+assignment restrictions. Previous focused CRM run: 52 passed before final lookup/
+latest-owner additions. An intermediate test context constructor mismatch caused a
+build failure; corrected before clean build/full suite. EF reports no model changes
+since last migration. Postman JSON/scripts parse and mock ID-capture checks passed;
+no live modifying Postman requests. Final diffs and whitespace reviewed.
+
+This checkpoint accompanies fix(crm): allow authorized conversion without changing
+lead owner; final commit/push/local-remote verification follows this write, reported
+in the final response without recursive history commits. No known unresolved defects
+in this correction. Existing future-dated assignment anomalies must be reconciled
+before status closure; historical Lead/Member work is never guessed or deleted.
+Automatic lifecycle tasks, commission calculations and all previously deferred CRM
+integrations remain out of scope. Work stops after this correction as requested.

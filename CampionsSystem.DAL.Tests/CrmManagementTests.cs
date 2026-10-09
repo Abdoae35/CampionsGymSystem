@@ -74,6 +74,6 @@ public sealed partial class CrmManagementTests : IAsyncLifetime
     [Fact] public async Task InaccessibleDuplicateReturnsNoPrivateDetails()
     {
         await Lead();Set(mohamed,"Leads.View","Leads.Manage","Members.OwnSalesCustomers");
-        var result=await service.CreateLeadAsync(Request());Assert.Equal("AlreadyLead",result.Result);Assert.Null(result.Lead);
+        var result=await service.CreateLeadAsync(Request());Assert.Equal("AlreadyLead",result.Result);Assert.Null(result.Lead);Assert.Null(result.ExistingLeadId);
     }
 }
