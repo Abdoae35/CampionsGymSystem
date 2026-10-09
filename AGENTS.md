@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 2.
-- Implemented global/shared audience category list/create/update/status with permission plus Branches.AccessAll enforcement, duplicate checks, audit and transactional writes. Branch manager read-only catalog behavior verified. Build zero warnings/errors; two focused tests passed; no schema changes.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 3.
+- Implemented benefit catalog list/details/create/update/status, existing exact unique Code/Name checks, global-only catalog writes and audit. Historical grants are untouched. Build zero warnings/errors; four focused catalog tests passed; diff reviewed.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
