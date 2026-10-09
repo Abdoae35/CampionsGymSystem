@@ -31,7 +31,7 @@ public sealed partial class CheckInService
         var sub=await db.MemberSubscriptions.AsNoTracking().SingleAsync(x=>x.Id==row.MemberSubscriptionId,ct);
         var used=row.CheckInType==CheckInType.BorrowedGym?await db.BorrowedGymSessions.CountAsync(x=>x.ExpiredSubscriptionId==sub.Id,ct):0;
         return new(new(true,AccessReasons.Allowed,member.Id,member.MemberCode,member.FullName,row.BranchId,row.BusinessDate!.Value,row.BusinessDayId,
-            sub.Id,sub.AccessMode.ToString(),row.SessionsAfter,false,used,0),Details(row,member));
+            sub.Id,sub.AccessMode.ToString(),row.CheckInType==CheckInType.BorrowedGym?sub.RemainingSessions:row.SessionsAfter,false,used,0),Details(row,member));
     }
     public async Task<CheckInResult> CreateAsync(CreateCheckInRequest r,CancellationToken ct=default)
     {
@@ -58,6 +58,8 @@ public sealed partial class CheckInService
                 return await RecordedResultAsync(retry,member,ct);
             }
             var decision=await DecideAsync(member,branch,day?.BusinessDate??access.Today,day?.Id,ct);
+            if(r.ConfirmBorrow && decision.BorrowAvailable)
+                return await BorrowAsync(decision,member,r,context.Actor.UserId,ct);
             if(!decision.Allowed)return new CheckInResult(decision,null);
             if(r.ConfirmBorrow)throw new BusinessRuleException("Borrow confirmation cannot override a current normal entitlement.");
             var sub=await LockSubscriptionAsync(decision.SubscriptionId!.Value,ct);

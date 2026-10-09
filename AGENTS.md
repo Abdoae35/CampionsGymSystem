@@ -41,11 +41,11 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 3 — transactional normal entry.
+- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 4 — explicit borrowed access.
 - Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
 - Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
 - Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
 - Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
-- Next: Task 4: explicit borrowed gym entry and expired-cycle debt.
+- Next: Task 5: full borrowed-debt settlement in protected customer renewal/grant transactions.
 - Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

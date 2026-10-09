@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 3 — transactional normal entry.
+- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 4 — explicit borrowed access.
 - Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
 - Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
 - Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
 - Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
-- Next: Task 4: explicit borrowed gym entry and expired-cycle debt.
+- Next: Task 5: full borrowed-debt settlement in protected customer renewal/grant transactions.
 - Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1859,3 +1859,9 @@ Checkpoint included in the verified task commit; push result verified before adv
 Added member/subscription row-locked normal entrance with atomic SessionBased decrement plus CheckIn; Unlimited retains null sessions; distinct same-day operations remain separate and retries preserve original entry/session snapshots. Added OperationId, BusinessDate, before/after session facts to existing CheckIn, operational/idempotency indexes and append-only managed history guard. Existing BorrowedGymSession gains exact grant settlement FK and unique CheckIn link for following tasks; debt allows only first settlement. Closure declarations coordinate branch lock with entry so physical closure cannot race insertion. Added independent PostgreSQL final-session and identical-operation races, denial/no-write, actual-branch/ownership/financial absence, history immutability, forced insert failure rollback and overnight persistence. Reviewed new 20261009200017_PrepareOperationalCheckIns migration and exported SQL, applied verified localhost development only; EF drift clean. Build zero warnings/errors; 38 entrance/Trial/holiday compatibility tests and two additional rollback/date tests passed, zero failed/skipped. Task 2 9dc7e1f pushed.
 
 Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 4: explicit borrowed gym entry and expired-cycle debt.
+
+### 2026-10-09 — Check-In Task 4 — explicit borrowed access
+
+Added ConfirmBorrow flow using the same branch/date/member/status/city/closure resolver and Member/subscription locks. Eligible latest expired customer cycle may record at most two lifetime-for-that-cycle BorrowedGym entries and existing BorrowedGymSession outstanding debt rows, each uniquely linked to its CheckIn. No automatic debt on denied scan; no expiry/status/session/benefit/ownership/Finance mutation. Borrow technical Version increments coordinate subsequent renewal. Retry and concurrent final borrow slot tested with independent PostgreSQL connections; frozen/cancelled/exhausted-before-date/wrong-city rejected; future period never grants early normal access. Build zero warnings/errors; 29 access/normal/borrow/concurrency tests passed, zero failed/skipped; diff reviewed. Task 3 a81f4ce pushed; no additional migration.
+
+Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 5: full borrowed-debt settlement in protected customer renewal/grant transactions.
