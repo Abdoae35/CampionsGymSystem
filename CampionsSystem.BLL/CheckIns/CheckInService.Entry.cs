@@ -23,15 +23,15 @@ public sealed partial class CheckInService
         var sub=await db.MemberSubscriptions.FromSqlInterpolated($"SELECT * FROM \"MemberSubscriptions\" WHERE \"Id\"={id} FOR UPDATE").SingleAsync(ct);
         await db.Entry(sub).ReloadAsync(ct);return sub;
     }
-    private static CheckInDetails Details(CheckIn row,Member? member)=>new(row.Id,row.OperationId,row.MemberId,member?.MemberCode,
-        member?.FullName,row.BranchId,row.BusinessDate,row.BusinessDayId,row.CheckedInAt,row.CheckInType.ToString(),row.CheckInMethod.ToString(),
+    private static CheckInDetails Details(CheckIn row,Member? member)=>new(row.Id,row.OperationId,row.MemberId,row.MemberId==member?.Id?member?.MemberCode:null,
+        row.MemberId==member?.Id?member?.FullName:null,row.BranchId,row.BusinessDate,row.BusinessDayId,row.CheckedInAt,row.CheckInType.ToString(),row.CheckInMethod.ToString(),
         row.MemberSubscriptionId,row.SessionConsumed,row.SessionsBefore,row.SessionsAfter,row.CreatedByUserId);
-    private async Task<CheckInResult> RecordedResultAsync(CheckIn row,Member member,CancellationToken ct)
+    private async Task<CheckInResult> RecordedResultAsync(CheckIn row,Member member,CancellationToken ct,bool borrowAvailable=false)
     {
         var sub=await db.MemberSubscriptions.AsNoTracking().SingleAsync(x=>x.Id==row.MemberSubscriptionId,ct);
         var used=row.CheckInType==CheckInType.BorrowedGym?await db.BorrowedGymSessions.CountAsync(x=>x.ExpiredSubscriptionId==sub.Id,ct):0;
         return new(new(true,AccessReasons.Allowed,member.Id,member.MemberCode,member.FullName,row.BranchId,row.BusinessDate!.Value,row.BusinessDayId,
-            sub.Id,sub.AccessMode.ToString(),row.CheckInType==CheckInType.BorrowedGym?sub.RemainingSessions:row.SessionsAfter,false,used,0),Details(row,member));
+            sub.Id,sub.AccessMode.ToString(),row.CheckInType==CheckInType.BorrowedGym?sub.RemainingSessions:row.SessionsAfter,borrowAvailable,used,borrowAvailable?Math.Max(0,2-used):0),Details(row,member));
     }
     public async Task<CheckInResult> CreateAsync(CreateCheckInRequest r,CancellationToken ct=default)
     {
@@ -55,7 +55,10 @@ public sealed partial class CheckInService
                 if(retry.MemberId!=member.Id || retry.BranchId!=branch.Id || retry.CheckInMethod!=r.Method
                     || retry.CreatedByUserId!=context.Actor.UserId || (retry.CheckInType==CheckInType.BorrowedGym)!=r.ConfirmBorrow)
                     throw new BusinessRuleException("Operation identity belongs to a different Check-In request.");
-                return await RecordedResultAsync(retry,member,ct);
+                var borrowing=retry.CheckInType==CheckInType.BorrowedGym
+                    ?await DecideAsync(member,branch,day?.BusinessDate??access.Today,day?.Id,ct):null;
+                var borrowAvailable=borrowing is {BorrowAvailable:true} && borrowing.SubscriptionId==retry.MemberSubscriptionId;
+                return await RecordedResultAsync(retry,member,ct,borrowAvailable);
             }
             var decision=await DecideAsync(member,branch,day?.BusinessDate??access.Today,day?.Id,ct);
             if(r.ConfirmBorrow && decision.BorrowAvailable)

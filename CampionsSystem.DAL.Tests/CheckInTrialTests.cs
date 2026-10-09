@@ -123,3 +123,13 @@ public sealed partial class CheckInTests
         Assert.Equal(GuestInvitationStatus.Available,(await db.GuestInvitations.AsNoTracking().SingleAsync()).Status);Assert.Empty(await db.MemberBenefitUsages.ToListAsync());Assert.Empty(await db.CheckIns.ToListAsync());
     }
 }
+public sealed partial class CheckInTests
+{
+    [Fact] public async Task GuestTrialRetryAfterMemberRegistrationPreservesOriginalGuestEntryIdentity()
+    {
+        var i=await IssuedTrial();var r=new RedeemTrialRequest(Guid.NewGuid(),i.Id,i.InviteePhone);var first=await service.RedeemTrialAsync(r);
+        // The same phone later belongs to a registered Member; the original guest entry remains unlinked.
+        member.PrimaryPhone=i.InviteePhone;member.PrimaryPhoneNormalized=i.InviteePhoneNormalized;await db.SaveChangesAsync();
+        var retry=await service.RedeemTrialAsync(r);Assert.Equal(first.CheckIn,retry.CheckIn);Assert.Null(retry.CheckIn!.MemberId);Assert.Null(retry.CheckIn.MemberCode);Assert.Single(await db.CheckIns.ToListAsync());
+    }
+}

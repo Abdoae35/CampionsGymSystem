@@ -30,7 +30,10 @@ public sealed partial class CheckInTests
         Assert.Equal(4,(await db.MemberSubscriptions.SingleAsync(x=>x.Id==old)).RemainingSessions);
         Assert.Equal(2,await db.CheckIns.CountAsync());Assert.Equal(2,await db.AuditLogs.CountAsync(x=>x.Action=="BorrowedSessionDebt.Settled"));
         Assert.Equal(renewed,await RenewCycle(old,op));Assert.Equal(2,await db.MembershipSubscriptionTransactions.CountAsync());
+        var oldOperation=await db.CheckIns.Where(x=>x.MemberSubscriptionId==old).Select(x=>x.OperationId).FirstAsync();
+        var replay=await Entry(oldOperation,true);Assert.False(replay.Decision.BorrowAvailable);Assert.Equal(0,replay.Decision.BorrowedRemaining);
         clock.Now=clock.Now.AddDays(30);var d=await Evaluate();Assert.True(d.BorrowAvailable);Assert.Equal(0,d.BorrowedUsed);
+        replay=await Entry(oldOperation,true);Assert.False(replay.Decision.BorrowAvailable);Assert.Equal(0,replay.Decision.BorrowedRemaining);
         Assert.True((await Entry(borrow:true)).Decision.Allowed);Assert.True((await Entry(borrow:true)).Decision.Allowed);
         Assert.Equal(AccessReasons.BorrowLimitReached,(await Entry(borrow:true)).Decision.ReasonCode);
         Assert.Equal(2,await db.BorrowedGymSessions.CountAsync(x=>x.ExpiredSubscriptionId==renewed.SubscriptionId));

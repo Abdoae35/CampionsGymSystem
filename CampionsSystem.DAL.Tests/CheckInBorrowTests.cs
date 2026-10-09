@@ -10,6 +10,8 @@ public sealed partial class CheckInTests
         var sub=await Period(AccessMode.SessionBased,4,start:today.AddDays(-30),end:today.AddDays(-1));var end=sub.EndDate;var status=sub.Status;
         var denied=await Entry();Assert.False(denied.Decision.Allowed);Assert.True(denied.Decision.BorrowAvailable);Assert.Empty(await db.BorrowedGymSessions.ToListAsync());
         var first=await Entry(borrow:true);var second=await Entry(borrow:true);var third=await Entry(borrow:true);
+        Assert.Equal(1,first.Decision.BorrowedUsed);Assert.Equal(1,first.Decision.BorrowedRemaining);Assert.True(first.Decision.BorrowAvailable);
+        Assert.Equal(2,second.Decision.BorrowedUsed);Assert.Equal(0,second.Decision.BorrowedRemaining);Assert.False(second.Decision.BorrowAvailable);
         Assert.True(first.Decision.Allowed);Assert.True(second.Decision.Allowed);Assert.Equal("BorrowedGym",first.CheckIn!.Type);Assert.False(first.CheckIn.SessionConsumed);
         Assert.Equal(AccessReasons.BorrowLimitReached,third.Decision.ReasonCode);Assert.False(third.Decision.Allowed);
         Assert.Equal(2,await db.CheckIns.CountAsync());var loans=await db.BorrowedGymSessions.ToListAsync();Assert.Equal(2,loans.Count);
@@ -21,7 +23,7 @@ public sealed partial class CheckInTests
     [Fact] public async Task BorrowRetryCreatesOneDebtAndEntry()
     {
         await Period(start:today.AddDays(-30),end:today.AddDays(-1));var op=Guid.NewGuid();var first=await Entry(op,true);var again=await Entry(op,true);
-        Assert.Equal(first.CheckIn,again.CheckIn);Assert.Single(await db.BorrowedGymSessions.ToListAsync());Assert.Single(await db.CheckIns.ToListAsync());
+        Assert.Equal(first.CheckIn,again.CheckIn);Assert.Equal(1,again.Decision.BorrowedRemaining);Assert.Single(await db.BorrowedGymSessions.ToListAsync());Assert.Single(await db.CheckIns.ToListAsync());
     }
     [Fact] public async Task FuturePeriodDoesNotGrantEarlyNormalAccessOrHideExpiredBorrowCycle()
     {

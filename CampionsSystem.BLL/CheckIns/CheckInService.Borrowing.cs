@@ -19,6 +19,6 @@ public sealed partial class CheckInService
             after:new{entry.MemberId,entry.MemberSubscriptionId,entry.OperationId,entry.BusinessDate,entry.BusinessDayId,entry.CheckInMethod,DebtId=debt.Id});
         access.Audit(actor,decision.BranchId,"BorrowedSessionDebt.Created",nameof(BorrowedGymSession),debt.Id,
             after:new{debt.MemberId,debt.ExpiredSubscriptionId,CheckInId=entry.Id,BorrowedUsed=decision.BorrowedUsed+1});
-        await db.SaveChangesAsync(ct);return await RecordedResultAsync(entry,member,ct);
+        await db.SaveChangesAsync(ct);return await RecordedResultAsync(entry,member,ct,decision.BorrowedUsed+1<2);
     }
 }
