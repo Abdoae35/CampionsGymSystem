@@ -41,13 +41,11 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Subscriptions / Renewals / Freeze completed on master; all eleven tasks verified and committed individually.
-- Paid customer activation/renewal remain protected BLL-only integrations; nine safe HTTP routes and Postman samples implemented.
-- Expired sessions do not carry; active same-mode renewals carry time/sessions; different modes queue a separate successor.
-- Freeze/medical/Owner-selected branch holiday extensions shift unstarted successors; frozen holiday days are protected once.
-- Employee entitlement closes with employment, survives branch transfer and preserves rehire history; Freelance ownership is unchanged and legacy purchasing is disabled.
-- Final build: zero warnings/errors; full suite 489 passed, zero failed/skipped; EF drift clean.
-- Both new migrations and four permission codes verified in localhost development only; production untouched.
-- Final documentation checkpoint included in its verified commit; push and clean local/remote HEAD verified before final report.
-- Stop here. Finance, Check-In, borrowed execution, commissions, Member financial settlement and frontend remain deferred.
-- See PROJECT_HISTORY.md and docs/SUBSCRIPTIONS.md; portable history skill: skills/project-history-update/SKILL.md.
+- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 1 — inspection and contracts.
+- Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
+- Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
+- Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
+- Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
+- Next: Task 2: authoritative access evaluation using existing subscription status facts.
+- Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
+- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

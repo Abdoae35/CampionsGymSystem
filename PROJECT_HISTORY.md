@@ -43,16 +43,14 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze completed on master; all eleven tasks verified and committed individually.
-- Paid customer activation/renewal remain protected BLL-only integrations; nine safe HTTP routes and Postman samples implemented.
-- Expired sessions do not carry; active same-mode renewals carry time/sessions; different modes queue a separate successor.
-- Freeze/medical/Owner-selected branch holiday extensions shift unstarted successors; frozen holiday days are protected once.
-- Employee entitlement closes with employment, survives branch transfer and preserves rehire history; Freelance ownership is unchanged and legacy purchasing is disabled.
-- Final build: zero warnings/errors; full suite 489 passed, zero failed/skipped; EF drift clean.
-- Both new migrations and four permission codes verified in localhost development only; production untouched.
-- Final documentation checkpoint included in its verified commit; push and clean local/remote HEAD verified before final report.
-- Stop here. Finance, Check-In, borrowed execution, commissions, Member financial settlement and frontend remain deferred.
-- See PROJECT_HISTORY.md and docs/SUBSCRIPTIONS.md; portable history skill: skills/project-history-update/SKILL.md.
+- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 1 — inspection and contracts.
+- Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
+- Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
+- Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
+- Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
+- Next: Task 2: authoritative access evaluation using existing subscription status facts.
+- Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
+- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
 
@@ -1837,3 +1835,15 @@ Completed docs/SUBSCRIPTIONS.md and concise docs index/status update. Documented
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Stop after this feature. Sales/Payments and Check-In require a separate user request.
+
+### 2026-10-09 — Check-In inspection and required borrowed-debt shortfall decision
+
+Requested the nine-task Check-In / Access Management feature, with verified per-task commits/pushes on the current Check-In/AccessManagement branch. Initial tree clean; prior subscription implementation retained. Read project/skill guidance and inspected CheckIn enums/configuration, nullable Trial Member linkage, BorrowedGymSession debt and settlement fields, GuestInvitation identity/status/unique redeemed guards, BusinessDay/BranchClosure/branch/access foundations, Member identifiers/search and subscription resolver/renewal. Existing CheckIn lacks operation identity and standalone effective BusinessDate; plan minimal additive support when implementation resumes. Existing borrowed debt foundation can be reused; no service/tests/docs define renewal when new sessions are fewer than outstanding debt. Rule 26 explicitly requires stopping and asking rather than inventing negative balances or debt forgiveness. Presented debt 2/new sessions 1 decision (reject insufficient renewal versus zero access with one debt retained). No business behavior selected. Trial issuance/redemption foundation remains to be evaluated in Task 7; no guest-token flow invented.
+
+Verification: read-only repository/schema-code inspection and final diff/status check only; no build/test/drift/database command rerun because no application/schema changes. No migration, payment, attendance implementation, commit or push. AGENTS/PROJECT_HISTORY contain this related uncommitted checkpoint. Next: resolve the required shortfall decision, resume Task 1 contracts and proceed through authorized tasks without duplicating existing subscription work.
+
+### 2026-10-09 — Check-In Task 1 — inspection and contracts
+
+Resumed existing inspection checkpoint, preserving its related AGENTS/PROJECT_HISTORY changes. Clarifications confirm full expired-cycle debt settlement, rejection of normal SessionBased renewal below debt, and separate standalone single-session visitor purchase deferred to Finance without new PlanType/schema. Reused CheckIn enum shapes, MemberCode identity, nullable Trial Member links, BorrowedGymSession debt and settlement model. Added strict Access/CheckIn requests, stable reason codes, results/history/debt DTOs and two permission capabilities (View/Create). Contract tests reject client-supplied business date, subscription, balances or access decision; preserve Activity/Class/Trial enum compatibility and explicit borrow default. Build zero warnings/errors; five contract tests passed, zero failed/skipped; diff reviewed. No application DB, migration or Finance/attendance changes yet.
+
+Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 2: authoritative access evaluation using existing subscription status facts.
