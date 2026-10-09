@@ -5,6 +5,7 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class SubscriptionFreeze
 {
+    public int DaysAlreadyCompensated { get; set; }
     public Guid? OperationId { get; set; }
     // Medical rows represent exceptional date extensions, not access-blocking normal freezes.
     public DateTimeOffset? CompletedAt { get; set; }

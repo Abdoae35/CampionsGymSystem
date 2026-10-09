@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 6 — renewals/carry-over/scheduling.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 7 — normal freeze lifecycle.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 7: normal freeze lifecycle, including compensation-order safety.
+- Next: Task 8: managed custom/medical extension.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1799,3 +1799,10 @@ Added protected BLL-only renewal commands with operation identities, expected Ve
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Task 7: normal freeze lifecycle, including compensation-order safety.
+
+### 2026-10-09 — Task 7 — normal freeze lifecycle
+
+Added branch-scoped normal freeze approval/completion with immutable history, positive duration, current entitlement checks, snapshot allowance, overlap rejection, request idempotency and Member/subscription row locking plus expected Version. Each grant contributes its snapshotted allowance; approved normal days consume that allowance. EndDate and any unstarted successor extend by newly protected days. Added DaysAlreadyCompensated to distinguish full booked freeze days from days already covered by holiday compensation, making the reverse application order safe too. Approved periods are fixed/inclusive; effective Frozen status ends by date and completion records actor/time after the approved interval, without early termination or erasing history. Medical rows are separate and do not block normal access. New migration 20261009164635_PreventDuplicateFreezeHolidayCompensation adds only one counter/check; reviewed SQL exported and applied successfully to verified localhost campions_gym Development. Build zero warnings/errors; 47 subscription/domain/real concurrency tests passed, zero failed/skipped; EF drift clean; diff reviewed. Initial audit payload property-name compile error was corrected before passing checks. Task 6 546f6b3 pushed successfully. No attendance/session deductions or Finance.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Task 8: managed custom/medical extension.

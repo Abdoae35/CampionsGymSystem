@@ -103,6 +103,13 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             || ChangeTracker.Entries<MemberSubscriptionBenefit>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<SubscriptionHolidayExtension>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Subscription grants, benefit snapshots and holiday compensation are append-only.");
+        foreach (var entry in ChangeTracker.Entries<SubscriptionFreeze>())
+        {
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified
+                && (entry.OriginalValues.GetValue<DateTimeOffset?>(nameof(SubscriptionFreeze.CompletedAt)) != null
+                    || entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(SubscriptionFreeze.CompletedAt) or nameof(SubscriptionFreeze.CompletedByUserId)))))
+                throw new InvalidOperationException("Freeze/extension facts are historical; only an uncompleted freeze can be completed once.");
+        }
         foreach (var entry in ChangeTracker.Entries<MemberSubscription>()
                      .Where(x => x.OriginalValues.GetValue<Guid?>(nameof(MemberSubscription.EmployeeId)) is not null))
         {

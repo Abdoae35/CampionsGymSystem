@@ -11,6 +11,7 @@ public sealed class SubscriptionFreezeConfiguration : IEntityTypeConfiguration<S
         builder.ToTable("SubscriptionFreezes", table =>
         {
             table.HasCheckConstraint("CK_SubscriptionFreezes_FreezeType", "\"FreezeType\" IN ('Normal', 'Medical')");
+            table.HasCheckConstraint("CK_SubscriptionFreezes_CompensatedDays", "\"DaysAlreadyCompensated\" >= 0 AND \"DaysAlreadyCompensated\" <= \"DaysApplied\"");
             table.HasCheckConstraint("CK_SubscriptionFreezes_DaysApplied", "\"DaysApplied\" >= 0");
             table.HasCheckConstraint("CK_SubscriptionFreezes_StartDateEndDate", "\"EndDate\" >= \"StartDate\"");
         });

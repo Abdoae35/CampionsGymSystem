@@ -23,6 +23,7 @@ public sealed partial class SubscriptionService
     }
     private async Task ShiftSuccessorAsync(MemberSubscription source, int days, Guid actor, CancellationToken ct)
     {
+        if (days == 0) return;
         var next = await db.MemberSubscriptions.SingleOrDefaultAsync(x => x.FollowsSubscriptionId == source.Id, ct);
         if (next is null) return;
         await db.Entry(next).ReloadAsync(ct);

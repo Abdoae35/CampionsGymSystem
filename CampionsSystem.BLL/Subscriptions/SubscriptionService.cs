@@ -107,8 +107,7 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
                 x.PlanBranchIdSnapshot, x.CityIdSnapshot, x.AccessModeSnapshot?.ToString(), x.PurchasedDurationDays, x.PurchasedSessions,
                 x.FreezeDaysSnapshot, x.PlanPriceSnapshot, x.NetPriceSnapshot, x.FreelanceCoachEmployeeIdSnapshot, x.TransactionType.ToString(),
                 x.StartDateSnapshot, x.PreviousEndDate, x.NewEndDate, x.PreviousRemainingSessions, x.RenewedFromSubscriptionId, x.BusinessDayId, x.CreatedByUserId, x.CreatedAt)).ToArray(),
-            freezes.Select(x => new FreezeDetails(x.Id, x.FreezeType.ToString(), x.StartDate, x.EndDate, x.DaysApplied,
-                x.Reason, x.ApprovedByUserId, x.CreatedAt, x.CompletedAt)).ToArray(),
+            freezes.Select(FreezeView).ToArray(),
             await db.SubscriptionHolidayExtensions.AsNoTracking().Where(x => x.MemberSubscriptionId == id)
                 .OrderBy(x => x.ProtectedDate).Select(x => new HolidayExtensionDetails(x.BranchClosureId, x.ProtectedDate, x.DaysApplied)).ToListAsync(ct));
     }

@@ -4136,6 +4136,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DaysAlreadyCompensated")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("DaysApplied")
                         .HasColumnType("integer");
 
@@ -4178,6 +4181,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.ToTable("SubscriptionFreezes", null, t =>
                         {
+                            t.HasCheckConstraint("CK_SubscriptionFreezes_CompensatedDays", "\"DaysAlreadyCompensated\" >= 0 AND \"DaysAlreadyCompensated\" <= \"DaysApplied\"");
+
                             t.HasCheckConstraint("CK_SubscriptionFreezes_DaysApplied", "\"DaysApplied\" >= 0");
 
                             t.HasCheckConstraint("CK_SubscriptionFreezes_FreezeType", "\"FreezeType\" IN ('Normal', 'Medical')");

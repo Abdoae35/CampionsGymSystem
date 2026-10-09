@@ -31,7 +31,8 @@ public sealed record SubscriptionGrantDetails(Guid Id, Guid PlanId, string? Plan
     DateOnly? StartDate, DateOnly? PreviousEndDate, DateOnly? NewEndDate, int? PreviousRemainingSessions,
     Guid? RenewedFromSubscriptionId, Guid? BusinessDayId, Guid? ActorId, DateTimeOffset CreatedAt);
 public sealed record FreezeDetails(Guid Id, string Type, DateOnly StartDate, DateOnly? EndDate, int? DaysApplied,
-    string? Reason, Guid ApprovedBy, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt);
+    string? Reason, Guid ApprovedBy, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt, int DaysAlreadyCompensated,
+    DateOnly? PreviousSubscriptionEndDate, DateOnly? NewSubscriptionEndDate);
 public sealed record HolidayExtensionDetails(Guid ClosureId, DateOnly ProtectedDate, int DaysApplied);
 public sealed record SubscriptionDetails(SubscriptionSummary Subscription, string MemberName,
     int? FreezeAllowance, int ConsumedFreezeDays, int? RemainingFreezeDays,
