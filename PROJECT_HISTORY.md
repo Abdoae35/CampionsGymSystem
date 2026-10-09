@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 5.
-- Plan creation validates branch ownership, Normal/Freelance/Employee rules and coach eligibility; old Freelance save API uses the same secure core. Build passed with zero warnings/errors; 57 relevant tests passed after correcting a detached fixture update.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 6.
+- Plan update and status workflows preserve historical prices, durations and subscription dates; type changes are rejected, global legacy mapping is explicit. Build zero warnings/errors; 26 plan tests passed after correcting fixture navigations. No additional migration.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
@@ -1591,6 +1591,13 @@ pushes. Exact hashes/results will be recorded in final validation. Production un
 ### 2026-10-09 — Membership Plans task 5
 
 Plan creation validates branch ownership, Normal/Freelance/Employee rules and coach eligibility; old Freelance save API uses the same secure core. Build passed with zero warnings/errors; 57 relevant tests passed after correcting a detached fixture update.
+
+Build/tests/diff verified before task commit; user authorized small commits and immediate
+pushes. Exact hashes/results will be recorded in final validation. Production untouched.
+
+### 2026-10-09 — Membership Plans task 6
+
+Plan update and status workflows preserve historical prices, durations and subscription dates; type changes are rejected, global legacy mapping is explicit. Build zero warnings/errors; 26 plan tests passed after correcting fixture navigations. No additional migration.
 
 Build/tests/diff verified before task commit; user authorized small commits and immediate
 pushes. Exact hashes/results will be recorded in final validation. Production untouched.

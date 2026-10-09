@@ -20,7 +20,8 @@ public sealed partial class MembershipPlanManagementService
     {
         await VisiblePlanAsync(id,user,ct);
         var p=await db.MembershipPlans.FromSqlInterpolated($"SELECT * FROM \"MembershipPlans\" WHERE \"Id\"={id} FOR UPDATE").SingleAsync(ct);
-        await db.Entry(p).ReloadAsync(ct);await BranchWriterAsync(user,p.BranchId,ct);return p;
+        await db.Entry(p).ReloadAsync(ct);BranchAccessService.EnsureScope(user,p.BranchId);
+        if(!Global(user))await BranchWriterAsync(user,p.BranchId,ct);return p;
     }
     private async Task ValidatePlanAsync(UpdateMembershipPlanRequest r,MembershipPlan? old,CancellationToken ct)
     {
