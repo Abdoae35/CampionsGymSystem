@@ -43,12 +43,15 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In final validation — retry identity and cycle allowance.
-- Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
-- Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
-- Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
-- Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
-- Next: Finish Task 9: run the full final 565-test build, verify drift, commit/push docs and check clean local/remote HEAD; then stop.
+- Check-In / Access Management completed on Check-In/AccessManagement; all nine requested tasks handled.
+- Existing CheckIn, BorrowedGymSession, GuestInvitation and subscription domain reused.
+- MemberCode/manual lookup, scoped access, atomic sessions, real repeated entries and operation idempotency implemented.
+- Borrowing is explicit and fixed at two per expired cycle; full debt settles on renewal, with insufficient new sessions rejected.
+- Trial redemption consumes one GUEST snapshot unit when linked; no new issuance/token or registration workflow.
+- Final build zero warnings/errors; FULL suite 565 passed, zero failed/skipped; EF drift clean.
+- Development migration/catalog verified; production untouched. Application/test commits through 3e06ab0 pushed.
+- Final documentation commit contains this checkpoint; push and clean local/remote HEAD are checked before reporting.
+- No known unresolved Check-In / Access Management issues. Stop here; Sales/Payments requires a separate task.
 - Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1901,3 +1904,9 @@ Checkpoint included in the verified task commit; push result verified before adv
 Corrected final review edge cases: a guest Trial retry after later Member registration retains its original unlinked entry identity; successful borrowing reports the actual one/zero remaining slots, and retries refresh eligibility only for the original expired cycle, never importing a newer cycle allowance. Extended borrow and settlement regressions plus added guest-registration retry coverage. The preceding corrected full suite passed all 564 tests, zero failed/skipped. This final result correction built with zero warnings/errors and passed all 11 relevant normal/Trial/borrow/concurrency/renewal retry cases, zero failed/skipped; diff reviewed. Historical compatibility correction a7a8213 pushed. No schema, financial, ownership or entitlement rule changes. Documentation remains uncommitted pending full validation of the final build.
 
 Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Finish Task 9: run the full final 565-test build, verify drift, commit/push docs and check clean local/remote HEAD; then stop.
+
+### 2026-10-10 — Check-In Task 9 — documentation and final validation
+
+Completed docs/CHECK_INS.md and concise docs README link/status change. Documented identification, shared access/status, actual branch/snapshot city, BusinessDay, Unlimited/per-entry sessions, idempotency and transactional locks, fixed two-per-expired-cycle borrowing, exact debt/settling grant history and full shortfall rejection, separate deferred standalone visitor purchase, active Employee/Freelance ownership preservation, issued one-time Trial and confirmed GUEST consumption, operational history/Private helper and offline-ready records without sync. Final build zero warnings/errors; FULL final suite 565 passed, zero failed/skipped (76 added cases versus 489 baseline), 4m58s. EF model drift clean. Reviewed Development-only migration and read-only localhost campions_gym verification confirmed five nullable additions, 19 operational/debt indexes and 26 validated constraints/FKs, two active Check-In permissions with zero inferred role grants, zero check-in/debt/invitation/benefit-use rows; production untouched. Postman JSON, nine samples, seven routes, variables and enum mappings checked; diff reviewed. Both historical migration compatibility and guest/cycle retry edge cases corrected and verified. All application/test commits through 3e06ab0 pushed. Final docs commit includes this checkpoint; final push and clean local/remote HEAD check follow before the report. No known unresolved Check-In / Access Management issues.
+
+Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: All nine feature tasks complete. Final docs commit/push and clean HEAD verification precede the report; stop after Check-In, do not start Sales/Payments.

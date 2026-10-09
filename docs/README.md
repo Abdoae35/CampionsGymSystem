@@ -14,6 +14,7 @@ future operational system.
 - [CRM / Leads](CRM.md)
 - [Membership Plans](MEMBERSHIP_PLANS.md)
 - [Subscriptions / Renewals / Freeze](SUBSCRIPTIONS.md)
+- [Check-In / Access Management](CHECK_INS.md)
 
 ## Current Implementation Status
 
@@ -26,6 +27,7 @@ future operational system.
 | CRM / Leads | Complete |
 | Membership Plans | Complete |
 | Subscriptions / Renewals / Freeze | Complete within documented entitlement scope |
+| Check-In / Access Management | Complete within documented gym-entry scope |
 
 Complete refers to the management scope described in each document. Persistence
 models and some narrower operations exist outside these scopes; they do not imply
@@ -33,7 +35,6 @@ complete Finance or attendance lifecycles.
 
 ## Planned / Deferred Areas
 
-- Check-In / Access
 - Complete Sales / Payments; Installments / Refunds
 - Shifts / Vault / Expenses
 - Remaining Private Training and Classes / Activities workflows
