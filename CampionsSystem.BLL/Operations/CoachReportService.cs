@@ -141,10 +141,10 @@ public sealed class CoachReportService(ApplicationDbContext db, OperationAccess 
         var eligible = await db.MembershipPlanEligibleMembers.CountAsync(x => x.MembershipPlanId == planId
             && x.Member.HomeBranchId == branchId, ct);
         var purchases = await db.MembershipSubscriptionTransactions.AsNoTracking().Where(x => x.MembershipPlanId == planId
-            && x.PlanCategorySnapshot == PlanCategory.Freelance && x.SaleTransaction.BranchId == branchId)
+            && x.PlanCategorySnapshot == PlanCategory.Freelance && x.SaleTransaction!.BranchId == branchId)
             .Select(x => new { x.SaleTransactionId, x.FreelanceCoachEmployeeIdSnapshot,
                 Coach = x.FreelanceCoachEmployeeSnapshot!.FullName, x.MemberSubscription.MemberId,
-                x.SaleTransaction.SalesAttributionSnapshot, x.SaleTransaction.SalesEmployeeId, x.SaleTransaction.SaleCategory, x.CreatedAt }).ToListAsync(ct);
+                x.SaleTransaction!.SalesAttributionSnapshot, x.SaleTransaction!.SalesEmployeeId, x.SaleTransaction!.SaleCategory, x.CreatedAt }).ToListAsync(ct);
         var ids = purchases.Select(x => x.SaleTransactionId).ToArray();
         if (purchases.GroupBy(x => x.SaleTransactionId).Any(g => g.Count() != 1))
             throw new BusinessRuleException("Ambiguous membership sale; reconcile before reporting.");

@@ -41,15 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Feature-based documentation refresh completed on master; stop here.
-- docs/README.md indexes Architecture, Authorization, Branch, Employee, Member, CRM and Plans.
-- Feature documentation refreshes are manual/on-demand, explicitly requested; no automation added.
-- Current code/model verified; transfer/termination, conversion actor/owner, cross-branch
-  ownership and plan BranchId/CityId distinctions documented. Two older ownership notes corrected.
-- Membership Plans retained with a small same-city A/B offer example; root README links the index.
-- Documentation only: no application code, migration, schema or gym application DB update.
-- Build zero warnings/errors; full suite 414 passed, zero failed/skipped; EF drift clean.
-- Documentation commit 8ba011e pushed; branch-name checkpoint correction accompanies it.
-- Final remote/clean status verified
-  before reporting. Subscription/Finance/attendance lifecycle integrations remain deferred.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 1 — subscription domain/contracts.
+- Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
+- Different modes queue separate periods; legitimate extensions move successors.
+- Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
+- Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
+- Next: Task 2: subscription queries and effective status.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

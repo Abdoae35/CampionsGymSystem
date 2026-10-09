@@ -95,9 +95,9 @@ public sealed class FinalSchemaAlignmentTests : IAsyncLifetime
         db.Add(new MembershipSubscriptionTransaction { MemberSubscription = subscription, SaleTransaction = sale, MembershipPlan = plan,
             PurchasedDurationDays = 30, PlanPriceSnapshot = 500, NetPriceSnapshot = 500, NewEndDate = subscription.EndDate!.Value, CreatedAt = actual });
         await db.SaveChangesAsync(); db.ChangeTracker.Clear();
-        var batch = await db.MembershipSubscriptionTransactions.Include(x => x.SaleTransaction).ThenInclude(x => x.BusinessDay).SingleAsync();
-        Assert.Equal(new DateOnly(2026, 10, 30), batch.SaleTransaction.BusinessDay!.BusinessDate);
-        Assert.Equal(actual, batch.CreatedAt); Assert.Equal(actual, batch.SaleTransaction.CreatedAt);
+        var batch = await db.MembershipSubscriptionTransactions.Include(x => x.SaleTransaction).ThenInclude(x => x!.BusinessDay).SingleAsync();
+        Assert.Equal(new DateOnly(2026, 10, 30), batch.SaleTransaction!.BusinessDay!.BusinessDate);
+        Assert.Equal(actual, batch.CreatedAt); Assert.Equal(actual, batch.SaleTransaction!.CreatedAt);
     }
     [Fact] public async Task AudienceIsDynamicAndIndependentOfNormalFreelanceCategory()
     {
@@ -161,7 +161,8 @@ public sealed class FinalSchemaAlignmentTests : IAsyncLifetime
             Assert.Equal(DeleteBehavior.Restrict, entity.GetForeignKeys().Single(x => x.PrincipalEntityType.ClrType == typeof(BusinessDay)).DeleteBehavior);
         }
         Assert.DoesNotContain(db.Model.GetEntityTypes().SelectMany(x => x.GetProperties()), x => x.IsShadowProperty());
-        Assert.Null(db.Model.FindEntityType(typeof(MembershipSubscriptionTransaction))!.FindProperty("BusinessDayId"));
+        // Non-financial grants now retain their own operational day without a sale.
+        Assert.True(db.Model.FindEntityType(typeof(MembershipSubscriptionTransaction))!.FindProperty("BusinessDayId")!.IsNullable);
         Assert.Equal("date", db.Model.FindEntityType(typeof(BusinessDay))!.FindProperty("BusinessDate")!.GetColumnType());
     }
 }

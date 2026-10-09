@@ -124,6 +124,6 @@ public sealed class EmployeeGymMembershipTests : IAsyncLifetime
         Assert.True(employeeModel.GetForeignKeys().Single(x => x.Properties.Any(p => p.Name == "MemberId")).IsUnique);
         Assert.Equal(DeleteBehavior.Restrict, db.Model.FindEntityType(typeof(MemberSubscription))!.GetForeignKeys()
             .Single(x => x.Properties.Any(p => p.Name == "EmployeeId")).DeleteBehavior);
-        Assert.False(db.Model.FindEntityType(typeof(MembershipSubscriptionTransaction))!.FindProperty("SaleTransactionId")!.IsNullable);
+        Assert.True(db.Model.FindEntityType(typeof(MembershipSubscriptionTransaction))!.FindProperty("SaleTransactionId")!.IsNullable);
     }
 }

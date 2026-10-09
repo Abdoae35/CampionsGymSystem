@@ -43,17 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Feature-based documentation refresh completed on master; stop here.
-- docs/README.md indexes Architecture, Authorization, Branch, Employee, Member, CRM and Plans.
-- Feature documentation refreshes are manual/on-demand, explicitly requested; no automation added.
-- Current code/model verified; transfer/termination, conversion actor/owner, cross-branch
-  ownership and plan BranchId/CityId distinctions documented. Two older ownership notes corrected.
-- Membership Plans retained with a small same-city A/B offer example; root README links the index.
-- Documentation only: no application code, migration, schema or gym application DB update.
-- Build zero warnings/errors; full suite 414 passed, zero failed/skipped; EF drift clean.
-- Documentation commit 8ba011e pushed; branch-name checkpoint correction accompanies it.
-- Final remote/clean status verified
-  before reporting. Subscription/Finance/attendance lifecycle integrations remain deferred.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 1 — subscription domain/contracts.
+- Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
+- Different modes queue separate periods; legitimate extensions move successors.
+- Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
+- Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
+- Next: Task 2: subscription queries and effective status.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1714,3 +1709,58 @@ Checkpoint correction: the active branch was master at commit time, fast-forward
 the completed Plans HEAD. Documentation commit 8ba011e was pushed to origin/master.
 A small follow-up checkpoint commit corrects the branch name; no history rewrite or
 application changes. The validation above remains applicable to unchanged code/docs.
+
+### 2026-10-09 — Subscription lifecycle inspection; business decisions required
+
+Request: implement all eleven Subscriptions / Renewals / Freeze tasks automatically,
+with build/tests/diff review/commit/push per meaningful task, stopping for unresolved
+business rules. Read project history, agent instructions, skills guide and the ASP.NET
+Core and history skills; inspected relevant entities, EF mappings, migrations, BLL,
+controllers, tests, documentation and Postman. Started with a clean master working tree
+at dfc4c8d (tracking origin/master).
+
+Existing foundations: MemberSubscription contains Member/plan/access City/origin branch,
+dates/mode/session counters/status and optional historical Employee owner. Transactions
+preserve Initial/Renewal, price, duration, sessions, category/Coach and old/new end dates.
+SubscriptionFreeze supports Normal/Medical dates, DaysApplied, reason and approving actor.
+Benefits already have transaction-based code/name/type/quantity snapshots, usages and
+unique transaction/benefit grants. Employee.MemberId, nullable employee EndDate, unique
+open Employee/Member periods and tracked closed-period protection exist. BusinessDay
+provides branch/open-day uniqueness and a historical BusinessDate. BranchClosure already
+stores branch/date range/ExtensionDays/reason/module applicability and actor. BorrowedGymSession
+already stores expired-cycle debt/settlement references; execution remains deferred.
+
+Missing/partial: no general subscription queries/effective-status service, automatic
+benefit snapshot creation, normal/medical freeze service, closure application/idempotency
+history or Employee grant/closure integration. Plan name/freeze-allowance and per-grant
+access/branch/mode snapshots are incomplete. Transactions require SaleTransactionId,
+positive finite duration/NewEndDate and Normal/Freelance category, so cannot currently
+represent non-financial employment grants. Reuse/refine these models rather than duplicate.
+
+Legacy PurchaseFreelanceAsync is publicly exposed through OperationsController, creates
+SaleTransaction, changes Sales-owned Members to House (covered by a legacy test), uses
+calendar Today, appends dates and adds old sessions even after expiry. It rejects mode/city
+changes. This is a limited older workflow, not a confirmed general renewal policy; its
+ownership/financial behavior conflicts with the new request and must be corrected or
+disabled within the eventual feature. No new financial bypass was added.
+
+Paused before domain/contracts implementation: no documented/tested general policy for
+expired unused gym-session carry-over or supported cross-mode renewal; no closure/freeze
+interaction rule or definition of closure eligibility across city-wide access versus
+PurchasedAtBranchId. These affect grant/history design. Ask user for explicit decisions;
+do not infer them from legacy purchase arithmetic. Existing benefit consumption/expiry
+policies are also unfinished but consumption is outside this request and can stay deferred.
+
+Verification: read-only code/schema/document/test inspection and clean baseline Git
+status/log; no build, test suite, EF drift check or database connection/update run for this
+inspection. No application code, migration, Postman or feature-document changes. Updated
+only PROJECT_HISTORY.md and AGENTS.md as required checkpoint; whitespace/diff/status
+review performed afterwards. These checkpoint edits remain uncommitted/unpushed; no task
+claimed complete. Await decisions, then resume Task 1 and the requested automatic workflow.
+
+### 2026-10-09 — Task 1 — subscription domain/contracts
+
+Preserved the inspection checkpoint and incorporated all four confirmed decisions. Refined existing subscription/transaction/freeze entities with queue linkage, optimistic Version, non-financial Employee grants, immutable operational/price/freeze/benefit snapshots and request identity. Added only SubscriptionHolidayExtensions for unique per-subscription protected days; reused BranchClosure.AppliesToGym as compensation switch. Legacy unknown snapshots remain null, with no fabricated backfill. New migration 20261009152545_PrepareSubscriptionLifecycle and reviewed SQL; old migrations unchanged. Contracts cover history/details, grants/renewals, Employee, freezes/extensions and holidays; no paid activation endpoint. Build zero warnings/errors; 72 relevant domain/Employee/benefit/business-day tests passed, zero failed/skipped; EF drift clean. Initial three legacy assertion failures were updated for append-only guards and non-financial BusinessDay support, then rerun successfully. Local Development target verified; migration applied successfully to localhost campions_gym. No production access or Finance/ownership behavior changes.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Task 2: subscription queries and effective status.

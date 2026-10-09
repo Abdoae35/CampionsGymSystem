@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class MemberSubscription
 {
+    public int Version { get; set; }
+    public Guid? FollowsSubscriptionId { get; set; }
+    public MemberSubscription? FollowsSubscription { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     // Non-null identifies an employment entitlement and preserves its historical owner.
     public Guid? EmployeeId { get; set; }

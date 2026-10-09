@@ -121,10 +121,10 @@ public sealed class MembershipBenefitsTests : IAsyncLifetime
         config.Quantity = 3;
         var renewal = new MembershipSubscriptionTransaction { MemberSubscriptionId = transaction.MemberSubscriptionId,
             MembershipPlanId = plan.Id, SaleTransaction = new SaleTransaction { MemberId = transaction.MemberSubscription.MemberId,
-                BranchId = branch.Id, CreatedByUserId = transaction.SaleTransaction.CreatedByUserId, SaleType = SaleType.GymMembership,
+                BranchId = branch.Id, CreatedByUserId = transaction.SaleTransaction!.CreatedByUserId, SaleType = SaleType.GymMembership,
                 GrossAmount = 1500, NetAmount = 1500 }, TransactionType = SubscriptionTransactionType.Renewal,
             PurchasedDurationDays = 90, PlanPriceSnapshot = 1500, NetPriceSnapshot = 1500,
-            PreviousEndDate = transaction.NewEndDate, NewEndDate = transaction.NewEndDate.AddDays(90) };
+            PreviousEndDate = transaction.NewEndDate, NewEndDate = transaction.NewEndDate!.Value.AddDays(90) };
         var grant = Grant(benefit, config.Quantity); grant.MembershipSubscriptionTransaction = renewal;
         db.Add(grant); await db.SaveChangesAsync();
         var grants = await db.MemberSubscriptionBenefits.AsNoTracking().OrderBy(x => x.GrantedQuantity).ToListAsync();
@@ -181,7 +181,9 @@ public sealed class MembershipBenefitsTests : IAsyncLifetime
         object row = principal switch { "Catalog" => await db.MembershipBenefits.SingleAsync(),
             "Grant" => await db.MemberSubscriptionBenefits.SingleAsync(),
             "Transaction" => await db.MembershipSubscriptionTransactions.SingleAsync(), _ => await db.MembershipPlans.SingleAsync() };
-        db.Remove(row); await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        db.Remove(row);
+        if (principal is "Grant" or "Transaction") await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync());
+        else await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
     }
 
     [Theory] [InlineData(true)] [InlineData(false)]

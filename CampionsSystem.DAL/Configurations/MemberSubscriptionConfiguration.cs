@@ -26,6 +26,9 @@ public sealed class MemberSubscriptionConfiguration : IEntityTypeConfiguration<M
             .HasFilter("\"EmployeeId\" IS NOT NULL AND \"EndDate\" IS NULL");
         builder.HasIndex(x => x.MemberId);
         builder.HasIndex(x => new { x.EmployeeId, x.StartDate });
+        builder.Property(x => x.Version).IsConcurrencyToken();
+        builder.HasOne(x => x.FollowsSubscription).WithMany().HasForeignKey(x => x.FollowsSubscriptionId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.FollowsSubscriptionId).IsUnique();
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Member).WithMany(x => x.Subscriptions).HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.MembershipPlan).WithMany().HasForeignKey(x => x.MembershipPlanId).OnDelete(DeleteBehavior.Restrict);

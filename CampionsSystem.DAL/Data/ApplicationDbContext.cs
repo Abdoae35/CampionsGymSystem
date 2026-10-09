@@ -89,6 +89,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<MemberSubscriptionBenefit> MemberSubscriptionBenefits => Set<MemberSubscriptionBenefit>();
     public DbSet<MemberBenefitUsage> MemberBenefitUsages => Set<MemberBenefitUsage>();
 
+    public DbSet<SubscriptionHolidayExtension> SubscriptionHolidayExtensions => Set<SubscriptionHolidayExtension>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -97,6 +99,10 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        if (ChangeTracker.Entries<MembershipSubscriptionTransaction>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<MemberSubscriptionBenefit>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<SubscriptionHolidayExtension>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Subscription grants, benefit snapshots and holiday compensation are append-only.");
         foreach (var entry in ChangeTracker.Entries<MemberSubscription>()
                      .Where(x => x.OriginalValues.GetValue<Guid?>(nameof(MemberSubscription.EmployeeId)) is not null))
         {
