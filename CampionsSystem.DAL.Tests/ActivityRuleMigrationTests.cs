@@ -58,7 +58,10 @@ public sealed class ActivityRuleMigrationTests
         var oldAssignment = await db.ActivityCoachAssignments.SingleAsync();
         Assert.Equal(employee.Id, oldAssignment.CoachEmployeeId); Assert.Null(oldAssignment.ActivityCoachId);
         Assert.Null((await db.ActivitySubscriptions.SingleAsync()).ActivityCoachId);
-        Assert.Null((await db.CheckIns.SingleAsync()).ClassSessionId);
+        // Query the historical shape only; newer CheckIn columns do not exist at this boundary.
+        var oldEntry = await db.CheckIns.Select(x => new { x.Id, x.MemberId, x.BranchId, x.CheckInType, x.GroupClassId, x.ClassSessionId }).SingleAsync();
+        Assert.Equal(checkIn, oldEntry.Id); Assert.Equal(member.Id, oldEntry.MemberId); Assert.Equal(branch.Id, oldEntry.BranchId);
+        Assert.Equal(CheckInType.Class, oldEntry.CheckInType); Assert.Equal(group.Id, oldEntry.GroupClassId); Assert.Null(oldEntry.ClassSessionId);
         Assert.Empty(await db.ActivityCoaches.ToListAsync()); Assert.Empty(await db.ClassSessions.ToListAsync());
         Assert.Empty(await db.MembershipPlanEligibleMembers.ToListAsync());
     }

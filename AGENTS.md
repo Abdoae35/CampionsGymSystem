@@ -41,11 +41,11 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 8 — API and authorization.
+- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In final validation — historical migration compatibility.
 - Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
 - Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
 - Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
 - Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
-- Next: Task 9: feature documentation, full suite, EF drift and Development catalog verification; final commit/push.
+- Next: Finish Task 9: rerun full suite, final documentation checkpoint/commit/push and clean remote HEAD verification.
 - Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
