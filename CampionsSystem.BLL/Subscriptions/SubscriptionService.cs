@@ -68,6 +68,17 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         e.Subscription.StartDate, e.Subscription.EndDate, e.Status.ToString(), e.Subscription.TotalSessions,
         e.Subscription.RemainingSessions, e.Subscription.Version, e.Subscription.EmployeeId, e.Subscription.FollowsSubscriptionId);
 
+    // Assembly-internal operational projection. Check-In authorizes the visited branch first;
+    // it must not inherit originating-branch administration permissions.
+    internal async Task<IReadOnlyList<SubscriptionSummary>> GetGymAccessFactsAsync(Guid memberId, DateOnly date, CancellationToken ct)
+    {
+        var lastEnd=await db.MemberSubscriptions.Where(s=>s.MemberId==memberId && s.EndDate<date).MaxAsync(s=>s.EndDate,ct);
+        var rows=await Evaluated(date).Where(x=>x.Subscription.MemberId==memberId
+            && (x.Subscription.EndDate==null || x.Subscription.EndDate>=date || x.Subscription.EndDate==lastEnd))
+            .OrderByDescending(x=>x.Subscription.StartDate).Take(101).ToListAsync(ct);
+        return rows.Select(Summary).ToArray();
+    }
+
     public async Task<SubscriptionHistory> GetHistoryAsync(Guid memberId, SubscriptionHistoryRequest r, CancellationToken ct = default)
     {
         var user = await RequireAsync(SubscriptionPermissions.View, r.BranchId, false, ct);
