@@ -548,3 +548,15 @@ requires Leads.Convert + Members.Create and active employment, not Members.Assig
 Registering outside Ali's current branch requires Members.CreateCrossBranch. Source
 Lead branch does not grant browsing or finance scope. Future commission bucket remains
 employee + actual sale/payment branch, independently of employee's current branch.
+
+## Membership Plan templates (2026-10-09)
+
+Branch manager → own current Branch plan → future purchase → future subscription.
+Global management → shared categories/benefits → branch managers select active items.
+Freelance Coach → fixed gym-price plan → selected eligible Members (any registration
+branch) → existing ownership unchanged; explicit FreelanceHouse remains House.
+Employee → internal free Unlimited template → employment-bound grant workflow later.
+Plan benefits → future purchase snapshot → MemberSubscriptionBenefits.
+Template edit/deactivation → future configuration only → historical snapshots remain.
+City access configuration → future Check-In validation; BranchId → administration.
+See [Membership Plans](../MEMBERSHIP_PLANS.md) for contracts and endpoints.

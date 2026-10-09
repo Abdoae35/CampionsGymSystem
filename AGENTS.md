@@ -41,10 +41,18 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: crm-fixture.
-- Second full run: 413 passed, 1 failed because the legacy CRM Freelance conversion fixture omitted owning BranchId. Explicitly mapped that test plan to A; no CRM implementation changed. Build zero warnings/errors and focused conversion regression passed. Final full-suite rerun remains pending.
-- BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
-  global-only administration until explicitly mapped. Global catalogs require global access.
-- Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
-- No purchase/subscription/financial processing or production changes. Stop after Plans.
-- See PROJECT_HISTORY.md; portable skill: skills/project-history-update/SKILL.md.
+- Membership Plans Management completed on MembershipPlansManagement; stop here, no Subscriptions started.
+- BranchId owns/offers/administers plans; CityId retains access meaning. New plans require
+  an active owner branch; legacy null stays global-only until explicit mapping.
+- Global catalogs require management + Branches.AccessAll. Freelance eligibility permits
+  Members from other registration branches and preserves Sales/House ownership.
+- All creation/update/status/benefit/eligibility APIs and compatibility paths enforce scope;
+  FreelanceHouse registration cannot bypass plan ownership. Snapshot history is untouched.
+- Final build: zero warnings/errors. Full suite: 414 passed, zero failed/skipped. EF drift clean.
+- Approved additive ownership migration applied/verified only in Development; zero plans,
+  no backfill and no production operations. Postman covers 20 canonical + four compatibility routes.
+- Implementation commits through a5ed361 pushed. Final documentation/Postman commit and push
+  accompany this checkpoint; remote HEAD/clean status are verified before the final response.
+- No known unresolved Plans issues; purchase/grants, Check-In, commissions and imports remain separate.
+- See PROJECT_HISTORY.md and docs/MEMBERSHIP_PLANS.md; portable history skill:
+  skills/project-history-update/SKILL.md.

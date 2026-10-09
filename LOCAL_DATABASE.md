@@ -191,3 +191,11 @@ The explicit guarded --configure-crm-permissions command provisions seven CRM/Le
 codes and existing Owner bootstrap grants, without rewriting custom staff grants.
 Production untouched. See docs/CRM_LEADS.md for setup, constraints and remaining
 automatic lifecycle integrations.
+
+## Membership Plan ownership migration (2026-10-09)
+
+Development was verified as local `campions_gym` before applying
+`20261009013415_AddMembershipPlanBranchOwnership`. It adds nullable BranchId with
+restricted FK and index only; no ownership inference/backfill. The development plan
+count was zero. Production was not accessed. Exported SQL:
+`docs/database/AddMembershipPlanBranchOwnership.sql`.

@@ -396,3 +396,13 @@ branch. Non-active status changes close current Sales assignments to House/unass
 management work, with audits and history retained; reactivation does not restore them. No automatic inactivity/expiry/attendance scanner exists; CRM
 work is opened manually or through the internal integration method. Legacy import
 must preserve original Sales/House ownership. See [CRM](../CRM_LEADS.md).
+
+## Plan administration and template validation (2026-10-09)
+
+BLL requires BranchId for new plans while nullable legacy ownership remains global-only.
+Current active branch controls administration; CityId does not. Global catalog writes
+require both MembershipPlans.Manage and Branches.AccessAll. BLL validates active
+branch/city/new category/Coach, decimal precision, mode/session/freeze rules and
+immutable behavioral type. Eligibility is allowed across Member registration branches
+and cannot change Member Sales ownership. Snapshot history is never rewritten.
+See [Membership Plans](../MEMBERSHIP_PLANS.md) for inactive-selection rules.

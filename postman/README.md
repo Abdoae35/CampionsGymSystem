@@ -163,3 +163,17 @@ open tasks explicitly until future lifecycle integrations are connected.
 Configure actual branch country calling codes and staff grants. Guarded local setup:
 `dotnet run --project CampionsSystem.API -- --configure-crm-permissions`.
 See [CRM documentation](../docs/CRM_LEADS.md) for complete contracts, flows and permissions.
+
+## Membership Plans Management
+
+Folders 9–12 include all 20 canonical plan/category/benefit routes and four existing
+Freelance configuration compatibility routes. Normal/Freelance/Employee create
+examples are alternatives: send writes individually, not as an unattended runner.
+Set branchId (owning/offering branch), cityId (access city), freelanceCoachEmployeeId
+and Member IDs. Creation scripts capture membershipPlanId, freelancePlanId,
+planCategoryId and membershipBenefitId. Catalog writes require MembershipPlans.Manage
+plus Branches.AccessAll. Branch managers can configure only their current active
+branch plans, including eligibility for Members registered elsewhere. Candidate lookup
+requires one exact ID/code/phone (encode international + as %2B). See
+[Membership Plans](../docs/MEMBERSHIP_PLANS.md) for permissions and validation rules.
+These new configuration requests do not purchase/grant subscriptions or process payments.

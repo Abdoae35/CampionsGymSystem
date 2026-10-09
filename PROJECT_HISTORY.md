@@ -43,13 +43,21 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: crm-fixture.
-- Second full run: 413 passed, 1 failed because the legacy CRM Freelance conversion fixture omitted owning BranchId. Explicitly mapped that test plan to A; no CRM implementation changed. Build zero warnings/errors and focused conversion regression passed. Final full-suite rerun remains pending.
-- BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
-  global-only administration until explicitly mapped. Global catalogs require global access.
-- Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
-- No purchase/subscription/financial processing or production changes. Stop after Plans.
-- See PROJECT_HISTORY.md; portable skill: skills/project-history-update/SKILL.md.
+- Membership Plans Management completed on MembershipPlansManagement; stop here, no Subscriptions started.
+- BranchId owns/offers/administers plans; CityId retains access meaning. New plans require
+  an active owner branch; legacy null stays global-only until explicit mapping.
+- Global catalogs require management + Branches.AccessAll. Freelance eligibility permits
+  Members from other registration branches and preserves Sales/House ownership.
+- All creation/update/status/benefit/eligibility APIs and compatibility paths enforce scope;
+  FreelanceHouse registration cannot bypass plan ownership. Snapshot history is untouched.
+- Final build: zero warnings/errors. Full suite: 414 passed, zero failed/skipped. EF drift clean.
+- Approved additive ownership migration applied/verified only in Development; zero plans,
+  no backfill and no production operations. Postman covers 20 canonical + four compatibility routes.
+- Implementation commits through a5ed361 pushed. Final documentation/Postman commit and push
+  accompany this checkpoint; remote HEAD/clean status are verified before the final response.
+- No known unresolved Plans issues; purchase/grants, Check-In, commissions and imports remain separate.
+- See PROJECT_HISTORY.md and docs/MEMBERSHIP_PLANS.md; portable history skill:
+  skills/project-history-update/SKILL.md.
 
 ## Work history
 
@@ -1636,3 +1644,42 @@ Second full run: 413 passed, 1 failed because the legacy CRM Freelance conversio
 
 Build/tests/diff verified before task commit; user authorized small commits and immediate
 pushes. Exact hashes/results will be recorded in final validation. Production untouched.
+
+### 2026-10-09 — Membership Plans final documentation and validation
+
+Completed the requested feature in verified small tasks. Added docs/MEMBERSHIP_PLANS.md,
+updated schema/data-flow/BLL-rule/local database notes, and refreshed the Postman collection,
+environment and README. Twenty canonical routes plus four compatibility routes are represented
+by 26 examples (two alternate creation types). JSON, bodies, variables, JS syntax and controller
+route coverage verified; no unattended Postman write runner was executed.
+
+Final build: zero warnings/errors. Full suite: 414 passed, zero failed/skipped (44 additional
+cases over baseline). Existing Employee/Member/CRM/Branch/authorization tests pass. Initial
+fixture/compatibility failures and their fixes are recorded in preceding entries. Final EF
+has-pending-model-changes reports no drift. Local Development confirms migration
+20261009013415_AddMembershipPlanBranchOwnership, nullable BranchId, restricted FK and index;
+zero plan rows, no inferred legacy ownership and no production access.
+
+Feature uses existing types, dynamic catalogs, city access and snapshot/eligibility models.
+BranchId is administrative ownership, never a Member-registration restriction. Categories and
+benefits are global-write-only catalogs; branch managers configure only their current active
+branch. Eligibility and explicit FreelanceHouse registration preserve the existing ownership
+rules while enforcing plan administration scope. No new subscriptions, payment/commission or
+Check-In workflows were implemented. Existing purchase operations were preserved.
+
+Implementation commits below are pushed. The final documentation/Postman commit accompanies
+this checkpoint; its hash, push result and local/remote HEAD are reported after verification,
+without a recursive self-hash documentation edit. No known unresolved Membership Plans issues.
+Stop after this feature; no automatic Subscription implementation.
+
+bfff58b feat(plans): add membership plan management contracts
+3c8a7a9 feat(plans): add membership plan category management
+71e5bf6 feat(plans): add membership benefit management
+296dab5 feat(plans): add membership plan queries
+2af8c3f feat(plans): add membership plan creation
+966271d feat(plans): add membership plan updates and status
+e09758e feat(plans): add membership plan benefit configuration
+db08fd8 feat(plans): add freelance plan eligibility management
+5595723 feat(plans): expose membership plan management api
+2175fc5 fix(plans): enforce eligibility scope across registration paths
+a5ed361 test(plans): map CRM Freelance fixture to owning branch

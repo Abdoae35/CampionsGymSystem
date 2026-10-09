@@ -394,3 +394,11 @@ Migration 20261008143406_AddCrmLeadManagement adds this support;
 phones are backfilled; ambiguous legacy data stays preserved. Business transitions
 and privacy rules are enforced in BLL rather than retroactively inventing legacy
 lifecycle timestamps. See [CRM workflows](../CRM_LEADS.md) and reviewed SQL export.
+
+## Membership Plan administrative branch ownership (2026-10-09)
+
+MembershipPlans.BranchId is nullable for legacy/unmapped rows, indexed and references
+GymBranches.Id with Restrict. New BLL registrations require an active owning branch.
+CityId retains access semantics and cannot determine administration scope. No data
+is backfilled from city. Existing plan type/audience/benefit/eligibility and historical
+snapshot models are reused. See [Membership Plans](../MEMBERSHIP_PLANS.md).
