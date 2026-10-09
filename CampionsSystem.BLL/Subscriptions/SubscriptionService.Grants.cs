@@ -101,6 +101,7 @@ public sealed partial class SubscriptionService
             var retry = await RetryGrantAsync(r.OperationId, r.MemberId, r.PlanId, r.BranchId, null, ct);
             if (retry is not null) return retry;
             await ValidateCustomerAsync(member, plan, ct);
+            var borrowedDebt=await OutstandingBorrowedDebtAsync(member.Id,plan,ct);
             var (date, day) = await GrantDateAsync(r.BranchId, ct);
             if (await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.Status != SubscriptionStatus.Cancelled
                 && (x.EndDate == null || x.EndDate >= date), ct))
@@ -110,6 +111,7 @@ public sealed partial class SubscriptionService
                 TotalSessions = plan.SessionCount, RemainingSessions = plan.SessionCount, Status = SubscriptionStatus.Active, CreatedAt = access.Now };
             db.Add(sub);
             var grant = await SnapshotAsync(sub, plan, r.OperationId, actor.UserId, day, date, SubscriptionTransactionType.Initial, null, null, null, ct);
+            SettleBorrowedDebt(sub,grant,borrowedDebt,actor.UserId);
             access.Audit(actor.UserId, r.BranchId, "Subscription.Created", nameof(MemberSubscription), sub.Id,
                 after: new { sub.MemberId, GrantId=grant.Id, sub.StartDate, sub.EndDate, sub.CityId, sub.AccessMode, sub.RemainingSessions });
             await db.SaveChangesAsync(ct); await ApplyDeclaredHolidaysForMemberAsync(member.Id,actor.UserId,ct);

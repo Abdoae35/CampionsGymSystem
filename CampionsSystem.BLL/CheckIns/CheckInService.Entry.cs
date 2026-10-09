@@ -61,7 +61,7 @@ public sealed partial class CheckInService
             if(r.ConfirmBorrow && decision.BorrowAvailable)
                 return await BorrowAsync(decision,member,r,context.Actor.UserId,ct);
             if(!decision.Allowed)return new CheckInResult(decision,null);
-            if(r.ConfirmBorrow)throw new BusinessRuleException("Borrow confirmation cannot override a current normal entitlement.");
+            if(r.ConfirmBorrow)return new CheckInResult(decision with{Allowed=false,ReasonCode=AccessReasons.BorrowNotEligible},null);
             var sub=await LockSubscriptionAsync(decision.SubscriptionId!.Value,ct);
             var before=sub.RemainingSessions;
             if(sub.AccessMode==AccessMode.SessionBased){sub.RemainingSessions--;sub.Version++;}

@@ -50,6 +50,7 @@ public sealed partial class SubscriptionService
             var retry = await RetryGrantAsync(r.OperationId,member.Id,plan.Id,r.BranchId,source.Id,ct);
             if (retry is not null) return retry;
             Version(source,r.ExpectedVersion); await ValidateCustomerAsync(member,plan,ct);
+            var borrowedDebt=await OutstandingBorrowedDebtAsync(member.Id,plan,ct);
             var state = await Evaluated().SingleAsync(x => x.Subscription.Id == source.Id,ct);
             if (state.Status is not (SubscriptionStatus.Active or SubscriptionStatus.Frozen or SubscriptionStatus.Expired))
                 throw new BusinessRuleException("Renewal requires a current or expired customer period.");
@@ -88,6 +89,7 @@ public sealed partial class SubscriptionService
             source.Version++;
             var grant = await SnapshotAsync(target,plan,r.OperationId,actor.UserId,day,grantStart,SubscriptionTransactionType.Renewal,
                 source,previousEnd,previousSessions,ct);
+            SettleBorrowedDebt(target,grant,borrowedDebt,actor.UserId);
             access.Audit(actor.UserId,r.BranchId,"Subscription.Renewed",nameof(MemberSubscription),target.Id,
                 new { SourceSubscriptionId=source.Id,EndDate=previousEnd,RemainingSessions=previousSessions },
                 new { target.MemberId,grant.Id,target.StartDate,target.EndDate,target.RemainingSessions,target.FollowsSubscriptionId });

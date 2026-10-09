@@ -26,6 +26,7 @@ public static class AccessReasons
     public const string BorrowLimitReached = "BorrowLimitReached";
     public const string BorrowConfirmationRequired = "BorrowConfirmationRequired";
     public const string BorrowCycleRenewed = "BorrowCycleRenewed";
+    public const string BorrowNotEligible = "BorrowNotEligible";
     public const string EmployeeEntitlementInactive = "EmployeeEntitlementInactive";
     public const string AmbiguousEntitlement = "AmbiguousEntitlement";
 }

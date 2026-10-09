@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 4 — explicit borrowed access.
+- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 5 — renewal debt settlement.
 - Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
 - Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
 - Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
 - Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
-- Next: Task 5: full borrowed-debt settlement in protected customer renewal/grant transactions.
+- Next: Task 6: scoped history, shared Member search and current-business-day entrance helper.
 - Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1865,3 +1865,9 @@ Checkpoint included in the verified task commit; push result verified before adv
 Added ConfirmBorrow flow using the same branch/date/member/status/city/closure resolver and Member/subscription locks. Eligible latest expired customer cycle may record at most two lifetime-for-that-cycle BorrowedGym entries and existing BorrowedGymSession outstanding debt rows, each uniquely linked to its CheckIn. No automatic debt on denied scan; no expiry/status/session/benefit/ownership/Finance mutation. Borrow technical Version increments coordinate subsequent renewal. Retry and concurrent final borrow slot tested with independent PostgreSQL connections; frozen/cancelled/exhausted-before-date/wrong-city rejected; future period never grants early normal access. Build zero warnings/errors; 29 access/normal/borrow/concurrency tests passed, zero failed/skipped; diff reviewed. Task 3 a81f4ce pushed; no additional migration.
 
 Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 5: full borrowed-debt settlement in protected customer renewal/grant transactions.
+
+### 2026-10-09 — Check-In Task 5 — renewal debt settlement
+
+Integrated full outstanding Member borrowed debt settlement into protected customer renewal AND initial grant, preventing activation bypass. SessionBased subtracts debt only from available new grant contribution while preserving original plan quantity/history and active carry-over; Unlimited settles without session fields. Debt rows retain expired source/entry and link exact settling MembershipSubscriptionTransaction plus new entitlement and timestamp; audited individually. New quantity below debt rejects transaction without partial settlement; equality yields zero available sessions without borrowing before date expiry. New later expired cycle gets its own two-entry allowance. Borrow-vs-renew race either includes debt or retries stale version; confirmed borrow against newly active entitlement returns BorrowNotEligible without creating normal/borrowed entry. Build zero warnings/errors; 94 Check-In/concurrency/existing subscription lifecycle tests passed, zero failed/skipped; diff reviewed. Task 4 df53760 pushed; no migration or Finance workflow.
+
+Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 6: scoped history, shared Member search and current-business-day entrance helper.
