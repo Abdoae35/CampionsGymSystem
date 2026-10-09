@@ -50,7 +50,7 @@ public sealed partial class SubscriptionService
                 && x.ProtectedDate >= r.StartDate && x.ProtectedDate <= end,ct);
             var oldEnd = sub.EndDate.Value; var extension = r.Days - already;
             sub.EndDate = PlusDays(oldEnd,extension);sub.Version++;
-            await ShiftSuccessorAsync(sub,extension,actor,ct);
+            await ShiftSuccessorAsync(sub,extension,actor,ct);await EnsureNoOverlapAsync(sub,ct);
             var freeze = new SubscriptionFreeze { MemberSubscriptionId=id,OperationId=r.OperationId,FreezeType=FreezeType.Normal,
                 StartDate=r.StartDate,EndDate=end,DaysApplied=r.Days,DaysAlreadyCompensated=already,ApprovedByUserId=actor,CreatedAt=access.Now,
                 PreviousSubscriptionEndDate=oldEnd,NewSubscriptionEndDate=sub.EndDate };

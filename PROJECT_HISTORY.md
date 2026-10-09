@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 7 — normal freeze lifecycle.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 8 — managed custom/medical extension.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 8: managed custom/medical extension.
+- Next: Task 9: Owner-controlled official holiday compensation.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1806,3 +1806,10 @@ Added branch-scoped normal freeze approval/completion with immutable history, po
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Task 8: managed custom/medical extension.
+
+### 2026-10-09 — Task 8 — managed custom/medical extension
+
+Added Subscription.CustomExtensionGranted using distinct Medical history rows, required reason/positive duration/operation identity and Subscriptions.Extend with originating-branch scope. Grants are immediate extensions, not access-blocking normal freezes; they consume no normal allowance. Current Active/Frozen customer periods only; Employee/cancelled/expired revival is rejected. Unstarted successor dates move with the extension; overlap with another entitlement or started history is rejected transactionally. Normal freeze also now checks such overlap. Actor/time/reason and old/new ends are preserved; retry returns the original extension without duplicate effect/audit. Build zero warnings/errors; 54 subscription/domain/concurrency tests passed, zero failed/skipped, including capability/reason/allowance/schedule/idempotency cases. Diff reviewed. Task 7 f6e2066 pushed successfully. No schema change or Finance writes.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Task 9: Owner-controlled official holiday compensation.
