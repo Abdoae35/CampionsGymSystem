@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: integration-fix.
-- Initial full run: 411 passed, 1 failed (legacy compatibility 500 from unmapped fixture). Fixed scope-error handling and mapped fixtures; closed direct FreelanceHouse registration eligibility bypass with a plan share lock and consistent lock order. Build clean; 34 relevant tests passed, then 5 affected tests passed on final rebuilt code. Documentation/Postman pending final full-suite verification.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: crm-fixture.
+- Second full run: 413 passed, 1 failed because the legacy CRM Freelance conversion fixture omitted owning BranchId. Explicitly mapped that test plan to A; no CRM implementation changed. Build zero warnings/errors and focused conversion regression passed. Final full-suite rerun remains pending.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.

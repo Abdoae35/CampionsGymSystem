@@ -50,7 +50,7 @@ public sealed partial class CrmManagementTests
     [Fact] public async Task ExplicitFreelanceConversionOverridesLeadOwnerWithAuditedHouseException()
     {
         var l=await Lead();await service.AssignLeadAsync(l.Id,new(){SalesEmployeeId=ahmed.Id});
-        var plan=new MembershipPlan{Name="Special",CityId=a.CityId,PlanCategory=PlanCategory.Freelance,DurationDays=30,
+        var plan=new MembershipPlan{Name="Special",BranchId=a.Id,CityId=a.CityId,PlanCategory=PlanCategory.Freelance,DurationDays=30,
             FreelanceCoachEmployee=new(){FullName="Coach",Phone="coach",EmploymentType=EmploymentType.Freelance,HireDate=new(2020,1,1)}};
         db.Add(plan);await db.SaveChangesAsync();
         Set(mohamed,"Leads.Convert","Leads.Assign","Members.Create","FreelancePlans.ManageEligibleMembers");
