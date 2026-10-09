@@ -128,7 +128,7 @@ public sealed class CrmConcurrencyTests : IAsyncLifetime
             var current=new TestBranchUser(new(actor,"manager",null,null,[],["Employees.Manage","Branches.AccessAll"],null));
             var access=new OperationAccess(current,db,TimeProvider.System,Options.Create(new AuthContextOptions()));
             var branches=new CampionsSystem.BLL.Branches.EmployeeBranchAssignmentService(db,current,access);
-            var employees=new CampionsSystem.BLL.Employees.EmployeeManagementService(db,current,access,new(db),branches);
+            var employees=new CampionsSystem.BLL.Employees.EmployeeManagementService(db,current,access,new(db),branches,new(db,current,access));
             await employees.ChangeStatusAsync(owner,new(){Status=CampionsSystem.DAL.Enums.EmploymentStatus.Resigned});
         }
         await Task.WhenAll(Convert(),Terminate());

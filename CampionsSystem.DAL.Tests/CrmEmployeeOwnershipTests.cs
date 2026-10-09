@@ -11,7 +11,7 @@ namespace CampionsSystem.DAL.Tests;
 public sealed partial class CrmManagementTests
 {
     private EmployeeBranchAssignmentService EmployeeBranches() => new(db,current,access);
-    private EmployeeManagementService Employees() => new(db,current,access,new(db),EmployeeBranches());
+    private EmployeeManagementService Employees() => new(db,current,access,new(db),EmployeeBranches(),new(db,current,access));
     private void EmploymentManager() => Set(mohamed,"Employees.Transfer","Employees.Manage","Employees.View","Branches.AccessAll");
 
     [Theory]

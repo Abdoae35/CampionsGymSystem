@@ -34,7 +34,7 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         var facts = db.MemberSubscriptions.AsNoTracking().Select(s => new
         {
             S = s,
-            Day = db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
+            Day = s.EmployeeId != null ? today : db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
                 .Select(d => (DateOnly?)d.BusinessDate).SingleOrDefault() ?? today,
             EmploymentValid = s.EmployeeId == null || s.Employee != null && s.Employee.MemberId == s.MemberId
                 && s.Employee.EmploymentStatus == EmploymentStatus.Active && s.Employee.HireDate <= today

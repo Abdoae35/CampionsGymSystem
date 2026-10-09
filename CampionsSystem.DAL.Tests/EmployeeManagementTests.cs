@@ -35,7 +35,7 @@ public sealed class EmployeeManagementTests : IAsyncLifetime
             new EmployeeBranchAssignment { Employee = employeeA, Branch = branchA, StartDate = access.Today.AddDays(-20), IsPrimary = true, AssignedByUserId = actor },
             new EmployeeBranchAssignment { Employee = employeeB, Branch = branchB, StartDate = access.Today.AddDays(-20), IsPrimary = true, AssignedByUserId = actor });
         await db.SaveChangesAsync();
-        service = new EmployeeManagementService(db, current, access, new EmployeeBranchResolver(db), new EmployeeBranchAssignmentService(db, current, access));
+        service = new EmployeeManagementService(db, current, access, new EmployeeBranchResolver(db), new EmployeeBranchAssignmentService(db, current, access), new(db, current, access));
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
     private void Scoped() => current.Context = current.Context! with
