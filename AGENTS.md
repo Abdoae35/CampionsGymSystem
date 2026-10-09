@@ -41,10 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 5 — Employee entitlement lifecycle.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 6 — renewals/carry-over/scheduling.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 6: renewal, carry-over and different-mode queue.
+- Next: Task 7: normal freeze lifecycle, including compensation-order safety.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

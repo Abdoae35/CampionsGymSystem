@@ -28,22 +28,22 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         public string? PlanName { get; init; }
         public PlanCategory? PlanType { get; init; }
     }
-    private IQueryable<Evaluation> Evaluated()
+    private IQueryable<Evaluation> Evaluated(DateOnly? at = null)
     {
         var today = access.Today;
         var facts = db.MemberSubscriptions.AsNoTracking().Select(s => new
         {
             S = s,
-            Day = s.EmployeeId != null ? today : db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
+            Day = s.EmployeeId != null ? today : at ?? db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
                 .Select(d => (DateOnly?)d.BusinessDate).SingleOrDefault() ?? today,
             EmploymentValid = s.EmployeeId == null || s.Employee != null && s.Employee.MemberId == s.MemberId
                 && s.Employee.EmploymentStatus == EmploymentStatus.Active && s.Employee.HireDate <= today
                 && (s.Employee.TerminationDate == null || s.Employee.TerminationDate >= today),
             MemberActive = s.Member.IsActive,
             Frozen = db.SubscriptionFreezes.Any(f => f.MemberSubscriptionId == s.Id && f.FreezeType == FreezeType.Normal
-                && f.StartDate <= (db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
+                && f.StartDate <= (at ?? db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
                     .Select(d => (DateOnly?)d.BusinessDate).SingleOrDefault() ?? today)
-                && (f.EndDate == null || f.EndDate >= (db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
+                && (f.EndDate == null || f.EndDate >= (at ?? db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
                     .Select(d => (DateOnly?)d.BusinessDate).SingleOrDefault() ?? today))),
             Name = db.MembershipSubscriptionTransactions.Where(t => t.MemberSubscriptionId == s.Id)
                 .OrderBy(t => t.CreatedAt).ThenBy(t => t.Id).Select(t => t.PlanNameSnapshot).FirstOrDefault(),
@@ -119,7 +119,8 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         await RequireAsync(SubscriptionPermissions.View, branchId, false, ct);
         var branch = await db.GymBranches.AsNoTracking().SingleOrDefaultAsync(x => x.Id == branchId && x.IsActive && x.City.IsActive, ct)
             ?? throw new BranchNotFoundException("Active access branch not found.");
-        var candidates = await Evaluated().Where(x => x.Subscription.MemberId == memberId && x.Subscription.CityId == branch.CityId
+        var date = await EffectiveBusinessDateAsync(branchId, ct);
+        var candidates = await Evaluated(date).Where(x => x.Subscription.MemberId == memberId && x.Subscription.CityId == branch.CityId
             && x.Status == SubscriptionStatus.Active).Take(2).ToListAsync(ct);
         if (candidates.Count > 1) throw new BusinessRuleException("Conflicting entitlements require management reconciliation.");
         return new(candidates.Count == 1, candidates.Count == 1 ? Summary(candidates[0]) : null);

@@ -106,7 +106,7 @@ public sealed partial class SubscriptionService
                 && (x.EndDate == null || x.EndDate >= date), ct))
                 throw new BusinessRuleException("Member already has an open or future entitlement; use the renewal integration.");
             var sub = new MemberSubscription { MemberId = member.Id, MembershipPlanId = plan.Id, PurchasedAtBranchId = r.BranchId,
-                CityId = plan.CityId, AccessMode = plan.AccessMode, StartDate = date, EndDate = date.AddDays(plan.DurationDays - 1),
+                CityId = plan.CityId, AccessMode = plan.AccessMode, StartDate = date, EndDate = PlusDays(date,plan.DurationDays - 1),
                 TotalSessions = plan.SessionCount, RemainingSessions = plan.SessionCount, Status = SubscriptionStatus.Active, CreatedAt = access.Now };
             db.Add(sub);
             var grant = await SnapshotAsync(sub, plan, r.OperationId, actor.UserId, day, date, SubscriptionTransactionType.Initial, null, null, null, ct);

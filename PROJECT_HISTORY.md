@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 5 — Employee entitlement lifecycle.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 6 — renewals/carry-over/scheduling.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 6: renewal, carry-over and different-mode queue.
+- Next: Task 7: normal freeze lifecycle, including compensation-order safety.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1792,3 +1792,10 @@ Added protected Employee entitlement start/link requiring both Subscriptions.Man
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Task 6: renewal, carry-over and different-mode queue.
+
+### 2026-10-09 — Task 6 — renewals/carry-over/scheduling
+
+Added protected BLL-only renewal commands with operation identities, expected Version and PostgreSQL plan/Member/subscription locks. Active compatible same-mode periods append duration; SessionBased also adds new sessions to the remaining balance. Expired renewal creates a separate period from effective BusinessDate with only new sessions, preserving old unused balance/end/grants. Different modes (and changed operational/access/type scope) create a separate Scheduled successor, never convert sessions or overlap the current period. Minimum invariant: one pending successor per Member; renewing a not-yet-started period is rejected. Legitimate current-period extensions can shift an unstarted successor, preserving original grant snapshots and auditing schedule changes. Current access evaluates all candidates consistently against the selected operational branch BusinessDate and fails closed on ambiguous legacy overlap. Date overflow/session overflow rejected. Build zero warnings/errors; 34 subscription/concurrency tests passed, zero failed/skipped, including real independent PostgreSQL sessions for duplicate renewal, request idempotency and competing schedules. Diff reviewed. Task 5 0a982c3 pushed successfully. No paid renewal HTTP endpoint or Finance writes.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Task 7: normal freeze lifecycle, including compensation-order safety.
