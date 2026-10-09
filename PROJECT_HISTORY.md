@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 1.
-- Added management contracts and approved nullable plan BranchId FK/index. Migration 20261009013415 applied only to verified localhost Development; plan count zero, no inferred backfill. SQL reviewed/exported, EF drift clean. Full suite 371 passed, zero failed/skipped; build zero warnings/errors. Corrected raw-SQL FK exception assertion and historical migration projection before passing rerun. Existing migrations unchanged.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 2.
+- Implemented global/shared audience category list/create/update/status with permission plus Branches.AccessAll enforcement, duplicate checks, audit and transactional writes. Branch manager read-only catalog behavior verified. Build zero warnings/errors; two focused tests passed; no schema changes.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
@@ -1563,6 +1563,13 @@ resuming the ten authorized tasks. No next feature or production work started.
 ### 2026-10-09 — Membership Plans task 1
 
 Added management contracts and approved nullable plan BranchId FK/index. Migration 20261009013415 applied only to verified localhost Development; plan count zero, no inferred backfill. SQL reviewed/exported, EF drift clean. Full suite 371 passed, zero failed/skipped; build zero warnings/errors. Corrected raw-SQL FK exception assertion and historical migration projection before passing rerun. Existing migrations unchanged.
+
+Build/tests/diff verified before task commit; user authorized small commits and immediate
+pushes. Exact hashes/results will be recorded in final validation. Production untouched.
+
+### 2026-10-09 — Membership Plans task 2
+
+Implemented global/shared audience category list/create/update/status with permission plus Branches.AccessAll enforcement, duplicate checks, audit and transactional writes. Branch manager read-only catalog behavior verified. Build zero warnings/errors; two focused tests passed; no schema changes.
 
 Build/tests/diff verified before task commit; user authorized small commits and immediate
 pushes. Exact hashes/results will be recorded in final validation. Production untouched.

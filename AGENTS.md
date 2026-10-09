@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 1.
-- Added management contracts and approved nullable plan BranchId FK/index. Migration 20261009013415 applied only to verified localhost Development; plan count zero, no inferred backfill. SQL reviewed/exported, EF drift clean. Full suite 371 passed, zero failed/skipped; build zero warnings/errors. Corrected raw-SQL FK exception assertion and historical migration projection before passing rerun. Existing migrations unchanged.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 2.
+- Implemented global/shared audience category list/create/update/status with permission plus Branches.AccessAll enforcement, duplicate checks, audit and transactional writes. Branch manager read-only catalog behavior verified. Build zero warnings/errors; two focused tests passed; no schema changes.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
