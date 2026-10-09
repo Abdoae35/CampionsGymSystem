@@ -99,6 +99,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        if (ChangeTracker.Entries<MemberBenefitUsage>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Benefit usage history is append-only.");
         if (ChangeTracker.Entries<CheckIn>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(CheckIn.OperationId)) != null
             && x.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Managed Check-In history is append-only.");

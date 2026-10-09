@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 6 — history and operational queries.
+- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 7 — Trial and invitation redemption.
 - Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
 - Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
 - Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
 - Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
-- Next: Task 7: safely redeem existing one-time Trial/Invitation records.
+- Next: Task 8: thin API, permissions, scoped HTTP tests and Postman.
 - Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1877,3 +1877,9 @@ Checkpoint included in the verified task commit; push result verified before adv
 Added branch-scoped paginated CheckIn and borrowed-debt history with actual visited branch, effective BusinessDate and exact settling grant. Current-business-day Gym/BorrowedGym helper supports future Private validation without consuming Private entitlement. Reception search extracts and reuses existing Member predicates, constrains ClientCode to its branch, returns minimal identity and no sensitive profile graph. Unknown legacy BusinessDate is preserved as unknown rather than guessed from UTC. Build zero warnings/errors; 90 Check-In/query/Member-management/phone/ClientCode tests passed, zero failed/skipped; diff reviewed. Task 5 8a4ab44 pushed; no schema change.
 
 Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 7: safely redeem existing one-time Trial/Invitation records.
+
+### 2026-10-09 — Check-In Task 7 — Trial and invitation redemption
+
+Implemented atomic redemption of existing Available GuestInvitation records using issued ID plus canonical phone and actual issuing/visited branch; no guest-token, issuance, automatic expiry duration or Member registration workflow invented. Shared phone lock and sorted Member locks protect global phone/known-Member one-time use; existing redeemed identity indexes/triggers reused. User explicitly confirmed one GUEST quantity snapshot unit is consumed at redemption for benefit-linked invitations; ownership/type/code/available quantity validated, MemberBenefitUsage and Trial CheckIn committed together and linked in audit/history. Usage history append-only. Retry returns original entry; expired/cancelled/wrong branch/identity/inactive/closure denied. Initial two test fixture compile errors corrected before final clean build. Build zero warnings/errors; 69 entry/borrow/Trial foundation tests plus final-benefit concurrency and rollback regressions passed, zero failed/skipped; diff reviewed. Task 6 55b37d5 pushed; no schema change or Finance.
+
+Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 8: thin API, permissions, scoped HTTP tests and Postman.

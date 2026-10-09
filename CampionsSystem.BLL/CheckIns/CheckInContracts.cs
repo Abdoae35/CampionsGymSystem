@@ -75,3 +75,17 @@ public sealed class BorrowedDebtHistoryRequest
     public int PageSize { get; set; } = 25;
 }
 public sealed record BorrowedDebtHistory(IReadOnlyList<BorrowedDebtDetails> Items,int TotalCount,int Page,int PageSize);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record RedeemTrialRequest(Guid OperationId,Guid InvitationId,string Phone,Guid? BranchId=null);
+public sealed record TrialCheckInResult(bool Allowed,string ReasonCode,Guid InvitationId,CheckInDetails? CheckIn);
+public static class TrialReasons
+{
+    public const string InvitationNotFound="InvitationNotFound";
+    public const string InvitationUnavailable="InvitationUnavailable";
+    public const string InvitationBranchMismatch="InvitationBranchMismatch";
+    public const string InvitationIdentityMismatch="InvitationIdentityMismatch";
+    public const string TrialAlreadyUsed="TrialAlreadyUsed";
+    public const string InvitationBenefitInvalid="InvitationBenefitInvalid";
+    public const string InvitationBenefitExhausted="InvitationBenefitExhausted";
+}
