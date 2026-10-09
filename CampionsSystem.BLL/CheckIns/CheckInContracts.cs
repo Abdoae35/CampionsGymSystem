@@ -58,3 +58,20 @@ public sealed class CheckInHistoryRequest
 public sealed record CheckInHistory(IReadOnlyList<CheckInDetails> Items, int TotalCount, int Page, int PageSize);
 public sealed record BorrowedDebtDetails(Guid Id, Guid ExpiredSubscriptionId, Guid? CheckInId, Guid BranchId,
     DateTimeOffset BorrowedAt, string Status, Guid? SettledBySubscriptionId, Guid? SettledByTransactionId, DateTimeOffset? SettledAt);
+public sealed class CheckInMemberSearchRequest
+{
+    public string Search { get; set; } = "";
+    public Guid? BranchId { get; set; }
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 25;
+}
+public sealed record CheckInMemberMatch(Guid Id,string MemberCode,string Name,bool IsActive,Guid RegistrationBranchId,long? ClientCode);
+public sealed record CheckInMemberMatches(IReadOnlyList<CheckInMemberMatch> Items,int TotalCount,int Page,int PageSize);
+public sealed class BorrowedDebtHistoryRequest
+{
+    public Guid? BranchId { get; set; }
+    public Guid? ExpiredSubscriptionId { get; set; }
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 25;
+}
+public sealed record BorrowedDebtHistory(IReadOnlyList<BorrowedDebtDetails> Items,int TotalCount,int Page,int PageSize);
