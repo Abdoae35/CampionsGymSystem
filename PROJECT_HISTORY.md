@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 7 — Trial and invitation redemption.
+- Check-In / Access Management in progress on Check-In/AccessManagement; latest checkpoint: Check-In Task 8 — API and authorization.
 - Reuse CheckIn, BorrowedGymSession and subscription lifecycle; no duplicated attendance/debt domain.
 - Confirmed debt belongs to expired cycle; full settlement on renewal (SessionBased deducts new grant, Unlimited settles without deduction).
 - Insufficient new SessionBased quantity is rejected to satisfy full settlement without negative balances; no partial debt forgiveness.
 - Maximum two borrowed entries per expired cycle; explicit confirmation, no reactivation or time extension.
-- Next: Task 8: thin API, permissions, scoped HTTP tests and Postman.
+- Next: Task 9: feature documentation, full suite, EF drift and Development catalog verification; final commit/push.
 - Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1883,3 +1883,9 @@ Checkpoint included in the verified task commit; push result verified before adv
 Implemented atomic redemption of existing Available GuestInvitation records using issued ID plus canonical phone and actual issuing/visited branch; no guest-token, issuance, automatic expiry duration or Member registration workflow invented. Shared phone lock and sorted Member locks protect global phone/known-Member one-time use; existing redeemed identity indexes/triggers reused. User explicitly confirmed one GUEST quantity snapshot unit is consumed at redemption for benefit-linked invitations; ownership/type/code/available quantity validated, MemberBenefitUsage and Trial CheckIn committed together and linked in audit/history. Usage history append-only. Retry returns original entry; expired/cancelled/wrong branch/identity/inactive/closure denied. Initial two test fixture compile errors corrected before final clean build. Build zero warnings/errors; 69 entry/borrow/Trial foundation tests plus final-benefit concurrency and rollback regressions passed, zero failed/skipped; diff reviewed. Task 6 55b37d5 pushed; no schema change or Finance.
 
 Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 8: thin API, permissions, scoped HTTP tests and Postman.
+
+### 2026-10-09 — Check-In Task 8 — API and authorization
+
+Exposed seven thin API routes for evaluate/create, minimal Reception lookup, scoped history/current-business-day/debt queries and existing Trial redemption. CheckIns.Create and CheckIns.View enforced in controller and BLL; branch spoofing/ownership privilege escalation rejected, strict requests reject authoritative fields, borrow explicit and scanner/manual share rules. Registered services and guarded Development/localhost permission catalog CLI; local catalog-only provisioning created two entries and preserved staff grants. Demo bootstrap gives newly created Reception/BranchManager templates the two codes only; runtime uses capabilities. Postman nine deliberate samples cover all seven routes, with actual existing enum values and UUID retry/real-entry guidance; JSON/variables checked. Build zero warnings/errors; 13 HTTP/setup/seeder regressions and three actual Employee-transfer/Freelance ownership entry tests passed, zero failed/skipped. One incorrect legacy eligibility fixture type was fixed before successful build/tests. Diff reviewed. Task 7 c2f527c pushed; no new schema or Finance workflow.
+
+Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: Task 9: feature documentation, full suite, EF drift and Development catalog verification; final commit/push.

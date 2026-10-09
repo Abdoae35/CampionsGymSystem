@@ -18,6 +18,7 @@ public sealed class DevelopmentAuthSeeder(ApplicationDbContext database, UserMan
         "Users.View", "Users.Manage", "Roles.View", "Roles.Manage",
         "Employees.View", "Employees.Manage", "Employees.Transfer", "Branches.View", "Branches.Manage", "Branches.AccessAll",
         .. CampionsSystem.BLL.Subscriptions.SubscriptionPermissions.Codes,
+        .. CampionsSystem.BLL.CheckIns.CheckInPermissions.Codes,
         .. CampionsSystem.BLL.Members.MemberPermissions.Codes, "MembershipPlans.View", "MembershipPlans.Manage",
         "Payments.View", "Payments.Create", "Payments.Refund", "Expenses.View", "Expenses.Create", "Expenses.Approve",
         "Shifts.View", "Shifts.Manage", "Private.View", "Private.Manage", "Activities.View", "Activities.Manage",
@@ -43,9 +44,9 @@ public sealed class DevelopmentAuthSeeder(ApplicationDbContext database, UserMan
         var grants = new Dictionary<string, string[]>
         {
             ["Owner"] = PermissionCodes,
-            ["BranchManager"] = ["Branches.View", "Employees.View", "Members.View", "Members.Create", "Members.Edit", "Members.AssignSales", "Members.ChangeStatus", "Members.ViewSalesHistory", "MembershipPlans.View", "Payments.View", "Payments.Create", "Expenses.View", "Expenses.Create", "Shifts.View", "Shifts.Manage", "Private.View", "Activities.View", "Leads.View", "Leads.Manage", "Leads.Assign", "Leads.Convert", "CRM.ViewMemberFollowUps", "CRM.ManageMemberFollowUps", "CRM.ManageHouseFollowUps", "Commission.View", "Reports.View"],
+            ["BranchManager"] = [..CampionsSystem.BLL.CheckIns.CheckInPermissions.Codes,"Branches.View", "Employees.View", "Members.View", "Members.Create", "Members.Edit", "Members.AssignSales", "Members.ChangeStatus", "Members.ViewSalesHistory", "MembershipPlans.View", "Payments.View", "Payments.Create", "Expenses.View", "Expenses.Create", "Shifts.View", "Shifts.Manage", "Private.View", "Activities.View", "Leads.View", "Leads.Manage", "Leads.Assign", "Leads.Convert", "CRM.ViewMemberFollowUps", "CRM.ManageMemberFollowUps", "CRM.ManageHouseFollowUps", "Commission.View", "Reports.View"],
             ["Sales"] = ["Members.View", "Members.Create", "Members.OwnSalesCustomers", "Members.CreateCrossBranch", "MembershipPlans.View", "Leads.View", "Leads.Manage", "Leads.Convert", "CRM.ViewMemberFollowUps", "CRM.ManageMemberFollowUps"],
-            ["Reception"] = ["Members.View", "Members.Create", "MembershipPlans.View", "Payments.View", "Payments.Create", "Shifts.View"],
+            ["Reception"] = [..CampionsSystem.BLL.CheckIns.CheckInPermissions.Codes,"Members.View", "Members.Create", "MembershipPlans.View", "Payments.View", "Payments.Create", "Shifts.View"],
             ["PrivateCoach"] = ["Private.View"],
             ["ClassesCoach"] = []
         };

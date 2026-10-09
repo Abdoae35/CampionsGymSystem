@@ -186,6 +186,36 @@
     {
       "key": "planId",
       "value": ""
+    },
+    {
+      "key": "checkInOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkInId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "scannedMemberCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkInSearch",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "guestInvitationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "guestPhone",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -3638,6 +3668,309 @@
             },
             "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists."
           }
+        }
+      ]
+    },
+    {
+      "name": "14. Check-In and access management",
+      "description": "Send operations individually. Use a new operation UUID per real entry; retain it only for identical retries. Current branch context is authoritative. Paid activation and standalone visitor purchases remain deferred.",
+      "item": [
+        {
+          "name": "Reception member lookup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/check-ins/members?search={{checkInSearch}}&page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CheckIns.Create. Search MemberCode, phone, name or branch-local ClientCode. Encode search values, especially + as %2B. Minimal identity only."
+          }
+        },
+        {
+          "name": "Evaluate scanner access",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/check-ins/evaluate",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CheckIns.Create. Read-only current operational branch. Denial includes exact reason and borrow availability; no debt is created.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberCode\": \"{{scannedMemberCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Scanner Gym entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/check-ins",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CheckIns.Create. Scanner=0 / Manual=1. New UUID for every real entry, same UUID for identical retry. SessionBased deducts one per real entry.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{checkInOperationId}}\",\n  \"method\": 0,\n  \"memberCode\": \"{{scannedMemberCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const r = pm.response.json();",
+                  " if (r.checkIn) pm.collectionVariables.set(\"checkInId\", r.checkIn.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Manual Gym entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/check-ins",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CheckIns.Create. Same validation as scanner; no manual override.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{checkInOperationId}}\",\n  \"method\": 1,\n  \"memberId\": \"{{memberId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const r = pm.response.json();",
+                  " if (r.checkIn) pm.collectionVariables.set(\"checkInId\", r.checkIn.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Explicit BorrowedGym entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/check-ins",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Evaluate first, then deliberately confirm only eligible expired-cycle borrowing. Maximum two per cycle; creates outstanding session debt. Never run unattended.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{checkInOperationId}}\",\n  \"method\": 1,\n  \"memberId\": \"{{memberId}}\",\n  \"confirmBorrow\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const r = pm.response.json();",
+                  " if (r.checkIn) pm.collectionVariables.set(\"checkInId\", r.checkIn.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Scoped entry history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/check-ins?memberId={{memberId}}&page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CheckIns.View. Optional branchId/from/to/type/method filters; normal staff cannot select another operational branch."
+          }
+        },
+        {
+          "name": "Current-business-day member entries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/check-ins/current-business-day?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CheckIns.View. Uses actual selected branch BusinessDay; previous entry does not prevent another real entry."
+          }
+        },
+        {
+          "name": "Borrowed debt and settlements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/borrowed-gym-sessions?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CheckIns.View. Scoped debt history includes expired cycle, entry and exact settling grant."
+          }
+        },
+        {
+          "name": "Redeem issued Trial invitation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/check-ins/trials",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "CheckIns.Create. Existing Available invitation, issuing branch and canonical phone required. One free trial per phone/known Member. GUEST-linked invitation consumes exactly one snapshot quantity unit atomically. No issuance, guest token, Member registration or paid sale.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{checkInOperationId}}\",\n  \"invitationId\": \"{{guestInvitationId}}\",\n  \"phone\": \"{{guestPhone}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const r = pm.response.json();",
+                  " if (r.checkIn) pm.collectionVariables.set(\"checkInId\", r.checkIn.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

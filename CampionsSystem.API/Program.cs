@@ -11,8 +11,9 @@ var configureCrmPermissions = args.Contains("--configure-crm-permissions", Strin
 var configureBranchPermissions = args.Contains("--configure-branch-permissions", StringComparer.Ordinal);
 var configureMemberPermissions = args.Contains("--configure-member-permissions", StringComparer.Ordinal);
 var configureSubscriptionPermissions = args.Contains("--configure-subscription-permissions", StringComparer.Ordinal);
+var configureCheckInPermissions = args.Contains("--configure-checkin-permissions", StringComparer.Ordinal);
 var seedAuthDemo = args.Contains("--seed-auth-demo", StringComparer.Ordinal);
-var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--configure-crm-permissions" && arg != "--seed-auth-demo" && arg != "--configure-branch-permissions" && arg != "--configure-member-permissions" && arg != "--configure-subscription-permissions").ToArray());
+var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--configure-crm-permissions" && arg != "--seed-auth-demo" && arg != "--configure-branch-permissions" && arg != "--configure-member-permissions" && arg != "--configure-subscription-permissions" && arg != "--configure-checkin-permissions").ToArray());
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -46,6 +47,8 @@ builder.Services.AddScoped<EmployeeBranchAssignmentService>();
 builder.Services.AddScoped<OperationAccess>();
 builder.Services.AddScoped<CampionsSystem.BLL.Subscriptions.SubscriptionService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Subscriptions.SubscriptionPermissionSetup>();
+builder.Services.AddScoped<CampionsSystem.BLL.CheckIns.CheckInService>();
+builder.Services.AddScoped<CampionsSystem.BLL.CheckIns.CheckInPermissionSetup>();
 builder.Services.AddScoped<ActivityManagementService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Plans.MembershipPlanManagementService>();
 builder.Services.AddScoped<FreelancePlanService>();
@@ -63,6 +66,20 @@ var app = builder.Build();
 if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
     throw new InvalidOperationException(
         "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
+
+if (configureCheckInPermissions)
+{
+    var target = new Npgsql.NpgsqlConnectionStringBuilder(app.Configuration.GetConnectionString("DefaultConnection"));
+    if (!app.Environment.IsDevelopment() || target.Host is not ("localhost" or "127.0.0.1" or "::1"))
+        throw new InvalidOperationException("Check-in permission setup is allowed only in Development against localhost.");
+    var configuredRole=app.Configuration["CheckIns:ManagementRoleId"];
+    Guid? role=string.IsNullOrWhiteSpace(configuredRole)?null:Guid.Parse(configuredRole);
+    await using (var scope = app.Services.CreateAsyncScope())
+        await scope.ServiceProvider.GetRequiredService<CampionsSystem.BLL.CheckIns.CheckInPermissionSetup>().ConfigureAsync(role,app.Lifetime.ApplicationStopping);
+    Console.WriteLine("Check-in permissions configured; existing activation/grants/overrides preserved.");
+    await app.DisposeAsync();
+    return;
+}
 
 if (configureSubscriptionPermissions)
 {

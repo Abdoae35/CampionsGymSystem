@@ -191,3 +191,27 @@ Set extendSubscriptions=false for operational closure without compensation.
 
 Paid creation and renewal have no HTTP route until Sales/Payments is implemented.
 Legacy freelance purchase returns 410. See [Subscriptions](../docs/SUBSCRIPTIONS.md).
+
+## Check-In / Access Management
+
+Folder **14. Check-In and access management** contains all seven routes, with separate
+scanner, manual and explicit borrowing examples. `CheckIns.Create` authorizes lookup,
+evaluation and creation; `CheckIns.View` authorizes entry/debt history. Branch scope
+comes from authenticated operational context; only global-capability users can select
+another branch. Configure the two permission catalog entries explicitly in local
+Development with `dotnet run --project CampionsSystem.API -- --configure-checkin-permissions`.
+Existing role grants and direct overrides are preserved; assign staff permissions
+through the existing authorization workflow.
+
+Set `scannedMemberCode`, `memberId`, and `checkInSearch` as appropriate. Encode search
+query values, especially international `+` as `%2B`. Set `checkInOperationId` to a new
+UUID for **each real entry**, including repeated same-day visits. Reuse it only for an
+identical HTTP retry; successful requests capture `checkInId`. Evaluate expired access
+first, then deliberately use the explicit borrow request after operator confirmation.
+A failed normal scan never creates borrowed debt automatically.
+
+Trial redemption requires an already issued Available `guestInvitationId` and matching
+`guestPhone` at its issuing branch. It consumes one `GUEST` quantity snapshot unit at
+redemption when linked to a Member benefit. No guest-token issuance or new Member
+registration is provided. See [Check-In documentation](../docs/CHECK_INS.md). Standalone
+visitor-session purchases and paid renewal remain deferred to Sales/Payments.
