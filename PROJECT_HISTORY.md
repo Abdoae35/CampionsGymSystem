@@ -43,13 +43,16 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 10 — safe subscription API and authorization.
-- Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
-- Different modes queue separate periods; legitimate extensions move successors.
-- Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
-- Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 11: feature documentation and final full validation, development catalog verification, final commit/push.
-- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
+- Subscriptions / Renewals / Freeze completed on master; all eleven tasks verified and committed individually.
+- Paid customer activation/renewal remain protected BLL-only integrations; nine safe HTTP routes and Postman samples implemented.
+- Expired sessions do not carry; active same-mode renewals carry time/sessions; different modes queue a separate successor.
+- Freeze/medical/Owner-selected branch holiday extensions shift unstarted successors; frozen holiday days are protected once.
+- Employee entitlement closes with employment, survives branch transfer and preserves rehire history; Freelance ownership is unchanged and legacy purchasing is disabled.
+- Final build: zero warnings/errors; full suite 489 passed, zero failed/skipped; EF drift clean.
+- Both new migrations and four permission codes verified in localhost development only; production untouched.
+- Final documentation checkpoint included in its verified commit; push and clean local/remote HEAD verified before final report.
+- Stop here. Finance, Check-In, borrowed execution, commissions, Member financial settlement and frontend remain deferred.
+- See PROJECT_HISTORY.md and docs/SUBSCRIPTIONS.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
 
@@ -1827,3 +1830,10 @@ Added nine thin lifecycle/read routes. Paid customer activation/renewal remain B
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Task 11: feature documentation and final full validation, development catalog verification, final commit/push.
+
+### 2026-10-09 — Task 11 — documentation and final validation
+
+Completed docs/SUBSCRIPTIONS.md and concise docs index/status update. Documented reused models/snapshots, inclusive/open-BusinessDay dates, mode/session expiry, early carry-over, expired new cycles, single queued successor and extension shifts, booked freeze/completion semantics, medical capability/reason, explicit Owner branch holiday compensation, reverse-order/idempotent freeze overlap, employee transfer/status/rehire, safe API and BLL Finance boundary. Final dotnet build zero warnings/errors; FULL suite 489 passed, zero failed/skipped in 5m58s. EF model drift clean. Read-only localhost campions_gym catalog verified both new migration IDs, 29 relevant indexes and 45 validated constraints/FKs, new column nullability, zero customer subscription/grant/freeze/holiday rows and four subscription permissions; role grants preserved. Production untouched. Postman JSON parsed and all nine route sample variables resolved. No payments/sale workflow, attendance, borrowed execution, commissions, settlement or frontend implemented. Task 10 ba23cc0 pushed. All eleven feature tasks complete; final docs commit/push and clean local/remote HEAD checked before final report. No known unresolved Subscriptions / Renewals / Freeze issues.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Stop after this feature. Sales/Payments and Check-In require a separate user request.

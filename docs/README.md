@@ -13,6 +13,7 @@ future operational system.
 - [Member Management](MEMBER_MANAGEMENT.md)
 - [CRM / Leads](CRM.md)
 - [Membership Plans](MEMBERSHIP_PLANS.md)
+- [Subscriptions / Renewals / Freeze](SUBSCRIPTIONS.md)
 
 ## Current Implementation Status
 
@@ -24,14 +25,14 @@ future operational system.
 | Member Management | Complete |
 | CRM / Leads | Complete |
 | Membership Plans | Complete |
+| Subscriptions / Renewals / Freeze | Complete within documented entitlement scope |
 
 Complete refers to the management scope described in each document. Persistence
 models and some narrower operations exist outside these scopes; they do not imply
-complete Subscription, Finance, attendance or employee-entitlement lifecycles.
+complete Finance or attendance lifecycles.
 
 ## Planned / Deferred Areas
 
-- Subscriptions / Renewals / Freeze and employee entitlement lifecycle
 - Check-In / Access
 - Complete Sales / Payments; Installments / Refunds
 - Shifts / Vault / Expenses
