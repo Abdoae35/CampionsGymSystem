@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 8.
-- Freelance eligibility is administered by plan BranchId, permits Members registered in other branches and never changes Sales ownership. Added paginated eligible lists and exact phone/code/ID candidate lookup; old endpoint delegates to shared locks/audit. Build clean; 69 plan/existing Freelance tests passed.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 9.
+- Added 20 thin Membership Plan/category/benefit routes using existing policies and BLL scope enforcement. HTTP tests cover 401/403, same-city branch separation, global catalogs, hidden Employee products, cross-registration Freelance eligibility and compatibility API bypass prevention. Build clean; 40 service/HTTP tests plus final end-to-end test passed.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
@@ -1612,6 +1612,13 @@ pushes. Exact hashes/results will be recorded in final validation. Production un
 ### 2026-10-09 — Membership Plans task 8
 
 Freelance eligibility is administered by plan BranchId, permits Members registered in other branches and never changes Sales ownership. Added paginated eligible lists and exact phone/code/ID candidate lookup; old endpoint delegates to shared locks/audit. Build clean; 69 plan/existing Freelance tests passed.
+
+Build/tests/diff verified before task commit; user authorized small commits and immediate
+pushes. Exact hashes/results will be recorded in final validation. Production untouched.
+
+### 2026-10-09 — Membership Plans task 9
+
+Added 20 thin Membership Plan/category/benefit routes using existing policies and BLL scope enforcement. HTTP tests cover 401/403, same-city branch separation, global catalogs, hidden Employee products, cross-registration Freelance eligibility and compatibility API bypass prevention. Build clean; 40 service/HTTP tests plus final end-to-end test passed.
 
 Build/tests/diff verified before task commit; user authorized small commits and immediate
 pushes. Exact hashes/results will be recorded in final validation. Production untouched.
