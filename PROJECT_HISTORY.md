@@ -43,19 +43,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- CRM Sales ownership correction completed on CRM-/-Leads-&-Follow-up-Management.
-- Transfers preserve Member/Lead assignments and owned old-branch follow-up visibility;
-  new Lead distribution still validates the employee's current operational branch.
-- Non-active employment closes current ownership to House/unassigned management work;
-  history remains, no random reassignment, reactivation does not restore closed ownership.
-- Active authorized employees may convert another owner's Lead; locked current owner wins,
-  destination/referral scope applies, converter is creation/audit actor. Phone lookup can
-  return an ID-only conversion reference without exposing private Lead details.
-- Final build zero warnings/errors; full suite 370 passed, zero failed/skipped; EF drift clean.
-- First correction 52a58a5 pushed; final conversion/docs/Postman commit accompanies this
-  checkpoint. No schema changes/production operations. Stop here; no next feature started.
-- CRM automatic Member status/expiry/attendance task generation remains deferred.
-- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 1.
+- Added management contracts and approved nullable plan BranchId FK/index. Migration 20261009013415 applied only to verified localhost Development; plan count zero, no inferred backfill. SQL reviewed/exported, EF drift clean. Full suite 371 passed, zero failed/skipped; build zero warnings/errors. Corrected raw-SQL FK exception assertion and historical migration projection before passing rerun. Existing migrations unchanged.
+- BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
+  global-only administration until explicitly mapped. Global catalogs require global access.
+- Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
+- No purchase/subscription/financial processing or production changes. Stop after Plans.
+- See PROJECT_HISTORY.md; portable skill: skills/project-history-update/SKILL.md.
 
 ## Work history
 
@@ -1515,3 +1509,60 @@ in this correction. Existing future-dated assignment anomalies must be reconcile
 before status closure; historical Lead/Member work is never guessed or deleted.
 Automatic lifecycle tasks, commission calculations and all previously deferred CRM
 integrations remain out of scope. Work stops after this correction as requested.
+
+### 2026-10-09 — Membership Plans Management inspection and scope decision
+
+User authorized ten small verified implementation commits/pushes, configuration only,
+with an explicit stop for genuinely undefined global/branch administration policy.
+Inspected plan/category/benefit/eligibility entities and configurations, behavior/access/
+grant enums, existing Freelance BLL and operations endpoints, permission catalog,
+snapshot/usage models, existing tests and schema/business-rule documentation/history.
+Checkout is now MembershipPlansManagement (preserved), HEAD 41d6172; initial tree clean.
+
+Already supported: CityId same-city access (no branch/multi-city access junction),
+Normal/Freelance/Employee types, optional dynamic audience FK, duration/session/price/
+freeze/status fields, valid employee plan checks, coach FK, unique eligibility, dynamic
+benefits and plan grants, independent transaction benefit snapshots and usages. Existing
+FreelancePlanService.SaveAsync authorizes FreelancePlans.Manage with no branch/city
+scope, but eligibility checks Member branch. General plan/catalog management BLL/API
+is missing. MembershipPlans.View/Manage exist; no documented policy establishes
+whether a branch manager with Manage may edit a city-wide/shared plan. CityId defines
+entitlement access, not administrative ownership. New policy cannot be inferred safely.
+
+Stopped for user decision before contracts/implementation: globally administered
+catalog/plan permissions (consistent with existing Freelance definition editing), or
+current-branch-city plan administration with global access for other cities/catalog
+changes. No duplicate access model, migration, code changes or production operations.
+No build/tests needed for this read-only investigation; prior verified baseline is
+370 tests, clean build and EF drift. Only required history/handoff documentation changed,
+uncommitted; no task commit/push yet. Resume tasks 1–10 after this decision, and stop
+after Plans Management without starting Subscriptions.
+
+### 2026-10-09 — Confirmed branch plan administration; missing branch relationship
+
+User resolved administration policy: branch managers manage only plans administratively
+owned by their current active branch, even where multiple branches share a city. Global
+management uses existing Branches.AccessAll. CityId governs future subscription access
+only. Audience categories and benefits are shared/global: only global management may
+change their catalogs; branch managers may use active entries in their own plans.
+
+Re-inspected MembershipPlan entity/configuration and searched all DAL entities and
+configurations for any plan administrative branch association. None exists: the only
+location FK on MembershipPlan is CityId. Existing purchase/Member branch relations do
+not establish plan ownership. Per user's explicit instruction, stopped and reported
+this before implementation. Recommend a small administrative branch FK/index migration,
+requiring branch selection for new plans and explicit mapping of any legacy plans;
+never guess branch ownership from city, coach or historical transactions. Proposed
+nullable legacy relationship with global-only visibility until mapping if needed.
+
+No application/schema/database changes, build/tests, commit or push performed. Only
+required history/handoff checkpoint changed; prior investigation edits preserved.
+Await user's confirmation of small branch relationship and legacy handling before
+resuming the ten authorized tasks. No next feature or production work started.
+
+### 2026-10-09 — Membership Plans task 1
+
+Added management contracts and approved nullable plan BranchId FK/index. Migration 20261009013415 applied only to verified localhost Development; plan count zero, no inferred backfill. SQL reviewed/exported, EF drift clean. Full suite 371 passed, zero failed/skipped; build zero warnings/errors. Corrected raw-SQL FK exception assertion and historical migration projection before passing rerun. Existing migrations unchanged.
+
+Build/tests/diff verified before task commit; user authorized small commits and immediate
+pushes. Exact hashes/results will be recorded in final validation. Production untouched.

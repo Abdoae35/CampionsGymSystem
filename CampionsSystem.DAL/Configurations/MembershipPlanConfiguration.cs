@@ -25,6 +25,8 @@ public sealed class MembershipPlanConfiguration : IEntityTypeConfiguration<Membe
         builder.HasOne(x => x.FreelanceCoachEmployee).WithMany().HasForeignKey(x => x.FreelanceCoachEmployeeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => new { x.PlanCategory, x.FreelanceCoachEmployeeId, x.IsActive });
         builder.HasKey(x => x.Id);
+        builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.BranchId);
         builder.HasOne(x => x.City).WithMany().HasForeignKey(x => x.CityId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Name).HasMaxLength(256).IsRequired();
         builder.Property(x => x.AccessMode).HasConversion<string>().HasMaxLength(40);

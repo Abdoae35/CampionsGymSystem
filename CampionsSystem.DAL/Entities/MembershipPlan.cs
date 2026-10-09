@@ -9,6 +9,9 @@ public sealed class MembershipPlan
     public Guid? MembershipPlanCategoryId { get; set; }
     public MembershipPlanCategory? MembershipPlanCategory { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
+    // Administrative ownership; null only for legacy plans awaiting explicit mapping.
+    public Guid? BranchId { get; set; }
+    public GymBranch? Branch { get; set; }
     public Guid CityId { get; set; }
     public City City { get; set; } = null!;
     public string Name { get; set; } = null!;

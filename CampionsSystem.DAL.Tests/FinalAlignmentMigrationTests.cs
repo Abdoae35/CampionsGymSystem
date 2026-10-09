@@ -42,7 +42,7 @@ public sealed class FinalAlignmentMigrationTests
             .Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
         await db.Database.ExecuteSqlRawAsync(sql); db.ChangeTracker.Clear();
         var sale = await db.SaleTransactions.SingleAsync(); Assert.Equal(actual, sale.CreatedAt); Assert.Equal(500, sale.NetAmount); Assert.Null(sale.BusinessDayId);
-        Assert.Null((await db.Shifts.SingleAsync()).BusinessDayId); Assert.Null((await db.MembershipPlans.SingleAsync()).MembershipPlanCategoryId);
+        Assert.Null((await db.Shifts.SingleAsync()).BusinessDayId); Assert.Null(await db.MembershipPlans.Select(p => p.MembershipPlanCategoryId).SingleAsync());
         Assert.Empty(await db.BusinessDays.ToListAsync()); Assert.Empty(await db.MembershipPlanCategories.ToListAsync());
         Assert.Empty(await db.UserPermissionOverrides.ToListAsync()); Assert.Empty(await db.EmployeeLeaveRequests.ToListAsync());
         Assert.Empty(await db.ShiftEmployeeChanges.ToListAsync());

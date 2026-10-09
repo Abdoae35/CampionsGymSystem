@@ -2690,6 +2690,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<bool>("AllowFreeze")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CityId")
                         .HasColumnType("uuid");
 
@@ -2731,6 +2734,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("CityId");
 
@@ -5455,6 +5460,11 @@ namespace CampionsSystem.DAL.Migrations
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MembershipPlan", b =>
                 {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
@@ -5470,6 +5480,8 @@ namespace CampionsSystem.DAL.Migrations
                         .WithMany()
                         .HasForeignKey("MembershipPlanCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Branch");
 
                     b.Navigation("City");
 

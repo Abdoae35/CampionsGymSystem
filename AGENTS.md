@@ -41,16 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- CRM Sales ownership correction completed on CRM-/-Leads-&-Follow-up-Management.
-- Transfers preserve Member/Lead assignments and owned old-branch follow-up visibility;
-  new Lead distribution still validates the employee's current operational branch.
-- Non-active employment closes current ownership to House/unassigned management work;
-  history remains, no random reassignment, reactivation does not restore closed ownership.
-- Active authorized employees may convert another owner's Lead; locked current owner wins,
-  destination/referral scope applies, converter is creation/audit actor. Phone lookup can
-  return an ID-only conversion reference without exposing private Lead details.
-- Final build zero warnings/errors; full suite 370 passed, zero failed/skipped; EF drift clean.
-- First correction 52a58a5 pushed; final conversion/docs/Postman commit accompanies this
-  checkpoint. No schema changes/production operations. Stop here; no next feature started.
-- CRM automatic Member status/expiry/attendance task generation remains deferred.
-- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 1.
+- Added management contracts and approved nullable plan BranchId FK/index. Migration 20261009013415 applied only to verified localhost Development; plan count zero, no inferred backfill. SQL reviewed/exported, EF drift clean. Full suite 371 passed, zero failed/skipped; build zero warnings/errors. Corrected raw-SQL FK exception assertion and historical migration projection before passing rerun. Existing migrations unchanged.
+- BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
+  global-only administration until explicitly mapped. Global catalogs require global access.
+- Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
+- No purchase/subscription/financial processing or production changes. Stop after Plans.
+- See PROJECT_HISTORY.md; portable skill: skills/project-history-update/SKILL.md.
