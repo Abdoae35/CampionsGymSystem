@@ -126,7 +126,7 @@ public sealed partial class AuthenticationApiTests
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var city = await db.GymBranches.Where(b => b.Id == data.Source).Select(b => b.CityId).SingleAsync();
             var coach = new Employee { FullName = "Freelance HTTP", Phone = "coach", HireDate = BranchToday, EmploymentType = EmploymentType.Freelance };
-            var plan = new MembershipPlan { Name = "HTTP Special", CityId = city, DurationDays = 30, PlanCategory = PlanCategory.Freelance, FreelanceCoachEmployee = coach };
+            var plan = new MembershipPlan { Name = "HTTP Special", BranchId = data.Source, CityId = city, DurationDays = 30, PlanCategory = PlanCategory.Freelance, FreelanceCoachEmployee = coach };
             db.Add(plan); await db.SaveChangesAsync(); planId = plan.Id;
         }
         var request = Registration(data.Source); request.CreationType = MemberCreationType.FreelanceHouse; request.FreelancePlanId = planId;

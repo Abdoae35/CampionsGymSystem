@@ -68,6 +68,8 @@ public sealed partial class AuthenticationApiTests
         Assert.Equal(HttpStatusCode.OK,(await client.DeleteAsync($"/api/membership-plans/{id}/eligible-members/{memberId}")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync("/api/freelance-plans",new CampionsSystem.BLL.Operations.SaveFreelancePlanRequest(city,coachId,"Bypass",300,30,AccessMode.Unlimited,null,BranchId:f.Target))).StatusCode);
         await using var verify=factory.Services.CreateAsyncScope();var context=verify.ServiceProvider.GetRequiredService<ApplicationDbContext>();Assert.Empty(await context.MemberSalesAssignments.ToListAsync());Assert.Empty(await context.MemberSubscriptions.ToListAsync());
+        await context.MembershipPlans.Where(p=>p.Id==id).ExecuteUpdateAsync(s=>s.SetProperty(p=>p.BranchId,f.Target));
+        Assert.Equal(HttpStatusCode.NotFound,(await client.PutAsJsonAsync($"/api/freelance-plans/{id}/eligible-members/{memberId}",new{})).StatusCode);
     }
 
 }

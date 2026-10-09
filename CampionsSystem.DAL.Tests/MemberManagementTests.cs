@@ -129,7 +129,7 @@ public sealed class MemberManagementTests : IAsyncLifetime
     [Fact] public async Task FreelanceHouseCreatesEligibilityWithoutSalesAssignment()
     {
         var coach = new Employee { FullName = "Freelance Coach", Phone = "coach", EmploymentType = EmploymentType.Freelance, HireDate = access.Today };
-        var plan = new MembershipPlan { Name = "Special", CityId = a.CityId, PlanCategory = PlanCategory.Freelance,
+        var plan = new MembershipPlan { Name = "Special", BranchId = a.Id, CityId = a.CityId, PlanCategory = PlanCategory.Freelance,
             FreelanceCoachEmployee = coach, DurationDays = 30 };
         db.Add(plan); await db.SaveChangesAsync();
         Scoped("Members.Create", "FreelancePlans.ManageEligibleMembers");
@@ -310,7 +310,7 @@ public sealed class MemberManagementTests : IAsyncLifetime
     [Fact] public async Task FreelanceRegistrationRejectsCoachWhoseEmploymentTypeChanged()
     {
         var coach = new Employee { FullName = "Former Freelance", Phone = "former", HireDate = access.Today, EmploymentType = EmploymentType.Freelance };
-        var plan = new MembershipPlan { Name = "Existing special", CityId = a.CityId, DurationDays = 30,
+        var plan = new MembershipPlan { Name = "Existing special", BranchId = a.Id, CityId = a.CityId, DurationDays = 30,
             PlanCategory = PlanCategory.Freelance, FreelanceCoachEmployee = coach };
         db.Add(plan); await db.SaveChangesAsync();
         await db.Employees.Where(e => e.Id == coach.Id).ExecuteUpdateAsync(x => x.SetProperty(e => e.EmploymentType, EmploymentType.Staff));
@@ -319,6 +319,18 @@ public sealed class MemberManagementTests : IAsyncLifetime
         await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateMemberAsync(request));
         Assert.Equal(2, await db.Members.CountAsync()); Assert.Empty(await db.MembershipPlanEligibleMembers.ToListAsync());
         Assert.Empty(await db.AuditLogs.ToListAsync());
+    }
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task FreelanceRegistrationCannotBypassPlanAdministrativeScope(bool legacy)
+    {
+        var coach=new Employee{FullName="Coach",Phone="scope-coach",EmploymentType=EmploymentType.Freelance,HireDate=access.Today};
+        var plan=new MembershipPlan{Name="Other or legacy",BranchId=legacy?null:b.Id,CityId=a.CityId,PlanCategory=PlanCategory.Freelance,FreelanceCoachEmployee=coach,DurationDays=30};
+        db.Add(plan);await db.SaveChangesAsync();Scoped("Members.Create","FreelancePlans.ManageEligibleMembers");
+        var r=NewMember();r.CreationType=MemberCreationType.FreelanceHouse;r.FreelancePlanId=plan.Id;
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>service.CreateMemberAsync(r));
+        Assert.Empty(await db.MembershipPlanEligibleMembers.ToListAsync());
+        Scoped("Members.Create","FreelancePlans.ManageEligibleMembers","Branches.AccessAll");
+        Assert.True((await service.CreateMemberAsync(r)).IsHouse);
     }
     private sealed class OwnerPermissions : IPermissionService
     {

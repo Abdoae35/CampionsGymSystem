@@ -1,4 +1,5 @@
 using CampionsSystem.BLL.Operations;
+using CampionsSystem.BLL.Branches;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -101,10 +102,11 @@ public sealed class OperationsController(ActivityManagementService activities, F
         try { return Ok(await action()); }
         catch (BusinessRuleException error) { return Problem(statusCode: 400, title: error.Message); }
         catch (UnauthorizedAccessException) { return Forbid(); }
+        catch (BranchNotFoundException error) { return Problem(statusCode: 404, title: error.Message); }
         catch (Microsoft.EntityFrameworkCore.DbUpdateException error) when (error.InnerException is Npgsql.PostgresException
-            { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation or Npgsql.PostgresErrorCodes.SerializationFailure })
+            { SqlState: Npgsql.PostgresErrorCodes.UniqueViolation or Npgsql.PostgresErrorCodes.SerializationFailure or Npgsql.PostgresErrorCodes.DeadlockDetected })
         { return Problem(statusCode: 409, title: "Concurrent or duplicate change; reload and retry."); }
-        catch (Npgsql.PostgresException error) when (error.SqlState == Npgsql.PostgresErrorCodes.SerializationFailure)
+        catch (Npgsql.PostgresException error) when (error.SqlState is Npgsql.PostgresErrorCodes.SerializationFailure or Npgsql.PostgresErrorCodes.DeadlockDetected)
         { return Problem(statusCode: 409, title: "Concurrent change; reload and retry."); }
     }
 }

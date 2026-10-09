@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 9.
-- Added 20 thin Membership Plan/category/benefit routes using existing policies and BLL scope enforcement. HTTP tests cover 401/403, same-city branch separation, global catalogs, hidden Employee products, cross-registration Freelance eligibility and compatibility API bypass prevention. Build clean; 40 service/HTTP tests plus final end-to-end test passed.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: integration-fix.
+- Initial full run: 411 passed, 1 failed (legacy compatibility 500 from unmapped fixture). Fixed scope-error handling and mapped fixtures; closed direct FreelanceHouse registration eligibility bypass with a plan share lock and consistent lock order. Build clean; 34 relevant tests passed, then 5 affected tests passed on final rebuilt code. Documentation/Postman pending final full-suite verification.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.

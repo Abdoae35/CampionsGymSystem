@@ -126,6 +126,18 @@ public sealed partial class MemberManagementService
         {
             // Revalidate under a transaction-held employee lock so termination cannot race registration.
             if (owner.HasValue) await EligibleOwnerAsync(owner.Value, ct);
+            // Match plan administration lock order before allocating the branch code.
+            if (request.CreationType == MemberCreationType.FreelanceHouse)
+            {
+                // Registration also adds plan eligibility: it must not bypass plan administration scope.
+                var plan = await db.MembershipPlans.FromSqlInterpolated($"SELECT * FROM \"MembershipPlans\" WHERE \"Id\"={request.FreelancePlanId!.Value} FOR SHARE")
+                    .AsNoTracking().SingleOrDefaultAsync(ct)
+                    ?? throw new BusinessRuleException("Freelance plan not found.");
+                if (!user.Permissions.Contains("Branches.AccessAll") && (plan.BranchId is null
+                    || plan.BranchId != user.CurrentBranchId
+                    || !await db.GymBranches.AnyAsync(b => b.Id == plan.BranchId && b.IsActive, ct)))
+                    throw new UnauthorizedAccessException();
+            }
             // Allocation locks this branch until commit and rechecks IsActive in the database.
             var code = await new BranchClientCodeGenerator(db).NextAsync(request.TargetRegistrationBranchId, ct);
             var branch = await db.GymBranches.AsNoTracking().SingleAsync(b => b.Id == request.TargetRegistrationBranchId, ct);
