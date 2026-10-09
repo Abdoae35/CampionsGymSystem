@@ -41,10 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 2 — subscription queries/status.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 3 — entitlement snapshots.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 3: internal snapshot/grant creation.
+- Next: Task 4: Normal/Freelance validation and legacy purchase protection.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

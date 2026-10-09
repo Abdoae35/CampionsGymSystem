@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 2 — subscription queries/status.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 3 — entitlement snapshots.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 3: internal snapshot/grant creation.
+- Next: Task 4: Normal/Freelance validation and legacy purchase protection.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1771,3 +1771,10 @@ Added paginated origin-branch history with status/type/date filters, immutable s
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Task 3: internal snapshot/grant creation.
+
+### 2026-10-09 — Task 3 — entitlement snapshots
+
+Added a BLL-only customer grant boundary requiring Subscriptions.Manage plus Branches.AccessAll; no HTTP paid activation. Reused transactional savepoints, row locks and append-only grant/benefit tables. Grants preserve plan name/type/owning branch/access city/mode/duration/sessions/freeze allowance/price/Coach and operational BusinessDay/actor/time. Quantity and Access benefits remain distinct; plan/config/catalog edits cannot rewrite grants. Atomic operation identity prevents duplicate grants/benefits; active/future entitlement prevents accidental initial overlap. Inactive configured benefits require plan reconciliation before a new grant. Build zero warnings/errors; all 15 subscription tests passed, zero failed/skipped; snapshot/date/benefit/idempotency/financial absence cases covered. Diff reviewed. Task 2 e6c007f pushed successfully. No financial or Sales ownership writes.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Task 4: Normal/Freelance validation and legacy purchase protection.
