@@ -69,66 +69,10 @@ public sealed class SubscriptionPurchaseService(ApplicationDbContext db, Operati
         return new(subscription.Id, batch.Id, sale.Id, sale.NetAmount);
     }
 
-    public async Task<PurchaseResult> PurchaseFreelanceAsync(FreelancePurchaseRequest request, CancellationToken ct = default)
-    {
-        await using var transaction = db.Database.CurrentTransaction is null
-            ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct) : null;
-        var actor = await access.RequireAsync("FreelancePlans.Manage", request.BranchId, ct);
-        var plan = await db.MembershipPlans.Include(x => x.FreelanceCoachEmployee)
-            .SingleOrDefaultAsync(x => x.Id == request.MembershipPlanId && x.IsActive && x.PlanCategory == PlanCategory.Freelance, ct)
-            ?? throw new BusinessRuleException("Active Freelance plan required.");
-        if (plan.FreelanceCoachEmployee is not { EmploymentType: EmploymentType.Freelance, EmploymentStatus: EmploymentStatus.Active } employee
-            || employee.HireDate > access.Today || employee.TerminationDate < access.Today)
-            throw new BusinessRuleException("Plan requires an active Freelance Coach.");
-        if (!await db.Members.AnyAsync(x => x.Id == request.MemberId && x.IsActive, ct)
-            || !await db.MembershipPlanEligibleMembers.AnyAsync(x => x.MembershipPlanId == plan.Id && x.MemberId == request.MemberId, ct))
-            throw new BusinessRuleException("Member is not eligible for this Freelance plan.");
-        if (!await db.GymBranches.AnyAsync(x => x.Id == request.BranchId && x.IsActive && x.CityId == plan.CityId, ct))
-            throw new BusinessRuleException("Active purchase branch must be in the plan's city.");
-        var subscription = request.ExistingSubscriptionId.HasValue
-            ? await db.MemberSubscriptions.SingleOrDefaultAsync(x => x.Id == request.ExistingSubscriptionId, ct)
-                ?? throw new BusinessRuleException("Subscription not found.")
-            : new MemberSubscription { MemberId = request.MemberId, CityId = plan.CityId, PurchasedAtBranchId = request.BranchId,
-                StartDate = access.Today, AccessMode = plan.AccessMode, Status = SubscriptionStatus.Scheduled };
-        if (subscription.EmployeeId is not null || subscription.MemberId != request.MemberId || subscription.CityId != plan.CityId || subscription.AccessMode != plan.AccessMode)
-            throw new BusinessRuleException("Renewal context does not match.");
-        var previousEnd = request.ExistingSubscriptionId.HasValue ? subscription.EndDate : (DateOnly?)null;
-        subscription.MembershipPlanId = plan.Id;
-        subscription.EndDate = (previousEnd >= access.Today ? previousEnd.Value : access.Today).AddDays(plan.DurationDays);
-        if (plan.AccessMode == AccessMode.SessionBased)
-        {
-            subscription.TotalSessions = (subscription.TotalSessions ?? 0) + plan.SessionCount;
-            subscription.RemainingSessions = (subscription.RemainingSessions ?? 0) + plan.SessionCount;
-        }
-        if (!request.ExistingSubscriptionId.HasValue) db.Add(subscription);
-        var currentSales = await db.MemberSalesAssignments.SingleOrDefaultAsync(x => x.MemberId == request.MemberId && x.EndedAt == null, ct);
-        if (currentSales is { AssignmentType: AssignmentType.Sales })
-        {
-            currentSales.EndedAt = access.Now;
-            // Release the partial unique current-row index before inserting its replacement, inside this transaction.
-            await db.SaveChangesAsync(ct);
-        }
-        if (currentSales is null || currentSales.AssignmentType == AssignmentType.Sales)
-        {
-            db.Add(new MemberSalesAssignment { MemberId = request.MemberId, AssignmentType = AssignmentType.House,
-                AssignedAt = access.Now, AssignedByUserId = actor, Reason = "Freelance plan purchase", CreatedAt = access.Now });
-            access.Audit(actor, request.BranchId, "Member.SalesOwnershipChangedToHouse", nameof(Member), request.MemberId,
-                new { SalesEmployeeId = currentSales?.SalesEmployeeId }, new { AssignmentType = "House" });
-        }
-        var sale = Sale(request.MemberId, request.BranchId, actor, SaleType.GymMembership, plan.Price);
-        var batch = new MembershipSubscriptionTransaction { MemberSubscription = subscription, SaleTransaction = sale,
-            MembershipPlanId = plan.Id, PlanCategorySnapshot = PlanCategory.Freelance,
-            FreelanceCoachEmployeeIdSnapshot = employee.Id, PlanPriceSnapshot = plan.Price, NetPriceSnapshot = plan.Price,
-            PurchasedDurationDays = plan.DurationDays, PurchasedSessions = plan.SessionCount,
-            TransactionType = request.ExistingSubscriptionId.HasValue ? SubscriptionTransactionType.Renewal : SubscriptionTransactionType.Initial,
-            PreviousEndDate = previousEnd, NewEndDate = subscription.EndDate!.Value, CreatedAt = access.Now };
-        db.Add(batch);
-        access.Audit(actor, request.BranchId, "FreelancePlan.PurchasedAsHouse", nameof(MembershipSubscriptionTransaction), batch.Id,
-            after: new { request.MemberId, plan.Id, CoachEmployeeId = employee.Id, GymAmount = plan.Price });
-        await db.SaveChangesAsync(ct);
-        if (transaction is not null) await transaction.CommitAsync(ct);
-        return new(subscription.Id, batch.Id, sale.Id, sale.NetAmount);
-    }
+    // Retained signature for old callers; this financial/ownership path is deliberately disabled.
+    public Task<PurchaseResult> PurchaseFreelanceAsync(FreelancePurchaseRequest request, CancellationToken ct = default)
+        => Task.FromException<PurchaseResult>(new BusinessRuleException(
+            "Legacy Freelance purchasing is disabled. Customer activation requires the future Sales/Payments integration."));
 
     private SaleTransaction Sale(Guid member, Guid branch, Guid actor, SaleType type, decimal price) => new()
     {

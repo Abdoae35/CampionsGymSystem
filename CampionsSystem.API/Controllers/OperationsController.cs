@@ -90,7 +90,7 @@ public sealed class OperationsController(ActivityManagementService activities, F
     [HttpPost("freelance-plans/purchases")]
     [Authorize(Policy = "Permission:FreelancePlans.Manage")]
     public Task<IActionResult> PurchaseFreelance(FreelancePurchaseRequest request, CancellationToken ct) =>
-        Execute(() => purchases.PurchaseFreelanceAsync(request, ct));
+        Task.FromResult<IActionResult>(Problem(statusCode: 410, title: "Freelance purchasing is disabled pending Sales/Payments integration."));
 
     [HttpGet("freelance-plans/{id:guid}/report")]
     [Authorize(Policy = "Permission:FreelancePlans.View")]

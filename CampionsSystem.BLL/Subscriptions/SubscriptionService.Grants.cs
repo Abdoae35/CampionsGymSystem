@@ -100,8 +100,7 @@ public sealed partial class SubscriptionService
             var member = await LockMemberAsync(r.MemberId, ct);
             var retry = await RetryGrantAsync(r.OperationId, r.MemberId, r.PlanId, r.BranchId, null, ct);
             if (retry is not null) return retry;
-            if (!member.IsActive || plan.PlanCategory != PlanCategory.Normal)
-                throw new BusinessRuleException("An active Member and Normal customer plan are required.");
+            await ValidateCustomerAsync(member, plan, ct);
             var (date, day) = await GrantDateAsync(r.BranchId, ct);
             if (await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.Status != SubscriptionStatus.Cancelled
                 && (x.EndDate == null || x.EndDate >= date), ct))

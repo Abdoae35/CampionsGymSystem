@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 3 — entitlement snapshots.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 4 — customer rules/legacy protection.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 4: Normal/Freelance validation and legacy purchase protection.
+- Next: Task 5: Employee membership entitlement lifecycle.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1778,3 +1778,10 @@ Added a BLL-only customer grant boundary requiring Subscriptions.Manage plus Bra
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Task 4: Normal/Freelance validation and legacy purchase protection.
+
+### 2026-10-09 — Task 4 — customer rules/legacy protection
+
+Normal/Freelance grants enforce active Member, active owning branch/plan/access city, current Freelance employment and explicit eligibility while preserving HomeBranch and Sales/House assignments. Price remains snapshot metadata only. Removed all sale/ownership mutation code from legacy PurchaseFreelanceAsync; retained signature fails safely, and its HTTP route returns 410 behind existing permission policy. Existing historical revenue tests now seed synthetic old sale fixtures directly, preserving historical reporting coverage without calling a disabled runtime purchase. Added regressions for Sales/House preservation, eligibility, inactive Coach, branch ownership and financial absence. Build zero warnings/errors; 89 subscription/legacy operations/plan tests passed, zero failed/skipped; diff reviewed. Task 3 62933c0 pushed successfully. No new Finance workflow, commission or attendance writes.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Task 5: Employee membership entitlement lifecycle.

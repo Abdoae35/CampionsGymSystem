@@ -74,6 +74,18 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
         var id = await plans.SaveAsync(null, new(branch.CityId, employee.Id, "Coach Monthly", 300, 30, AccessMode.Unlimited, null, BranchId: branch.Id));
         if (eligible) await plans.SetEligibilityAsync(id, member.Id, true); return id;
     }
+    // Synthetic historical sales only: reports must retain existing financial history even though new purchasing is disabled.
+    private async Task<PurchaseResult> HistoricalFreelancePurchase(Guid planId)
+    {
+        var subscription = new MemberSubscription { MemberId=member.Id, MembershipPlanId=planId, CityId=branch.CityId,
+            PurchasedAtBranchId=branch.Id, StartDate=access.Today, EndDate=access.Today.AddDays(29), Status=SubscriptionStatus.Active };
+        var sale = new SaleTransaction { MemberId=member.Id, BranchId=branch.Id, CreatedByUserId=actor.Id,
+            SaleType=SaleType.GymMembership, SalesAttributionSnapshot=AssignmentType.House, GrossAmount=300, NetAmount=300, CreatedAt=access.Now };
+        var grant = new MembershipSubscriptionTransaction { MemberSubscription=subscription, MembershipPlanId=planId, SaleTransaction=sale,
+            PurchasedDurationDays=30, PlanCategorySnapshot=PlanCategory.Freelance, FreelanceCoachEmployeeIdSnapshot=employee.Id,
+            PlanPriceSnapshot=300, NetPriceSnapshot=300, NewEndDate=subscription.EndDate, CreatedAt=access.Now };
+        db.Add(grant); await db.SaveChangesAsync(); return new(subscription.Id,grant.Id,sale.Id,300);
+    }
     private Task<Guid> Session(ClassSessionStatus status = ClassSessionStatus.Completed, Guid? coach = null) => classes.SaveAsync(null,
         new(group.Id, null, coach ?? employee.Id, clock.GetUtcNow().AddHours(-2),
             status == ClassSessionStatus.Completed ? clock.GetUtcNow().AddHours(-1) : null, status));
@@ -173,11 +185,11 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     { await Session(); await Stats(); Assert.Empty(await db.EmployeeCommissionSummaries.ToListAsync()); Assert.Empty(await db.Payrolls.ToListAsync()); }
     [Fact] public async Task IneligibleMemberCannotPurchaseFreelancePlan()
     { var plan = await Plan(false); await Assert.ThrowsAsync<BusinessRuleException>(() => purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id))); Assert.Empty(await db.SaleTransactions.ToListAsync()); }
-    [Fact] public async Task EligibleMemberCanPurchaseAndSnapshotCoach()
+    [Fact] public async Task LegacyEligibleFreelancePurchaseIsDisabled()
     {
-        var plan = await Plan(); var purchase = await purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id));
-        var batch = await db.MembershipSubscriptionTransactions.FindAsync(purchase.TransactionId);
-        Assert.Equal(employee.Id, batch!.FreelanceCoachEmployeeIdSnapshot); Assert.Equal(300, purchase.GymAmountDue);
+        var plan = await Plan();
+        await Assert.ThrowsAsync<BusinessRuleException>(() => purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id)));
+        Assert.Empty(await db.MemberSubscriptions.ToListAsync()); Assert.Empty(await db.SaleTransactions.ToListAsync());
     }
     [Fact] public async Task FreelanceRenewalCannotConvertEmployeeEntitlementIntoPurchase()
     {
@@ -195,20 +207,19 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     }
     [Fact] public async Task FreelancePlanRequiresActiveFreelanceCoach()
     { await Assert.ThrowsAsync<BusinessRuleException>(() => plans.SaveAsync(null, new(branch.CityId, substitute.Id, "Invalid", 300, 30, AccessMode.Unlimited, null, BranchId: branch.Id))); }
-    [Fact] public async Task FreelancePurchaseHasNoSalesCommissionAndPreservesOldOwnership()
+    [Fact] public async Task DisabledLegacyPurchaseCannotChangeCurrentSalesOwnership()
     {
         var old = new MemberSalesAssignment { Member = member, SalesEmployee = substitute, AssignmentType = AssignmentType.Sales,
             AssignedByUser = actor, AssignedAt = clock.GetUtcNow().AddDays(-3) }; db.Add(old); await db.SaveChangesAsync();
-        var purchase = await purchases.PurchaseFreelanceAsync(new(member.Id, await Plan(), branch.Id));
-        var sale = await db.SaleTransactions.FindAsync(purchase.SaleTransactionId);
-        Assert.Null(sale!.SalesEmployeeId); Assert.Null(sale.SaleCategory); Assert.Equal(AssignmentType.House, sale.SalesAttributionSnapshot);
-        Assert.NotNull(old.EndedAt); Assert.Equal(substitute.Id, old.SalesEmployeeId);
-        Assert.Equal(AssignmentType.House, (await db.MemberSalesAssignments.SingleAsync(x => x.EndedAt == null)).AssignmentType);
-        Assert.Empty(await db.EmployeeCommissionSummaries.ToListAsync());
+        var plan = await Plan();
+        await Assert.ThrowsAsync<BusinessRuleException>(() => purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id)));
+        Assert.Null(old.EndedAt); Assert.Equal(substitute.Id, old.SalesEmployeeId);
+        Assert.Equal(AssignmentType.Sales, (await db.MemberSalesAssignments.SingleAsync()).AssignmentType);
+        Assert.Empty(await db.SaleTransactions.ToListAsync()); Assert.Empty(await db.Payments.ToListAsync());
     }
     [Fact] public async Task FreelanceReportShowsActualGymMoneyAndHouse()
     {
-        var plan = await Plan(); var purchase = await purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id)); await Pay(purchase, 200, true);
+        var plan = await Plan(); var purchase = await HistoricalFreelancePurchase(plan); await Pay(purchase, 200, true);
         var row = Assert.Single(await reports.FreelanceAsync(plan, branch.Id, period.StartAt, clock.GetUtcNow().AddSeconds(1)));
         Assert.Equal("House", row.SalesAttribution); Assert.Equal(200, row.ActualGymRevenue); Assert.Equal(1, row.PurchasedMemberCount);
     }
@@ -219,7 +230,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     }
     [Fact] public async Task RemovingEligibilityPreventsFuturePurchaseAndPreservesHistory()
     {
-        var plan = await Plan(); var old = await purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id));
+        var plan = await Plan(); var old = await HistoricalFreelancePurchase(plan);
         await plans.SetEligibilityAsync(plan, member.Id, false);
         await Assert.ThrowsAsync<BusinessRuleException>(() => purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id)));
         Assert.NotNull(await db.MembershipSubscriptionTransactions.FindAsync(old.TransactionId)); Assert.NotNull(await db.SaleTransactions.FindAsync(old.SaleTransactionId));
@@ -260,7 +271,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     }
     [Fact] public async Task PlanReassignmentPreservesHistoricalPurchaseCoachAndPrice()
     {
-        var plan = await Plan(); var purchase = await purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id)); await Pay(purchase, 300);
+        var plan = await Plan(); var purchase = await HistoricalFreelancePurchase(plan); await Pay(purchase, 300);
         substitute.EmploymentType = EmploymentType.Freelance; await db.SaveChangesAsync();
         await plans.SaveAsync(plan, new(branch.CityId, substitute.Id, "Edited plan", 350, 30, AccessMode.Unlimited, null, BranchId: branch.Id));
         var batch = await db.MembershipSubscriptionTransactions.FindAsync(purchase.TransactionId);
