@@ -40,6 +40,7 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
                 && s.Employee.EmploymentStatus == EmploymentStatus.Active && s.Employee.HireDate <= today
                 && (s.Employee.TerminationDate == null || s.Employee.TerminationDate >= today),
             MemberActive = s.Member.IsActive,
+            UnreconciledFreeze = s.Status == SubscriptionStatus.Frozen && !db.SubscriptionFreezes.Any(f => f.MemberSubscriptionId == s.Id && f.FreezeType == FreezeType.Normal),
             Frozen = db.SubscriptionFreezes.Any(f => f.MemberSubscriptionId == s.Id && f.FreezeType == FreezeType.Normal
                 && f.StartDate <= (at ?? db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
                     .Select(d => (DateOnly?)d.BusinessDate).SingleOrDefault() ?? today)
@@ -58,7 +59,7 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
                 : !x.MemberActive || !x.EmploymentValid || x.S.EmployeeId != null && x.S.EndDate != null ? SubscriptionStatus.Expired
                 : x.Day < x.S.StartDate ? SubscriptionStatus.Scheduled
                 : x.S.EndDate != null && x.Day > x.S.EndDate || x.S.AccessMode == AccessMode.SessionBased && x.S.RemainingSessions <= 0 ? SubscriptionStatus.Expired
-                : x.Frozen ? SubscriptionStatus.Frozen : SubscriptionStatus.Active
+                : x.Frozen || x.UnreconciledFreeze ? SubscriptionStatus.Frozen : SubscriptionStatus.Active
         });
     }
     private static SubscriptionSummary Summary(Evaluation e) => new(e.Subscription.Id, e.Subscription.MemberId,
@@ -113,12 +114,14 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
     }
     // Cross-branch access reads are permitted only in the caller's operational branch and snapshot city.
     // Administration/history continue to use the subscription's originating branch.
-    public async Task<MemberEntitlement> GetCurrentEntitlementAsync(Guid memberId, Guid branchId, CancellationToken ct = default)
+    public async Task<MemberEntitlement> GetCurrentEntitlementAsync(Guid memberId, Guid? branchId = null, CancellationToken ct = default)
     {
-        await RequireAsync(SubscriptionPermissions.View, branchId, false, ct);
+        var user=await RequireAsync(SubscriptionPermissions.View, branchId, false, ct);
+        branchId ??= user.CurrentBranchId ?? throw new BusinessRuleException("Select an operational branch for access lookup.");
+        BranchAccessService.EnsureScope(user,branchId);
         var branch = await db.GymBranches.AsNoTracking().SingleOrDefaultAsync(x => x.Id == branchId && x.IsActive && x.City.IsActive, ct)
             ?? throw new BranchNotFoundException("Active access branch not found.");
-        var date = await EffectiveBusinessDateAsync(branchId, ct);
+        var date = await EffectiveBusinessDateAsync(branchId.Value, ct);
         var candidates = await Evaluated(date).Where(x => x.Subscription.MemberId == memberId && x.Subscription.CityId == branch.CityId
             && (x.Status == SubscriptionStatus.Active || x.Status == SubscriptionStatus.Frozen)).Take(2).ToListAsync(ct);
         if (candidates.Count > 1) throw new BusinessRuleException("Conflicting entitlements require management reconciliation.");

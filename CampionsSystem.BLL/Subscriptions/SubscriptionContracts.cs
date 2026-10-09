@@ -1,4 +1,5 @@
 using CampionsSystem.DAL.Enums;
+using System.Text.Json.Serialization;
 namespace CampionsSystem.BLL.Subscriptions;
 
 public static class SubscriptionPermissions
@@ -42,10 +43,15 @@ public sealed record SubscriptionDetails(SubscriptionSummary Subscription, strin
 public sealed record SubscriptionGrantCommand(Guid MemberId, Guid PlanId, Guid BranchId, Guid OperationId);
 public sealed record SubscriptionRenewalCommand(Guid SubscriptionId, Guid PlanId, Guid BranchId, Guid OperationId, int ExpectedVersion);
 public sealed record SubscriptionGrantResult(Guid SubscriptionId, Guid GrantId, bool Scheduled);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record EmployeeEntitlementRequest(Guid MemberId, Guid PlanId, Guid OperationId);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record FreezeRequest(Guid OperationId, int ExpectedVersion, DateOnly StartDate, int Days);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CompleteFreezeRequest(int ExpectedVersion);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CustomExtensionRequest(Guid OperationId, int ExpectedVersion, int Days, string Reason);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record OfficialHolidayRequest(Guid BranchId, DateOnly StartDate, DateOnly EndDate, bool ExtendSubscriptions, string Reason);
 public sealed record HolidayApplicationResult(Guid ClosureId, int ProtectedDays, int ExtendedDays);
 public sealed record MemberEntitlement(bool HasAccess, SubscriptionSummary? Subscription);

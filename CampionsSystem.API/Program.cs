@@ -10,8 +10,9 @@ using Microsoft.EntityFrameworkCore;
 var configureCrmPermissions = args.Contains("--configure-crm-permissions", StringComparer.Ordinal);
 var configureBranchPermissions = args.Contains("--configure-branch-permissions", StringComparer.Ordinal);
 var configureMemberPermissions = args.Contains("--configure-member-permissions", StringComparer.Ordinal);
+var configureSubscriptionPermissions = args.Contains("--configure-subscription-permissions", StringComparer.Ordinal);
 var seedAuthDemo = args.Contains("--seed-auth-demo", StringComparer.Ordinal);
-var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--configure-crm-permissions" && arg != "--seed-auth-demo" && arg != "--configure-branch-permissions" && arg != "--configure-member-permissions").ToArray());
+var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--configure-crm-permissions" && arg != "--seed-auth-demo" && arg != "--configure-branch-permissions" && arg != "--configure-member-permissions" && arg != "--configure-subscription-permissions").ToArray());
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -44,6 +45,7 @@ builder.Services.AddScoped<BranchPermissionSetup>();
 builder.Services.AddScoped<EmployeeBranchAssignmentService>();
 builder.Services.AddScoped<OperationAccess>();
 builder.Services.AddScoped<CampionsSystem.BLL.Subscriptions.SubscriptionService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Subscriptions.SubscriptionPermissionSetup>();
 builder.Services.AddScoped<ActivityManagementService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Plans.MembershipPlanManagementService>();
 builder.Services.AddScoped<FreelancePlanService>();
@@ -61,6 +63,20 @@ var app = builder.Build();
 if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
     throw new InvalidOperationException(
         "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
+
+if (configureSubscriptionPermissions)
+{
+    var target = new Npgsql.NpgsqlConnectionStringBuilder(app.Configuration.GetConnectionString("DefaultConnection"));
+    if (!app.Environment.IsDevelopment() || target.Host is not ("localhost" or "127.0.0.1" or "::1"))
+        throw new InvalidOperationException("Subscription permission setup is allowed only in Development against localhost.");
+    var configuredRole=app.Configuration["Subscriptions:ManagementRoleId"];
+    Guid? role=string.IsNullOrWhiteSpace(configuredRole)?null:Guid.Parse(configuredRole);
+    await using (var scope = app.Services.CreateAsyncScope())
+        await scope.ServiceProvider.GetRequiredService<CampionsSystem.BLL.Subscriptions.SubscriptionPermissionSetup>().ConfigureAsync(role,app.Lifetime.ApplicationStopping);
+    Console.WriteLine("Subscription permissions configured; existing activation/grants/overrides preserved.");
+    await app.DisposeAsync();
+    return;
+}
 
 if (configureCrmPermissions)
 {

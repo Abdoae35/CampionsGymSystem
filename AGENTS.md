@@ -41,10 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 9 — official holiday extensions.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 10 — safe subscription API and authorization.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 10: safe API, permission catalog setup, Postman and HTTP authorization tests.
+- Next: Task 11: feature documentation and final full validation, development catalog verification, final commit/push.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

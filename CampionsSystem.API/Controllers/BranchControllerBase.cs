@@ -14,6 +14,8 @@ public abstract class BranchControllerBase : ControllerBase
         catch (UnauthorizedAccessException) { return Forbid(); }
         catch (BranchNotFoundException error) { return Problem(statusCode: 404, title: error.Message); }
         catch (BusinessRuleException error) { return Problem(statusCode: 400, title: error.Message); }
+        catch (DbUpdateConcurrencyException)
+        { return Problem(statusCode: 409, title: "Subscription changed; reload and retry with its current version."); }
         catch (DbUpdateException error) when (error.InnerException is PostgresException
             { SqlState: PostgresErrorCodes.UniqueViolation or PostgresErrorCodes.SerializationFailure or PostgresErrorCodes.DeadlockDetected })
         { return Problem(statusCode: 409, title: "Concurrent or overlapping change; reload and retry."); }

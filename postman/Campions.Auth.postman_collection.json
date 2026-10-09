@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Campions API - Auth, Branches, Employees, Members and CRM",
-    "description": "Login first; accessToken is saved automatically. Includes authentication, branch, employee and all nine Member Management endpoints. Set ID/date/profile variables deliberately and send modifying requests individually. Optional auth tests intentionally exercise errors. CRM folders cover all 19 Lead/follow-up routes. Send writes individually; conversion creates a Member, not a subscription/payment.",
+    "description": "Login first; accessToken is saved automatically. Includes authentication, branch, employee and all nine Member Management endpoints. Set ID/date/profile variables deliberately and send modifying requests individually. Optional auth tests intentionally exercise errors. CRM folders cover all 19 Lead/follow-up routes. Send writes individually; conversion creates a Member, not a subscription/payment. Subscription reads, freezes, medical extensions, employee grants and Owner holidays are included; paid activation/renewal intentionally have no HTTP route.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -154,6 +154,38 @@
       "key": "planSearch",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "subscriptionId",
+      "value": ""
+    },
+    {
+      "key": "subscriptionVersion",
+      "value": "0"
+    },
+    {
+      "key": "subscriptionOperationId",
+      "value": ""
+    },
+    {
+      "key": "freezeId",
+      "value": ""
+    },
+    {
+      "key": "holidayId",
+      "value": ""
+    },
+    {
+      "key": "subscriptionStartDate",
+      "value": "2026-10-09"
+    },
+    {
+      "key": "subscriptionDays",
+      "value": "7"
+    },
+    {
+      "key": "planId",
+      "value": ""
     }
   ],
   "item": [
@@ -3315,6 +3347,297 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "13. Subscriptions and entitlement",
+      "description": "Protected lifecycle operations only. Paid activation/renewal are BLL-only pending Finance. Select dates, UUID operation identity and latest version deliberately.",
+      "item": [
+        {
+          "name": "Member history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/subscriptions?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists."
+          }
+        },
+        {
+          "name": "Current access at branch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/subscriptions/current?branchId={{branchId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists."
+          }
+        },
+        {
+          "name": "Subscription details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/subscriptions/{{subscriptionId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"subscriptionVersion\", pm.response.json().subscription.version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Book normal freeze",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subscriptions/{{subscriptionId}}/freeze",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"operationId\":\"{{subscriptionOperationId}}\", \"expectedVersion\":{{subscriptionVersion}}, \"startDate\":\"{{subscriptionStartDate}}\", \"days\":{{subscriptionDays}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"freezeId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete approved freeze",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subscriptions/{{subscriptionId}}/freezes/{{freezeId}}/complete",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"expectedVersion\":{{subscriptionVersion}}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Managed medical extension",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subscriptions/{{subscriptionId}}/custom-extension",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"operationId\":\"{{subscriptionOperationId}}\",\"expectedVersion\":{{subscriptionVersion}},\"days\":{{subscriptionDays}},\"reason\":\"Approved injury extension\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Employee entitlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/employees/{{employeeId}}/membership-entitlement",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"memberId\":\"{{memberId}}\",\"planId\":\"{{planId}}\",\"operationId\":\"{{subscriptionOperationId}}\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"subscriptionId\", pm.response.json().subscriptionId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Owner official holiday",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/subscriptions/official-holidays",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"branchId\":\"{{branchId}}\",\"startDate\":\"{{subscriptionStartDate}}\",\"endDate\":\"{{subscriptionStartDate}}\",\"extendSubscriptions\":true,\"reason\":\"Official closure\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"holidayId\", pm.response.json().closureId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Owner apply due holiday compensation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/subscriptions/official-holidays/{{holidayId}}/apply",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists."
+          }
         }
       ]
     },

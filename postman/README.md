@@ -177,3 +177,17 @@ branch plans, including eligibility for Members registered elsewhere. Candidate 
 requires one exact ID/code/phone (encode international + as %2B). See
 [Membership Plans](../docs/MEMBERSHIP_PLANS.md) for permissions and validation rules.
 These new configuration requests do not purchase/grant subscriptions or process payments.
+
+## Subscription lifecycle requests
+
+Folder **13. Subscriptions and entitlement** includes all nine safe routes. Read details
+first to save `subscriptionVersion`. Set `subscriptionOperationId` to a new UUID per
+logical operation and reuse it only when retrying the identical operation. Refresh details
+after any change. Set dates and durations deliberately; complete a freeze only after its
+approved end. Medical extension needs Subscriptions.Extend; employee grants additionally
+need Employees.Manage. Official holiday creation/application additionally require
+Branches.AccessAll and use the explicitly selected originating branch, not CityId.
+Set extendSubscriptions=false for operational closure without compensation.
+
+Paid creation and renewal have no HTTP route until Sales/Payments is implemented.
+Legacy freelance purchase returns 410. See [Subscriptions](../docs/SUBSCRIPTIONS.md).

@@ -59,6 +59,12 @@ public sealed partial class SubscriptionLifecycleTests : IAsyncLifetime
         var s = await Period(AccessMode.SessionBased, sessions: 0);
         Assert.Equal("Expired", (await service.GetDetailsAsync(s.Id)).Subscription.Status);
     }
+    [Fact] public async Task LegacyFrozenStateWithoutDatedHistoryFailsClosed()
+    {
+        var s=await Period();s.Status=SubscriptionStatus.Frozen;await db.SaveChangesAsync();
+        var current=await service.GetCurrentEntitlementAsync(member.Id,b.Id);
+        Assert.False(current.HasAccess);Assert.Equal("Frozen",current.Subscription!.Status);
+    }
     [Fact] public async Task FrozenAndScheduledSubscriptionsDoNotGrantCurrentAccess()
     {
         var s = await Period(); db.Add(new SubscriptionFreeze { MemberSubscriptionId=s.Id, StartDate=today, EndDate=today.AddDays(2),

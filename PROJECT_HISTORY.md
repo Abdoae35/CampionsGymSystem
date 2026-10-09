@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 9 — official holiday extensions.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 10 — safe subscription API and authorization.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 10: safe API, permission catalog setup, Postman and HTTP authorization tests.
+- Next: Task 11: feature documentation and final full validation, development catalog verification, final commit/push.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1820,3 +1820,10 @@ Reused BranchClosure with explicit AppliesToGym scope and ExtensionDays=0 to dis
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Task 10: safe API, permission catalog setup, Postman and HTTP authorization tests.
+
+### 2026-10-09 — Task 10 — safe subscription API and authorization
+
+Added nine thin lifecycle/read routes. Paid customer activation/renewal remain BLL-only; legacy Freelance purchase remains authorized HTTP410. Added concurrency HTTP409, strict mutation payloads, origin administration/operational-city access separation and legacy undocumented Frozen access protection. Added permission catalog CLI guarded Development/localhost with optional explicit global-capability role ID, preserving inactive permission states, role grants and direct denies; local dev catalog provisioning completed with no role grant changes. Added new demo bootstrap permission codes without altering runtime authorization. Postman includes nine deliberate route samples, UUID/version guidance and no paid bypass. Build zero warnings/errors; final nine HTTP/setup/legacy guard tests passed, zero failed/skipped. JSON parsed and sample variable coverage checked; diff reviewed. Task 9 d7e2ee9 pushed.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Task 11: feature documentation and final full validation, development catalog verification, final commit/push.

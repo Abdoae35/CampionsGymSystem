@@ -17,6 +17,7 @@ public sealed class DevelopmentAuthSeeder(ApplicationDbContext database, UserMan
     [
         "Users.View", "Users.Manage", "Roles.View", "Roles.Manage",
         "Employees.View", "Employees.Manage", "Employees.Transfer", "Branches.View", "Branches.Manage", "Branches.AccessAll",
+        .. CampionsSystem.BLL.Subscriptions.SubscriptionPermissions.Codes,
         .. CampionsSystem.BLL.Members.MemberPermissions.Codes, "MembershipPlans.View", "MembershipPlans.Manage",
         "Payments.View", "Payments.Create", "Payments.Refund", "Expenses.View", "Expenses.Create", "Expenses.Approve",
         "Shifts.View", "Shifts.Manage", "Private.View", "Private.Manage", "Activities.View", "Activities.Manage",
