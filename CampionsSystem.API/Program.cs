@@ -44,6 +44,7 @@ builder.Services.AddScoped<BranchPermissionSetup>();
 builder.Services.AddScoped<EmployeeBranchAssignmentService>();
 builder.Services.AddScoped<OperationAccess>();
 builder.Services.AddScoped<ActivityManagementService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Plans.MembershipPlanManagementService>();
 builder.Services.AddScoped<FreelancePlanService>();
 builder.Services.AddScoped<SubscriptionPurchaseService>();
 builder.Services.AddScoped<ClassSessionService>();

@@ -1,4 +1,5 @@
 using CampionsSystem.DAL.Data;
+using CampionsSystem.BLL.Plans;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -6,38 +7,13 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.BLL.Operations;
 
 public sealed record SaveFreelancePlanRequest(Guid CityId, Guid CoachEmployeeId, string Name, decimal Price,
-    int DurationDays, AccessMode AccessMode, int? SessionCount, bool IsActive = true);
+    int DurationDays, AccessMode AccessMode, int? SessionCount, bool IsActive = true, Guid? BranchId = null);
 
-public sealed class FreelancePlanService(ApplicationDbContext db, OperationAccess access)
+public sealed class FreelancePlanService(ApplicationDbContext db, OperationAccess access, MembershipPlanManagementService management)
 {
-    public async Task<Guid> SaveAsync(Guid? id, SaveFreelancePlanRequest request, CancellationToken ct = default)
-    {
-        var actor = await access.RequireAsync("FreelancePlans.Manage", null, ct);
-        OperationAccess.Money(request.Price);
-        if (string.IsNullOrWhiteSpace(request.Name) || request.Name.Length > 256 || request.DurationDays <= 0
-            || !(request.AccessMode == AccessMode.Unlimited && request.SessionCount is null
-                 || request.AccessMode == AccessMode.SessionBased && request.SessionCount > 0))
-            throw new BusinessRuleException("Invalid plan name, duration or session configuration.");
-        if (!await db.Cities.AnyAsync(x => x.Id == request.CityId, ct)) throw new BusinessRuleException("City not found.");
-        if (!await db.Employees.AnyAsync(x => x.Id == request.CoachEmployeeId && x.EmploymentType == EmploymentType.Freelance
-            && x.EmploymentStatus == EmploymentStatus.Active && x.HireDate <= access.Today
-            && (x.TerminationDate == null || x.TerminationDate >= access.Today), ct))
-            throw new BusinessRuleException("Plan requires an active Freelance Employee.");
-        var plan = id.HasValue ? await db.MembershipPlans.SingleOrDefaultAsync(x => x.Id == id, ct)
-            ?? throw new BusinessRuleException("Plan not found.") : new MembershipPlan();
-        if (id.HasValue && plan.PlanCategory != PlanCategory.Freelance)
-            throw new BusinessRuleException("A normal plan cannot be converted by this operation.");
-        var before = id.HasValue ? new { plan.Name, plan.Price, plan.FreelanceCoachEmployeeId, plan.IsActive } : null;
-        plan.CityId = request.CityId; plan.FreelanceCoachEmployeeId = request.CoachEmployeeId;
-        plan.PlanCategory = PlanCategory.Freelance; plan.Name = request.Name.Trim(); plan.Price = request.Price;
-        plan.DurationDays = request.DurationDays; plan.AccessMode = request.AccessMode;
-        plan.SessionCount = request.SessionCount; plan.IsActive = request.IsActive;
-        if (!id.HasValue) db.Add(plan);
-        access.Audit(actor, null, id.HasValue ? "FreelancePlan.Edited" : "FreelancePlan.Created", nameof(MembershipPlan), plan.Id,
-            before, new { plan.Name, plan.Price, plan.FreelanceCoachEmployeeId, plan.IsActive });
-        await db.SaveChangesAsync(ct);
-        return plan.Id;
-    }
+    // Compatibility API delegates to the same branch-scoped template rules.
+    public Task<Guid> SaveAsync(Guid? id, SaveFreelancePlanRequest request, CancellationToken ct = default)
+        => management.SaveFreelancePlanAsync(id, request, ct);
 
     public async Task SetEligibilityAsync(Guid planId, Guid memberId, bool eligible, CancellationToken ct = default)
     {

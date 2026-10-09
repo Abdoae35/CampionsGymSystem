@@ -51,7 +51,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
         db.AddRange(actor, member, package, employee, substitute, group, period, shift, account);
         await db.SaveChangesAsync();
         access = new OperationAccess(new TestCurrentUser(actor.Id, branch.Id), db, clock, Options.Create(new AuthContextOptions()));
-        coaches = new(db, access); plans = new(db, access); purchases = new(db, access); classes = new(db, access); reports = new(db, access);
+        coaches = new(db, access); plans = new(db, access, new(db, new TestCurrentUser(actor.Id, branch.Id), access)); purchases = new(db, access); classes = new(db, access); reports = new(db, access);
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
     private async Task<Guid> Coach(bool external = false, decimal percentage = 30)
@@ -71,7 +71,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     }
     private async Task<Guid> Plan(bool eligible = true)
     {
-        var id = await plans.SaveAsync(null, new(branch.CityId, employee.Id, "Coach Monthly", 300, 30, AccessMode.Unlimited, null));
+        var id = await plans.SaveAsync(null, new(branch.CityId, employee.Id, "Coach Monthly", 300, 30, AccessMode.Unlimited, null, BranchId: branch.Id));
         if (eligible) await plans.SetEligibilityAsync(id, member.Id, true); return id;
     }
     private Task<Guid> Session(ClassSessionStatus status = ClassSessionStatus.Completed, Guid? coach = null) => classes.SaveAsync(null,
@@ -194,7 +194,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
         Assert.Equal(employeePlan.Id, entitlement.MembershipPlanId);
     }
     [Fact] public async Task FreelancePlanRequiresActiveFreelanceCoach()
-    { await Assert.ThrowsAsync<BusinessRuleException>(() => plans.SaveAsync(null, new(branch.CityId, substitute.Id, "Invalid", 300, 30, AccessMode.Unlimited, null))); }
+    { await Assert.ThrowsAsync<BusinessRuleException>(() => plans.SaveAsync(null, new(branch.CityId, substitute.Id, "Invalid", 300, 30, AccessMode.Unlimited, null, BranchId: branch.Id))); }
     [Fact] public async Task FreelancePurchaseHasNoSalesCommissionAndPreservesOldOwnership()
     {
         var old = new MemberSalesAssignment { Member = member, SalesEmployee = substitute, AssignmentType = AssignmentType.Sales,
@@ -227,7 +227,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     [Fact] public async Task MemberMayBeEligibleForMoreThanOneFreelanceCoach()
     {
         await Plan(); substitute.EmploymentType = EmploymentType.Freelance; await db.SaveChangesAsync();
-        var other = await plans.SaveAsync(null, new(branch.CityId, substitute.Id, "Other Coach", 350, 30, AccessMode.Unlimited, null));
+        var other = await plans.SaveAsync(null, new(branch.CityId, substitute.Id, "Other Coach", 350, 30, AccessMode.Unlimited, null, BranchId: branch.Id));
         await plans.SetEligibilityAsync(other, member.Id, true); Assert.Equal(2, await db.MembershipPlanEligibleMembers.CountAsync());
     }
     [Fact] public async Task ActivityBatchAttributionCannotBeRewritten()
@@ -262,7 +262,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     {
         var plan = await Plan(); var purchase = await purchases.PurchaseFreelanceAsync(new(member.Id, plan, branch.Id)); await Pay(purchase, 300);
         substitute.EmploymentType = EmploymentType.Freelance; await db.SaveChangesAsync();
-        await plans.SaveAsync(plan, new(branch.CityId, substitute.Id, "Edited plan", 350, 30, AccessMode.Unlimited, null));
+        await plans.SaveAsync(plan, new(branch.CityId, substitute.Id, "Edited plan", 350, 30, AccessMode.Unlimited, null, BranchId: branch.Id));
         var batch = await db.MembershipSubscriptionTransactions.FindAsync(purchase.TransactionId);
         Assert.Equal(employee.Id, batch!.FreelanceCoachEmployeeIdSnapshot); Assert.Equal(300, batch.PlanPriceSnapshot);
         var rows = await reports.FreelanceAsync(plan, branch.Id, period.StartAt, clock.GetUtcNow().AddSeconds(1));
