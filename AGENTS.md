@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 6.
-- Plan update and status workflows preserve historical prices, durations and subscription dates; type changes are rejected, global legacy mapping is explicit. Build zero warnings/errors; 26 plan tests passed after correcting fixture navigations. No additional migration.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 7.
+- Plan benefit replacement validates Quantity/Access, locks configuration and catalog rows, audits additions/changes/removals and preserves subscription snapshots. Build zero warnings/errors; 61 plan/benefit tests passed, zero failed/skipped.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
