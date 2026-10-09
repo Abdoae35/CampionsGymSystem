@@ -19,6 +19,13 @@ city model was introduced. A Member's registration branch does not restrict
 Freelance eligibility: a Member from A can use an offer administered by B.
 Eligibility does not transfer that Member or change Sales ownership.
 
+For example, A and B may share a city while B offers a plan A does not. A's manager
+cannot manage B's plan. A Member originally registered in A may later visit B and
+purchase B's offer when the general Subscription/Sales workflow is implemented;
+Member.HomeBranchId need not equal Plan.BranchId. That future sale/payment belongs
+to B, while Member Sales ownership remains separate. Plan management and eligibility
+APIs do not execute that purchase/payment.
+
 Global audience categories and benefits can be read by plan viewers, but only
 `MembershipPlans.Manage` **and** `Branches.AccessAll` may mutate them. Branch
 managers select existing active catalog entries for their own plans.

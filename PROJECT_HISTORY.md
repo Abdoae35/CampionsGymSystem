@@ -43,21 +43,17 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Membership Plans Management completed on MembershipPlansManagement; stop here, no Subscriptions started.
-- BranchId owns/offers/administers plans; CityId retains access meaning. New plans require
-  an active owner branch; legacy null stays global-only until explicit mapping.
-- Global catalogs require management + Branches.AccessAll. Freelance eligibility permits
-  Members from other registration branches and preserves Sales/House ownership.
-- All creation/update/status/benefit/eligibility APIs and compatibility paths enforce scope;
-  FreelanceHouse registration cannot bypass plan ownership. Snapshot history is untouched.
-- Final build: zero warnings/errors. Full suite: 414 passed, zero failed/skipped. EF drift clean.
-- Approved additive ownership migration applied/verified only in Development; zero plans,
-  no backfill and no production operations. Postman covers 20 canonical + four compatibility routes.
-- Implementation commits through a5ed361 pushed. Final documentation/Postman commit and push
-  accompany this checkpoint; remote HEAD/clean status are verified before the final response.
-- No known unresolved Plans issues; purchase/grants, Check-In, commissions and imports remain separate.
-- See PROJECT_HISTORY.md and docs/MEMBERSHIP_PLANS.md; portable history skill:
-  skills/project-history-update/SKILL.md.
+- Feature-based documentation refresh completed on MembershipPlansManagement; stop here.
+- docs/README.md indexes Architecture, Authorization, Branch, Employee, Member, CRM and Plans.
+- Feature documentation refreshes are manual/on-demand, explicitly requested; no automation added.
+- Current code/model verified; transfer/termination, conversion actor/owner, cross-branch
+  ownership and plan BranchId/CityId distinctions documented. Two older ownership notes corrected.
+- Membership Plans retained with a small same-city A/B offer example; root README links the index.
+- Documentation only: no application code, migration, schema or gym application DB update.
+- Build zero warnings/errors; full suite 414 passed, zero failed/skipped; EF drift clean.
+- One documentation commit/push accompanies this checkpoint; final remote/clean status verified
+  before reporting. Subscription/Finance/attendance lifecycle integrations remain deferred.
+- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
 
@@ -1683,3 +1679,32 @@ db08fd8 feat(plans): add freelance plan eligibility management
 5595723 feat(plans): expose membership plan management api
 2175fc5 fix(plans): enforce eligibility scope across registration paths
 a5ed361 test(plans): map CRM Freelance fixture to owning branch
+
+### 2026-10-09 — Split current-system documentation refresh
+
+Request: documentation-only, code-grounded split feature docs; preserve manual/on-demand
+refreshes, validate build/full tests/EF drift and commit/push once. Stop afterwards.
+
+Created docs/README.md, ARCHITECTURE.md, AUTHORIZATION.md, BRANCH_MANAGEMENT.md,
+EMPLOYEE_MANAGEMENT.md and CRM.md. Refreshed existing MEMBER_MANAGEMENT.md rather than
+creating a duplicate. Reviewed existing MEMBERSHIP_PLANS.md and retained its content,
+adding only the requested same-city A/B offer/member-origin example. Added a small root
+README index link. Corrected stale transfer/status ownership statements in the older
+branch and employee documentation. No giant master or empty future-feature documents.
+
+Inspected controllers, BLL/contracts, authorization/branch context, entities/EF mappings,
+migrations, tests and existing docs. Documented actual limited Operations purchase/class
+paths separately from unfinished general Subscription/Finance workflows. Transfer retains
+ownership; non-active employment closes it; conversion actor does not replace Lead owner.
+Plan BranchId administration remains distinct from CityId access and Member origin.
+Documentation refresh is explicitly requested, not a new mandatory coding/CI workflow.
+
+Verification: dotnet build --no-restore passed with zero warnings/errors; full
+dotnet test --no-build --no-restore passed 414, zero failed/skipped (3m32s). EF
+migrations has-pending-model-changes reported no changes. Relative Markdown links and
+file names validated; diff whitespace check passed. No production/application code,
+migration, schema or gym application database update. Tests used isolated temporary
+PostgreSQL schemas/rollback transactions, not application migrations. No live Postman
+execution was performed or required. History/handoff checkpoint included in the single
+docs commit; push/remote HEAD/clean working tree verified before final reporting.
+No known unresolved documentation issues; no next feature started.

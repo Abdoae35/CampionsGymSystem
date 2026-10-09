@@ -41,18 +41,14 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Membership Plans Management completed on MembershipPlansManagement; stop here, no Subscriptions started.
-- BranchId owns/offers/administers plans; CityId retains access meaning. New plans require
-  an active owner branch; legacy null stays global-only until explicit mapping.
-- Global catalogs require management + Branches.AccessAll. Freelance eligibility permits
-  Members from other registration branches and preserves Sales/House ownership.
-- All creation/update/status/benefit/eligibility APIs and compatibility paths enforce scope;
-  FreelanceHouse registration cannot bypass plan ownership. Snapshot history is untouched.
-- Final build: zero warnings/errors. Full suite: 414 passed, zero failed/skipped. EF drift clean.
-- Approved additive ownership migration applied/verified only in Development; zero plans,
-  no backfill and no production operations. Postman covers 20 canonical + four compatibility routes.
-- Implementation commits through a5ed361 pushed. Final documentation/Postman commit and push
-  accompany this checkpoint; remote HEAD/clean status are verified before the final response.
-- No known unresolved Plans issues; purchase/grants, Check-In, commissions and imports remain separate.
-- See PROJECT_HISTORY.md and docs/MEMBERSHIP_PLANS.md; portable history skill:
-  skills/project-history-update/SKILL.md.
+- Feature-based documentation refresh completed on MembershipPlansManagement; stop here.
+- docs/README.md indexes Architecture, Authorization, Branch, Employee, Member, CRM and Plans.
+- Feature documentation refreshes are manual/on-demand, explicitly requested; no automation added.
+- Current code/model verified; transfer/termination, conversion actor/owner, cross-branch
+  ownership and plan BranchId/CityId distinctions documented. Two older ownership notes corrected.
+- Membership Plans retained with a small same-city A/B offer example; root README links the index.
+- Documentation only: no application code, migration, schema or gym application DB update.
+- Build zero warnings/errors; full suite 414 passed, zero failed/skipped; EF drift clean.
+- One documentation commit/push accompanies this checkpoint; final remote/clean status verified
+  before reporting. Subscription/Finance/attendance lifecycle integrations remain deferred.
+- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

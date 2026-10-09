@@ -1,8 +1,9 @@
 # Branch management and employee assignments
 
 GymBranch is reused with City, Name, Address, Phone, IsActive, borrowed-session
-limit and refund-window settings. No schema changes, Employee.CurrentBranchId,
-full Employee CRUD or hard-delete endpoint were added. Existing historical FKs
+limit and refund-window settings. These branch APIs reuse the existing model without
+an Employee.CurrentBranchId column or hard-delete endpoint. Full personnel CRUD is described in
+[Employee Management](../EMPLOYEE_MANAGEMENT.md). Existing historical FKs
 restrict deletion. Deactivate a branch through PUT, preserving its ID/history.
 
 ## Endpoints
@@ -102,8 +103,10 @@ global user must have both Employees.Transfer and Branches.AccessAll. Role names
 provide neither permission nor global scope.
 
 Transfers never change historical sales, payments, check-ins, shifts, commissions or
-reports. Sales clients, leads, follow-ups, future shifts, payroll and other dependent
-module consequences remain work for those features; no automatic reassignment exists.
+reports. Existing Member/Lead ownership and owned CRM follow-up visibility are preserved
+across transfer. New Lead distribution uses the new working branch. Transfer does
+not invoke the non-active employment ownership-closure workflow. Future shifts and
+payroll integrations remain separate; no automatic customer reassignment occurs.
 
 ## Audit and errors
 

@@ -99,9 +99,11 @@ suspension. Setting the same status again returns 400. Reason is optional, up to
 2048 characters, and is stored in the audit; no status-reason schema field was added.
 
 Status changes preserve the employee, branch history and all old business records.
-They do not rewrite shifts, client assignments, sales, payments or payroll, or
-modify ApplicationUser activation. Existing authentication rules check employee
-activity during login; no new token-revocation feature is introduced here.
+They preserve shifts, sales, payments and payroll and do not modify ApplicationUser
+activation. Resigned/Suspended employment closes current Member Sales and Lead
+assignments, preserving history and leaving House/unassigned redistribution work.
+Reactivation does not restore closed ownership. Existing authentication rules check
+employee activity during login; no new token-revocation feature is introduced here.
 No hard-delete endpoint is provided. Future HR correction/backdated termination and
 account management are separate workflows, not part of these APIs.
 
