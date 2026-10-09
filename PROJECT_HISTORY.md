@@ -43,7 +43,7 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Feature-based documentation refresh completed on MembershipPlansManagement; stop here.
+- Feature-based documentation refresh completed on master; stop here.
 - docs/README.md indexes Architecture, Authorization, Branch, Employee, Member, CRM and Plans.
 - Feature documentation refreshes are manual/on-demand, explicitly requested; no automation added.
 - Current code/model verified; transfer/termination, conversion actor/owner, cross-branch
@@ -51,7 +51,8 @@ it does not replace checking the actual repository.
 - Membership Plans retained with a small same-city A/B offer example; root README links the index.
 - Documentation only: no application code, migration, schema or gym application DB update.
 - Build zero warnings/errors; full suite 414 passed, zero failed/skipped; EF drift clean.
-- One documentation commit/push accompanies this checkpoint; final remote/clean status verified
+- Documentation commit 8ba011e pushed; branch-name checkpoint correction accompanies it.
+- Final remote/clean status verified
   before reporting. Subscription/Finance/attendance lifecycle integrations remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1708,3 +1709,8 @@ PostgreSQL schemas/rollback transactions, not application migrations. No live Po
 execution was performed or required. History/handoff checkpoint included in the single
 docs commit; push/remote HEAD/clean working tree verified before final reporting.
 No known unresolved documentation issues; no next feature started.
+
+Checkpoint correction: the active branch was master at commit time, fast-forwarded to
+the completed Plans HEAD. Documentation commit 8ba011e was pushed to origin/master.
+A small follow-up checkpoint commit corrects the branch name; no history rewrite or
+application changes. The validation above remains applicable to unchanged code/docs.
