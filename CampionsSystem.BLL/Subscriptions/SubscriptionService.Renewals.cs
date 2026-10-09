@@ -91,7 +91,8 @@ public sealed partial class SubscriptionService
             access.Audit(actor.UserId,r.BranchId,"Subscription.Renewed",nameof(MemberSubscription),target.Id,
                 new { SourceSubscriptionId=source.Id,EndDate=previousEnd,RemainingSessions=previousSessions },
                 new { target.MemberId,grant.Id,target.StartDate,target.EndDate,target.RemainingSessions,target.FollowsSubscriptionId });
-            await db.SaveChangesAsync(ct); return new SubscriptionGrantResult(target.Id,grant.Id,target.StartDate>date);
+            await db.SaveChangesAsync(ct); await ApplyDeclaredHolidaysForMemberAsync(member.Id,actor.UserId,ct);
+            return new SubscriptionGrantResult(target.Id,grant.Id,target.StartDate>date);
         },ct);
     }
 }

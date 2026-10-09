@@ -120,8 +120,10 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
             ?? throw new BranchNotFoundException("Active access branch not found.");
         var date = await EffectiveBusinessDateAsync(branchId, ct);
         var candidates = await Evaluated(date).Where(x => x.Subscription.MemberId == memberId && x.Subscription.CityId == branch.CityId
-            && x.Status == SubscriptionStatus.Active).Take(2).ToListAsync(ct);
+            && (x.Status == SubscriptionStatus.Active || x.Status == SubscriptionStatus.Frozen)).Take(2).ToListAsync(ct);
         if (candidates.Count > 1) throw new BusinessRuleException("Conflicting entitlements require management reconciliation.");
-        return new(candidates.Count == 1, candidates.Count == 1 ? Summary(candidates[0]) : null);
+        var closed = await db.BranchClosures.AnyAsync(x => x.BranchId == branchId && x.AppliesToGym && x.StartDate <= date && x.EndDate >= date, ct);
+        return new(candidates.Count == 1 && candidates[0].Status == SubscriptionStatus.Active && !closed,
+            candidates.Count == 1 ? Summary(candidates[0]) : null);
     }
 }

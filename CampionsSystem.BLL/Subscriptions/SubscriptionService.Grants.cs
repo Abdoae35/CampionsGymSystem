@@ -112,7 +112,8 @@ public sealed partial class SubscriptionService
             var grant = await SnapshotAsync(sub, plan, r.OperationId, actor.UserId, day, date, SubscriptionTransactionType.Initial, null, null, null, ct);
             access.Audit(actor.UserId, r.BranchId, "Subscription.Created", nameof(MemberSubscription), sub.Id,
                 after: new { sub.MemberId, GrantId=grant.Id, sub.StartDate, sub.EndDate, sub.CityId, sub.AccessMode, sub.RemainingSessions });
-            await db.SaveChangesAsync(ct); return new SubscriptionGrantResult(sub.Id, grant.Id, false);
+            await db.SaveChangesAsync(ct); await ApplyDeclaredHolidaysForMemberAsync(member.Id,actor.UserId,ct);
+            return new SubscriptionGrantResult(sub.Id, grant.Id, false);
         }, ct);
     }
 }

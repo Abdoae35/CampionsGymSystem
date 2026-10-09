@@ -43,12 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 8 — managed custom/medical extension.
+- Subscriptions / Renewals / Freeze in progress on master; latest checkpoint: Task 9 — official holiday extensions.
 - Confirmed: expired sessions do not carry; active same-mode renewals carry time/sessions.
 - Different modes queue separate periods; legitimate extensions move successors.
 - Owner-selected branch holidays use explicit compensation; frozen days receive no extra day.
 - Finance, Check-In, commissions and Member financial transfer settlement remain deferred.
-- Next: Task 9: Owner-controlled official holiday compensation.
+- Next: Task 10: safe API, permission catalog setup, Postman and HTTP authorization tests.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1813,3 +1813,10 @@ Added Subscription.CustomExtensionGranted using distinct Medical history rows, r
 
 Task checkpoint included with the corresponding verified commit; push result is verified
 before proceeding. No production access. Next: Task 9: Owner-controlled official holiday compensation.
+
+### 2026-10-09 — Task 9 — official holiday extensions
+
+Reused BranchClosure with explicit AppliesToGym scope and ExtensionDays=0 to disable compensation; positive days compensate the inclusive range. Global Subscriptions.Extend plus Branches.AccessAll required. Origin branch determines scope, independently of City/HomeBranch. Protected subscription/date records prevent retry and overlapping-closure duplication. Frozen holiday days record zero extra extension; reverse order subtracts already protected days from freeze extension. Future declarations apply only when due, and internal grants/renewals catch up declared policy. Current lookup reports frozen entitlement without access and respects selected branch closures. Build zero warnings/errors; 68 subscription-filter tests passed, including independent PostgreSQL holiday and freeze races; added employment exclusion separately verified before commit. No additional schema change. Previous task commit 3f080ca pushed.
+
+Task checkpoint included with the corresponding verified commit; push result is verified
+before proceeding. No production access. Next: Task 10: safe API, permission catalog setup, Postman and HTTP authorization tests.
