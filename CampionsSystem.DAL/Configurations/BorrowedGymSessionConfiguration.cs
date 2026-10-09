@@ -13,6 +13,11 @@ public sealed class BorrowedGymSessionConfiguration : IEntityTypeConfiguration<B
             table.HasCheckConstraint("CK_BorrowedGymSessions_Status", "\"Status\" IN ('Outstanding', 'Settled')");
         });
         builder.HasKey(x => x.Id);
+        builder.HasIndex(x => x.CheckInId).IsUnique();
+        builder.HasIndex(x => new { x.ExpiredSubscriptionId, x.Status });
+        builder.HasIndex(x => new { x.MemberId, x.Status });
+        builder.HasOne(x => x.SettledByTransaction).WithMany().HasForeignKey(x => x.SettledByTransactionId).OnDelete(DeleteBehavior.Restrict);
+        builder.ToTable("BorrowedGymSessions", t => t.HasCheckConstraint("CK_BorrowedGymSessions_GrantSettlement", "\"SettledByTransactionId\" IS NULL OR (\"Status\" = 'Settled' AND \"SettledAt\" IS NOT NULL AND \"SettledBySubscriptionId\" IS NOT NULL)"));
         builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.ExpiredSubscription).WithMany().HasForeignKey(x => x.ExpiredSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.CheckIn).WithMany().HasForeignKey(x => x.CheckInId).OnDelete(DeleteBehavior.Restrict);

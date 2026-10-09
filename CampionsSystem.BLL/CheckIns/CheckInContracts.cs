@@ -38,7 +38,7 @@ public sealed record AccessDecision(bool Allowed, string ReasonCode, Guid? Membe
     string? MemberName, Guid BranchId, DateOnly BusinessDate, Guid? BusinessDayId,
     Guid? SubscriptionId, string? SubscriptionMode, int? RemainingSessions, bool BorrowAvailable,
     int BorrowedUsed, int BorrowedRemaining);
-public sealed record CheckInDetails(Guid Id, Guid OperationId, Guid? MemberId, string? MemberCode,
+public sealed record CheckInDetails(Guid Id, Guid? OperationId, Guid? MemberId, string? MemberCode,
     string? MemberName, Guid BranchId, DateOnly? BusinessDate, Guid? BusinessDayId,
     DateTimeOffset OccurredAt, string Type, string Method, Guid? SubscriptionId, bool SessionConsumed,
     int? SessionsBefore, int? SessionsAfter, Guid ActorId);

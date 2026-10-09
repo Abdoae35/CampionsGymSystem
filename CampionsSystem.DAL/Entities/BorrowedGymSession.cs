@@ -18,5 +18,7 @@ public sealed class BorrowedGymSession
     public Guid? SettledBySubscriptionId { get; set; }
     public MemberSubscription? SettledBySubscription { get; set; }
     public DateTimeOffset? SettledAt { get; set; }
+    public Guid? SettledByTransactionId { get; set; }
+    public MembershipSubscriptionTransaction? SettledByTransaction { get; set; }
     public BorrowedSessionStatus Status { get; set; }
 }

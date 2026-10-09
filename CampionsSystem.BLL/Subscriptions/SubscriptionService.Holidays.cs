@@ -15,6 +15,9 @@ public sealed partial class SubscriptionService
         if (!await db.GymBranches.AnyAsync(x=>x.Id==r.BranchId && x.IsActive,ct)) throw new BranchNotFoundException("Active holiday branch not found.");
         return await TransactionAsync(async () =>
         {
+            // Coordinate operational closure declarations with entrance branch locks without blocking FK key-share readers.
+            var branch=await db.GymBranches.FromSqlInterpolated($"SELECT * FROM \"GymBranches\" WHERE \"Id\"={r.BranchId} FOR NO KEY UPDATE").AsNoTracking().SingleAsync(ct);
+            if(!branch.IsActive)throw new BusinessRuleException("Holiday branch is inactive.");
             // Preserve module applicability. ExtensionDays=0 explicitly disables subscription compensation.
             var closure=new BranchClosure { BranchId=r.BranchId,StartDate=r.StartDate,EndDate=r.EndDate,
                 AppliesToGym=true,ExtensionDays=r.ExtendSubscriptions?r.EndDate.DayNumber-r.StartDate.DayNumber+1:0,

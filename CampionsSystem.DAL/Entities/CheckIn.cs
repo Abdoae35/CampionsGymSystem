@@ -5,6 +5,11 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class CheckIn
 {
+    // Null only for legacy attendance; new managed entries preserve explicit operational facts.
+    public Guid? OperationId { get; set; }
+    public DateOnly? BusinessDate { get; set; }
+    public int? SessionsBefore { get; set; }
+    public int? SessionsAfter { get; set; }
     // Nullable for legacy reconciliation; preserve operational date independently of real timestamps.
     public Guid? BusinessDayId { get; set; }
     public BusinessDay? BusinessDay { get; set; }

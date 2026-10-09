@@ -623,6 +623,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("SettledBySubscriptionId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("SettledByTransactionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -632,16 +635,21 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("BranchId");
 
-                    b.HasIndex("CheckInId");
-
-                    b.HasIndex("ExpiredSubscriptionId");
-
-                    b.HasIndex("MemberId");
+                    b.HasIndex("CheckInId")
+                        .IsUnique();
 
                     b.HasIndex("SettledBySubscriptionId");
 
+                    b.HasIndex("SettledByTransactionId");
+
+                    b.HasIndex("ExpiredSubscriptionId", "Status");
+
+                    b.HasIndex("MemberId", "Status");
+
                     b.ToTable("BorrowedGymSessions", null, t =>
                         {
+                            t.HasCheckConstraint("CK_BorrowedGymSessions_GrantSettlement", "\"SettledByTransactionId\" IS NULL OR (\"Status\" = 'Settled' AND \"SettledAt\" IS NOT NULL AND \"SettledBySubscriptionId\" IS NOT NULL)");
+
                             t.HasCheckConstraint("CK_BorrowedGymSessions_Status", "\"Status\" IN ('Outstanding', 'Settled')");
                         });
                 });
@@ -797,6 +805,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<Guid?>("BusinessDayId")
                         .HasColumnType("uuid");
 
@@ -834,8 +845,17 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("SessionConsumed")
                         .HasColumnType("boolean");
+
+                    b.Property<int?>("SessionsAfter")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SessionsBefore")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -851,6 +871,9 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("MemberSubscriptionId");
 
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
                     b.HasIndex("BranchId", "CheckedInAt");
 
                     b.HasIndex("ClassSessionId", "MemberId")
@@ -858,6 +881,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasFilter("\"ClassSessionId\" IS NOT NULL");
 
                     b.HasIndex("MemberId", "CheckedInAt");
+
+                    b.HasIndex("BranchId", "BusinessDate", "MemberId");
 
                     b.ToTable("CheckIns", null, t =>
                         {
@@ -868,6 +893,10 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_CheckIns_ClassSession", "\"ClassSessionId\" IS NULL OR \"CheckInType\" = 'Class'");
 
                             t.HasCheckConstraint("CK_CheckIns_Member", "\"CheckInType\" = 'Trial' OR \"MemberId\" IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_CheckIns_OperationalDate", "\"OperationId\" IS NULL OR \"BusinessDate\" IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_CheckIns_SessionSnapshot", "(\"SessionsBefore\" IS NULL AND \"SessionsAfter\" IS NULL) OR (\"SessionsBefore\" IS NOT NULL AND \"SessionsAfter\" IS NOT NULL AND \"SessionsBefore\" > 0 AND \"SessionsAfter\" = \"SessionsBefore\" - 1 AND \"CheckInType\" = 'Gym' AND \"SessionConsumed\")");
 
                             t.HasCheckConstraint("CK_CheckIns_SubscriptionType", "(\"CheckInType\" IN ('Gym', 'BorrowedGym') AND \"MemberSubscriptionId\" IS NOT NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Activity' AND \"ActivitySubscriptionId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Class' AND \"GroupClassId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL) OR (\"CheckInType\" = 'Trial' AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL)");
                         });
@@ -4637,6 +4666,11 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("SettledBySubscriptionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipSubscriptionTransaction", "SettledByTransaction")
+                        .WithMany()
+                        .HasForeignKey("SettledByTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Branch");
 
                     b.Navigation("CheckIn");
@@ -4646,6 +4680,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Member");
 
                     b.Navigation("SettledBySubscription");
+
+                    b.Navigation("SettledByTransaction");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.BranchClosure", b =>

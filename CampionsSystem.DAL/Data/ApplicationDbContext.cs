@@ -99,6 +99,15 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        if (ChangeTracker.Entries<CheckIn>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(CheckIn.OperationId)) != null
+            && x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Managed Check-In history is append-only.");
+        foreach (var entry in ChangeTracker.Entries<BorrowedGymSession>())
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified
+                && (entry.OriginalValues.GetValue<CampionsSystem.DAL.Enums.BorrowedSessionStatus>(nameof(BorrowedGymSession.Status)) != CampionsSystem.DAL.Enums.BorrowedSessionStatus.Outstanding
+                    || entry.Entity.Status != CampionsSystem.DAL.Enums.BorrowedSessionStatus.Settled
+                    || entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(BorrowedGymSession.Status) or nameof(BorrowedGymSession.SettledAt) or nameof(BorrowedGymSession.SettledBySubscriptionId) or nameof(BorrowedGymSession.SettledByTransactionId)))))
+                throw new InvalidOperationException("Borrowed session facts are historical; only first settlement is permitted.");
         if (ChangeTracker.Entries<MembershipSubscriptionTransaction>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<MemberSubscriptionBenefit>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<SubscriptionHolidayExtension>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
