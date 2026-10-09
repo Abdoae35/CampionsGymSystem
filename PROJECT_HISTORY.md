@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 3.
-- Implemented benefit catalog list/details/create/update/status, existing exact unique Code/Name checks, global-only catalog writes and audit. Historical grants are untouched. Build zero warnings/errors; four focused catalog tests passed; diff reviewed.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 4.
+- Implemented scoped plan list/details, search and filters (type/audience/mode/coach/branch/city/status), paging, lightweight benefits/coach and derived customer-product metadata. Administration uses owning BranchId, not CityId; unmapped plans global-only. Employee plans hidden by default and denied to non-managers. Build clean; six focused tests passed; diff reviewed.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
@@ -1577,6 +1577,13 @@ pushes. Exact hashes/results will be recorded in final validation. Production un
 ### 2026-10-09 — Membership Plans task 3
 
 Implemented benefit catalog list/details/create/update/status, existing exact unique Code/Name checks, global-only catalog writes and audit. Historical grants are untouched. Build zero warnings/errors; four focused catalog tests passed; diff reviewed.
+
+Build/tests/diff verified before task commit; user authorized small commits and immediate
+pushes. Exact hashes/results will be recorded in final validation. Production untouched.
+
+### 2026-10-09 — Membership Plans task 4
+
+Implemented scoped plan list/details, search and filters (type/audience/mode/coach/branch/city/status), paging, lightweight benefits/coach and derived customer-product metadata. Administration uses owning BranchId, not CityId; unmapped plans global-only. Employee plans hidden by default and denied to non-managers. Build clean; six focused tests passed; diff reviewed.
 
 Build/tests/diff verified before task commit; user authorized small commits and immediate
 pushes. Exact hashes/results will be recorded in final validation. Production untouched.
