@@ -51,7 +51,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
         db.AddRange(actor, member, package, employee, substitute, group, period, shift, account);
         await db.SaveChangesAsync();
         access = new OperationAccess(new TestCurrentUser(actor.Id, branch.Id), db, clock, Options.Create(new AuthContextOptions()));
-        coaches = new(db, access); plans = new(db, access, new(db, new TestCurrentUser(actor.Id, branch.Id), access)); purchases = new(db, access); classes = new(db, access); reports = new(db, access);
+        coaches = new(db, access); plans = new(new(db, new TestCurrentUser(actor.Id, branch.Id), access)); purchases = new(db, access); classes = new(db, access); reports = new(db, access);
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
     private async Task<Guid> Coach(bool external = false, decimal percentage = 30)

@@ -43,8 +43,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 7.
-- Plan benefit replacement validates Quantity/Access, locks configuration and catalog rows, audits additions/changes/removals and preserves subscription snapshots. Build zero warnings/errors; 61 plan/benefit tests passed, zero failed/skipped.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 8.
+- Freelance eligibility is administered by plan BranchId, permits Members registered in other branches and never changes Sales ownership. Added paginated eligible lists and exact phone/code/ID candidate lookup; old endpoint delegates to shared locks/audit. Build clean; 69 plan/existing Freelance tests passed.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.
@@ -1605,6 +1605,13 @@ pushes. Exact hashes/results will be recorded in final validation. Production un
 ### 2026-10-09 — Membership Plans task 7
 
 Plan benefit replacement validates Quantity/Access, locks configuration and catalog rows, audits additions/changes/removals and preserves subscription snapshots. Build zero warnings/errors; 61 plan/benefit tests passed, zero failed/skipped.
+
+Build/tests/diff verified before task commit; user authorized small commits and immediate
+pushes. Exact hashes/results will be recorded in final validation. Production untouched.
+
+### 2026-10-09 — Membership Plans task 8
+
+Freelance eligibility is administered by plan BranchId, permits Members registered in other branches and never changes Sales ownership. Added paginated eligible lists and exact phone/code/ID candidate lookup; old endpoint delegates to shared locks/audit. Build clean; 69 plan/existing Freelance tests passed.
 
 Build/tests/diff verified before task commit; user authorized small commits and immediate
 pushes. Exact hashes/results will be recorded in final validation. Production untouched.

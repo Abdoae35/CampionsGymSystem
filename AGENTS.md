@@ -41,8 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 7.
-- Plan benefit replacement validates Quantity/Access, locks configuration and catalog rows, audits additions/changes/removals and preserves subscription snapshots. Build zero warnings/errors; 61 plan/benefit tests passed, zero failed/skipped.
+- Membership Plans Management in progress on MembershipPlansManagement. Latest completed task: 8.
+- Freelance eligibility is administered by plan BranchId, permits Members registered in other branches and never changes Sales ownership. Added paginated eligible lists and exact phone/code/ID candidate lookup; old endpoint delegates to shared locks/audit. Build clean; 69 plan/existing Freelance tests passed.
 - BranchId owns/administers plans; CityId remains access only. Legacy BranchId stays null;
   global-only administration until explicitly mapped. Global catalogs require global access.
 - Verified task commit/push accompanies this checkpoint; remaining requested tasks continue.

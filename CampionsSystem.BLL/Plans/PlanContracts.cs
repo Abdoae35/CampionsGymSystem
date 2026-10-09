@@ -90,3 +90,9 @@ public sealed class EligibleMemberRequest
 public sealed record EligibleMemberDetails(Guid MemberId, string FullName, string PrimaryPhone, Guid RegistrationBranchId,
     long? ClientCode, string MemberCode, DateTimeOffset? AddedAt);
 public sealed record EligibleMemberListResult(IReadOnlyList<EligibleMemberDetails> Items, int TotalCount, int Page, int PageSize);
+public sealed class EligibleMemberCandidateRequest
+{
+    public Guid? MemberId { get; set; }
+    [MaxLength(64)] public string? Phone { get; set; }
+    [MaxLength(256)] public string? MemberCode { get; set; }
+}
