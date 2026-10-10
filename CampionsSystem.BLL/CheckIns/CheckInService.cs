@@ -68,14 +68,16 @@ public sealed partial class CheckInService(ApplicationDbContext db, ICurrentUser
             if(s.Status=="Frozen")return Result(AccessReasons.SubscriptionFrozen,s);
             if(s.Mode==nameof(AccessMode.SessionBased) && s.RemainingSessions<=0)
             {
-                if(await subscriptions.PendingFirstEntrySaleAsync(member.Id,branch.CityId,date,ct)!=null)
-                    return Result(AccessReasons.PendingFirstCheckIn) with{CanActivateOnCheckIn=true};
+                if(await subscriptions.PendingFirstEntrySaleAsync(member.Id,branch.CityId,date,ct) is Guid pending)
+                    return await subscriptions.IsPaidSaleOverdueAsync(pending,date,ct) ? Result(AccessReasons.InstallmentOverdue)
+                        : Result(AccessReasons.PendingFirstCheckIn) with{CanActivateOnCheckIn=true};
                 return Result(AccessReasons.NoSessionsRemaining,s);
             }
             return Result(s.Status=="Active"?AccessReasons.Allowed:AccessReasons.NoGymEntitlement,s);
         }
-        if (await subscriptions.PendingFirstEntrySaleAsync(member.Id,branch.CityId,date,ct) != null)
-            return Result(AccessReasons.PendingFirstCheckIn) with { CanActivateOnCheckIn = true };
+        if (await subscriptions.PendingFirstEntrySaleAsync(member.Id,branch.CityId,date,ct) is Guid pendingSale)
+            return await subscriptions.IsPaidSaleOverdueAsync(pendingSale,date,ct) ? Result(AccessReasons.InstallmentOverdue)
+                : Result(AccessReasons.PendingFirstCheckIn) with { CanActivateOnCheckIn = true };
         var expired=facts.Where(x=>x.StartDate<=date && x.EndDate<date).ToArray();
         if(expired.Length>1)return Result(AccessReasons.AmbiguousEntitlement);
         if(expired.Length==1)
@@ -83,7 +85,7 @@ public sealed partial class CheckInService(ApplicationDbContext db, ICurrentUser
             var s=expired[0];
             if(s.EmployeeId!=null)return Result(AccessReasons.EmployeeEntitlementInactive,s);
             if(s.Status=="Cancelled")return Result(AccessReasons.SubscriptionCancelled,s);
-            if(s.Status=="SuspendedForInstallment")return Result(AccessReasons.SubscriptionSuspended,s);
+            if(s.Status=="SuspendedForInstallment")return Result(await subscriptions.IsSubscriptionOverdueAsync(s.Id,date,ct)?AccessReasons.InstallmentOverdue:AccessReasons.SubscriptionSuspended,s);
             if(s.AccessCityId!=branch.CityId)return Result(AccessReasons.AccessCityMismatch,s);
             if(await db.SubscriptionFreezes.AnyAsync(x=>x.MemberSubscriptionId==s.Id && x.FreezeType==FreezeType.Normal && x.StartDate<=date && (x.EndDate==null || x.EndDate>=date),ct)
                 || await db.MemberSubscriptions.AnyAsync(x=>x.Id==s.Id && x.Status==SubscriptionStatus.Frozen,ct))
@@ -95,7 +97,8 @@ public sealed partial class CheckInService(ApplicationDbContext db, ICurrentUser
             return Result(used>=2?AccessReasons.BorrowLimitReached:AccessReasons.SubscriptionExpired,s,used<2,used);
         }
         var stopped=facts.FirstOrDefault(x=>x.StartDate<=date && x.Status is "Cancelled" or "SuspendedForInstallment");
-        if(stopped!=null)return Result(stopped.Status=="Cancelled"?AccessReasons.SubscriptionCancelled:AccessReasons.SubscriptionSuspended,stopped);
+        if(stopped!=null)return Result(stopped.Status=="Cancelled"?AccessReasons.SubscriptionCancelled
+            :await subscriptions.IsSubscriptionOverdueAsync(stopped.Id,date,ct)?AccessReasons.InstallmentOverdue:AccessReasons.SubscriptionSuspended,stopped);
         var future=facts.Where(x=>x.StartDate>date).OrderBy(x=>x.StartDate).FirstOrDefault();
         return Result(future!=null?AccessReasons.SubscriptionNotStarted:AccessReasons.NoGymEntitlement,future);
     }

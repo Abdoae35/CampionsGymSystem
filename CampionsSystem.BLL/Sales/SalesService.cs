@@ -60,8 +60,9 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
     {
         Amount(amount);
         if (parts is null || parts.Count is < 1 or > 20 || parts.Any(x => x is null || x.FinancialAccountId == Guid.Empty || x.ProviderReference?.Length > 256)
-            || parts.Sum(x => x.Amount) != amount) throw new BusinessRuleException("PaymentParts must sum exactly to the payment amount.");
+            ) throw new BusinessRuleException("PaymentParts must sum exactly to the payment amount.");
         foreach (var part in parts) Amount(part.Amount);
+        if (parts.Sum(x=>x.Amount) != amount) throw new BusinessRuleException("PaymentParts must sum exactly to the payment amount.");
         var accounts = new List<FinancialAccount>();
         foreach (var id in parts.Select(x => x.FinancialAccountId).Distinct().Order())
         {
@@ -112,17 +113,24 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             if (prior.RequestHash != hash || prior.CreatedByUserId != actor.UserId || prior.BranchId != branch) throw new BusinessRuleException("Operation identity belongs to another Sale request.");
             return new SaleReceipt(prior.Id, await db.Payments.Where(x => x.SaleTransactionId == prior.Id).Select(x => x.Id).ToListAsync(ct));
         }
-        if (r.PurchaseMode is not (PurchaseMode.FullPayment or PurchaseMode.Reservation) || !Enum.IsDefined(r.ActivationMode) || r.PaymentParts is null
+        if (r.PurchaseMode is not (PurchaseMode.FullPayment or PurchaseMode.Reservation or PurchaseMode.Installment) || !Enum.IsDefined(r.ActivationMode) || r.PaymentParts is null
             || (r.ActivationMode == SubscriptionActivationMode.SpecificDate) != r.StartDate.HasValue
-            || r.PaymentParts.Count is < 1 or > 20 || r.PaymentParts.Any(x => x is null)
-            || r.PurchaseMode == PurchaseMode.FullPayment && r.ReservationDueDate != null || r.Installments is { Count: > 0 }) throw new BusinessRuleException("Invalid Sale configuration.");
+            || r.PaymentParts.Count > 20 || r.PurchaseMode != PurchaseMode.Installment && r.PaymentParts.Count == 0 || r.PaymentParts.Any(x => x is null)
+            || r.PurchaseMode != PurchaseMode.Reservation && r.ReservationDueDate != null
+            || r.PurchaseMode != PurchaseMode.Installment && (r.Installments is { Count: > 0 } || r.InitialPaymentRequired != null)) throw new BusinessRuleException("Invalid Sale configuration.");
         foreach (var part in r.PaymentParts) Amount(part.Amount);
         var (date, day) = await BusinessDateAsync(branch, ct);
         if (r.ReservationDueDate < date) throw new BusinessRuleException("Reservation due date cannot precede the effective BusinessDate.");
         if (r.StartDate < date) throw new BusinessRuleException("Specific activation date must not precede the effective BusinessDate.");
         if (r.OfferId.HasValue) await db.Offers.FromSqlInterpolated($"SELECT * FROM \"Offers\" WHERE \"Id\"={r.OfferId} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
         var price = await offers.PriceAsync(member, plan, r.OfferId, branch, date, ct); Amount(price.FinalPrice);
-        var tender = r.PaymentParts.Sum(x => x.Amount); Amount(tender);
+        var tender = r.PaymentParts.Sum(x => x.Amount); Amount(tender, r.PurchaseMode != PurchaseMode.Installment);
+        var initialRequired = r.PurchaseMode == PurchaseMode.Installment ? r.InitialPaymentRequired ?? tender : (decimal?)null;
+        if (r.PurchaseMode == PurchaseMode.Installment)
+        {
+            await RequireAsync(SalesPermissions.Installments, branch, ct);
+            ValidateInstallmentSchedule(r.Installments, price.FinalPrice - tender, initialRequired!.Value, price.FinalPrice, date);
+        }
         if (tender > price.FinalPrice || r.PurchaseMode == PurchaseMode.FullPayment && tender != price.FinalPrice)
             throw new BusinessRuleException("Payment must not exceed the Sale price; full-payment purchases require the exact final price.");
         var owner = await db.MemberSalesAssignments.AsNoTracking().SingleOrDefaultAsync(x => x.MemberId == member.Id && x.EndedAt == null && x.AssignedAt <= access.Now, ct);
@@ -130,7 +138,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
         var renewal = await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.EmployeeId == null && !x.IsStandaloneVisit, ct);
         var sale = new SaleTransaction { MemberId = member.Id, BranchId = branch, SaleType = SaleType.GymMembership,
             OperationId = r.OperationId, RequestHash = hash, BusinessDate = date, BusinessDayId = day,
-            PurchaseMode = r.PurchaseMode, ActivationMode = r.ActivationMode, RequestedStartDate = r.StartDate, ReservationDueDate = r.ReservationDueDate,
+            PurchaseMode = r.PurchaseMode, ActivationMode = r.ActivationMode, RequestedStartDate = r.StartDate, ReservationDueDate = r.ReservationDueDate, InitialPaymentRequired = initialRequired,
             GrossAmount = price.OriginalPrice, DiscountAmount = price.Discount, NetAmount = price.FinalPrice, Status = tender == price.FinalPrice ? SaleStatus.Completed : SaleStatus.Open,
             OfferId = price.OfferId, OfferNameSnapshot = price.OfferName, OfferTypeSnapshot = price.OfferType, OfferValueSnapshot = price.OfferValue,
             OfferEligibilityModeSnapshot = price.EligibilityMode, OfferAudienceCategoryIdSnapshot = price.AudienceCategoryId, ExtraDaysSnapshot = price.ExtraDays,
@@ -151,10 +159,11 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             db.Add(new SaleBenefitSnapshot { SaleMembershipSnapshot = snapshot, MembershipBenefitId = benefit.Id, Code = benefit.Code, Name = benefit.Name,
                 GrantType = config.GrantType, Quantity = config.Quantity });
         }
-        var payment = await PaymentAsync(sale, r.OperationId, hash, tender, r.PaymentParts, actor.UserId, ct);
+        if (r.PurchaseMode == PurchaseMode.Installment) CreateInstallmentSchedule(sale,r.Installments!,date,actor.UserId);
+        var payment = tender > 0 ? await PaymentAsync(sale, r.OperationId, hash, tender, r.PaymentParts, actor.UserId, ct) : null;
         access.Audit(actor.UserId, branch, r.PurchaseMode == PurchaseMode.Reservation ? "Sale.Reserved" : "Sale.Created", nameof(SaleTransaction), sale.Id, after: new { member.Id, sale.NetAmount, sale.SalesEmployeeId,
             sale.SalesAttributionSnapshot, sale.CommissionEligible, sale.TargetEligible, date });
         if (price.OfferId != null) access.Audit(actor.UserId, branch, "Offer.Applied", nameof(SaleTransaction), sale.Id, after: price);
-        await db.SaveChangesAsync(ct); return new SaleReceipt(sale.Id, [payment.Id]);
+        await db.SaveChangesAsync(ct); return new SaleReceipt(sale.Id, payment == null ? [] : [payment.Id]);
     }, ct);
 }

@@ -21,7 +21,7 @@ public sealed record InstallmentAllocationInput(Guid InstallmentId, decimal Amou
 public sealed record CreateSaleRequest(Guid OperationId, Guid MemberId, Guid MembershipPlanId,
     PurchaseMode PurchaseMode, SubscriptionActivationMode ActivationMode,
     IReadOnlyList<PaymentPartInput> PaymentParts, Guid? OfferId = null, DateOnly? StartDate = null,
-    DateOnly? ReservationDueDate = null, IReadOnlyList<InstallmentLineInput>? Installments = null, Guid? BranchId = null);
+    DateOnly? ReservationDueDate = null, IReadOnlyList<InstallmentLineInput>? Installments = null, Guid? BranchId = null, decimal? InitialPaymentRequired = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RecordPaymentRequest(Guid OperationId, decimal Amount, IReadOnlyList<PaymentPartInput> Parts,
     IReadOnlyList<InstallmentAllocationInput>? Allocations = null);

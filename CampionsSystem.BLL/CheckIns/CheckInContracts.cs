@@ -10,6 +10,7 @@ public static class CheckInPermissions
 }
 public static class AccessReasons
 {
+    public const string InstallmentOverdue = "InstallmentOverdue";
     public const string PendingFirstCheckIn = "PendingFirstCheckIn";
     public const string Allowed = "Allowed";
     public const string MemberNotFound = "MemberNotFound";

@@ -17,11 +17,12 @@ public sealed partial class SalesService
             return await PaymentDetailsAsync(retry.Id,ct);
         }
         if(sale.CancelledAt!=null)throw new BusinessRuleException("Cancelled Sales cannot receive additional payments.");
-        if(r.Allocations is {Count:>0})throw new BusinessRuleException("This Sale has no installment obligations.");
+        if(sale.PurchaseMode!=PurchaseMode.Installment && r.Allocations is {Count:>0})throw new BusinessRuleException("This Sale has no installment obligations.");
         Amount(r.Amount);
         var collected=await db.Payments.Where(x=>x.SaleTransactionId==sale.Id && x.Status==PaymentStatus.Completed).SumAsync(x=>x.Amount,ct);
         if(r.Amount>sale.NetAmount-collected)throw new BusinessRuleException("Payment exceeds the outstanding Sale amount.");
         var payment=await PaymentAsync(sale,r.OperationId,hash,r.Amount,r.Parts,actor.UserId,ct);
+        if(sale.PurchaseMode==PurchaseMode.Installment)await AllocateInstallmentsAsync(sale,payment,r.Allocations,actor.UserId,ct);
         sale.Status=collected+r.Amount==sale.NetAmount?SaleStatus.Completed:SaleStatus.Open;sale.Version++;
         if(sale.Status==SaleStatus.Completed)access.Audit(actor.UserId,sale.BranchId,"Sale.Completed",nameof(SaleTransaction),sale.Id,
             after:new{sale.MemberId,Collected=collected+r.Amount,sale.NetAmount});

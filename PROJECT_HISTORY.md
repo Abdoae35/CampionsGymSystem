@@ -43,11 +43,11 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 5 — reservations and deposits.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 6 — installments and overdue access.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 6: flexible installment schedules, explicit allocations, financial qualification and derived overdue access suspension/resumption.
+- Next: Task 7: explicit paid standalone visit, one entry only, with no borrowed debt settlement or new borrowing cycle.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1944,3 +1944,9 @@ Checkpoint prepared for the requested verified task commit/push; actual publicat
 Added positive-deposit reservation Sales with nullable deadline and immutable sold Offer/plan/benefit terms. Partial payments create account-specific real money movements while granting no access; deadline passing does not automatically cancel. Added Sale-scoped additional Payment workflow with exact parts, branch permission, request identity, Member/Sale row locks and outstanding balance cap. Final payment and snapshot-based activation commit together; a past chosen Specific Date starts at final-payment effective BusinessDate as confirmed, or remains undated until first entry. Original requested date preserved. Build zero warnings/errors; 51 Sale/payment/Offer/activation/reservation/race tests passed, zero failed/skipped, including late completion, unchanged expired/deactivated Offer price, multiple deposits, no early access, incorrect parts/overpayment rejection and concurrent final payment with exactly one activation. Diff/whitespace reviewed; no migration. Task 4 419670e pushed; application Development migrations pending, Production untouched.
 
 Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 6: flexible installment schedules, explicit allocations, financial qualification and derived overdue access suspension/resumption.
+
+### 2026-10-10 — Sales Task 6 — installments and overdue access
+
+Added flexible positive installment obligations and explicit initial-payment threshold using existing agreement/line entities and allocation junction. Schedules reconcile with Sale price after actual initial money and may span arbitrary dates/months. Zero-money creation writes no Payment and grants no entitlement; activation waits for real completed positive payments meeting the agreed threshold. Additional payments require exact unique allocations to this Sale, prevent obligation overpayment under Member/Sale locks, preserve history and update operational caches. Authoritative subscription/Check-In suspension derives due date strictly before effective BusinessDate plus real allocation shortfall, ignoring manually altered paid/status caches; stable InstallmentOverdue denial covers current/expired and pending-first-entry access. Settling all overdue obligations resumes access immediately without changing EndDate; audited resolution. Build zero warnings/errors; 172 Finance/activation/installment/concurrency/subscription/Check-In regressions passed, zero failed/skipped, including multi-month schedules, initial threshold, multiple-obligation payments/retries, cache tampering not granting access, missing/wrong/over-allocation, permission failure, concurrent obligation race and overdue first-entry blocking. Diff/whitespace reviewed; no migration because existing installment/allocation schema reused. Task 5 b33b266 pushed; Development application migrations pending and Production untouched.
+
+Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 7: explicit paid standalone visit, one entry only, with no borrowed debt settlement or new borrowing cycle.

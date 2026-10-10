@@ -46,6 +46,11 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
                     .Select(d => (DateOnly?)d.BusinessDate).SingleOrDefault() ?? today)
                 && (f.EndDate == null || f.EndDate >= (at ?? db.BusinessDays.Where(d => d.BranchId == s.PurchasedAtBranchId && d.Status == BusinessDayStatus.Open)
                     .Select(d => (DateOnly?)d.BusinessDate).SingleOrDefault() ?? today))),
+            Overdue = db.Installments.Any(i => i.InstallmentAgreement.SaleTransaction.OperationId != null
+                && i.InstallmentAgreement.SaleTransaction.PurchaseMode == PurchaseMode.Installment && i.InstallmentAgreement.SaleTransaction.CancelledAt == null
+                && i.DueDate < (at ?? db.BusinessDays.Where(d=>d.BranchId==s.PurchasedAtBranchId && d.Status==BusinessDayStatus.Open).Select(d=>(DateOnly?)d.BusinessDate).SingleOrDefault() ?? today)
+                && i.AmountDue > db.InstallmentPaymentAllocations.Where(a=>a.InstallmentId==i.Id && a.Payment.Status==PaymentStatus.Completed).Sum(a=>a.Amount)
+                && db.MembershipSubscriptionTransactions.Any(g=>g.SaleTransactionId==i.InstallmentAgreement.SaleTransactionId && g.MemberSubscriptionId==s.Id)),
             Name = db.MembershipSubscriptionTransactions.Where(t => t.MemberSubscriptionId == s.Id)
                 .OrderBy(t => t.CreatedAt).ThenBy(t => t.Id).Select(t => t.PlanNameSnapshot).FirstOrDefault(),
             Type = db.MembershipSubscriptionTransactions.Where(t => t.MemberSubscriptionId == s.Id)
@@ -57,6 +62,7 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
             Status = x.S.Status == SubscriptionStatus.Cancelled ? SubscriptionStatus.Cancelled
                 : x.S.Status == SubscriptionStatus.SuspendedForInstallment ? SubscriptionStatus.SuspendedForInstallment
                 : !x.MemberActive || !x.EmploymentValid || x.S.EmployeeId != null && x.S.EndDate != null ? SubscriptionStatus.Expired
+                : x.Overdue ? SubscriptionStatus.SuspendedForInstallment
                 : x.Day < x.S.StartDate ? SubscriptionStatus.Scheduled
                 : x.S.EndDate != null && x.Day > x.S.EndDate || x.S.AccessMode == AccessMode.SessionBased && x.S.RemainingSessions <= 0 ? SubscriptionStatus.Expired
                 : x.Frozen || x.UnreconciledFreeze ? SubscriptionStatus.Frozen : SubscriptionStatus.Active

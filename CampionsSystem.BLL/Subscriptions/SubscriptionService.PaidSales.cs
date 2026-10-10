@@ -73,4 +73,14 @@ public sealed partial class SubscriptionService
         if (pending.Count > 1) throw new BusinessRuleException("Ambiguous paid entitlements pending first entry.");
         return pending.Count == 1 ? pending[0] : null;
     }
+    internal Task<bool> IsPaidSaleOverdueAsync(Guid saleId,DateOnly date,CancellationToken ct)
+        => db.Installments.AnyAsync(i=>i.InstallmentAgreement.SaleTransactionId==saleId && i.InstallmentAgreement.SaleTransaction.CancelledAt==null
+            && i.InstallmentAgreement.SaleTransaction.PurchaseMode==PurchaseMode.Installment && i.DueDate<date
+            && i.AmountDue>db.InstallmentPaymentAllocations.Where(a=>a.InstallmentId==i.Id && a.Payment.Status==PaymentStatus.Completed).Sum(a=>a.Amount),ct);
+    internal Task<bool> IsSubscriptionOverdueAsync(Guid subscriptionId,DateOnly date,CancellationToken ct)
+        => db.Installments.AnyAsync(i=>i.InstallmentAgreement.SaleTransaction.OperationId!=null && i.InstallmentAgreement.SaleTransaction.CancelledAt==null
+            && i.InstallmentAgreement.SaleTransaction.PurchaseMode==PurchaseMode.Installment && i.DueDate<date
+            && i.AmountDue>db.InstallmentPaymentAllocations.Where(a=>a.InstallmentId==i.Id && a.Payment.Status==PaymentStatus.Completed).Sum(a=>a.Amount)
+            && db.MembershipSubscriptionTransactions.Any(g=>g.MemberSubscriptionId==subscriptionId && g.SaleTransactionId==i.InstallmentAgreement.SaleTransactionId),ct);
+
 }
