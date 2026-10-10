@@ -50,9 +50,19 @@ public sealed partial class SubscriptionService
         var periods = await Evaluated(date).Where(x => x.Subscription.MemberId == memberId && !x.Subscription.IsStandaloneVisit
             && x.Status != SubscriptionStatus.Cancelled && (x.Subscription.EndDate == null || x.Subscription.EndDate >= date)
             && !(x.Status == SubscriptionStatus.Expired && x.Subscription.AccessMode == AccessMode.SessionBased && x.Subscription.RemainingSessions <= 0)).Take(3).ToListAsync(ct);
-        if (periods.Count > 1 || periods.Any(x => x.Subscription.EmployeeId != null || x.Subscription.StartDate > date))
+        var currentPeriods = periods.Where(x => x.Subscription.StartDate <= date).ToList();
+        var futurePeriods = periods.Where(x => x.Subscription.StartDate > date).ToList();
+        var current = currentPeriods.Count == 1 ? currentPeriods[0] : null;
+        var soldPlan = SoldPlan(sale);
+        // A compatible early renewal may extend its current period and shift its one queued successor.
+        // Another future purchase must still fail rather than create overlapping/ambiguous entitlement.
+        var canShiftSuccessor = current != null && current.Status is (SubscriptionStatus.Active or SubscriptionStatus.Frozen)
+            && futurePeriods.Count == 1 && futurePeriods[0].Subscription.FollowsSubscriptionId == current.Subscription.Id
+            && current.Subscription.AccessMode == soldPlan.AccessMode && current.Subscription.CityId == soldPlan.CityId
+            && current.Subscription.PurchasedAtBranchId == sale.BranchId && current.PlanType == soldPlan.PlanCategory;
+        if (currentPeriods.Count > 1 || periods.Any(x => x.Subscription.EmployeeId != null)
+            || (futurePeriods.Count > 0 && !canShiftSuccessor))
             throw new BusinessRuleException("Conflicting current/future entitlement must be resolved before paid activation.");
-        var current = periods.SingleOrDefault();
         if (current != null && current.Status is not (SubscriptionStatus.Active or SubscriptionStatus.Frozen or SubscriptionStatus.Expired))
             throw new BusinessRuleException("Current entitlement cannot be renewed in its present state.");
         var ongoing = current?.Status is SubscriptionStatus.Active or SubscriptionStatus.Frozen ? current : null;

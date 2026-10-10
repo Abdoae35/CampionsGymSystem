@@ -72,7 +72,7 @@ public sealed class SubscriptionPurchaseService(ApplicationDbContext db, Operati
     // Retained signature for old callers; this financial/ownership path is deliberately disabled.
     public Task<PurchaseResult> PurchaseFreelanceAsync(FreelancePurchaseRequest request, CancellationToken ct = default)
         => Task.FromException<PurchaseResult>(new BusinessRuleException(
-            "Legacy Freelance purchasing is disabled. Customer activation requires the future Sales/Payments integration."));
+            "Legacy Freelance purchasing is disabled. Customer activation requires the authorized Sales/Payments workflow."));
 
     private SaleTransaction Sale(Guid member, Guid branch, Guid actor, SaleType type, decimal price) => new()
     {

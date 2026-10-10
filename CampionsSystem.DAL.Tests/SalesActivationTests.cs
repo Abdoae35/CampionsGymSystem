@@ -68,6 +68,33 @@ public sealed partial class SalesTests
         await Assert.ThrowsAsync<BusinessRuleException>(()=>Finance().CreateAsync(r with{OperationId=Guid.NewGuid(),ActivationMode=SubscriptionActivationMode.Now}));
         Assert.Single(await db.SaleTransactions.ToListAsync());Assert.Single(await db.Payments.ToListAsync());
     }
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task CompatibleEarlyRenewalShiftsOneQueuedSuccessorWithoutAllowingAnotherFuturePurchase(bool sessions)
+    {
+        Reception();var cash=await Account();
+        if(sessions){plan.AccessMode=AccessMode.SessionBased;plan.SessionCount=12;await db.SaveChangesAsync();}
+        await Finance().CreateAsync(Purchase(new PaymentPartInput(cash.Id,1200)));
+        var source=await db.MemberSubscriptions.SingleAsync();
+        if(sessions){source.RemainingSessions=4;await db.SaveChangesAsync();}
+        plan.AccessMode=sessions?AccessMode.Unlimited:AccessMode.SessionBased;plan.SessionCount=sessions?null:12;await db.SaveChangesAsync();
+        await Finance().CreateAsync(Purchase(new PaymentPartInput(cash.Id,1200)));
+        var future=await db.MemberSubscriptions.SingleAsync(x=>x.FollowsSubscriptionId==source.Id);
+        var futureGrant=await db.MembershipSubscriptionTransactions.SingleAsync(x=>x.MemberSubscriptionId==future.Id);
+        Assert.Equal(today.AddDays(30),future.StartDate);
+        await Assert.ThrowsAsync<BusinessRuleException>(()=>Finance().CreateAsync(Purchase(new PaymentPartInput(cash.Id,1200))));
+        Assert.Equal(2,await db.SaleTransactions.CountAsync());Assert.Equal(2,await db.Payments.CountAsync());
+        // Reattach after the rejected operation cleared tracking; snapshot history must remain unchanged.
+        plan=await db.MembershipPlans.SingleAsync(x=>x.Id==plan.Id);
+        plan.AccessMode=sessions?AccessMode.SessionBased:AccessMode.Unlimited;plan.SessionCount=sessions?12:null;await db.SaveChangesAsync();
+        var renewal=Purchase(new PaymentPartInput(cash.Id,1200)) with{ActivationMode=SubscriptionActivationMode.FirstCheckIn};
+        var first=await Finance().CreateAsync(renewal);var retry=await Finance().CreateAsync(renewal);Assert.Equal(first.SaleId,retry.SaleId);
+        source=await db.MemberSubscriptions.SingleAsync(x=>x.Id==source.Id);future=await db.MemberSubscriptions.SingleAsync(x=>x.Id==future.Id);
+        Assert.Equal(today.AddDays(59),source.EndDate);Assert.Equal(sessions?16:null,source.RemainingSessions);
+        Assert.Equal(today.AddDays(60),future.StartDate);Assert.Equal(today.AddDays(89),future.EndDate);Assert.Equal(sessions?null:12,future.RemainingSessions);
+        Assert.Equal(2,await db.MemberSubscriptions.CountAsync());Assert.Equal(3,await db.MembershipSubscriptionTransactions.CountAsync());
+        Assert.Equal(today.AddDays(30),(await db.MembershipSubscriptionTransactions.SingleAsync(x=>x.Id==futureGrant.Id)).StartDateSnapshot);
+        Assert.True((await Entrance().EvaluateAsync(new(member.Id,null))).Allowed);
+    }
     [Fact] public async Task EntitlementInsertFailureRollsBackRealMoneyAndAllSnapshots()
     {
         var cash=await Account();await db.Database.ExecuteSqlRawAsync("CREATE FUNCTION reject_paid_grant() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced grant failure'; END; $$; CREATE TRIGGER reject_grant BEFORE INSERT ON \"MemberSubscriptions\" FOR EACH ROW EXECUTE FUNCTION reject_paid_grant();");
