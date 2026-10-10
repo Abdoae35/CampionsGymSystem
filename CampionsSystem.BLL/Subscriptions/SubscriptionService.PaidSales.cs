@@ -15,6 +15,12 @@ public sealed partial class SubscriptionService
             SessionCount = s.SessionCount, AllowFreeze = s.FreezeDays > 0, IncludedFreezeDays = s.FreezeDays,
             FreelanceCoachEmployeeId = s.FreelanceCoachEmployeeId, Price = sale.GrossAmount, IsActive = true };
     }
+    internal async Task<string> PaidGrantStatusAsync(Guid grantId,CancellationToken ct)
+    {
+        if(await db.SubscriptionGrantCancellations.AnyAsync(c=>c.GrantId==grantId,ct))return "Cancelled";
+        var subscription=await db.MembershipSubscriptionTransactions.Where(g=>g.Id==grantId).Select(g=>g.MemberSubscriptionId).SingleAsync(ct);
+        return (await Evaluated().SingleAsync(e=>e.Subscription.Id==subscription,ct)).Status.ToString();
+    }
     private IQueryable<SaleTransaction> QualifiedSales() => db.SaleTransactions.Where(s => s.OperationId != null && s.CancelledAt == null
         && db.Payments.Where(p => p.SaleTransactionId == s.Id && p.Status == PaymentStatus.Completed).Sum(p => p.Amount) > 0
         && (s.PurchaseMode == PurchaseMode.Installment

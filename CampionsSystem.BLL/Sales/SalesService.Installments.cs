@@ -43,7 +43,8 @@ public sealed partial class SalesService
         }
         await db.SaveChangesAsync(ct);
         var agreement=await db.InstallmentAgreements.SingleAsync(x=>x.SaleTransactionId==sale.Id,ct);
-        if(!await db.Installments.AnyAsync(x=>x.InstallmentAgreementId==agreement.Id && x.AmountPaid<x.AmountDue,ct))agreement.Status=InstallmentAgreementStatus.Completed;
+        if(!await db.Installments.AnyAsync(x=>x.InstallmentAgreementId==agreement.Id && x.AmountDue>
+            db.InstallmentPaymentAllocations.Where(a=>a.InstallmentId==x.Id && a.Payment.Status==PaymentStatus.Completed).Sum(a=>a.Amount),ct))agreement.Status=InstallmentAgreementStatus.Completed;
         if(wasOverdue && !await subscriptions.IsPaidSaleOverdueAsync(sale.Id,payment.BusinessDate!.Value,ct))
             access.Audit(actor,sale.BranchId,"Installment.OverdueResolved",nameof(SaleTransaction),sale.Id,after:new{sale.MemberId});
     }

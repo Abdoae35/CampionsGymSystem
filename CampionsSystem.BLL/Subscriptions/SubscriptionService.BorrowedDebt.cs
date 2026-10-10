@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.BLL.Subscriptions;
 public sealed partial class SubscriptionService
 {
+    internal async Task ValidatePaidDebtCapacityAsync(Guid memberId,MembershipPlan plan,CancellationToken ct)
+        =>_ = await OutstandingBorrowedDebtAsync(memberId,plan,ct);
     // Caller already holds the Member lock used by Check-In, so no new debt can race this grant.
     private async Task<List<BorrowedGymSession>> OutstandingBorrowedDebtAsync(Guid memberId,MembershipPlan plan,CancellationToken ct)
     {

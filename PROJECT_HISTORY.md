@@ -43,11 +43,11 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 9 — permission-based Quick Cancel.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 10 — financial queries and reporting foundations.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 10: scoped financial histories, authoritative balances/statuses and Cash/InstaPay totals.
+- Next: Task 11: thin Sales/Offer/account APIs, permission catalog, HTTP authorization tests and Postman.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1968,3 +1968,9 @@ Checkpoint prepared for the requested verified task commit/push; actual publicat
 Implemented Sales.QuickCancel capability independently of refund roles, within exactly 24 actual hours of Sale creation. Original payment parts are aggregated by their exact source accounts for a full historical refund/debit reversal, including inactive historical accounts; normal refunds still require active selected accounts. Cancels unused current, scheduled and undated paid grants while preserving other earlier paid grants. Check-In, benefit use, freezes and debt settlement are material use checks; shared Member/Sale locks serialize entry/payment/cancellation, and exact retry hash returns the existing reversal. No role-name authorization. Build zero warnings/errors; all 10 focused Quick Cancel/usage/boundary/atomic-race cases passed, zero failed/skipped. Diff/whitespace reviewed; no migration. Task 8 dd5ab96 pushed; application Development migrations pending and Production untouched.
 
 Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 10: scoped financial histories, authoritative balances/statuses and Cash/InstaPay totals.
+
+### 2026-10-10 — Sales Task 10 — financial queries and reporting foundations
+
+Added scoped paginated Sale/Payment/Refund histories, bounded detailed sold terms and exact grant references, derived collected/refunded/outstanding balances, reservation/activation states, installment obligations from real allocations, and separate Cash/InstaPay gross/refund/net branch totals by operational date. Retained cancelled amounts are explicitly CancellationFee with commission/target-ineligible metadata. Account branch/method/opening facts cannot be mutated to rewrite historical classification; only ledger records move money. Installment agreement completion now also ignores tampered caches. Managed Freelance revenue reporting accepts preserved Sales owners with explicit exclusion flags; legacy House history remains unchanged and registration branch no longer limits eligible-member counts. Normal Sale creation checks current borrowed-debt capacity before accepting deposits; actual activation revalidates it. Build zero warnings/errors; 41 query/debt/visitor/legacy operations regressions passed, zero failed/skipped. One test report-property naming compile error corrected before final clean build. Diff/whitespace reviewed; no migration. Task 9 0d2a80d pushed; application Development migrations pending, Production untouched.
+
+Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 11: thin Sales/Offer/account APIs, permission catalog, HTTP authorization tests and Postman.

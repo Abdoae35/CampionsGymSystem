@@ -55,7 +55,10 @@ public sealed record SaleDetails(SaleSummary Sale, string MemberName, string? Pl
     bool? CommissionEligible, bool? TargetEligible, Guid? SubscriptionId, Guid? GrantId,
     string ActivationStatus, DateOnly? RequestedStartDate, DateOnly? ReservationDueDate,
     string? OfferName, int ExtraDays, decimal RetainedCancellationRevenue,
-    IReadOnlyList<PaymentDetails> Payments, IReadOnlyList<RefundDetails> Refunds, IReadOnlyList<InstallmentDetails> Installments);
+    IReadOnlyList<PaymentDetails> Payments, IReadOnlyList<RefundDetails> Refunds, IReadOnlyList<InstallmentDetails> Installments,
+    Guid? OfferId = null, string? OfferType = null, decimal? OfferValue = null, string? OfferEligibilityMode = null,
+    Guid? OfferAudienceCategoryId = null, string RetainedRevenueClassification = "CancellationFee",
+    bool RetainedCommissionEligible = false, bool RetainedTargetEligible = false);
 public sealed class SaleHistoryRequest
 {
     public Guid? BranchId { get; set; }
@@ -78,3 +81,5 @@ public sealed record SetMemberAudienceRequest(IReadOnlyList<Guid> AudienceCatego
 public sealed record MemberAudienceDetails(Guid Id, Guid CategoryId, string CategoryName, DateTimeOffset AssignedAt, DateTimeOffset? EndedAt);
 
 public sealed record SaleReceipt(Guid SaleId, IReadOnlyList<Guid> PaymentIds);
+public sealed record PaymentHistory(IReadOnlyList<PaymentDetails> Items,int TotalCount,int Page,int PageSize);
+public sealed record RefundHistory(IReadOnlyList<RefundDetails> Items,int TotalCount,int Page,int PageSize);

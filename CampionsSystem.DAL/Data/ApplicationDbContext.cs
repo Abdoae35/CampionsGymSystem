@@ -121,6 +121,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not
                 (nameof(SaleTransaction.Status) or nameof(SaleTransaction.Version) or nameof(SaleTransaction.CancelledAt) or nameof(SaleTransaction.CancelledByUserId) or nameof(SaleTransaction.CancellationReason))))
                 throw new InvalidOperationException("Managed sale commercial facts are immutable; cancellation preserves original history.");
+        if(ChangeTracker.Entries<FinancialAccount>().Any(x=>x.State==EntityState.Modified && x.Properties.Any(p=>p.IsModified && p.Metadata.Name is
+            nameof(FinancialAccount.BranchId) or nameof(FinancialAccount.AccountType) or nameof(FinancialAccount.OpeningBalance))))
+            throw new InvalidOperationException("Account branch, method and opening facts are immutable; record money movements in the ledger.");
         if (ChangeTracker.Entries<SaleMembershipSnapshot>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<SaleBenefitSnapshot>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<InstallmentPaymentAllocation>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)

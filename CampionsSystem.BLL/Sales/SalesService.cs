@@ -126,6 +126,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
         if (r.PurchaseMode == PurchaseMode.StandaloneSingleSession && (plan.AccessMode != AccessMode.SessionBased || plan.SessionCount != 1))
             throw new BusinessRuleException("Standalone visits require an eligible one-session SessionBased plan.");
         var price = await offers.PriceAsync(member, plan, r.OfferId, branch, date, ct); Amount(price.FinalPrice);
+        if(r.PurchaseMode!=PurchaseMode.StandaloneSingleSession)await subscriptions.ValidatePaidDebtCapacityAsync(member.Id,plan,ct);
         var tender = r.PaymentParts.Sum(x => x.Amount); Amount(tender, r.PurchaseMode != PurchaseMode.Installment);
         var initialRequired = r.PurchaseMode == PurchaseMode.Installment ? r.InitialPaymentRequired ?? tender : (decimal?)null;
         if (r.PurchaseMode == PurchaseMode.Installment)

@@ -138,13 +138,14 @@ public sealed class CoachReportService(ApplicationDbContext db, OperationAccess 
         var plan = await db.MembershipPlans.AsNoTracking().Include(x => x.FreelanceCoachEmployee)
             .SingleOrDefaultAsync(x => x.Id == planId && x.PlanCategory == PlanCategory.Freelance, ct)
             ?? throw new BusinessRuleException("Freelance plan not found.");
-        var eligible = await db.MembershipPlanEligibleMembers.CountAsync(x => x.MembershipPlanId == planId
-            && x.Member.HomeBranchId == branchId, ct);
+        if(plan.BranchId!=branchId)throw new BusinessRuleException("Report branch must own the Freelance plan.");
+        var eligible = await db.MembershipPlanEligibleMembers.CountAsync(x => x.MembershipPlanId == planId && x.Member.IsActive, ct);
         var purchases = await db.MembershipSubscriptionTransactions.AsNoTracking().Where(x => x.MembershipPlanId == planId
             && x.PlanCategorySnapshot == PlanCategory.Freelance && x.SaleTransaction!.BranchId == branchId)
             .Select(x => new { x.SaleTransactionId, x.FreelanceCoachEmployeeIdSnapshot,
                 Coach = x.FreelanceCoachEmployeeSnapshot!.FullName, x.MemberSubscription.MemberId,
-                x.SaleTransaction!.SalesAttributionSnapshot, x.SaleTransaction!.SalesEmployeeId, x.SaleTransaction!.SaleCategory, x.CreatedAt }).ToListAsync(ct);
+                x.SaleTransaction!.SalesAttributionSnapshot, x.SaleTransaction!.SalesEmployeeId, x.SaleTransaction!.SaleCategory,
+                x.SaleTransaction!.OperationId,x.SaleTransaction!.CommissionEligible,x.SaleTransaction!.TargetEligible,x.CreatedAt }).ToListAsync(ct);
         var ids = purchases.Select(x => x.SaleTransactionId).ToArray();
         if (purchases.GroupBy(x => x.SaleTransactionId).Any(g => g.Count() != 1))
             throw new BusinessRuleException("Ambiguous membership sale; reconcile before reporting.");
@@ -154,8 +155,10 @@ public sealed class CoachReportService(ApplicationDbContext db, OperationAccess 
         var refunds = await db.Refunds.AsNoTracking().Where(x => ids.Contains(x.SaleTransactionId) && x.BranchId == branchId
             && x.CreatedAt >= from && x.CreatedAt < until).Select(x => new { x.SaleTransactionId, x.Amount }).ToListAsync(ct);
         if (payments.Any(x => x.Parts != x.Amount)) throw new BusinessRuleException("PaymentParts do not match received gym money.");
-        if (purchases.Any(x => x.SalesAttributionSnapshot != AssignmentType.House || x.SalesEmployeeId != null || x.SaleCategory != null))
+        if (purchases.Any(x => x.OperationId==null && (x.SalesAttributionSnapshot != AssignmentType.House || x.SalesEmployeeId != null || x.SaleCategory != null)))
             throw new BusinessRuleException("Legacy Freelance sale requires explicit House attribution reconciliation.");
+        if(purchases.Any(x=>x.OperationId!=null && (x.CommissionEligible!=false || x.TargetEligible!=false)))
+            throw new BusinessRuleException("Managed Freelance revenue must be commission/target ineligible.");
         var result = purchases.GroupBy(x => new { x.FreelanceCoachEmployeeIdSnapshot, x.Coach }).Select(g =>
         {
             var groupIds = g.Select(x => x.SaleTransactionId).ToHashSet();
@@ -163,7 +166,7 @@ public sealed class CoachReportService(ApplicationDbContext db, OperationAccess 
                 g.Key.FreelanceCoachEmployeeIdSnapshot == plan.FreelanceCoachEmployeeId ? eligible : 0,
                 g.Where(x => x.CreatedAt >= from && x.CreatedAt < until).Select(x => x.MemberId).Distinct().Count(),
                 payments.Where(x => groupIds.Contains(x.SaleTransactionId)).Sum(x => x.Amount)
-                - refunds.Where(x => groupIds.Contains(x.SaleTransactionId)).Sum(x => x.Amount), "House");
+                - refunds.Where(x => groupIds.Contains(x.SaleTransactionId)).Sum(x => x.Amount), g.Any(x=>x.OperationId!=null)?"CommissionIneligible":"House");
         }).ToList();
         if (result.All(x => x.CoachEmployeeId != plan.FreelanceCoachEmployeeId))
             result.Add(new(plan.Id, plan.Name, plan.FreelanceCoachEmployeeId!.Value, plan.FreelanceCoachEmployee!.FullName, eligible, 0, 0, "House"));
