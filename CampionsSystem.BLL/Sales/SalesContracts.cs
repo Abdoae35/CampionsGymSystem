@@ -83,3 +83,7 @@ public sealed record MemberAudienceDetails(Guid Id, Guid CategoryId, string Cate
 public sealed record SaleReceipt(Guid SaleId, IReadOnlyList<Guid> PaymentIds);
 public sealed record PaymentHistory(IReadOnlyList<PaymentDetails> Items,int TotalCount,int Page,int PageSize);
 public sealed record RefundHistory(IReadOnlyList<RefundDetails> Items,int TotalCount,int Page,int PageSize);
+public sealed record OfferHistory(IReadOnlyList<OfferDetails> Items,int TotalCount,int Page,int PageSize);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record CreateFinancialAccountRequest(string Name,FinancialAccountType Method,Guid? BranchId=null);
+public sealed record FinancialAccountDetails(Guid Id,Guid BranchId,string Name,string Method,bool IsActive);

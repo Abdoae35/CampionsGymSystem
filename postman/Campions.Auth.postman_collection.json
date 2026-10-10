@@ -216,6 +216,66 @@
       "key": "guestPhone",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "saleId",
+      "value": ""
+    },
+    {
+      "key": "offerId",
+      "value": ""
+    },
+    {
+      "key": "offerMemberGrantId",
+      "value": ""
+    },
+    {
+      "key": "cashAccountId",
+      "value": ""
+    },
+    {
+      "key": "instaPayAccountId",
+      "value": ""
+    },
+    {
+      "key": "singleSessionPlanId",
+      "value": ""
+    },
+    {
+      "key": "installmentId",
+      "value": ""
+    },
+    {
+      "key": "saleOperationId",
+      "value": ""
+    },
+    {
+      "key": "paymentOperationId",
+      "value": ""
+    },
+    {
+      "key": "refundOperationId",
+      "value": ""
+    },
+    {
+      "key": "quickCancelOperationId",
+      "value": ""
+    },
+    {
+      "key": "activationDate",
+      "value": "2026-10-15"
+    },
+    {
+      "key": "installmentDueDate",
+      "value": "2026-10-20"
+    },
+    {
+      "key": "providerReference",
+      "value": ""
+    },
+    {
+      "key": "singleSessionPrice",
+      "value": "100"
     }
   ],
   "item": [
@@ -1579,7 +1639,7 @@
                 }
               ]
             },
-            "description": "Leads.Assign + Leads.Manage; 1\u2013100 rows. Created/AlreadyMember/AlreadyLead/Invalid per row. These examples include a phone-only prospect; choose distinct real test phones.",
+            "description": "Leads.Assign + Leads.Manage; 1–100 rows. Created/AlreadyMember/AlreadyLead/Invalid per row. These examples include a phone-only prospect; choose distinct real test phones.",
             "body": {
               "mode": "raw",
               "raw": "[\n  {\n    \"fullName\": \"{{leadFullName}}\",\n    \"primaryPhone\": \"{{leadPrimaryPhone}}\",\n    \"secondaryPhone\": null,\n    \"email\": null,\n    \"source\": \"WalkIn\",\n    \"notes\": null,\n    \"branchId\": \"{{crmOperationalBranchId}}\"\n  },\n  {\n    \"branchId\": \"{{crmOperationalBranchId}}\",\n    \"primaryPhone\": \"{{leadSecondPhone}}\"\n  }\n]",
@@ -3971,6 +4031,1000 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "15. Sales and Payments",
+      "description": "Select ONE workflow at a time: these are real financial mutations, not a bulk test suite. Amounts illustrate a 1200 plan: quote the actual price and configure source accounts. PurchaseMode FullPayment=0 Reservation=1 Installment=2 StandaloneSingleSession=3; Activation Now=0 FirstCheckIn=1 SpecificDate=2; General=0 MemberOnly=1; Cash=0 InstaPay=1. Early renewals are immediate. Keep each UUID for exact retries; CLEAR its environment value before a different intentional operation. First entry uses the Check-In folder. Owner explicitly selects branch; staff use their authenticated branch. Standalone needs an eligible one-session plan, preserves debt/borrow allowance and is commission/target ineligible.",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (!pm.environment.get(\"saleOperationId\")) pm.environment.set(\"saleOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));",
+              "if (!pm.environment.get(\"paymentOperationId\")) pm.environment.set(\"paymentOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));",
+              "if (!pm.environment.get(\"refundOperationId\")) pm.environment.set(\"refundOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));",
+              "if (!pm.environment.get(\"quickCancelOperationId\")) pm.environment.set(\"quickCancelOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+            ]
+          }
+        }
+      ],
+      "item": [
+        {
+          "name": "Active branch accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/financial-accounts",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Provision zero-opening Cash (global management)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/financial-accounts",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Branch Cash\",\n  \"method\": 0,\n  \"branchId\": \"{{branchId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"cashAccountId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Provision zero-opening InstaPay (global management)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/financial-accounts",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Branch InstaPay\",\n  \"method\": 1,\n  \"branchId\": \"{{branchId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"instaPayAccountId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eligible Offers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/offers?memberId={{memberId}}&membershipPlanId={{membershipPlanId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Authoritative price quote",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/offers/quote?memberId={{memberId}}&membershipPlanId={{membershipPlanId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Quote selected Offer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/offers/quote?memberId={{memberId}}&membershipPlanId={{membershipPlanId}}&offerId={{offerId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Offer management history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/offers/management?branchId={{branchId}}&page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create General Offer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/offers",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer\",\n  \"type\": 1,\n  \"value\": 200,\n  \"membershipPlanIds\": [\n    \"{{membershipPlanId}}\"\n  ],\n  \"eligibilityMode\": 0,\n  \"audienceCategoryId\": null,\n  \"isPermanent\": true,\n  \"branchId\": \"{{branchId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"offerId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Configure MemberOnly and dynamic audience",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/offers/{{offerId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer\",\n  \"type\": 1,\n  \"value\": 200,\n  \"membershipPlanIds\": [\n    \"{{membershipPlanId}}\"\n  ],\n  \"eligibilityMode\": 1,\n  \"audienceCategoryId\": \"{{planCategoryId}}\",\n  \"isPermanent\": true,\n  \"branchId\": \"{{branchId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Offer details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/offers/{{offerId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Grant MemberOnly entitlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/offers/{{offerId}}/member-entitlements",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"memberId\": \"{{memberId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"offerMemberGrantId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Revoke MemberOnly entitlement",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/offers/{{offerId}}/member-entitlements/{{offerMemberGrantId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign dynamic Member audiences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/audience-categories",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audienceCategoryIds\": [\n    \"{{planCategoryId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Full Cash — activate now",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{saleOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"purchaseMode\": 0,\n  \"activationMode\": 0,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1200\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"saleId\", pm.response.json().saleId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Full InstaPay",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{saleOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"purchaseMode\": 0,\n  \"activationMode\": 0,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{instaPayAccountId}}\",\n      \"amount\": 1200,\n      \"providerReference\": \"{{providerReference}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"saleId\", pm.response.json().saleId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Split 700 Cash + 500 InstaPay",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{saleOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"purchaseMode\": 0,\n  \"activationMode\": 0,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 700\n    },\n    {\n      \"financialAccountId\": \"{{instaPayAccountId}}\",\n      \"amount\": 500,\n      \"providerReference\": \"{{providerReference}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"saleId\", pm.response.json().saleId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "First Check-In activation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{saleOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"purchaseMode\": 0,\n  \"activationMode\": 1,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1200\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"saleId\", pm.response.json().saleId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Specific date activation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{saleOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"purchaseMode\": 0,\n  \"activationMode\": 2,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1200\n    }\n  ],\n  \"startDate\": \"{{activationDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"saleId\", pm.response.json().saleId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reservation deposit — no access",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{saleOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"purchaseMode\": 1,\n  \"activationMode\": 0,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 200\n    }\n  ],\n  \"reservationDueDate\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"saleId\", pm.response.json().saleId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Flexible installment Sale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{saleOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{membershipPlanId}}\",\n  \"purchaseMode\": 2,\n  \"activationMode\": 0,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 200\n    }\n  ],\n  \"initialPaymentRequired\": 200,\n  \"installments\": [\n    {\n      \"amount\": 1000,\n      \"dueDate\": \"{{installmentDueDate}}\"\n    }\n  ],\n  \"branchId\": \"{{branchId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"saleId\", pm.response.json().saleId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Standalone one-session paid visit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{saleOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"membershipPlanId\": \"{{singleSessionPlanId}}\",\n  \"purchaseMode\": 3,\n  \"activationMode\": 0,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": {{singleSessionPrice}}\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.environment.set(\"saleId\", pm.response.json().saleId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete reservation balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}/payments",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{paymentOperationId}}\",\n  \"amount\": 1000,\n  \"parts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Pay explicit installment allocation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}/payments",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{paymentOperationId}}\",\n  \"amount\": 1000,\n  \"parts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1000\n    }\n  ],\n  \"allocations\": [\n    {\n      \"installmentId\": \"{{installmentId}}\",\n      \"amount\": 1000\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Sale history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sales?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Sale details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Payment history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}/payments?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Installment obligations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}/installments",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Manual chosen refund/cancellation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}/refunds",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{refundOperationId}}\",\n  \"amount\": 100,\n  \"parts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 100\n    }\n  ],\n  \"reason\": \"Authorized management decision\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reservation cancellation — retain deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}/refunds",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{refundOperationId}}\",\n  \"amount\": 0,\n  \"parts\": [],\n  \"reason\": \"Authorized retention decision\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Quick Cancel — unused and within 24 hours",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}/quick-cancel",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{quickCancelOperationId}}\",\n  \"reason\": \"Recent mistaken unused purchase\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Refund history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sales/{{saleId}}/refunds?page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Branch Cash/InstaPay totals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/sales/branch-totals",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
         }
       ]
     },

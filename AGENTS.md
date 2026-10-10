@@ -41,10 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 10 — financial queries and reporting foundations.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 11 — API, authorization and Postman.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 11: thin Sales/Offer/account APIs, permission catalog, HTTP authorization tests and Postman.
+- Next: Task 12: Sales documentation, full suite, EF drift, guarded Development migration/catalog verification and final clean commit/push.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

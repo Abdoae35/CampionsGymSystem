@@ -213,5 +213,33 @@ A failed normal scan never creates borrowed debt automatically.
 Trial redemption requires an already issued Available `guestInvitationId` and matching
 `guestPhone` at its issuing branch. It consumes one `GUEST` quantity snapshot unit at
 redemption when linked to a Member benefit. No guest-token issuance or new Member
-registration is provided. See [Check-In documentation](../docs/CHECK_INS.md). Standalone
-visitor-session purchases and paid renewal remain deferred to Sales/Payments.
+registration is provided. See [Check-In documentation](../docs/CHECK_INS.md).
+
+## Sales / Payments
+
+Folder **15. Sales and Payments** contains 32 deliberate examples. Choose one workflow
+at a time; running the folder wholesale would perform real purchases and cancellations.
+Use authorized Reception credentials for normal Sales/Payments and explicit management
+capabilities for Offers, installment creation, refunds and Quick Cancel. Owner examples
+select `branchId`; branch staff use their trusted current branch.
+
+Provision named Cash/InstaPay accounts through global branch management, or select
+existing active accounts. New accounts start with zero opening money. Quote the actual
+plan/Offer price before changing the illustrative 1200/200/1000 amounts. Configure the
+one-session plan and price for standalone visits; those visits neither settle debt nor
+reset borrowing allowance and are excluded from commission/targets.
+
+The folder initializes a UUID once per `saleOperationId`, `paymentOperationId`,
+`refundOperationId` and `quickCancelOperationId`. Keep it for identical retries. Clear its
+environment value before a different intentional operation. Set realistic activation and
+installment dates and choose the actual obligation ID before allocating payment.
+
+Numeric request enums follow the API: FullPayment=0, Reservation=1, Installment=2,
+StandaloneSingleSession=3; Now=0, FirstCheckIn=1, SpecificDate=2; General=0, MemberOnly=1;
+Cash=0, InstaPay=1. First-entry activation uses the existing Check-In workflow.
+
+The explicit Development/localhost `--configure-sales-permissions` command creates the
+capability catalog and preserves existing grants, inactive capabilities and overrides.
+It does not infer existing staff permissions. Assign them through authorization management;
+optional `Sales:ManagementRoleId` must identify a role with active `Branches.AccessAll`.
+See [Sales / Payments documentation](../docs/SALES_PAYMENTS.md).

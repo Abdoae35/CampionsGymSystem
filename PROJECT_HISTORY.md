@@ -43,11 +43,11 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 10 — financial queries and reporting foundations.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 11 — API, authorization and Postman.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 11: thin Sales/Offer/account APIs, permission catalog, HTTP authorization tests and Postman.
+- Next: Task 12: Sales documentation, full suite, EF drift, guarded Development migration/catalog verification and final clean commit/push.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1974,3 +1974,9 @@ Checkpoint prepared for the requested verified task commit/push; actual publicat
 Added scoped paginated Sale/Payment/Refund histories, bounded detailed sold terms and exact grant references, derived collected/refunded/outstanding balances, reservation/activation states, installment obligations from real allocations, and separate Cash/InstaPay gross/refund/net branch totals by operational date. Retained cancelled amounts are explicitly CancellationFee with commission/target-ineligible metadata. Account branch/method/opening facts cannot be mutated to rewrite historical classification; only ledger records move money. Installment agreement completion now also ignores tampered caches. Managed Freelance revenue reporting accepts preserved Sales owners with explicit exclusion flags; legacy House history remains unchanged and registration branch no longer limits eligible-member counts. Normal Sale creation checks current borrowed-debt capacity before accepting deposits; actual activation revalidates it. Build zero warnings/errors; 41 query/debt/visitor/legacy operations regressions passed, zero failed/skipped. One test report-property naming compile error corrected before final clean build. Diff/whitespace reviewed; no migration. Task 9 0d2a80d pushed; application Development migrations pending, Production untouched.
 
 Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 11: thin Sales/Offer/account APIs, permission catalog, HTTP authorization tests and Postman.
+
+### 2026-10-10 — Sales Task 11 — API, authorization and Postman
+
+Exposed thin scoped Sales creation/details/history, additional payment/payment history, installment reads, manual refunds/refund history, Quick Cancel and branch totals; explicit Offer eligibility/pricing/management and member grants/revocation; dynamic Member audience assignment; active account lookup and global management-only zero-opening Cash/InstaPay provisioning. Registered scoped services and guarded Development/localhost permission catalog CLI, preserving existing capability activation/grants/overrides. Demo role templates apply to newly created roles only; runtime authorizes capabilities, never role names. Normal staff cannot spoof branch, price, owner, commission flags or entitlement fields; installments require their extra creation capability; refund/Quick Cancel remain independent. Added 32 deliberate Postman samples with actual numeric enum mappings, UUID retry/new-operation guidance, accounts, offers, activation, deposits, allocations, standalone and cancellation examples; all bodies/variables/JSON checked. An initial Postman construction script UUID-format assertion prevented writing; corrected before output. Build zero warnings/errors; 13 HTTP/catalog/seeder regressions passed, zero failed/skipped. Diff/whitespace reviewed; no migration. Task 10 c17398e pushed. Application Development migrations pending; Production untouched.
+
+Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 12: Sales documentation, full suite, EF drift, guarded Development migration/catalog verification and final clean commit/push.
