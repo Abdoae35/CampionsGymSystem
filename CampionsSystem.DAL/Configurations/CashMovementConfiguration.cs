@@ -1,0 +1,31 @@
+using CampionsSystem.DAL.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CampionsSystem.DAL.Configurations;
+
+public sealed class CashMovementConfiguration : IEntityTypeConfiguration<CashMovement>
+{
+    public void Configure(EntityTypeBuilder<CashMovement> b)
+    {
+        b.ToTable("CashMovements", t =>
+        {
+            t.HasCheckConstraint("CK_CashMovements_Amount", "\"Amount\" > 0");
+            t.HasCheckConstraint("CK_CashMovements_Kind", "\"Kind\" IN ('InitialPosition', 'Withdrawal')");
+        });
+        b.HasKey(x => x.Id);
+        b.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.FinancialAccount).WithMany().HasForeignKey(x => x.FinancialAccountId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Shift).WithMany().HasForeignKey(x => x.ShiftId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.BusinessDay).WithMany().HasForeignKey(x => x.BusinessDayId).OnDelete(DeleteBehavior.Restrict);
+        b.Property(x => x.BusinessDate).HasColumnType("date");
+        b.Property(x => x.RequestHash).HasMaxLength(64).IsRequired();
+        b.Property(x => x.Kind).HasMaxLength(40).IsRequired();
+        b.Property(x => x.Amount).HasPrecision(18, 2);
+        b.Property(x => x.Reason).HasColumnType("text").IsRequired();
+        b.Property(x => x.OccurredAt).HasColumnType("timestamp with time zone");
+        b.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(x => x.OperationId).IsUnique();
+        b.HasIndex(x => new { x.BranchId, x.OccurredAt });
+    }
+}

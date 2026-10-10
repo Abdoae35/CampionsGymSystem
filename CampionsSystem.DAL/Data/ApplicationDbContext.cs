@@ -99,6 +99,12 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     public DbSet<MemberAudienceCategory> MemberAudienceCategories => Set<MemberAudienceCategory>();
 
+    public DbSet<CashDrawer> CashDrawers => Set<CashDrawer>();
+    public DbSet<CashCount> CashCounts => Set<CashCount>();
+    public DbSet<CashMovement> CashMovements => Set<CashMovement>();
+    public DbSet<EmployeeAdvance> EmployeeAdvances => Set<EmployeeAdvance>();
+    public DbSet<ExpenseReversal> ExpenseReversals => Set<ExpenseReversal>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -107,6 +113,22 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        if (ChangeTracker.Entries<CashCount>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<CashMovement>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<EmployeeAdvance>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<ExpenseReversal>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<Expense>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(Expense.OperationId)) != null && x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Managed cash observations, payouts and reversals are append-only.");
+        foreach (var entry in ChangeTracker.Entries<Shift>().Where(x => x.OriginalValues.GetValue<Guid?>(nameof(Shift.OperationId)) != null))
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&
+                (entry.OriginalValues.GetValue<CampionsSystem.DAL.Enums.ShiftStatus>(nameof(Shift.Status)) == CampionsSystem.DAL.Enums.ShiftStatus.Closed
+                || entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(Shift.Status) or nameof(Shift.ClosedAt) or nameof(Shift.ClosedByUserId)
+                    or nameof(Shift.CloseOperationId) or nameof(Shift.CloseRequestHash) or nameof(Shift.ExpectedClosingCash) or nameof(Shift.ActualClosingCash)
+                    or nameof(Shift.Difference) or nameof(Shift.ClosingBusinessDate) or nameof(Shift.ClosingReason) or nameof(Shift.Version)))))
+                throw new InvalidOperationException("Shift opening facts and closed shifts are immutable.");
+        foreach (var entry in ChangeTracker.Entries<CashDrawer>())
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name != nameof(CashDrawer.MovementSequence)))
+                throw new InvalidOperationException("Drawer mapping and setup facts are immutable.");
         foreach (var entry in ChangeTracker.Entries<MemberAudienceCategory>())
             if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&
                 (entry.OriginalValues.GetValue<DateTimeOffset?>(nameof(MemberAudienceCategory.EndedAt)) != null

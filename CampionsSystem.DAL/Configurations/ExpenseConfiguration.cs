@@ -13,6 +13,11 @@ public sealed class ExpenseConfiguration : IEntityTypeConfiguration<Expense>
             table.HasCheckConstraint("CK_Expenses_Amount", "\"Amount\" >= 0");
             table.HasCheckConstraint("CK_Expenses_Status", "\"Status\" IN ('Recorded', 'Cancelled')");
         });
+        builder.HasOne(x => x.RecordingEmployee).WithMany().HasForeignKey(x => x.RecordingEmployeeId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.RequestHash).HasMaxLength(64);
+        builder.Property(x => x.ReceiptReference).HasMaxLength(512);
+        builder.HasIndex(x => x.OperationId).IsUnique();
+        builder.HasIndex(x => new { x.BranchId, x.ExpenseDate });
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Shift).WithMany().HasForeignKey(x => x.ShiftId).OnDelete(DeleteBehavior.Restrict);

@@ -9,6 +9,13 @@ public sealed class FinancialTransaction
     public Guid? BusinessDayId { get; set; }
     public BusinessDay? BusinessDay { get; set; }
     public DateOnly? BusinessDate { get; set; }
+    public Guid? ShiftId { get; set; }
+    public Shift? Shift { get; set; }
+    public long? DrawerSequence { get; set; }
+    public Guid? EmployeeAdvanceId { get; set; }
+    public EmployeeAdvance? EmployeeAdvance { get; set; }
+    public Guid? CashMovementId { get; set; }
+    public CashMovement? CashMovement { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid FinancialAccountId { get; set; }
     public FinancialAccount FinancialAccount { get; set; } = null!;

@@ -8,6 +8,18 @@ public sealed class Shift
     // Nullable for legacy reconciliation; preserve operational date independently of real timestamps.
     public Guid? BusinessDayId { get; set; }
     public BusinessDay? BusinessDay { get; set; }
+    public Guid? EmployeeId { get; set; }
+    public Employee? Employee { get; set; }
+    public Guid? FinancialAccountId { get; set; }
+    public FinancialAccount? FinancialAccount { get; set; }
+    public Guid? OperationId { get; set; }
+    public string? RequestHash { get; set; }
+    public Guid? CloseOperationId { get; set; }
+    public string? CloseRequestHash { get; set; }
+    public DateOnly? OpeningBusinessDate { get; set; }
+    public DateOnly? ClosingBusinessDate { get; set; }
+    public long Version { get; set; }
+    public string? ClosingReason { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;

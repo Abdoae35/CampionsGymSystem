@@ -8,6 +8,13 @@ public sealed class Expense
     // Nullable for legacy reconciliation; preserve operational date independently of real timestamps.
     public Guid? BusinessDayId { get; set; }
     public BusinessDay? BusinessDay { get; set; }
+    public Guid? OperationId { get; set; }
+    public string? RequestHash { get; set; }
+    public Guid? RecordingEmployeeId { get; set; }
+    public Employee? RecordingEmployee { get; set; }
+    public DateOnly? BusinessDate { get; set; }
+    public DateTimeOffset? PaidAt { get; set; }
+    public string? ReceiptReference { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;

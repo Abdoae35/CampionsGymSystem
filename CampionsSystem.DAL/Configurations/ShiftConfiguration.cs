@@ -16,6 +16,15 @@ public sealed class ShiftConfiguration : IEntityTypeConfiguration<Shift>
             table.HasCheckConstraint("CK_Shifts_Status", "\"Status\" IN ('Open', 'Closed')");
             table.HasCheckConstraint("CK_Shifts_OpenedAtClosedAt", "\"ClosedAt\" >= \"OpenedAt\"");
         });
+        builder.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.FinancialAccount).WithMany().HasForeignKey(x => x.FinancialAccountId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.RequestHash).HasMaxLength(64);
+        builder.Property(x => x.CloseRequestHash).HasMaxLength(64);
+        builder.Property(x => x.Version).IsConcurrencyToken();
+        builder.HasIndex(x => x.OperationId).IsUnique();
+        builder.HasIndex(x => x.CloseOperationId).IsUnique();
+        builder.HasIndex(x => x.EmployeeId).IsUnique().HasFilter("\"Status\" = 'Open' AND \"EmployeeId\" IS NOT NULL");
+        builder.HasIndex(x => new { x.BranchId, x.OpenedAt });
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.OpenedAt).HasColumnType("timestamp with time zone");
