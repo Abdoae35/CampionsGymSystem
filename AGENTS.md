@@ -41,10 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 4 — paid subscription activation.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 5 — reservations and deposits.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 5: reservations/deposits and additional payments using snapshotted commercial terms; continue remaining finance tasks.
+- Next: Task 6: flexible installment schedules, explicit allocations, financial qualification and derived overdue access suspension/resumption.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
