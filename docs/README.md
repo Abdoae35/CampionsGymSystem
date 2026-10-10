@@ -15,6 +15,7 @@ future operational system.
 - [Membership Plans](MEMBERSHIP_PLANS.md)
 - [Subscriptions / Renewals / Freeze](SUBSCRIPTIONS.md)
 - [Check-In / Access Management](CHECK_INS.md)
+- [Sales / Payments](SALES_PAYMENTS.md)
 
 ## Current Implementation Status
 
@@ -28,6 +29,7 @@ future operational system.
 | Membership Plans | Complete |
 | Subscriptions / Renewals / Freeze | Complete within documented entitlement scope |
 | Check-In / Access Management | Complete within documented gym-entry scope |
+| Sales / Payments | Complete within documented customer gym-finance scope |
 
 Complete refers to the management scope described in each document. Persistence
 models and some narrower operations exist outside these scopes; they do not imply
@@ -35,7 +37,6 @@ complete Finance or attendance lifecycles.
 
 ## Planned / Deferred Areas
 
-- Complete Sales / Payments; Installments / Refunds
 - Shifts / Vault / Expenses
 - Remaining Private Training and Classes / Activities workflows
 - Commission / Payroll
@@ -49,5 +50,5 @@ in [Architecture](ARCHITECTURE.md); the broader areas above remain incomplete.
 These documents represent the implemented system state at the time of the latest
 documentation refresh. Documentation is refreshed explicitly when requested.
 
-Latest refresh: 2026-10-09. Earlier technical notes remain available in the existing
+Latest refresh: 2026-10-10. Earlier technical notes remain available in the existing
 feature and database subdirectories; this index is the main entry point.

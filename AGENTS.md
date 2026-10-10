@@ -41,10 +41,11 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales final review — queued successor renewal compatibility.
-- Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
-- Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
-- Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 12: final full-suite rerun, documentation/history completion and clean final commit/push; stop after Sales.
-- Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
+- Sales / Payments complete on Sales/Payments; Tasks 1–12 plus final queued-successor renewal fix verified.
+- Reuse existing Sale/Payment/Refund/accounts/ledger, Offer, Installment, Subscription and Check-In domains; no raw paid-grant API.
+- Full suite: 678 passed, zero failed/skipped; build zero warnings/errors; EF drift clean. Three new migrations applied to localhost Development only; Production untouched.
+- Normal cancellation reverses only its Sale grant and reopens debt settled by that Sale through append-only history; Quick Cancel rejects debt-settling grants.
+- New management capabilities are cataloged without inferred existing-role grants; explicitly assign permissions when configuring staff.
+- Implementation/review commits through f52e997 pushed; the final documentation checkpoint contains the completed feature record. Closing publication and HEAD/status results are reported at task completion.
+- Stop after this feature. Commission, payroll, Shift/Vault/Expenses, Private/Classes finance, Member branch settlement, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
