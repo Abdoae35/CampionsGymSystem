@@ -25,6 +25,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<MembershipPlan> MembershipPlans => Set<MembershipPlan>();
     public DbSet<MemberSubscription> MemberSubscriptions => Set<MemberSubscription>();
     public DbSet<MembershipSubscriptionTransaction> MembershipSubscriptionTransactions => Set<MembershipSubscriptionTransaction>();
+    public DbSet<SubscriptionGrantCancellation> SubscriptionGrantCancellations => Set<SubscriptionGrantCancellation>();
+    public DbSet<BorrowedDebtSettlementEvent> BorrowedDebtSettlementEvents => Set<BorrowedDebtSettlementEvent>();
     public DbSet<SubscriptionFreeze> SubscriptionFreezes => Set<SubscriptionFreeze>();
     public DbSet<BorrowedGymSession> BorrowedGymSessions => Set<BorrowedGymSession>();
     public DbSet<BranchClosure> BranchClosures => Set<BranchClosure>();
@@ -140,6 +142,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
                     || entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(BorrowedGymSession.Status) or nameof(BorrowedGymSession.SettledAt) or nameof(BorrowedGymSession.SettledBySubscriptionId) or nameof(BorrowedGymSession.SettledByTransactionId)))))
                 throw new InvalidOperationException("Borrowed session facts are historical; only first settlement is permitted.");
         if (ChangeTracker.Entries<MembershipSubscriptionTransaction>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<SubscriptionGrantCancellation>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<BorrowedDebtSettlementEvent>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<MemberSubscriptionBenefit>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<SubscriptionHolidayExtension>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Subscription grants, benefit snapshots and holiday compensation are append-only.");

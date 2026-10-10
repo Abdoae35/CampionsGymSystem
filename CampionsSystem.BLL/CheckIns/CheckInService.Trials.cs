@@ -54,7 +54,9 @@ public sealed partial class CheckInService
                 var benefit=await db.MemberSubscriptionBenefits.FromSqlInterpolated($"SELECT * FROM \"MemberSubscriptionBenefits\" WHERE \"Id\"={benefitId} FOR UPDATE")
                     .AsNoTracking().Include(x=>x.MembershipSubscriptionTransaction).ThenInclude(x=>x.MemberSubscription).SingleAsync(ct);
                 if(invitation.Source!=GuestInvitationSource.Member || benefit.MembershipSubscriptionTransaction.MemberSubscription.MemberId!=invitation.InvitedByMemberId
-                    || benefit.BenefitCodeSnapshot!="GUEST" || benefit.GrantTypeSnapshot!=MembershipBenefitGrantType.Quantity)
+                    || benefit.BenefitCodeSnapshot!="GUEST" || benefit.GrantTypeSnapshot!=MembershipBenefitGrantType.Quantity
+                    || benefit.MembershipSubscriptionTransaction.MemberSubscription.Status==SubscriptionStatus.Cancelled
+                    || await db.SubscriptionGrantCancellations.AnyAsync(c=>c.GrantId==benefit.MembershipSubscriptionTransactionId,ct))
                     return Denied(TrialReasons.InvitationBenefitInvalid);
                 var consumed=await db.MemberBenefitUsages.Where(x=>x.MemberSubscriptionBenefitId==benefitId).SumAsync(x=>(long)x.QuantityUsed,ct);
                 if(benefit.GrantedQuantity is null || consumed>=benefit.GrantedQuantity)return Denied(TrialReasons.InvitationBenefitExhausted);

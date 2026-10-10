@@ -91,8 +91,11 @@ public sealed partial class CheckInService(ApplicationDbContext db, ICurrentUser
                 || await db.MemberSubscriptions.AnyAsync(x=>x.Id==s.Id && x.Status==SubscriptionStatus.Frozen,ct))
                 return Result(AccessReasons.SubscriptionFrozen,s);
             var used=await db.BorrowedGymSessions.CountAsync(x=>x.ExpiredSubscriptionId==s.Id,ct);
-            var renewed=await db.MembershipSubscriptionTransactions.AnyAsync(x=>x.RenewedFromSubscriptionId==s.Id && x.MemberSubscriptionId!=s.Id,ct)
-                || await db.BorrowedGymSessions.AnyAsync(x=>x.ExpiredSubscriptionId==s.Id && x.Status==BorrowedSessionStatus.Settled,ct);
+            var renewed=await db.MembershipSubscriptionTransactions.AnyAsync(x=>x.RenewedFromSubscriptionId==s.Id && x.MemberSubscriptionId!=s.Id
+                    && !db.SubscriptionGrantCancellations.Any(c=>c.GrantId==x.Id),ct)
+                || await db.BorrowedGymSessions.AnyAsync(x=>x.ExpiredSubscriptionId==s.Id
+                    && !(db.BorrowedDebtSettlementEvents.Where(e=>e.BorrowedGymSessionId==x.Id).OrderByDescending(e=>e.Sequence)
+                        .Select(e=>(bool?)e.IsReversal).FirstOrDefault()??x.Status==BorrowedSessionStatus.Outstanding),ct);
             if(renewed)return Result(AccessReasons.BorrowCycleRenewed,s,false,used);
             return Result(used>=2?AccessReasons.BorrowLimitReached:AccessReasons.SubscriptionExpired,s,used<2,used);
         }

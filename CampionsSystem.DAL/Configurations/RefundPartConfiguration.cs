@@ -16,5 +16,6 @@ public sealed class RefundPartConfiguration : IEntityTypeConfiguration<RefundPar
         builder.HasOne(x => x.Refund).WithMany(x => x.Parts).HasForeignKey(x => x.RefundId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.FinancialAccount).WithMany().HasForeignKey(x => x.FinancialAccountId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Amount).HasPrecision(18, 2);
+        builder.Property(x => x.ProviderReference).HasMaxLength(256);
     }
 }

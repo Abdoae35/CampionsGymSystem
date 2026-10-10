@@ -73,4 +73,17 @@ public sealed partial class SalesConcurrencyTests : IAsyncLifetime
         var entries=await Task.WhenAll(Entry(Guid.NewGuid()),Entry(Guid.NewGuid()));Assert.Single(entries,x=>x.Decision.Allowed);
         await using var verify=Context();Assert.Single(await verify.SaleTransactions.ToListAsync());Assert.Single(await verify.CheckIns.ToListAsync());Assert.Equal(0,(await verify.MemberSubscriptions.SingleAsync()).RemainingSessions);
     }
+    [Fact] public async Task ConcurrentRefundsCannotExceedCollectedMoneyOrRepeatGrantReversal()
+    {
+        var sale=await Buy(Guid.NewGuid());
+        async Task<bool> Refund(){await using var db=Context();try{await Services(db).Sales.RefundAsync(sale.SaleId,new(Guid.NewGuid(),700,[new(account,700)],"Decision"));return true;}catch(BusinessRuleException){return false;}}
+        Assert.Single(await Task.WhenAll(Refund(),Refund()),x=>x);await using var verify=Context();
+        Assert.Equal(700,await verify.Refunds.SumAsync(r=>r.Amount));Assert.Single(await verify.SubscriptionGrantCancellations.ToListAsync());
+    }
+    [Fact] public async Task ConcurrentDuplicateRefundProducesOneHistoricalReversal()
+    {
+        var sale=await Buy(Guid.NewGuid());var op=Guid.NewGuid();
+        async Task<RefundDetails> Refund(){await using var db=Context();return await Services(db).Sales.RefundAsync(sale.SaleId,new(op,1200,[new(account,1200)],"Decision"));}
+        var result=await Task.WhenAll(Refund(),Refund());Assert.Equal(result[0].Id,result[1].Id);await using var verify=Context();Assert.Single(await verify.Refunds.ToListAsync());Assert.Single(await verify.SubscriptionGrantCancellations.ToListAsync());
+    }
 }

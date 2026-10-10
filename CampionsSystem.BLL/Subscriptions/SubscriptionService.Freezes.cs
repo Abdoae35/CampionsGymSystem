@@ -39,7 +39,8 @@ public sealed partial class SubscriptionService
                 || r.StartDate < date || r.StartDate > sub.EndDate)
                 throw new BusinessRuleException("Normal freeze requires a current customer entitlement and a start within its remaining period.");
             var end = PlusDays(r.StartDate,r.Days-1);
-            var grants = await db.MembershipSubscriptionTransactions.AsNoTracking().Where(x => x.MemberSubscriptionId == id).ToListAsync(ct);
+            var grants = await db.MembershipSubscriptionTransactions.AsNoTracking().Where(x => x.MemberSubscriptionId == id
+                && !db.SubscriptionGrantCancellations.Any(c=>c.GrantId==x.Id)).ToListAsync(ct);
             var freezes = await db.SubscriptionFreezes.AsNoTracking().Where(x => x.MemberSubscriptionId == id && x.FreezeType == FreezeType.Normal).ToListAsync(ct);
             if (grants.Count == 0 || grants.Any(x => x.FreezeDaysSnapshot == null) || freezes.Any(x => x.DaysApplied == null || x.EndDate == null))
                 throw new BusinessRuleException("Legacy freeze allowance/history requires explicit reconciliation.");

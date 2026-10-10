@@ -59,7 +59,9 @@ public sealed class CheckInHistoryRequest
 }
 public sealed record CheckInHistory(IReadOnlyList<CheckInDetails> Items, int TotalCount, int Page, int PageSize);
 public sealed record BorrowedDebtDetails(Guid Id, Guid ExpiredSubscriptionId, Guid? CheckInId, Guid BranchId,
-    DateTimeOffset BorrowedAt, string Status, Guid? SettledBySubscriptionId, Guid? SettledByTransactionId, DateTimeOffset? SettledAt);
+    DateTimeOffset BorrowedAt, string Status, Guid? SettledBySubscriptionId, Guid? SettledByTransactionId, DateTimeOffset? SettledAt,
+    IReadOnlyList<BorrowedSettlementDetails>? SettlementHistory = null);
+public sealed record BorrowedSettlementDetails(int Sequence, string Action, Guid GrantId, Guid? RefundId, DateTimeOffset CreatedAt);
 public sealed class CheckInMemberSearchRequest
 {
     public string Search { get; set; } = "";

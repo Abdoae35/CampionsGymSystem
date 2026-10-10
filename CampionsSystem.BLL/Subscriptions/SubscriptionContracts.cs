@@ -25,12 +25,12 @@ public sealed record SubscriptionSummary(Guid Id, Guid MemberId, Guid SourcePlan
     DateOnly? EndDate, string Status, int? TotalSessions, int? RemainingSessions, int Version,
     Guid? EmployeeId, Guid? FollowsSubscriptionId, bool IsStandaloneVisit = false);
 public sealed record SubscriptionHistory(IReadOnlyList<SubscriptionSummary> Items, int TotalCount, int Page, int PageSize);
-public sealed record BenefitSnapshot(Guid Id, Guid GrantId, string Code, string Name, string GrantType, int? GrantedQuantity);
+public sealed record BenefitSnapshot(Guid Id, Guid GrantId, string Code, string Name, string GrantType, int? GrantedQuantity, bool Cancelled = false);
 public sealed record SubscriptionGrantDetails(Guid Id, Guid PlanId, string? PlanName, string PlanType,
     Guid? PlanBranchId, Guid? AccessCityId, string? Mode, int DurationDays, int? Sessions, int? FreezeDays,
     decimal PlanPrice, decimal NetPrice, Guid? FreelanceCoachId, string TransactionType,
     DateOnly? StartDate, DateOnly? PreviousEndDate, DateOnly? NewEndDate, int? PreviousRemainingSessions,
-    Guid? RenewedFromSubscriptionId, Guid? BusinessDayId, Guid? ActorId, DateTimeOffset CreatedAt);
+    Guid? RenewedFromSubscriptionId, Guid? BusinessDayId, Guid? ActorId, DateTimeOffset CreatedAt, Guid? CancellationRefundId = null);
 public sealed record FreezeDetails(Guid Id, string Type, DateOnly StartDate, DateOnly? EndDate, int? DaysApplied,
     string? Reason, Guid ApprovedBy, DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt, int DaysAlreadyCompensated,
     DateOnly? PreviousSubscriptionEndDate, DateOnly? NewSubscriptionEndDate);

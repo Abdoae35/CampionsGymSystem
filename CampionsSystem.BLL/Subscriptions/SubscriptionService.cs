@@ -115,17 +115,21 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         var grants = await db.MembershipSubscriptionTransactions.AsNoTracking().Where(x => x.MemberSubscriptionId == id)
             .OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).ToListAsync(ct);
         var freezes = await db.SubscriptionFreezes.AsNoTracking().Where(x => x.MemberSubscriptionId == id).OrderBy(x => x.StartDate).ToListAsync(ct);
-        int? allowance = grants.Count == 0 || grants.Any(x => x.FreezeDaysSnapshot == null) ? null : grants.Sum(x => x.FreezeDaysSnapshot!.Value);
+        var cancellations=await db.SubscriptionGrantCancellations.AsNoTracking().Where(c=>c.Grant.MemberSubscriptionId==id).ToListAsync(ct);
+        var liveGrants=grants.Where(g=>!cancellations.Any(c=>c.GrantId==g.Id)).ToArray();
+        int? allowance = liveGrants.Length == 0 || liveGrants.Any(x => x.FreezeDaysSnapshot == null) ? null : liveGrants.Sum(x => x.FreezeDaysSnapshot!.Value);
         var used = freezes.Where(x => x.FreezeType == FreezeType.Normal).Sum(x => x.DaysApplied ?? 0);
         return new(Summary(e), await db.Members.Where(x => x.Id == e.Subscription.MemberId).Select(x => x.FullName).SingleAsync(ct),
-            allowance, used, allowance - used,
+            allowance, used, allowance.HasValue?Math.Max(0,allowance.Value-used):null,
             await db.MemberSubscriptionBenefits.AsNoTracking().Where(x => x.MembershipSubscriptionTransaction.MemberSubscriptionId == id)
                 .OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Select(x => new BenefitSnapshot(x.Id, x.MembershipSubscriptionTransactionId,
-                    x.BenefitCodeSnapshot, x.BenefitNameSnapshot, x.GrantTypeSnapshot.ToString(), x.GrantedQuantity)).ToListAsync(ct),
+                    x.BenefitCodeSnapshot, x.BenefitNameSnapshot, x.GrantTypeSnapshot.ToString(), x.GrantedQuantity,
+                    db.SubscriptionGrantCancellations.Any(c=>c.GrantId==x.MembershipSubscriptionTransactionId))).ToListAsync(ct),
             grants.Select(x => new SubscriptionGrantDetails(x.Id, x.MembershipPlanId, x.PlanNameSnapshot, x.PlanCategorySnapshot.ToString(),
                 x.PlanBranchIdSnapshot, x.CityIdSnapshot, x.AccessModeSnapshot?.ToString(), x.PurchasedDurationDays, x.PurchasedSessions,
                 x.FreezeDaysSnapshot, x.PlanPriceSnapshot, x.NetPriceSnapshot, x.FreelanceCoachEmployeeIdSnapshot, x.TransactionType.ToString(),
-                x.StartDateSnapshot, x.PreviousEndDate, x.NewEndDate, x.PreviousRemainingSessions, x.RenewedFromSubscriptionId, x.BusinessDayId, x.CreatedByUserId, x.CreatedAt)).ToArray(),
+                x.StartDateSnapshot, x.PreviousEndDate, x.NewEndDate, x.PreviousRemainingSessions, x.RenewedFromSubscriptionId, x.BusinessDayId, x.CreatedByUserId, x.CreatedAt,
+                cancellations.FirstOrDefault(c=>c.GrantId==x.Id)?.RefundId)).ToArray(),
             freezes.Select(FreezeView).ToArray(),
             await db.SubscriptionHolidayExtensions.AsNoTracking().Where(x => x.MemberSubscriptionId == id)
                 .OrderBy(x => x.ProtectedDate).Select(x => new HolidayExtensionDetails(x.BranchClosureId, x.ProtectedDate, x.DaysApplied)).ToListAsync(ct));

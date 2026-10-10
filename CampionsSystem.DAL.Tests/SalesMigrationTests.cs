@@ -5,6 +5,21 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace CampionsSystem.DAL.Tests;
 public sealed class SalesMigrationTests
 {
+    [Fact] public async Task CancellationUpgradePreservesLegacySettlementWithoutInventingEvents()
+    {
+        await using var f=await AuthTestDatabase.CreateAsync("AddOfferEligibilityAndAudience");await using var db=f.CreateContext();
+        var user=new ApplicationUser{UserName="settlement-upgrade"};var branch=new GymBranch{Name="Branch",City=new(){Name="City"}};
+        var member=new Member{MemberCode="M-DEBT-UP",FullName="Member",PrimaryPhone="debt-upgrade",HomeBranch=branch,CreatedByUser=user};
+        var plan=new MembershipPlan{Name="Plan",Branch=branch,City=branch.City,DurationDays=30,Price=100};
+        var sub=new MemberSubscription{Member=member,MembershipPlan=plan,PurchasedAtBranch=branch,City=branch.City,StartDate=new(2026,9,1),EndDate=new(2026,9,30)};
+        var grant=new MembershipSubscriptionTransaction{MemberSubscription=sub,MembershipPlan=plan,PurchasedDurationDays=30,NewEndDate=sub.EndDate};
+        var debt=new BorrowedGymSession{Member=member,ExpiredSubscription=sub,Branch=branch,BorrowedAt=new(2026,10,1,10,0,0,TimeSpan.Zero),Status=Enums.BorrowedSessionStatus.Settled,
+            SettledBySubscription=sub,SettledByTransaction=grant,SettledAt=new(2026,10,2,10,0,0,TimeSpan.Zero)};
+        db.Add(debt);await db.SaveChangesAsync();
+        await db.Database.ExecuteSqlRawAsync(db.GetService<IMigrator>().GenerateScript("AddOfferEligibilityAndAudience","AddSaleGrantCancellationHistory").Replace("START TRANSACTION;","").Replace("COMMIT;",""));
+        db.ChangeTracker.Clear();var preserved=await db.BorrowedGymSessions.SingleAsync();Assert.Equal(grant.Id,preserved.SettledByTransactionId);Assert.Equal(debt.SettledAt,preserved.SettledAt);
+        Assert.Empty(await db.BorrowedDebtSettlementEvents.ToListAsync());Assert.Empty(await db.SubscriptionGrantCancellations.ToListAsync());
+    }
     [Fact] public async Task FinanceUpgradePreservesLegacyMoneyAndUnknownWorkflowFacts()
     {
         await using var f = await AuthTestDatabase.CreateAsync("PrepareOperationalCheckIns");

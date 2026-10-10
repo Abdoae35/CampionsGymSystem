@@ -11,4 +11,5 @@ public sealed class RefundPart
     public Guid FinancialAccountId { get; set; }
     public FinancialAccount FinancialAccount { get; set; } = null!;
     public decimal Amount { get; set; }
+    public string? ProviderReference { get; set; }
 }

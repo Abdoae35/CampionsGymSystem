@@ -75,8 +75,17 @@ public sealed partial class CheckInService
         if(!user.Permissions.Contains("Branches.AccessAll")||r.BranchId!=null)
         {var branch=r.BranchId??user.CurrentBranchId??throw new UnauthorizedAccessException();q=q.Where(x=>x.BranchId==branch);}
         if(r.ExpiredSubscriptionId!=null)q=q.Where(x=>x.ExpiredSubscriptionId==r.ExpiredSubscriptionId);
-        var count=await q.CountAsync(ct);var items=await q.OrderByDescending(x=>x.BorrowedAt).ThenBy(x=>x.Id).Skip((r.Page-1)*r.PageSize).Take(r.PageSize)
-            .Select(x=>new BorrowedDebtDetails(x.Id,x.ExpiredSubscriptionId,x.CheckInId,x.BranchId,x.BorrowedAt,x.Status.ToString(),x.SettledBySubscriptionId,x.SettledByTransactionId,x.SettledAt)).ToListAsync(ct);
+        var count=await q.CountAsync(ct);var debts=await q.OrderByDescending(x=>x.BorrowedAt).ThenBy(x=>x.Id).Skip((r.Page-1)*r.PageSize).Take(r.PageSize).ToListAsync(ct);
+        var ids=debts.Select(d=>d.Id).ToArray();var events=await db.BorrowedDebtSettlementEvents.AsNoTracking().Include(e=>e.Grant)
+            .Where(e=>ids.Contains(e.BorrowedGymSessionId)).OrderBy(e=>e.Sequence).ToListAsync(ct);
+        var items=debts.Select(d=>
+        {
+            var history=events.Where(e=>e.BorrowedGymSessionId==d.Id).ToArray();var last=history.LastOrDefault();
+            var outstanding=last?.IsReversal??d.Status==BorrowedSessionStatus.Outstanding;
+            return new BorrowedDebtDetails(d.Id,d.ExpiredSubscriptionId,d.CheckInId,d.BranchId,d.BorrowedAt,outstanding?"Outstanding":"Settled",
+                outstanding?null:last?.Grant.MemberSubscriptionId??d.SettledBySubscriptionId,outstanding?null:last?.GrantId??d.SettledByTransactionId,
+                outstanding?null:last?.CreatedAt??d.SettledAt,history.Select(e=>new BorrowedSettlementDetails(e.Sequence,e.IsReversal?"SettlementReversed":"Settled",e.GrantId,e.RefundId,e.CreatedAt)).ToArray());
+        }).ToArray();
         return new(items,count,r.Page,r.PageSize);
     }
 }

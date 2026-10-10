@@ -27,7 +27,7 @@ public sealed record RecordPaymentRequest(Guid OperationId, decimal Amount, IRea
     IReadOnlyList<InstallmentAllocationInput>? Allocations = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RefundRequest(Guid OperationId, decimal Amount, IReadOnlyList<PaymentPartInput> Parts,
-    string Reason, bool CancelEntitlement = true);
+    string Reason);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record QuickCancelRequest(Guid OperationId, string Reason);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

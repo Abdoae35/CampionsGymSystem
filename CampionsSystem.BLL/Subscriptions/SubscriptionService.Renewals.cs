@@ -97,7 +97,7 @@ public sealed partial class SubscriptionService
             source.Version++;
             var grant = await SnapshotAsync(target,plan,r.OperationId,actor,day,grantStart,SubscriptionTransactionType.Renewal,
                 source,previousEnd,previousSessions,ct,sale);
-            SettleBorrowedDebt(target,grant,borrowedDebt,actor);
+            await SettleBorrowedDebtAsync(target,grant,borrowedDebt,actor,ct);
             access.Audit(actor,r.BranchId,"Subscription.Renewed",nameof(MemberSubscription),target.Id,
                 new { SourceSubscriptionId=source.Id,EndDate=previousEnd,RemainingSessions=previousSessions },
                 new { target.MemberId,grant.Id,target.StartDate,target.EndDate,target.RemainingSessions,target.FollowsSubscriptionId });

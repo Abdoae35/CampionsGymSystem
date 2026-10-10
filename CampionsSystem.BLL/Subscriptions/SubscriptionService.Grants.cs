@@ -128,7 +128,7 @@ public sealed partial class SubscriptionService
                 TotalSessions = plan.SessionCount, RemainingSessions = plan.SessionCount, Status = start > date ? SubscriptionStatus.Scheduled : SubscriptionStatus.Active, CreatedAt = access.Now };
             db.Add(sub);
             var grant = await SnapshotAsync(sub, plan, r.OperationId, actor, day, start, SubscriptionTransactionType.Initial, null, null, null, ct, sale);
-            SettleBorrowedDebt(sub,grant,borrowedDebt,actor);
+            await SettleBorrowedDebtAsync(sub,grant,borrowedDebt,actor,ct);
             access.Audit(actor, r.BranchId, "Subscription.Created", nameof(MemberSubscription), sub.Id,
                 after: new { sub.MemberId, GrantId=grant.Id, sub.StartDate, sub.EndDate, sub.CityId, sub.AccessMode, sub.RemainingSessions });
             await db.SaveChangesAsync(ct); await ApplyDeclaredHolidaysForMemberAsync(member.Id,actor,ct);
