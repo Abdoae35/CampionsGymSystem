@@ -76,3 +76,5 @@ public sealed record MemberOfferGrantDetails(Guid Id, Guid MemberId, Guid OfferI
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record SetMemberAudienceRequest(IReadOnlyList<Guid> AudienceCategoryIds);
 public sealed record MemberAudienceDetails(Guid Id, Guid CategoryId, string CategoryName, DateTimeOffset AssignedAt, DateTimeOffset? EndedAt);
+
+public sealed record SaleReceipt(Guid SaleId, IReadOnlyList<Guid> PaymentIds);
