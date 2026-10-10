@@ -91,6 +91,10 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     public DbSet<SubscriptionHolidayExtension> SubscriptionHolidayExtensions => Set<SubscriptionHolidayExtension>();
 
+    public DbSet<SaleMembershipSnapshot> SaleMembershipSnapshots => Set<SaleMembershipSnapshot>();
+    public DbSet<SaleBenefitSnapshot> SaleBenefitSnapshots => Set<SaleBenefitSnapshot>();
+    public DbSet<InstallmentPaymentAllocation> InstallmentPaymentAllocations => Set<InstallmentPaymentAllocation>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -99,6 +103,19 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        foreach (var entry in ChangeTracker.Entries<SaleTransaction>().Where(x => x.OriginalValues.GetValue<Guid?>(nameof(SaleTransaction.OperationId)) != null))
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not
+                (nameof(SaleTransaction.Status) or nameof(SaleTransaction.Version) or nameof(SaleTransaction.CancelledAt) or nameof(SaleTransaction.CancelledByUserId) or nameof(SaleTransaction.CancellationReason))))
+                throw new InvalidOperationException("Managed sale commercial facts are immutable; cancellation preserves original history.");
+        if (ChangeTracker.Entries<SaleMembershipSnapshot>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<SaleBenefitSnapshot>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<InstallmentPaymentAllocation>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<PaymentPart>().Any(x => (x.Entity.Payment is null || x.Entity.Payment.OperationId != null) && x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<RefundPart>().Any(x => (x.Entity.Refund is null || x.Entity.Refund.OperationId != null) && x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<FinancialTransaction>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<Payment>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(Payment.OperationId)) != null && x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<Refund>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(Refund.OperationId)) != null && x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Financial payments, refunds, parts, allocations and sold snapshots are append-only.");
         if (ChangeTracker.Entries<MemberBenefitUsage>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Benefit usage history is append-only.");
         if (ChangeTracker.Entries<CheckIn>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(CheckIn.OperationId)) != null

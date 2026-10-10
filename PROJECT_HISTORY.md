@@ -43,16 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Check-In / Access Management completed on Check-In/AccessManagement; all nine requested tasks handled.
-- Existing CheckIn, BorrowedGymSession, GuestInvitation and subscription domain reused.
-- MemberCode/manual lookup, scoped access, atomic sessions, real repeated entries and operation idempotency implemented.
-- Borrowing is explicit and fixed at two per expired cycle; full debt settles on renewal, with insufficient new sessions rejected.
-- Trial redemption consumes one GUEST snapshot unit when linked; no new issuance/token or registration workflow.
-- Final build zero warnings/errors; FULL suite 565 passed, zero failed/skipped; EF drift clean.
-- Development migration/catalog verified; production untouched. Application/test commits through 3e06ab0 pushed.
-- Final documentation commit contains this checkpoint; push and clean local/remote HEAD are checked before reporting.
-- No known unresolved Check-In / Access Management issues. Stop here; Sales/Payments requires a separate task.
-- Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 1 — contracts and domain alignment.
+- Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
+- Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
+- Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
+- Next: Task 2: Offer management, eligibility and commercial pricing; preserve sold terms.
+- Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
 ## Work history
@@ -1910,3 +1906,9 @@ Checkpoint included in the verified task commit; push result verified before adv
 Completed docs/CHECK_INS.md and concise docs README link/status change. Documented identification, shared access/status, actual branch/snapshot city, BusinessDay, Unlimited/per-entry sessions, idempotency and transactional locks, fixed two-per-expired-cycle borrowing, exact debt/settling grant history and full shortfall rejection, separate deferred standalone visitor purchase, active Employee/Freelance ownership preservation, issued one-time Trial and confirmed GUEST consumption, operational history/Private helper and offline-ready records without sync. Final build zero warnings/errors; FULL final suite 565 passed, zero failed/skipped (76 added cases versus 489 baseline), 4m58s. EF model drift clean. Reviewed Development-only migration and read-only localhost campions_gym verification confirmed five nullable additions, 19 operational/debt indexes and 26 validated constraints/FKs, two active Check-In permissions with zero inferred role grants, zero check-in/debt/invitation/benefit-use rows; production untouched. Postman JSON, nine samples, seven routes, variables and enum mappings checked; diff reviewed. Both historical migration compatibility and guest/cycle retry edge cases corrected and verified. All application/test commits through 3e06ab0 pushed. Final docs commit includes this checkpoint; final push and clean local/remote HEAD check follow before the report. No known unresolved Check-In / Access Management issues.
 
 Checkpoint included in the verified task commit; push result verified before advancing. Production untouched. Next: All nine feature tasks complete. Final docs commit/push and clean HEAD verification precede the report; stop after Check-In, do not start Sales/Payments.
+
+### 2026-10-10 — Sales Task 1 — contracts and domain alignment
+
+Inspected existing SaleTransaction, Payment/PaymentPart, FinancialAccount/FinancialTransaction, Offer and its plan/member junctions, InstallmentAgreement/Installment, Refund/RefundPart, Shift/CommissionPeriod links, subscription grant/renewal/debt methods, Check-In entry/access locks, current tests and financial documentation. Clean starting branch Sales/Payments at 08b7662. Added strict BLL contracts; retained existing Payments.View/Create/Refund capabilities and named the three needed management capabilities. New immutable sold membership/benefit snapshots preserve reservation and pending-entry terms before a dated subscription exists; explicit installment allocations retain multiple-obligation payment history. Added nullable legacy-safe operation/date/workflow/commercial metadata, optional payment Shift/CommissionPeriod FKs (no fake deferred records), standalone-visit distinction, and managed financial append-only guards. Generated/reviewed new migration 20261010134009_PrepareSalesPayments: three new tables, 26 added columns, two nullable FK changes, restricted relationships and operation/activation uniqueness/checks; no Up deletion of historical data and no edits to older migrations. Build passes with zero warnings/errors; focused initial domain run passed 5, corrected focused domain/upgrade run passed 7, and final affected regression run passed 43 (0 failed/skipped). Initial full regression run failed 4/570: one historical-schema projection, two pending-model metadata checks, and one legacy payment-part reconciliation test; all four causes corrected and affected groups rerun successfully. EF drift check clean; whitespace/diff inspected. Migration upgrade tests use isolated rollback/temporary PostgreSQL schemas; application Development database not yet migrated and Production untouched. No Sales API, finance activation, payments, refunds or commission workflow exposed yet. Checkpoint is prepared for the requested verified Task 1 commit/push.
+
+Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 2: Offer management, eligibility and commercial pricing; preserve sold terms.

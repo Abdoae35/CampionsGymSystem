@@ -41,7 +41,7 @@ public sealed class FinalAlignmentMigrationTests
         var sql = db.GetService<IMigrator>().GenerateScript("UpdateActivitiesClassesAndFreelanceRules", "FinalBusinessSchemaAlignment")
             .Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
         await db.Database.ExecuteSqlRawAsync(sql); db.ChangeTracker.Clear();
-        var sale = await db.SaleTransactions.SingleAsync(); Assert.Equal(actual, sale.CreatedAt); Assert.Equal(500, sale.NetAmount); Assert.Null(sale.BusinessDayId);
+        var sale = await db.SaleTransactions.Select(s => new { s.CreatedAt, s.NetAmount, s.BusinessDayId }).SingleAsync(); Assert.Equal(actual, sale.CreatedAt); Assert.Equal(500, sale.NetAmount); Assert.Null(sale.BusinessDayId);
         Assert.Null((await db.Shifts.SingleAsync()).BusinessDayId); Assert.Null(await db.MembershipPlans.Select(p => p.MembershipPlanCategoryId).SingleAsync());
         Assert.Empty(await db.BusinessDays.ToListAsync()); Assert.Empty(await db.MembershipPlanCategories.ToListAsync());
         Assert.Empty(await db.UserPermissionOverrides.ToListAsync()); Assert.Empty(await db.EmployeeLeaveRequests.ToListAsync());

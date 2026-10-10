@@ -13,6 +13,9 @@ public sealed class RefundConfiguration : IEntityTypeConfiguration<Refund>
             table.HasCheckConstraint("CK_Refunds_Amount", "\"Amount\" >= 0");
             table.HasCheckConstraint("CK_Refunds_RefundType", "\"RefundType\" IN ('QuickRefund', 'ManagerRefund')");
         });
+        builder.HasIndex(x => x.OperationId).IsUnique();
+        builder.Property(x => x.RequestHash).HasMaxLength(64);
+        builder.Property(x => x.BusinessDate).HasColumnType("date");
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.SaleTransaction).WithMany(x => x.Refunds).HasForeignKey(x => x.SaleTransactionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.OriginalPayment).WithMany().HasForeignKey(x => x.OriginalPaymentId).OnDelete(DeleteBehavior.Restrict);

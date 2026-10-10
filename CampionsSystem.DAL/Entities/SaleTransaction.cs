@@ -11,6 +11,27 @@ public sealed class SaleTransaction
     // Historical attribution: null on legacy rows; House suppresses Sales commissions.
     public AssignmentType? SalesAttributionSnapshot { get; set; }
 
+    // Null operation identifies legacy records; new sales preserve request identity and sold terms.
+    public Guid? OperationId { get; set; }
+    public string? RequestHash { get; set; }
+    public DateOnly? BusinessDate { get; set; }
+    public PurchaseMode? PurchaseMode { get; set; }
+    public SubscriptionActivationMode? ActivationMode { get; set; }
+    public DateOnly? RequestedStartDate { get; set; }
+    public DateOnly? ReservationDueDate { get; set; }
+    public decimal? InitialPaymentRequired { get; set; }
+    public string? OfferNameSnapshot { get; set; }
+    public OfferType? OfferTypeSnapshot { get; set; }
+    public decimal? OfferValueSnapshot { get; set; }
+    public int ExtraDaysSnapshot { get; set; }
+    public bool? CommissionEligible { get; set; }
+    public bool? TargetEligible { get; set; }
+    public DateTimeOffset? CancelledAt { get; set; }
+    public string? CancellationReason { get; set; }
+    public Guid? CancelledByUserId { get; set; }
+    public ApplicationUser? CancelledByUser { get; set; }
+    public int Version { get; set; }
+    public SaleMembershipSnapshot? MembershipSnapshot { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid MemberId { get; set; }
     public Member Member { get; set; } = null!;

@@ -5,6 +5,8 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class MemberSubscription
 {
+    // Standalone paid visits are not membership/borrow cycles.
+    public bool IsStandaloneVisit { get; set; }
     public int Version { get; set; }
     public Guid? FollowsSubscriptionId { get; set; }
     public MemberSubscription? FollowsSubscription { get; set; }

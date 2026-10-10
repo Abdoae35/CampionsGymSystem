@@ -13,6 +13,9 @@ public sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             table.HasCheckConstraint("CK_Payments_Amount", "\"Amount\" >= 0");
             table.HasCheckConstraint("CK_Payments_Status", "\"Status\" IN ('Completed', 'Cancelled')");
         });
+        builder.HasIndex(x => x.OperationId).IsUnique();
+        builder.Property(x => x.RequestHash).HasMaxLength(64);
+        builder.Property(x => x.BusinessDate).HasColumnType("date");
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.SaleTransaction).WithMany(x => x.Payments).HasForeignKey(x => x.SaleTransactionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);

@@ -1628,6 +1628,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<Guid?>("BusinessDayId")
                         .HasColumnType("uuid");
 
@@ -2029,6 +2032,35 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_InstallmentAgreements_Status", "\"Status\" IN ('Active', 'Completed', 'Defaulted', 'Cancelled')");
 
                             t.HasCheckConstraint("CK_InstallmentAgreements_TotalAmount", "\"TotalAmount\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.InstallmentPaymentAllocation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("InstallmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InstallmentId");
+
+                    b.HasIndex("PaymentId", "InstallmentId")
+                        .IsUnique();
+
+                    b.ToTable("InstallmentPaymentAllocations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_InstallmentPaymentAllocations_Amount", "\"Amount\" > 0");
                         });
                 });
 
@@ -2560,6 +2592,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("FollowsSubscriptionId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsStandaloneVisit")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("MemberId")
                         .HasColumnType("uuid");
 
@@ -3006,7 +3041,9 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("RenewedFromSubscriptionId");
 
-                    b.HasIndex("SaleTransactionId");
+                    b.HasIndex("SaleTransactionId")
+                        .IsUnique()
+                        .HasFilter("\"OperationId\" IS NOT NULL");
 
                     b.HasIndex("MemberSubscriptionId", "CreatedAt");
 
@@ -3189,10 +3226,13 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<Guid?>("BusinessDayId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CommissionPeriodId")
+                    b.Property<Guid?>("CommissionPeriodId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("InstallmentId")
@@ -3201,16 +3241,23 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("PaidAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("ReceivedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<Guid>("SaleTransactionId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ShiftId")
+                    b.Property<Guid?>("ShiftId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Status")
@@ -3225,6 +3272,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("CommissionPeriodId");
 
                     b.HasIndex("InstallmentId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
 
                     b.HasIndex("ReceivedByUserId");
 
@@ -3791,11 +3841,17 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<Guid?>("BusinessDayId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("OriginalPaymentId")
                         .HasColumnType("uuid");
@@ -3812,6 +3868,10 @@ namespace CampionsSystem.DAL.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<Guid>("SaleTransactionId")
                         .HasColumnType("uuid");
 
@@ -3825,6 +3885,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("BranchId");
 
                     b.HasIndex("BusinessDayId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
 
                     b.HasIndex("OriginalPaymentId");
 
@@ -3885,17 +3948,136 @@ namespace CampionsSystem.DAL.Migrations
                     b.ToTable("RolePermissions", (string)null);
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleBenefitSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("GrantType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("MembershipBenefitId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int?>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SaleTransactionId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembershipBenefitId");
+
+                    b.HasIndex("SaleTransactionId", "MembershipBenefitId")
+                        .IsUnique();
+
+                    b.ToTable("SaleBenefitSnapshots", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SaleBenefitSnapshots_Quantity", "(\"GrantType\" = 'Access' AND \"Quantity\" IS NULL) OR (\"GrantType\" = 'Quantity' AND \"Quantity\" IS NOT NULL AND \"Quantity\" > 0)");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleMembershipSnapshot", b =>
+                {
+                    b.Property<Guid>("SaleTransactionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AccessMode")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("CityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("FreelanceCoachEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("FreezeDays")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("MembershipPlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PlanCategory")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("PlanName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int?>("SessionCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("SaleTransactionId");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("FreelanceCoachEmployeeId");
+
+                    b.HasIndex("MembershipPlanId");
+
+                    b.ToTable("SaleMembershipSnapshots", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SaleMembershipSnapshots_Duration", "\"DurationDays\" > 0 AND \"FreezeDays\" >= 0");
+
+                            t.HasCheckConstraint("CK_SaleMembershipSnapshots_Mode", "(\"AccessMode\" = 'Unlimited' AND \"SessionCount\" IS NULL) OR (\"AccessMode\" = 'SessionBased' AND \"SessionCount\" IS NOT NULL AND \"SessionCount\" > 0)");
+
+                            t.HasCheckConstraint("CK_SaleMembershipSnapshots_Type", "(\"PlanCategory\" = 'Normal' AND \"FreelanceCoachEmployeeId\" IS NULL) OR (\"PlanCategory\" = 'Freelance' AND \"FreelanceCoachEmployeeId\" IS NOT NULL)");
+                        });
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleTransaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ActivationMode")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<Guid?>("BusinessDayId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CancelledByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool?>("CommissionEligible")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -3910,7 +4092,14 @@ namespace CampionsSystem.DAL.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<int>("ExtraDaysSnapshot")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("GrossAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal?>("InitialPaymentRequired")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
@@ -3926,6 +4115,35 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Property<Guid?>("OfferId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("OfferNameSnapshot")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("OfferTypeSnapshot")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<decimal?>("OfferValueSnapshot")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PurchaseMode")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateOnly?>("RequestedStartDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ReservationDueDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("SaleCategory")
                         .HasMaxLength(40)
@@ -3948,15 +4166,27 @@ namespace CampionsSystem.DAL.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
+                    b.Property<bool?>("TargetEligible")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessDayId");
+
+                    b.HasIndex("CancelledByUserId");
 
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("CreatedShiftId");
 
                     b.HasIndex("OfferId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
 
                     b.HasIndex("SalesEmployeeId");
 
@@ -3966,11 +4196,17 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.ToTable("SaleTransactions", null, t =>
                         {
+                            t.HasCheckConstraint("CK_SaleTransactions_Activation", "\"OperationId\" IS NULL OR ((\"ActivationMode\" = 'SpecificDate') = (\"RequestedStartDate\" IS NOT NULL))");
+
                             t.HasCheckConstraint("CK_SaleTransactions_Amounts", "\"DiscountAmount\" <= \"GrossAmount\" AND \"NetAmount\" = \"GrossAmount\" - \"DiscountAmount\"");
 
                             t.HasCheckConstraint("CK_SaleTransactions_Attribution", "\"SalesAttributionSnapshot\" IS NULL OR (\"SalesAttributionSnapshot\" = 'House' AND \"SalesEmployeeId\" IS NULL AND \"SaleCategory\" IS NULL) OR (\"SalesAttributionSnapshot\" = 'Sales' AND \"SalesEmployeeId\" IS NOT NULL)");
 
+                            t.HasCheckConstraint("CK_SaleTransactions_Cancellation", "(\"CancelledAt\" IS NULL AND \"CancelledByUserId\" IS NULL AND \"CancellationReason\" IS NULL) OR (\"CancelledAt\" IS NOT NULL AND \"CancelledByUserId\" IS NOT NULL AND \"CancellationReason\" IS NOT NULL AND length(btrim(\"CancellationReason\")) > 0)");
+
                             t.HasCheckConstraint("CK_SaleTransactions_DiscountAmount", "\"DiscountAmount\" >= 0");
+
+                            t.HasCheckConstraint("CK_SaleTransactions_ExtraDays", "\"ExtraDaysSnapshot\" >= 0");
 
                             t.HasCheckConstraint("CK_SaleTransactions_GrossAmount", "\"GrossAmount\" >= 0");
 
@@ -3981,6 +4217,8 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_SaleTransactions_SaleType", "\"SaleType\" IN ('GymMembership', 'Private', 'Activity', 'Other')");
 
                             t.HasCheckConstraint("CK_SaleTransactions_Status", "\"Status\" IN ('Open', 'Completed', 'Cancelled', 'PartiallyRefunded', 'Refunded')");
+
+                            t.HasCheckConstraint("CK_SaleTransactions_Workflow", "\"OperationId\" IS NULL OR (\"OperationId\" <> '00000000-0000-0000-0000-000000000000'::uuid AND \"RequestHash\" IS NOT NULL AND \"BusinessDate\" IS NOT NULL AND \"PurchaseMode\" IS NOT NULL AND \"PurchaseMode\" IN ('FullPayment', 'Reservation', 'Installment', 'StandaloneSingleSession') AND \"ActivationMode\" IS NOT NULL AND \"ActivationMode\" IN ('Now', 'FirstCheckIn', 'SpecificDate') AND \"CommissionEligible\" IS NOT NULL AND \"TargetEligible\" IS NOT NULL AND \"NetAmount\" > 0)");
                         });
                 });
 
@@ -5319,6 +5557,25 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("SaleTransaction");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.InstallmentPaymentAllocation", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.Installment", "Installment")
+                        .WithMany()
+                        .HasForeignKey("InstallmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Installment");
+
+                    b.Navigation("Payment");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.Lead", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
@@ -5859,8 +6116,7 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
                         .WithMany()
                         .HasForeignKey("CommissionPeriodId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.Installment", "Installment")
                         .WithMany()
@@ -5882,8 +6138,7 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasOne("CampionsSystem.DAL.Entities.Shift", "Shift")
                         .WithMany()
                         .HasForeignKey("ShiftId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Branch");
 
@@ -6249,6 +6504,59 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleBenefitSnapshot", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipBenefit", "MembershipBenefit")
+                        .WithMany()
+                        .HasForeignKey("MembershipBenefitId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.SaleMembershipSnapshot", "SaleMembershipSnapshot")
+                        .WithMany("Benefits")
+                        .HasForeignKey("SaleTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MembershipBenefit");
+
+                    b.Navigation("SaleMembershipSnapshot");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleMembershipSnapshot", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "FreelanceCoachEmployee")
+                        .WithMany()
+                        .HasForeignKey("FreelanceCoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipPlan", "MembershipPlan")
+                        .WithMany()
+                        .HasForeignKey("MembershipPlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.SaleTransaction", "SaleTransaction")
+                        .WithOne("MembershipSnapshot")
+                        .HasForeignKey("CampionsSystem.DAL.Entities.SaleMembershipSnapshot", "SaleTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("FreelanceCoachEmployee");
+
+                    b.Navigation("MembershipPlan");
+
+                    b.Navigation("SaleTransaction");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleTransaction", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
@@ -6260,6 +6568,11 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasOne("CampionsSystem.DAL.Entities.BusinessDay", "BusinessDay")
                         .WithMany()
                         .HasForeignKey("BusinessDayId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CancelledByUser")
+                        .WithMany()
+                        .HasForeignKey("CancelledByUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
@@ -6292,6 +6605,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Branch");
 
                     b.Navigation("BusinessDay");
+
+                    b.Navigation("CancelledByUser");
 
                     b.Navigation("CreatedByUser");
 
@@ -6577,8 +6892,15 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Parts");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleMembershipSnapshot", b =>
+                {
+                    b.Navigation("Benefits");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleTransaction", b =>
                 {
+                    b.Navigation("MembershipSnapshot");
+
                     b.Navigation("Payments");
 
                     b.Navigation("Refunds");

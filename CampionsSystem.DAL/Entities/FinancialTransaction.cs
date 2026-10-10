@@ -8,6 +8,7 @@ public sealed class FinancialTransaction
     // Nullable for legacy reconciliation; preserve operational date independently of real timestamps.
     public Guid? BusinessDayId { get; set; }
     public BusinessDay? BusinessDay { get; set; }
+    public DateOnly? BusinessDate { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid FinancialAccountId { get; set; }
     public FinancialAccount FinancialAccount { get; set; } = null!;

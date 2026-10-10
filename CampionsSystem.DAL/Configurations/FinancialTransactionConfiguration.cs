@@ -15,6 +15,7 @@ public sealed class FinancialTransactionConfiguration : IEntityTypeConfiguration
             table.HasCheckConstraint("CK_FinancialTransactions_Amount", "\"Amount\" >= 0");
             table.HasCheckConstraint("CK_FinancialTransactions_Source", "(\"SourceType\" = 'Payment' AND \"PaymentId\" IS NOT NULL AND \"RefundId\" IS NULL AND \"ExpenseId\" IS NULL AND \"PayrollId\" IS NULL) OR (\"SourceType\" = 'Refund' AND \"PaymentId\" IS NULL AND \"RefundId\" IS NOT NULL AND \"ExpenseId\" IS NULL AND \"PayrollId\" IS NULL) OR (\"SourceType\" = 'Expense' AND \"PaymentId\" IS NULL AND \"RefundId\" IS NULL AND \"ExpenseId\" IS NOT NULL AND \"PayrollId\" IS NULL) OR (\"SourceType\" = 'Payroll' AND \"PaymentId\" IS NULL AND \"RefundId\" IS NULL AND \"ExpenseId\" IS NULL AND \"PayrollId\" IS NOT NULL) OR (\"SourceType\" = 'Adjustment' AND \"PaymentId\" IS NULL AND \"RefundId\" IS NULL AND \"ExpenseId\" IS NULL AND \"PayrollId\" IS NULL)");
         });
+        builder.Property(x => x.BusinessDate).HasColumnType("date");
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.FinancialAccount).WithMany().HasForeignKey(x => x.FinancialAccountId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);

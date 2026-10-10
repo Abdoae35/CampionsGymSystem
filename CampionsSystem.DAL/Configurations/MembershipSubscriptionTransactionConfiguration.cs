@@ -32,6 +32,7 @@ public sealed class MembershipSubscriptionTransactionConfiguration : IEntityType
         builder.HasIndex(x => x.OperationId).IsUnique();
         builder.HasIndex(x => new { x.MemberSubscriptionId, x.CreatedAt });
         builder.ToTable("MembershipSubscriptionTransactions", t => t.HasCheckConstraint("CK_MembershipSubscriptionTransactions_FreezeSnapshot", "\"FreezeDaysSnapshot\" >= 0"));
+        builder.HasIndex(x => x.SaleTransactionId).IsUnique().HasFilter("\"OperationId\" IS NOT NULL");
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.MemberSubscription).WithMany().HasForeignKey(x => x.MemberSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.SaleTransaction).WithMany().HasForeignKey(x => x.SaleTransactionId).OnDelete(DeleteBehavior.Restrict);

@@ -41,14 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Check-In / Access Management completed on Check-In/AccessManagement; all nine requested tasks handled.
-- Existing CheckIn, BorrowedGymSession, GuestInvitation and subscription domain reused.
-- MemberCode/manual lookup, scoped access, atomic sessions, real repeated entries and operation idempotency implemented.
-- Borrowing is explicit and fixed at two per expired cycle; full debt settles on renewal, with insufficient new sessions rejected.
-- Trial redemption consumes one GUEST snapshot unit when linked; no new issuance/token or registration workflow.
-- Final build zero warnings/errors; FULL suite 565 passed, zero failed/skipped; EF drift clean.
-- Development migration/catalog verified; production untouched. Application/test commits through 3e06ab0 pushed.
-- Final documentation commit contains this checkpoint; push and clean local/remote HEAD are checked before reporting.
-- No known unresolved Check-In / Access Management issues. Stop here; Sales/Payments requires a separate task.
-- Finance, Private, Classes/Activities workflows, commissions, frontend and offline sync remain deferred.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 1 — contracts and domain alignment.
+- Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
+- Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
+- Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
+- Next: Task 2: Offer management, eligibility and commercial pricing; preserve sold terms.
+- Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
