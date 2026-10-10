@@ -43,11 +43,11 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 8 — cancellation and manual refunds.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 9 — permission-based Quick Cancel.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 9: permission-controlled 24-hour unused-grant Quick Cancel and exact financial reversal.
+- Next: Task 10: scoped financial histories, authoritative balances/statuses and Cash/InstaPay totals.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
 
@@ -1962,3 +1962,9 @@ Checkpoint prepared for the requested verified task commit/push; actual publicat
 Implemented authorized manual full/partial/zero cancellation refunds with exact branch Cash/InstaPay outbound parts/references, debit ledger records, reasons, balance cap, retries and Member/Sale locks. Original Sales/Payments/parts remain immutable. Added exact Sale-grant reversal fact so appended renewals preserve earlier paid entitlement; pooled sessions consume earlier grants first, and cancellation removes only unused contribution/time while preserving other grants and legitimate extensions. Cancelled grant benefits cannot redeem invitations or provide normal freeze allowance. Corrected the previous debt decision at the user’s explicit request: cancellation reopens only debts last settled by this Sale via append-only ordered settlement/reversal events; original first settlement fields remain historical, subsequent valid renewals fully resettle effective outstanding debt. Quick Cancel must reject a debt-settling grant. Retained amounts are cancellation-fee revenue with commission/target exclusion, derived from collected minus refunds. Reviewed new 20261010161931_AddSaleGrantCancellationHistory migration/SQL: two small history tables, restrictive FKs, ordered/one-grant uniqueness/checks and nullable RefundPart provider reference; older migrations unchanged. Final build zero warnings/errors; initial 191-case run had 190 pass and a rollback-detached fixture failure, corrected; 73 final focused cancellation/debt/lifecycle tests passed. Migration-upgrade fixture initially omitted required grant end date, corrected and isolated upgrade passed. Earlier two fixture compile errors were corrected before clean builds. EF drift clean; diff/whitespace reviewed. Task 7 6792040 pushed. Application Development migrations still pending; Production untouched.
 
 Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 9: permission-controlled 24-hour unused-grant Quick Cancel and exact financial reversal.
+
+### 2026-10-10 — Sales Task 9 — permission-based Quick Cancel
+
+Implemented Sales.QuickCancel capability independently of refund roles, within exactly 24 actual hours of Sale creation. Original payment parts are aggregated by their exact source accounts for a full historical refund/debit reversal, including inactive historical accounts; normal refunds still require active selected accounts. Cancels unused current, scheduled and undated paid grants while preserving other earlier paid grants. Check-In, benefit use, freezes and debt settlement are material use checks; shared Member/Sale locks serialize entry/payment/cancellation, and exact retry hash returns the existing reversal. No role-name authorization. Build zero warnings/errors; all 10 focused Quick Cancel/usage/boundary/atomic-race cases passed, zero failed/skipped. Diff/whitespace reviewed; no migration. Task 8 dd5ab96 pushed; application Development migrations pending and Production untouched.
+
+Checkpoint prepared for the requested verified task commit/push; actual publication result is verified before advancing. Production untouched. Next: Task 10: scoped financial histories, authoritative balances/statuses and Cash/InstaPay totals.

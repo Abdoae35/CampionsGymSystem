@@ -86,4 +86,12 @@ public sealed partial class SalesConcurrencyTests : IAsyncLifetime
         async Task<RefundDetails> Refund(){await using var db=Context();return await Services(db).Sales.RefundAsync(sale.SaleId,new(op,1200,[new(account,1200)],"Decision"));}
         var result=await Task.WhenAll(Refund(),Refund());Assert.Equal(result[0].Id,result[1].Id);await using var verify=Context();Assert.Single(await verify.Refunds.ToListAsync());Assert.Single(await verify.SubscriptionGrantCancellations.ToListAsync());
     }
+    [Fact] public async Task QuickCancelAndCheckInSerializeUseWithCancellation()
+    {
+        var sale=await Buy(Guid.NewGuid());
+        async Task<bool> Cancel(){await using var db=Context();try{await Services(db).Sales.QuickCancelAsync(sale.SaleId,new(Guid.NewGuid(),"Mistake"));return true;}catch(BusinessRuleException){return false;}}
+        var cancel=Cancel();var entry=Entry(Guid.NewGuid());await Task.WhenAll(cancel,entry);
+        Assert.NotEqual(await cancel,(await entry).Decision.Allowed);await using var verify=Context();
+        Assert.Equal(await cancel?1:0,await verify.Refunds.CountAsync());Assert.Equal(await cancel?0:1,await verify.CheckIns.CountAsync());
+    }
 }

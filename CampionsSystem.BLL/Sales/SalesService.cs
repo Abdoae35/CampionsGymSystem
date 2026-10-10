@@ -56,10 +56,10 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
         if (day != null && (day.OpenedAt > access.Now || day.BusinessDate > access.Today)) throw new BusinessRuleException("Invalid open BusinessDay.");
         return (day?.BusinessDate ?? access.Today, day?.Id);
     }
-    private async Task<IReadOnlyList<FinancialAccount>> AccountsAsync(Guid branch, IReadOnlyList<PaymentPartInput> parts, decimal amount, CancellationToken ct)
+    private async Task<IReadOnlyList<FinancialAccount>> AccountsAsync(Guid branch, IReadOnlyList<PaymentPartInput> parts, decimal amount, CancellationToken ct, bool historicalReversal=false)
     {
         Amount(amount);
-        if (parts is null || parts.Count is < 1 or > 20 || parts.Any(x => x is null || x.FinancialAccountId == Guid.Empty || x.ProviderReference?.Length > 256)
+        if (parts is null || parts.Count<1 || !historicalReversal && parts.Count>20 || parts.Any(x => x is null || x.FinancialAccountId == Guid.Empty || x.ProviderReference?.Length > 256)
             ) throw new BusinessRuleException("PaymentParts must sum exactly to the payment amount.");
         foreach (var part in parts) Amount(part.Amount);
         if (parts.Sum(x=>x.Amount) != amount) throw new BusinessRuleException("PaymentParts must sum exactly to the payment amount.");
@@ -67,7 +67,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
         foreach (var id in parts.Select(x => x.FinancialAccountId).Distinct().Order())
         {
             var account = await db.FinancialAccounts.FromSqlInterpolated($"SELECT * FROM \"FinancialAccounts\" WHERE \"Id\"={id} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
-            if (account is null || !account.IsActive || account.BranchId != branch || account.AccountType is not (FinancialAccountType.Cash or FinancialAccountType.InstaPay))
+            if (account is null || !historicalReversal && !account.IsActive || account.BranchId != branch || account.AccountType is not (FinancialAccountType.Cash or FinancialAccountType.InstaPay))
                 throw new BusinessRuleException("Select an active Cash or InstaPay account of the operational branch.");
             accounts.Add(account);
         }

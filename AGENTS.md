@@ -41,10 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 8 — cancellation and manual refunds.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 9 — permission-based Quick Cancel.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 9: permission-controlled 24-hour unused-grant Quick Cancel and exact financial reversal.
+- Next: Task 10: scoped financial histories, authoritative balances/statuses and Cash/InstaPay totals.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
