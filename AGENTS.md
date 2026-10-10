@@ -41,11 +41,11 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales / Payments complete on Sales/Payments; Tasks 1–12 plus final queued-successor renewal fix verified.
-- Reuse existing Sale/Payment/Refund/accounts/ledger, Offer, Installment, Subscription and Check-In domains; no raw paid-grant API.
-- Full suite: 678 passed, zero failed/skipped; build zero warnings/errors; EF drift clean. Three new migrations applied to localhost Development only; Production untouched.
-- Normal cancellation reverses only its Sale grant and reopens debt settled by that Sale through append-only history; Quick Cancel rejects debt-settling grants.
-- New management capabilities are cataloged without inferred existing-role grants; explicitly assign permissions when configuring staff.
-- Implementation/review commits through f52e997 pushed; the final documentation checkpoint contains the completed feature record. Closing publication and HEAD/status results are reported at task completion.
-- Stop after this feature. Commission, payroll, Shift/Vault/Expenses, Private/Classes finance, Member branch settlement, frontend and offline sync remain deferred.
-- See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.
+- Shifts / Vault / Expenses planning complete on the existing Shifts-Vault&Expenses- branch; operational implementation awaits six required policy answers.
+- Verified clean initial local/upstream/remote Sales baseline e85e4984d64727676cc1e392e1e13e6036f73048; completed features preserved.
+- Plan: docs/SHIFTS_VAULT_EXPENSES_PLAN.md; inventory, minimal proposed model/contracts, integration/locking, invariants, risks, tests and delivery stages. No operational code or migrations changed.
+- Pending P1–P6: closure/handover authority, mandatory shifts for new money, funding/cash movement authority, discrepancy carry-forward, expense approval/payment/reversal, insufficient-funds handling.
+- Fresh build zero warnings/errors; full baseline 678 passed, zero failed/skipped; EF drift clean. Development inspected read-only; Production untouched.
+- Offers.Manage, Installments.Manage and Sales.QuickCancel remain active but have zero role grants/direct overrides; prior provisioning gap not resolved, no unrelated permission changes.
+- Next: resume Domain/migrations stage from this plan after policy confirmation; do not restart inspection or assume defaults are approved.
+- Commission/payroll/monthly closing, Private/Classes finance, frontend and offline sync remain deferred. See PROJECT_HISTORY.md.
