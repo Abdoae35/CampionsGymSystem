@@ -23,7 +23,7 @@ public sealed class SubscriptionHistoryRequest
 public sealed record SubscriptionSummary(Guid Id, Guid MemberId, Guid SourcePlanId, string? PlanName,
     string? PlanType, Guid OriginBranchId, Guid AccessCityId, string Mode, DateOnly StartDate,
     DateOnly? EndDate, string Status, int? TotalSessions, int? RemainingSessions, int Version,
-    Guid? EmployeeId, Guid? FollowsSubscriptionId);
+    Guid? EmployeeId, Guid? FollowsSubscriptionId, bool IsStandaloneVisit = false);
 public sealed record SubscriptionHistory(IReadOnlyList<SubscriptionSummary> Items, int TotalCount, int Page, int PageSize);
 public sealed record BenefitSnapshot(Guid Id, Guid GrantId, string Code, string Name, string GrantType, int? GrantedQuantity);
 public sealed record SubscriptionGrantDetails(Guid Id, Guid PlanId, string? PlanName, string PlanType,

@@ -72,15 +72,16 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         e.Subscription.MembershipPlanId, e.PlanName, e.PlanType?.ToString() ?? (e.Subscription.EmployeeId != null ? "Employee" : null),
         e.Subscription.PurchasedAtBranchId, e.Subscription.CityId, e.Subscription.AccessMode.ToString(),
         e.Subscription.StartDate, e.Subscription.EndDate, e.Status.ToString(), e.Subscription.TotalSessions,
-        e.Subscription.RemainingSessions, e.Subscription.Version, e.Subscription.EmployeeId, e.Subscription.FollowsSubscriptionId);
+        e.Subscription.RemainingSessions, e.Subscription.Version, e.Subscription.EmployeeId, e.Subscription.FollowsSubscriptionId, e.Subscription.IsStandaloneVisit);
 
     // Assembly-internal operational projection. Check-In authorizes the visited branch first;
     // it must not inherit originating-branch administration permissions.
     internal async Task<IReadOnlyList<SubscriptionSummary>> GetGymAccessFactsAsync(Guid memberId, DateOnly date, CancellationToken ct)
     {
-        var lastEnd=await db.MemberSubscriptions.Where(s=>s.MemberId==memberId && s.EndDate<date).MaxAsync(s=>s.EndDate,ct);
+        var lastEnd=await db.MemberSubscriptions.Where(s=>s.MemberId==memberId && !s.IsStandaloneVisit && s.EndDate<date).MaxAsync(s=>s.EndDate,ct);
         var rows=await Evaluated(date).Where(x=>x.Subscription.MemberId==memberId
-            && (x.Subscription.EndDate==null || x.Subscription.EndDate>=date || x.Subscription.EndDate==lastEnd))
+            && (!x.Subscription.IsStandaloneVisit || x.Subscription.EndDate>=date && x.Subscription.RemainingSessions>0)
+            && (x.Subscription.EndDate==null || x.Subscription.EndDate>=date || !x.Subscription.IsStandaloneVisit && x.Subscription.EndDate==lastEnd))
             .OrderByDescending(x=>x.Subscription.StartDate).Take(101).ToListAsync(ct);
         return rows.Select(Summary).ToArray();
     }

@@ -65,4 +65,12 @@ public sealed partial class SalesConcurrencyTests : IAsyncLifetime
         var results=await Task.WhenAll(TryBuy(),TryBuy());Assert.Single(results,x=>x);
         await using var db=Context();Assert.Single(await db.SaleTransactions.ToListAsync());Assert.Single(await db.Payments.ToListAsync());Assert.Empty(await db.MemberSubscriptions.ToListAsync());
     }
+    [Fact] public async Task ConcurrentVisitorPurchasesAndEntriesCannotDuplicatePaidAllowance()
+    {
+        await using(var db=Context()){var p=await db.MembershipPlans.SingleAsync();p.AccessMode=AccessMode.SessionBased;p.SessionCount=1;await db.SaveChangesAsync();}
+        async Task<bool> Visit(){await using var db=Context();try{await Services(db).Sales.CreateAsync(new(Guid.NewGuid(),member,plan,PurchaseMode.StandaloneSingleSession,SubscriptionActivationMode.Now,[new(account,1200)]));return true;}catch(BusinessRuleException){return false;}}
+        Assert.Single(await Task.WhenAll(Visit(),Visit()),x=>x);
+        var entries=await Task.WhenAll(Entry(Guid.NewGuid()),Entry(Guid.NewGuid()));Assert.Single(entries,x=>x.Decision.Allowed);
+        await using var verify=Context();Assert.Single(await verify.SaleTransactions.ToListAsync());Assert.Single(await verify.CheckIns.ToListAsync());Assert.Equal(0,(await verify.MemberSubscriptions.SingleAsync()).RemainingSessions);
+    }
 }

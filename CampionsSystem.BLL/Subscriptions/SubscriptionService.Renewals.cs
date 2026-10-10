@@ -52,6 +52,7 @@ public sealed partial class SubscriptionService
             var source = await LockedSubscriptionAsync(r.SubscriptionId,ct);
             if (sale == null) await RequireAsync(SubscriptionPermissions.Manage,source.PurchasedAtBranchId,true,ct);
             if (source.EmployeeId != null) throw new BusinessRuleException("Employee periods cannot be renewed as customer memberships.");
+            if (source.IsStandaloneVisit) throw new BusinessRuleException("Standalone visits are not membership renewal cycles.");
             var retry = await RetryGrantAsync(r.OperationId,member.Id,plan.Id,r.BranchId,source.Id,ct);
             if (retry is not null) return retry;
             Version(source,r.ExpectedVersion);
@@ -84,7 +85,7 @@ public sealed partial class SubscriptionService
             else
             {
                 if (await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.Id != source.Id
-                    && x.Status != SubscriptionStatus.Cancelled && (x.EndDate == null || x.EndDate >= date),ct))
+                    && x.Status != SubscriptionStatus.Cancelled && (!x.IsStandaloneVisit || x.RemainingSessions > 0) && (x.EndDate == null || x.EndDate >= date),ct))
                     throw new BusinessRuleException("Member already has another open/future period. Only one pending successor is supported.");
                 grantStart = ongoing ? PlusDays(source.EndDate!.Value,1) : requestedStart ?? date;
                 target = new MemberSubscription { MemberId=member.Id,MembershipPlanId=plan.Id,PurchasedAtBranchId=r.BranchId,

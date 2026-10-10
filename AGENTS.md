@@ -41,10 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 6 — installments and overdue access.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 7 — standalone paid visits.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 7: explicit paid standalone visit, one entry only, with no borrowed debt settlement or new borrowing cycle.
+- Next: Task 8: append-only manual refunds and Sale-grant cancellation, preserving earlier entitlement and settled debt.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

@@ -113,7 +113,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             if (prior.RequestHash != hash || prior.CreatedByUserId != actor.UserId || prior.BranchId != branch) throw new BusinessRuleException("Operation identity belongs to another Sale request.");
             return new SaleReceipt(prior.Id, await db.Payments.Where(x => x.SaleTransactionId == prior.Id).Select(x => x.Id).ToListAsync(ct));
         }
-        if (r.PurchaseMode is not (PurchaseMode.FullPayment or PurchaseMode.Reservation or PurchaseMode.Installment) || !Enum.IsDefined(r.ActivationMode) || r.PaymentParts is null
+        if (r.PurchaseMode is not (PurchaseMode.FullPayment or PurchaseMode.Reservation or PurchaseMode.Installment or PurchaseMode.StandaloneSingleSession) || !Enum.IsDefined(r.ActivationMode) || r.PaymentParts is null
             || (r.ActivationMode == SubscriptionActivationMode.SpecificDate) != r.StartDate.HasValue
             || r.PaymentParts.Count > 20 || r.PurchaseMode != PurchaseMode.Installment && r.PaymentParts.Count == 0 || r.PaymentParts.Any(x => x is null)
             || r.PurchaseMode != PurchaseMode.Reservation && r.ReservationDueDate != null
@@ -123,6 +123,8 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
         if (r.ReservationDueDate < date) throw new BusinessRuleException("Reservation due date cannot precede the effective BusinessDate.");
         if (r.StartDate < date) throw new BusinessRuleException("Specific activation date must not precede the effective BusinessDate.");
         if (r.OfferId.HasValue) await db.Offers.FromSqlInterpolated($"SELECT * FROM \"Offers\" WHERE \"Id\"={r.OfferId} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
+        if (r.PurchaseMode == PurchaseMode.StandaloneSingleSession && (plan.AccessMode != AccessMode.SessionBased || plan.SessionCount != 1))
+            throw new BusinessRuleException("Standalone visits require an eligible one-session SessionBased plan.");
         var price = await offers.PriceAsync(member, plan, r.OfferId, branch, date, ct); Amount(price.FinalPrice);
         var tender = r.PaymentParts.Sum(x => x.Amount); Amount(tender, r.PurchaseMode != PurchaseMode.Installment);
         var initialRequired = r.PurchaseMode == PurchaseMode.Installment ? r.InitialPaymentRequired ?? tender : (decimal?)null;
@@ -131,7 +133,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             await RequireAsync(SalesPermissions.Installments, branch, ct);
             ValidateInstallmentSchedule(r.Installments, price.FinalPrice - tender, initialRequired!.Value, price.FinalPrice, date);
         }
-        if (tender > price.FinalPrice || r.PurchaseMode == PurchaseMode.FullPayment && tender != price.FinalPrice)
+        if (tender > price.FinalPrice || r.PurchaseMode is PurchaseMode.FullPayment or PurchaseMode.StandaloneSingleSession && tender != price.FinalPrice)
             throw new BusinessRuleException("Payment must not exceed the Sale price; full-payment purchases require the exact final price.");
         var owner = await db.MemberSalesAssignments.AsNoTracking().SingleOrDefaultAsync(x => x.MemberId == member.Id && x.EndedAt == null && x.AssignedAt <= access.Now, ct);
         var owned = owner?.AssignmentType == AssignmentType.Sales;
@@ -143,8 +145,9 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             OfferId = price.OfferId, OfferNameSnapshot = price.OfferName, OfferTypeSnapshot = price.OfferType, OfferValueSnapshot = price.OfferValue,
             OfferEligibilityModeSnapshot = price.EligibilityMode, OfferAudienceCategoryIdSnapshot = price.AudienceCategoryId, ExtraDaysSnapshot = price.ExtraDays,
             SalesAttributionSnapshot = owned ? AssignmentType.Sales : AssignmentType.House, SalesEmployeeId = owned ? owner!.SalesEmployeeId : null,
-            SaleCategory = owned ? renewal ? SaleCategory.Renewal : SaleCategory.NewMembership : null,
-            CommissionEligible = owned && plan.PlanCategory == PlanCategory.Normal, TargetEligible = owned && plan.PlanCategory == PlanCategory.Normal,
+            SaleCategory = owned && r.PurchaseMode != PurchaseMode.StandaloneSingleSession ? renewal ? SaleCategory.Renewal : SaleCategory.NewMembership : null,
+            CommissionEligible = owned && plan.PlanCategory == PlanCategory.Normal && r.PurchaseMode != PurchaseMode.StandaloneSingleSession,
+            TargetEligible = owned && plan.PlanCategory == PlanCategory.Normal && r.PurchaseMode != PurchaseMode.StandaloneSingleSession,
             CreatedByUserId = actor.UserId, CreatedAt = access.Now };
         var snapshot = new SaleMembershipSnapshot { SaleTransaction = sale, MembershipPlanId = plan.Id, PlanName = plan.Name,
             PlanCategory = plan.PlanCategory, CityId = plan.CityId, AccessMode = plan.AccessMode, DurationDays = plan.DurationDays,

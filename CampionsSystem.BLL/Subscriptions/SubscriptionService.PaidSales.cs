@@ -37,6 +37,10 @@ public sealed partial class SubscriptionService
             throw new BusinessRuleException("Member already has a paid entitlement pending first Check-In.");
         sale.MembershipSnapshot = await db.SaleMembershipSnapshots.Include(x => x.Benefits).SingleOrDefaultAsync(x => x.SaleTransactionId == sale.Id,ct);
         var date = entranceDate ?? await EffectiveBusinessDateAsync(sale.BranchId,ct);
+        if (sale.PurchaseMode == PurchaseMode.StandaloneSingleSession)
+            return await ActivateStandaloneSaleAsync(sale,actor,firstEntry,entranceDate,entranceDay,date,ct);
+        if (await db.MemberSubscriptions.AnyAsync(x=>x.MemberId==memberId && x.IsStandaloneVisit && x.Status!=SubscriptionStatus.Cancelled
+            && x.EndDate>=date && x.RemainingSessions>0,ct)) throw new BusinessRuleException("Use or cancel the existing paid visit before activating a membership.");
         var periods = await Evaluated(date).Where(x => x.Subscription.MemberId == memberId && !x.Subscription.IsStandaloneVisit
             && x.Status != SubscriptionStatus.Cancelled && (x.Subscription.EndDate == null || x.Subscription.EndDate >= date)
             && !(x.Status == SubscriptionStatus.Expired && x.Subscription.AccessMode == AccessMode.SessionBased && x.Subscription.RemainingSessions <= 0)).Take(3).ToListAsync(ct);

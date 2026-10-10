@@ -119,7 +119,7 @@ public sealed partial class SubscriptionService
             else if (!member.IsActive) throw new BusinessRuleException("Member must be active to activate purchased entitlement.");
             var borrowedDebt=await OutstandingBorrowedDebtAsync(member.Id,plan,ct);
             var (date, day) = activationDate ?? await GrantDateAsync(r.BranchId, ct);
-            if (await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.Status != SubscriptionStatus.Cancelled
+            if (await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.Status != SubscriptionStatus.Cancelled && (!x.IsStandaloneVisit || x.RemainingSessions > 0)
                 && (x.EndDate == null || x.EndDate >= date), ct))
                 throw new BusinessRuleException("Member already has an open or future entitlement; use the renewal integration.");
             var start = requestedStart ?? date;
