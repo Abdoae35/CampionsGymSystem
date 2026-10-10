@@ -62,60 +62,77 @@ public sealed partial class SubscriptionService
     }
     private async Task<MembershipSubscriptionTransaction> SnapshotAsync(MemberSubscription subscription, MembershipPlan plan,
         Guid operation, Guid actor, Guid? businessDay, DateOnly grantStart, SubscriptionTransactionType type,
-        MemberSubscription? source, DateOnly? previousEnd, int? previousSessions, CancellationToken ct)
+        MemberSubscription? source, DateOnly? previousEnd, int? previousSessions, CancellationToken ct, SaleTransaction? sale = null)
     {
         var grant = new MembershipSubscriptionTransaction
         {
-            MemberSubscription = subscription, MembershipPlanId = plan.Id, OperationId = operation,
+            MemberSubscription = subscription, MembershipPlanId = plan.Id, OperationId = operation, SaleTransactionId = sale?.Id,
             PlanNameSnapshot = plan.Name, PlanBranchIdSnapshot = plan.BranchId, CityIdSnapshot = plan.CityId,
             AccessModeSnapshot = plan.AccessMode, FreezeDaysSnapshot = plan.AllowFreeze ? plan.IncludedFreezeDays : 0,
             PlanCategorySnapshot = plan.PlanCategory, FreelanceCoachEmployeeIdSnapshot = plan.FreelanceCoachEmployeeId,
             PurchasedDurationDays = plan.DurationDays, PurchasedSessions = plan.SessionCount,
-            PlanPriceSnapshot = plan.Price, NetPriceSnapshot = plan.Price, TransactionType = type,
+            PlanPriceSnapshot = plan.Price, NetPriceSnapshot = sale?.NetAmount ?? plan.Price, TransactionType = type,
             PreviousEndDate = previousEnd, NewEndDate = subscription.EndDate, PreviousRemainingSessions = previousSessions,
             RenewedFromSubscriptionId = source?.Id, StartDateSnapshot = grantStart, BusinessDayId = businessDay,
             CreatedByUserId = actor, CreatedAt = access.Now
         };
         db.Add(grant);
-        var configs = await db.MembershipPlanBenefits.AsNoTracking().Where(x => x.MembershipPlanId == plan.Id)
-            .OrderBy(x => x.MembershipBenefitId).ToListAsync(ct);
-        foreach (var config in configs)
+        if (sale != null)
         {
-            var benefit = await db.MembershipBenefits.FromSqlInterpolated($"SELECT * FROM \"MembershipBenefits\" WHERE \"Id\"={config.MembershipBenefitId} FOR SHARE")
-                .AsNoTracking().SingleAsync(ct);
-            if (!benefit.IsActive) throw new BusinessRuleException("Plan contains an inactive benefit; update its configuration before granting.");
-            db.Add(new MemberSubscriptionBenefit { MembershipSubscriptionTransaction = grant,
-                MembershipBenefitId = benefit.Id, BenefitCodeSnapshot = benefit.Code, BenefitNameSnapshot = benefit.Name,
-                GrantTypeSnapshot = config.GrantType, GrantedQuantity = config.Quantity, GrantedAt = access.Now, CreatedAt = access.Now });
+            foreach (var benefit in sale.MembershipSnapshot!.Benefits)
+                db.Add(new MemberSubscriptionBenefit { MembershipSubscriptionTransaction = grant, MembershipBenefitId = benefit.MembershipBenefitId,
+                    BenefitCodeSnapshot = benefit.Code, BenefitNameSnapshot = benefit.Name, GrantTypeSnapshot = benefit.GrantType,
+                    GrantedQuantity = benefit.Quantity, GrantedAt = access.Now, CreatedAt = access.Now });
+        }
+        else
+        {
+            var configs = await db.MembershipPlanBenefits.AsNoTracking().Where(x => x.MembershipPlanId == plan.Id)
+                .OrderBy(x => x.MembershipBenefitId).ToListAsync(ct);
+            foreach (var config in configs)
+            {
+                var benefit = await db.MembershipBenefits.FromSqlInterpolated($"SELECT * FROM \"MembershipBenefits\" WHERE \"Id\"={config.MembershipBenefitId} FOR SHARE")
+                    .AsNoTracking().SingleAsync(ct);
+                if (!benefit.IsActive) throw new BusinessRuleException("Plan contains an inactive benefit; update its configuration before granting.");
+                db.Add(new MemberSubscriptionBenefit { MembershipSubscriptionTransaction = grant,
+                    MembershipBenefitId = benefit.Id, BenefitCodeSnapshot = benefit.Code, BenefitNameSnapshot = benefit.Name,
+                    GrantTypeSnapshot = config.GrantType, GrantedQuantity = config.Quantity, GrantedAt = access.Now, CreatedAt = access.Now });
+            }
         }
         return grant;
     }
-    // Intentionally protected BLL integration boundary. No HTTP customer grant route before Finance.
+    // Protected administration boundary; Finance uses the internal verified-paid boundary. No raw customer grant HTTP route.
     public async Task<SubscriptionGrantResult> CreateCustomerGrantAsync(SubscriptionGrantCommand r, CancellationToken ct = default)
     {
         var actor = await RequireAsync(SubscriptionPermissions.Manage, r.BranchId, true, ct);
+        return await CreateCustomerGrantCoreAsync(r, actor.UserId, null, null, ct);
+    }
+    private async Task<SubscriptionGrantResult> CreateCustomerGrantCoreAsync(SubscriptionGrantCommand r, Guid actor,
+        SaleTransaction? sale, DateOnly? requestedStart, CancellationToken ct, (DateOnly Date, Guid? Day)? activationDate = null)
+    {
         return await TransactionAsync(async () =>
         {
-            var plan = await LockPlanAsync(r.PlanId, r.BranchId, ct);
+            var plan = sale == null ? await LockPlanAsync(r.PlanId, r.BranchId, ct) : SoldPlan(sale);
             var member = await LockMemberAsync(r.MemberId, ct);
             var retry = await RetryGrantAsync(r.OperationId, r.MemberId, r.PlanId, r.BranchId, null, ct);
             if (retry is not null) return retry;
-            await ValidateCustomerAsync(member, plan, ct);
+            if (sale == null) await ValidateCustomerAsync(member, plan, ct);
+            else if (!member.IsActive) throw new BusinessRuleException("Member must be active to activate purchased entitlement.");
             var borrowedDebt=await OutstandingBorrowedDebtAsync(member.Id,plan,ct);
-            var (date, day) = await GrantDateAsync(r.BranchId, ct);
+            var (date, day) = activationDate ?? await GrantDateAsync(r.BranchId, ct);
             if (await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.Status != SubscriptionStatus.Cancelled
                 && (x.EndDate == null || x.EndDate >= date), ct))
                 throw new BusinessRuleException("Member already has an open or future entitlement; use the renewal integration.");
+            var start = requestedStart ?? date;
             var sub = new MemberSubscription { MemberId = member.Id, MembershipPlanId = plan.Id, PurchasedAtBranchId = r.BranchId,
-                CityId = plan.CityId, AccessMode = plan.AccessMode, StartDate = date, EndDate = PlusDays(date,plan.DurationDays - 1),
-                TotalSessions = plan.SessionCount, RemainingSessions = plan.SessionCount, Status = SubscriptionStatus.Active, CreatedAt = access.Now };
+                CityId = plan.CityId, AccessMode = plan.AccessMode, StartDate = start, EndDate = PlusDays(start,plan.DurationDays - 1),
+                TotalSessions = plan.SessionCount, RemainingSessions = plan.SessionCount, Status = start > date ? SubscriptionStatus.Scheduled : SubscriptionStatus.Active, CreatedAt = access.Now };
             db.Add(sub);
-            var grant = await SnapshotAsync(sub, plan, r.OperationId, actor.UserId, day, date, SubscriptionTransactionType.Initial, null, null, null, ct);
-            SettleBorrowedDebt(sub,grant,borrowedDebt,actor.UserId);
-            access.Audit(actor.UserId, r.BranchId, "Subscription.Created", nameof(MemberSubscription), sub.Id,
+            var grant = await SnapshotAsync(sub, plan, r.OperationId, actor, day, start, SubscriptionTransactionType.Initial, null, null, null, ct, sale);
+            SettleBorrowedDebt(sub,grant,borrowedDebt,actor);
+            access.Audit(actor, r.BranchId, "Subscription.Created", nameof(MemberSubscription), sub.Id,
                 after: new { sub.MemberId, GrantId=grant.Id, sub.StartDate, sub.EndDate, sub.CityId, sub.AccessMode, sub.RemainingSessions });
-            await db.SaveChangesAsync(ct); await ApplyDeclaredHolidaysForMemberAsync(member.Id,actor.UserId,ct);
-            return new SubscriptionGrantResult(sub.Id, grant.Id, false);
+            await db.SaveChangesAsync(ct); await ApplyDeclaredHolidaysForMemberAsync(member.Id,actor,ct);
+            return new SubscriptionGrantResult(sub.Id, grant.Id, start > date);
         }, ct);
     }
 }

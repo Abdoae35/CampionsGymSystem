@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.BLL.Sales;
 
 public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserService current,
-    OperationAccess access, OfferService offers)
+    OperationAccess access, OfferService offers, SubscriptionService subscriptions)
 {
     private static string Hash<T>(T request) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(request))));
     private static void Operation(Guid id) { if (id == Guid.Empty) throw new BusinessRuleException("A nonempty operation identity is required."); }

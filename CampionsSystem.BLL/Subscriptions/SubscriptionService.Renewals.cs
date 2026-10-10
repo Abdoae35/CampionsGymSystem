@@ -38,24 +38,31 @@ public sealed partial class SubscriptionService
     public async Task<SubscriptionGrantResult> RenewCustomerAsync(SubscriptionRenewalCommand r, CancellationToken ct = default)
     {
         var actor = await RequireAsync(SubscriptionPermissions.Manage,r.BranchId,true,ct);
+        return await RenewCustomerCoreAsync(r, actor.UserId, null, null, ct);
+    }
+    private async Task<SubscriptionGrantResult> RenewCustomerCoreAsync(SubscriptionRenewalCommand r, Guid actor,
+        SaleTransaction? sale, DateOnly? requestedStart, CancellationToken ct, (DateOnly Date, Guid? Day)? activationDate = null)
+    {
         var sourceMember = await db.MemberSubscriptions.AsNoTracking().Where(x => x.Id == r.SubscriptionId)
             .Select(x => (Guid?)x.MemberId).SingleOrDefaultAsync(ct) ?? throw new BranchNotFoundException("Subscription not found.");
         return await TransactionAsync(async () =>
         {
-            var plan = await LockPlanAsync(r.PlanId,r.BranchId,ct);
+            var plan = sale == null ? await LockPlanAsync(r.PlanId,r.BranchId,ct) : SoldPlan(sale);
             var member = await LockMemberAsync(sourceMember,ct);
             var source = await LockedSubscriptionAsync(r.SubscriptionId,ct);
-            await RequireAsync(SubscriptionPermissions.Manage,source.PurchasedAtBranchId,true,ct);
+            if (sale == null) await RequireAsync(SubscriptionPermissions.Manage,source.PurchasedAtBranchId,true,ct);
             if (source.EmployeeId != null) throw new BusinessRuleException("Employee periods cannot be renewed as customer memberships.");
             var retry = await RetryGrantAsync(r.OperationId,member.Id,plan.Id,r.BranchId,source.Id,ct);
             if (retry is not null) return retry;
-            Version(source,r.ExpectedVersion); await ValidateCustomerAsync(member,plan,ct);
+            Version(source,r.ExpectedVersion);
+            if (sale == null) await ValidateCustomerAsync(member,plan,ct);
+            else if (!member.IsActive) throw new BusinessRuleException("Member must be active to activate purchased entitlement.");
             var borrowedDebt=await OutstandingBorrowedDebtAsync(member.Id,plan,ct);
-            var state = await Evaluated().SingleAsync(x => x.Subscription.Id == source.Id,ct);
+            var (date,day) = activationDate ?? await GrantDateAsync(r.BranchId,ct);
+            var state = await Evaluated(sale == null ? null : date).SingleAsync(x => x.Subscription.Id == source.Id,ct);
             if (state.Status is not (SubscriptionStatus.Active or SubscriptionStatus.Frozen or SubscriptionStatus.Expired))
                 throw new BusinessRuleException("Renewal requires a current or expired customer period.");
             if (state.PlanType is null) throw new BusinessRuleException("Legacy grant history must be reconciled before renewal.");
-            var (date,day) = await GrantDateAsync(r.BranchId,ct);
             var previousEnd = source.EndDate; var previousSessions = source.RemainingSessions;
             var ongoing = state.Status is SubscriptionStatus.Active or SubscriptionStatus.Frozen;
             var compatible = source.AccessMode == plan.AccessMode && source.CityId == plan.CityId
@@ -72,28 +79,28 @@ public sealed partial class SubscriptionService
                         throw new BusinessRuleException("Session entitlement exceeds supported quantity.");
                     source.TotalSessions += plan.SessionCount; source.RemainingSessions += plan.SessionCount;
                 }
-                await ShiftSuccessorAsync(source,plan.DurationDays,actor.UserId,ct);
+                await ShiftSuccessorAsync(source,plan.DurationDays,actor,ct);
             }
             else
             {
                 if (await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.Id != source.Id
                     && x.Status != SubscriptionStatus.Cancelled && (x.EndDate == null || x.EndDate >= date),ct))
                     throw new BusinessRuleException("Member already has another open/future period. Only one pending successor is supported.");
-                grantStart = ongoing ? PlusDays(source.EndDate!.Value,1) : date;
+                grantStart = ongoing ? PlusDays(source.EndDate!.Value,1) : requestedStart ?? date;
                 target = new MemberSubscription { MemberId=member.Id,MembershipPlanId=plan.Id,PurchasedAtBranchId=r.BranchId,
                     CityId=plan.CityId,AccessMode=plan.AccessMode,StartDate=grantStart,EndDate=PlusDays(grantStart,plan.DurationDays-1),
                     TotalSessions=plan.SessionCount,RemainingSessions=plan.SessionCount,FollowsSubscriptionId=ongoing?source.Id:null,
-                    Status=ongoing?SubscriptionStatus.Scheduled:SubscriptionStatus.Active,CreatedAt=access.Now };
+                    Status=grantStart>date?SubscriptionStatus.Scheduled:SubscriptionStatus.Active,CreatedAt=access.Now };
                 db.Add(target);
             }
             source.Version++;
-            var grant = await SnapshotAsync(target,plan,r.OperationId,actor.UserId,day,grantStart,SubscriptionTransactionType.Renewal,
-                source,previousEnd,previousSessions,ct);
-            SettleBorrowedDebt(target,grant,borrowedDebt,actor.UserId);
-            access.Audit(actor.UserId,r.BranchId,"Subscription.Renewed",nameof(MemberSubscription),target.Id,
+            var grant = await SnapshotAsync(target,plan,r.OperationId,actor,day,grantStart,SubscriptionTransactionType.Renewal,
+                source,previousEnd,previousSessions,ct,sale);
+            SettleBorrowedDebt(target,grant,borrowedDebt,actor);
+            access.Audit(actor,r.BranchId,"Subscription.Renewed",nameof(MemberSubscription),target.Id,
                 new { SourceSubscriptionId=source.Id,EndDate=previousEnd,RemainingSessions=previousSessions },
                 new { target.MemberId,grant.Id,target.StartDate,target.EndDate,target.RemainingSessions,target.FollowsSubscriptionId });
-            await db.SaveChangesAsync(ct); await ApplyDeclaredHolidaysForMemberAsync(member.Id,actor.UserId,ct);
+            await db.SaveChangesAsync(ct); await ApplyDeclaredHolidaysForMemberAsync(member.Id,actor,ct);
             return new SubscriptionGrantResult(target.Id,grant.Id,target.StartDate>date);
         },ct);
     }

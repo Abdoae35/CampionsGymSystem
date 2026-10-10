@@ -61,6 +61,13 @@ public sealed partial class CheckInService
                 return await RecordedResultAsync(retry,member,ct,borrowAvailable);
             }
             var decision=await DecideAsync(member,branch,day?.BusinessDate??access.Today,day?.Id,ct);
+            if (!r.ConfirmBorrow && decision.CanActivateOnCheckIn)
+            {
+                var pending = await subscriptions.PendingFirstEntrySaleAsync(member.Id,branch.CityId,decision.BusinessDate,ct);
+                await subscriptions.ActivatePaidSaleAsync(pending!.Value,context.Actor.UserId,true,decision.BusinessDate,ct,day?.Id);
+                decision = await DecideAsync(member,branch,decision.BusinessDate,day?.Id,ct);
+                if (!decision.Allowed) throw new BusinessRuleException("Paid first-entry activation cannot complete without a valid gym entry: " + decision.ReasonCode);
+            }
             if(r.ConfirmBorrow && decision.BorrowAvailable)
                 return await BorrowAsync(decision,member,r,context.Actor.UserId,ct);
             if(!decision.Allowed)return new CheckInResult(decision,null);

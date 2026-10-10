@@ -54,6 +54,11 @@ public sealed partial class CheckInService(ApplicationDbContext db, ICurrentUser
         if(facts.Count>100)return Result(AccessReasons.AmbiguousEntitlement);
         var currentPeriods=facts.Where(x=>x.StartDate<=date && (x.EndDate==null || x.EndDate>=date)
             && x.Status is not ("Cancelled" or "SuspendedForInstallment") && (x.EmployeeId==null || x.EndDate==null)).ToArray();
+        if(currentPeriods.Length>1)
+        {
+            var usable=currentPeriods.Where(x=>!(x.Status=="Expired" && x.Mode==nameof(AccessMode.SessionBased) && x.RemainingSessions<=0)).ToArray();
+            currentPeriods=usable.Length>0?usable:[currentPeriods.OrderByDescending(x=>x.StartDate).First()];
+        }
         if(currentPeriods.Length>1)return Result(AccessReasons.AmbiguousEntitlement);
         if(currentPeriods.Length==1)
         {
@@ -61,9 +66,16 @@ public sealed partial class CheckInService(ApplicationDbContext db, ICurrentUser
             if(s.EmployeeId!=null && s.Status=="Expired")return Result(AccessReasons.EmployeeEntitlementInactive,s);
             if(s.AccessCityId!=branch.CityId)return Result(AccessReasons.AccessCityMismatch,s);
             if(s.Status=="Frozen")return Result(AccessReasons.SubscriptionFrozen,s);
-            if(s.Mode==nameof(AccessMode.SessionBased) && s.RemainingSessions<=0)return Result(AccessReasons.NoSessionsRemaining,s);
+            if(s.Mode==nameof(AccessMode.SessionBased) && s.RemainingSessions<=0)
+            {
+                if(await subscriptions.PendingFirstEntrySaleAsync(member.Id,branch.CityId,date,ct)!=null)
+                    return Result(AccessReasons.PendingFirstCheckIn) with{CanActivateOnCheckIn=true};
+                return Result(AccessReasons.NoSessionsRemaining,s);
+            }
             return Result(s.Status=="Active"?AccessReasons.Allowed:AccessReasons.NoGymEntitlement,s);
         }
+        if (await subscriptions.PendingFirstEntrySaleAsync(member.Id,branch.CityId,date,ct) != null)
+            return Result(AccessReasons.PendingFirstCheckIn) with { CanActivateOnCheckIn = true };
         var expired=facts.Where(x=>x.StartDate<=date && x.EndDate<date).ToArray();
         if(expired.Length>1)return Result(AccessReasons.AmbiguousEntitlement);
         if(expired.Length==1)

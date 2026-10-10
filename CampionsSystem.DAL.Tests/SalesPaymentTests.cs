@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class SalesTests
 {
-    private SalesService Finance() => new(db, user, access, offers);
+    private SalesService Finance() => new(db, user, access, offers, subscriptions);
     private async Task<FinancialAccount> Account(FinancialAccountType type = FinancialAccountType.Cash, Guid? branch = null)
     { var account = new FinancialAccount { BranchId = branch ?? b.Id, Name = type.ToString(), AccountType = type }; db.Add(account); await db.SaveChangesAsync(); return account; }
     private CreateSaleRequest Purchase(params PaymentPartInput[] parts) => new(Guid.NewGuid(), member.Id, plan.Id, PurchaseMode.FullPayment, SubscriptionActivationMode.Now, parts);

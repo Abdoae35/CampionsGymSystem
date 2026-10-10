@@ -10,6 +10,7 @@ public static class CheckInPermissions
 }
 public static class AccessReasons
 {
+    public const string PendingFirstCheckIn = "PendingFirstCheckIn";
     public const string Allowed = "Allowed";
     public const string MemberNotFound = "MemberNotFound";
     public const string MemberInactive = "MemberInactive";
@@ -38,7 +39,7 @@ public sealed record CreateCheckInRequest(Guid OperationId, CheckInMethod Method
 public sealed record AccessDecision(bool Allowed, string ReasonCode, Guid? MemberId, string? MemberCode,
     string? MemberName, Guid BranchId, DateOnly BusinessDate, Guid? BusinessDayId,
     Guid? SubscriptionId, string? SubscriptionMode, int? RemainingSessions, bool BorrowAvailable,
-    int BorrowedUsed, int BorrowedRemaining);
+    int BorrowedUsed, int BorrowedRemaining, bool CanActivateOnCheckIn = false);
 public sealed record CheckInDetails(Guid Id, Guid? OperationId, Guid? MemberId, string? MemberCode,
     string? MemberName, Guid BranchId, DateOnly? BusinessDate, Guid? BusinessDayId,
     DateTimeOffset OccurredAt, string Type, string Method, Guid? SubscriptionId, bool SessionConsumed,
