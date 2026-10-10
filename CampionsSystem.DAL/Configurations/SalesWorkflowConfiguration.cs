@@ -6,6 +6,7 @@ public sealed class SaleMembershipSnapshotConfiguration : IEntityTypeConfigurati
 {
     public void Configure(EntityTypeBuilder<SaleMembershipSnapshot> b)
     {
+        b.HasOne(x => x.AudienceCategory).WithMany().HasForeignKey(x => x.AudienceCategoryId).OnDelete(DeleteBehavior.Restrict);
         b.HasKey(x => x.SaleTransactionId);
         b.HasOne(x => x.SaleTransaction).WithOne(x => x.MembershipSnapshot).HasForeignKey<SaleMembershipSnapshot>(x => x.SaleTransactionId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.MembershipPlan).WithMany().HasForeignKey(x => x.MembershipPlanId).OnDelete(DeleteBehavior.Restrict);

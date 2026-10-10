@@ -15,6 +15,9 @@ public sealed class OfferConfiguration : IEntityTypeConfiguration<Offer>
             table.HasCheckConstraint("CK_Offers_StartDateEndDate", "\"EndDate\" >= \"StartDate\"");
             table.HasCheckConstraint("CK_Offers_Percentage", "\"OfferType\" <> 'PercentageDiscount' OR \"Value\" <= 100");
         });
+        builder.Property(x => x.EligibilityMode).HasConversion<string>().HasMaxLength(40);
+        builder.HasOne(x => x.AudienceCategory).WithMany().HasForeignKey(x => x.AudienceCategoryId).OnDelete(DeleteBehavior.Restrict);
+        builder.ToTable("Offers", t => t.HasCheckConstraint("CK_Offers_EligibilityMode", "\"EligibilityMode\" IS NULL OR \"EligibilityMode\" IN ('General', 'MemberOnly')"));
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Name).HasMaxLength(256).IsRequired();

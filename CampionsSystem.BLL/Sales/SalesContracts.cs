@@ -32,12 +32,14 @@ public sealed record RefundRequest(Guid OperationId, decimal Amount, IReadOnlyLi
 public sealed record QuickCancelRequest(Guid OperationId, string Reason);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record OfferRequest(string Name, OfferType Type, decimal Value, IReadOnlyList<Guid> MembershipPlanIds,
+    OfferEligibilityMode? EligibilityMode, Guid? AudienceCategoryId = null,
     DateOnly? StartDate = null, DateOnly? EndDate = null, bool IsPermanent = false,
     bool IsActive = true, string? Description = null, Guid? BranchId = null);
 public sealed record OfferDetails(Guid Id, Guid? BranchId, string Name, string Type, decimal Value,
-    DateOnly? StartDate, DateOnly? EndDate, bool IsPermanent, bool IsActive, IReadOnlyList<Guid> MembershipPlanIds);
+    DateOnly? StartDate, DateOnly? EndDate, bool IsPermanent, bool IsActive, IReadOnlyList<Guid> MembershipPlanIds, string? EligibilityMode, Guid? AudienceCategoryId);
 public sealed record PricingResult(decimal OriginalPrice, decimal Discount, decimal FinalPrice, int ExtraDays,
-    Guid? OfferId, string? OfferName, OfferType? OfferType, decimal? OfferValue);
+    Guid? OfferId, string? OfferName, OfferType? OfferType, decimal? OfferValue,
+    OfferEligibilityMode? EligibilityMode = null, Guid? AudienceCategoryId = null);
 public sealed record FinancialPartDetails(Guid AccountId, string AccountName, string Method, decimal Amount, string? Reference);
 public sealed record PaymentDetails(Guid Id, Guid? OperationId, Guid BranchId, DateOnly? BusinessDate,
     Guid? BusinessDayId, DateTimeOffset PaidAt, decimal Amount, IReadOnlyList<FinancialPartDetails> Parts,
@@ -67,3 +69,10 @@ public sealed class SaleHistoryRequest
 public sealed record SaleHistory(IReadOnlyList<SaleSummary> Items, int TotalCount, int Page, int PageSize);
 public sealed record BranchFinancialTotals(Guid BranchId, decimal CashCollected, decimal InstaPayCollected,
     decimal CashRefunded, decimal InstaPayRefunded, decimal GrossCollected, decimal Refunds, decimal NetCollected);
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record GrantMemberOfferRequest(Guid MemberId, DateOnly? StartDate = null, DateOnly? EndDate = null);
+public sealed record MemberOfferGrantDetails(Guid Id, Guid MemberId, Guid OfferId, DateOnly? StartDate, DateOnly? EndDate, DateTimeOffset? RevokedAt);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record SetMemberAudienceRequest(IReadOnlyList<Guid> AudienceCategoryIds);
+public sealed record MemberAudienceDetails(Guid Id, Guid CategoryId, string CategoryName, DateTimeOffset AssignedAt, DateTimeOffset? EndedAt);

@@ -7,6 +7,8 @@ public sealed class SaleMembershipSnapshot
     public SaleTransaction SaleTransaction { get; set; } = null!;
     public Guid MembershipPlanId { get; set; }
     public MembershipPlan MembershipPlan { get; set; } = null!;
+    public Guid? AudienceCategoryId { get; set; }
+    public MembershipPlanCategory? AudienceCategory { get; set; }
     public string PlanName { get; set; } = null!;
     public PlanCategory PlanCategory { get; set; }
     public Guid CityId { get; set; }

@@ -20,6 +20,9 @@ public sealed class SaleTransaction
     public DateOnly? RequestedStartDate { get; set; }
     public DateOnly? ReservationDueDate { get; set; }
     public decimal? InitialPaymentRequired { get; set; }
+    public OfferEligibilityMode? OfferEligibilityModeSnapshot { get; set; }
+    public Guid? OfferAudienceCategoryIdSnapshot { get; set; }
+    public MembershipPlanCategory? OfferAudienceCategorySnapshot { get; set; }
     public string? OfferNameSnapshot { get; set; }
     public OfferType? OfferTypeSnapshot { get; set; }
     public decimal? OfferValueSnapshot { get; set; }

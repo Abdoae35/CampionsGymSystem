@@ -41,10 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 1 — contracts and domain alignment.
+- Sales / Payments in progress on Sales/Payments; latest checkpoint: Sales Task 2 — Offer eligibility and pricing.
 - Reuse SaleTransaction, Payment/Parts, Refund/Parts, FinancialAccount/ledger, Offers and Installments.
 - Completed Check-In/Subscription features remain authoritative; no financial bypass endpoint.
 - Standalone paid visits must preserve borrowed debt and must not reset expired-cycle allowance.
-- Next: Task 2: Offer management, eligibility and commercial pricing; preserve sold terms.
+- Next: Task 3: transactional full/split payments and branch/owner snapshots; then paid activation and remaining authorized finance tasks.
 - Commission, payroll, Shift/Vault closing, Expenses, Private/Classes finance, frontend and offline sync remain deferred.
 - See PROJECT_HISTORY.md; portable history skill: skills/project-history-update/SKILL.md.

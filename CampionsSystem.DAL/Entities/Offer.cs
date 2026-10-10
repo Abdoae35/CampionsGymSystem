@@ -5,6 +5,10 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class Offer
 {
+    // Legacy offers remain unclassified until management explicitly configures them.
+    public OfferEligibilityMode? EligibilityMode { get; set; }
+    public Guid? AudienceCategoryId { get; set; }
+    public MembershipPlanCategory? AudienceCategory { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid? BranchId { get; set; }
     public GymBranch? Branch { get; set; }

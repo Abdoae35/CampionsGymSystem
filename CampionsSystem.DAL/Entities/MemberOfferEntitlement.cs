@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class MemberOfferEntitlement
 {
+    public DateTimeOffset? RevokedAt { get; set; }
+    public Guid? RevokedByUserId { get; set; }
+    public ApplicationUser? RevokedByUser { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid MemberId { get; set; }
     public Member Member { get; set; } = null!;

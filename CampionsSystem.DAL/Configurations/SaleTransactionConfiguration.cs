@@ -37,6 +37,8 @@ public sealed class SaleTransactionConfiguration : IEntityTypeConfiguration<Sale
             t.HasCheckConstraint("CK_SaleTransactions_ExtraDays", "\"ExtraDaysSnapshot\" >= 0");
             t.HasCheckConstraint("CK_SaleTransactions_Cancellation", "(\"CancelledAt\" IS NULL AND \"CancelledByUserId\" IS NULL AND \"CancellationReason\" IS NULL) OR (\"CancelledAt\" IS NOT NULL AND \"CancelledByUserId\" IS NOT NULL AND \"CancellationReason\" IS NOT NULL AND length(btrim(\"CancellationReason\")) > 0)");
         });
+        builder.Property(x => x.OfferEligibilityModeSnapshot).HasConversion<string>().HasMaxLength(40);
+        builder.HasOne(x => x.OfferAudienceCategorySnapshot).WithMany().HasForeignKey(x => x.OfferAudienceCategoryIdSnapshot).OnDelete(DeleteBehavior.Restrict);
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);

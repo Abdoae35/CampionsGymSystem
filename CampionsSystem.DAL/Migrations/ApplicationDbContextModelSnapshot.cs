@@ -2327,6 +2327,43 @@ namespace CampionsSystem.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberAudienceCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("AssignedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MembershipPlanCategoryId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedByUserId");
+
+                    b.HasIndex("MembershipPlanCategoryId");
+
+                    b.HasIndex("MemberId", "MembershipPlanCategoryId")
+                        .IsUnique()
+                        .HasFilter("\"EndedAt\" IS NULL");
+
+                    b.ToTable("MemberAudienceCategories", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MemberAudienceCategories_Period", "\"EndedAt\" >= \"AssignedAt\"");
+                        });
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberBenefitUsage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2493,6 +2530,12 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("OfferId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RevokedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
 
@@ -2504,10 +2547,14 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("MemberId");
 
-                    b.HasIndex("OfferId");
+                    b.HasIndex("RevokedByUserId");
+
+                    b.HasIndex("OfferId", "MemberId", "RevokedAt");
 
                     b.ToTable("MemberOfferEntitlements", null, t =>
                         {
+                            t.HasCheckConstraint("CK_MemberOfferEntitlements_Revocation", "(\"RevokedAt\" IS NULL AND \"RevokedByUserId\" IS NULL) OR (\"RevokedAt\" IS NOT NULL AND \"RevokedAt\" >= \"CreatedAt\" AND \"RevokedByUserId\" IS NOT NULL)");
+
                             t.HasCheckConstraint("CK_MemberOfferEntitlements_StartDateEndDate", "\"EndDate\" >= \"StartDate\"");
                         });
                 });
@@ -3124,6 +3171,9 @@ namespace CampionsSystem.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("AudienceCategoryId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("BranchId")
                         .HasColumnType("uuid");
 
@@ -3138,6 +3188,10 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Property<string>("EligibilityDescription")
                         .HasColumnType("text");
+
+                    b.Property<string>("EligibilityMode")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
@@ -3167,12 +3221,16 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AudienceCategoryId");
+
                     b.HasIndex("BranchId");
 
                     b.HasIndex("CreatedByUserId");
 
                     b.ToTable("Offers", null, t =>
                         {
+                            t.HasCheckConstraint("CK_Offers_EligibilityMode", "\"EligibilityMode\" IS NULL OR \"EligibilityMode\" IN ('General', 'MemberOnly')");
+
                             t.HasCheckConstraint("CK_Offers_OfferType", "\"OfferType\" IN ('PercentageDiscount', 'FixedDiscount', 'ExtraDays')");
 
                             t.HasCheckConstraint("CK_Offers_Percentage", "\"OfferType\" <> 'PercentageDiscount' OR \"Value\" <= 100");
@@ -4001,6 +4059,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
+                    b.Property<Guid?>("AudienceCategoryId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CityId")
                         .HasColumnType("uuid");
 
@@ -4030,6 +4091,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("SaleTransactionId");
+
+                    b.HasIndex("AudienceCategoryId");
 
                     b.HasIndex("CityId");
 
@@ -4113,6 +4176,13 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("OfferAudienceCategoryIdSnapshot")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OfferEligibilityModeSnapshot")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<Guid?>("OfferId")
                         .HasColumnType("uuid");
 
@@ -4182,6 +4252,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("CreatedShiftId");
+
+                    b.HasIndex("OfferAudienceCategoryIdSnapshot");
 
                     b.HasIndex("OfferId");
 
@@ -5674,6 +5746,33 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("HomeBranch");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberAudienceCategory", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "AssignedByUser")
+                        .WithMany()
+                        .HasForeignKey("AssignedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipPlanCategory", "MembershipPlanCategory")
+                        .WithMany()
+                        .HasForeignKey("MembershipPlanCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedByUser");
+
+                    b.Navigation("Member");
+
+                    b.Navigation("MembershipPlanCategory");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberBenefitUsage", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
@@ -5785,6 +5884,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "RevokedByUser")
+                        .WithMany()
+                        .HasForeignKey("RevokedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("GrantedByEmployee");
@@ -5792,6 +5896,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Member");
 
                     b.Navigation("Offer");
+
+                    b.Navigation("RevokedByUser");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.MemberSalesAssignment", b =>
@@ -6046,6 +6152,11 @@ namespace CampionsSystem.DAL.Migrations
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.Offer", b =>
                 {
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipPlanCategory", "AudienceCategory")
+                        .WithMany()
+                        .HasForeignKey("AudienceCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
                         .WithMany()
                         .HasForeignKey("BranchId")
@@ -6056,6 +6167,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AudienceCategory");
 
                     b.Navigation("Branch");
 
@@ -6525,6 +6638,11 @@ namespace CampionsSystem.DAL.Migrations
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.SaleMembershipSnapshot", b =>
                 {
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipPlanCategory", "AudienceCategory")
+                        .WithMany()
+                        .HasForeignKey("AudienceCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
@@ -6547,6 +6665,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("CampionsSystem.DAL.Entities.SaleMembershipSnapshot", "SaleTransactionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AudienceCategory");
 
                     b.Navigation("City");
 
@@ -6592,6 +6712,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.MembershipPlanCategory", "OfferAudienceCategorySnapshot")
+                        .WithMany()
+                        .HasForeignKey("OfferAudienceCategoryIdSnapshot")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Offer", "Offer")
                         .WithMany()
                         .HasForeignKey("OfferId")
@@ -6615,6 +6740,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Member");
 
                     b.Navigation("Offer");
+
+                    b.Navigation("OfferAudienceCategorySnapshot");
 
                     b.Navigation("SalesEmployee");
                 });

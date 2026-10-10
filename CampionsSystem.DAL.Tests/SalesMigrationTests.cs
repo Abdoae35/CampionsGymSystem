@@ -21,10 +21,10 @@ public sealed class SalesMigrationTests
         var script = db.GetService<IMigrator>().GenerateScript("PrepareOperationalCheckIns", "PrepareSalesPayments")
             .Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
         await db.Database.ExecuteSqlRawAsync(script); db.ChangeTracker.Clear();
-        var sale = await db.SaleTransactions.SingleAsync();
+        var sale = await db.SaleTransactions.Select(s => new { s.Id, s.NetAmount, s.DiscountAmount, s.CreatedAt, s.OperationId, s.BusinessDate, s.CommissionEligible }).SingleAsync();
         Assert.Equal(id, sale.Id); Assert.Equal(1000, sale.NetAmount); Assert.Equal(200, sale.DiscountAmount); Assert.Equal(time, sale.CreatedAt);
         Assert.Null(sale.OperationId); Assert.Null(sale.BusinessDate); Assert.Null(sale.CommissionEligible);
-        Assert.Empty(await db.SaleMembershipSnapshots.ToListAsync()); Assert.Empty(await db.Payments.ToListAsync());
+        Assert.False(await db.SaleMembershipSnapshots.AnyAsync()); Assert.Empty(await db.Payments.ToListAsync());
         Assert.Empty(await db.Shifts.ToListAsync()); Assert.Empty(await db.CommissionPeriods.ToListAsync());
     }
 }

@@ -95,6 +95,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<SaleBenefitSnapshot> SaleBenefitSnapshots => Set<SaleBenefitSnapshot>();
     public DbSet<InstallmentPaymentAllocation> InstallmentPaymentAllocations => Set<InstallmentPaymentAllocation>();
 
+    public DbSet<MemberAudienceCategory> MemberAudienceCategories => Set<MemberAudienceCategory>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -103,6 +105,16 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        foreach (var entry in ChangeTracker.Entries<MemberAudienceCategory>())
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&
+                (entry.OriginalValues.GetValue<DateTimeOffset?>(nameof(MemberAudienceCategory.EndedAt)) != null
+                 || entry.Properties.Any(p => p.IsModified && p.Metadata.Name != nameof(MemberAudienceCategory.EndedAt))))
+                throw new InvalidOperationException("Audience assignments preserve history; close and append a new assignment.");
+        foreach (var entry in ChangeTracker.Entries<MemberOfferEntitlement>())
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&
+                (entry.OriginalValues.GetValue<DateTimeOffset?>(nameof(MemberOfferEntitlement.RevokedAt)) != null
+                 || entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(MemberOfferEntitlement.RevokedAt) or nameof(MemberOfferEntitlement.RevokedByUserId)))))
+                throw new InvalidOperationException("Member Offer grants preserve original dates; revoke once instead of rewriting history.");
         foreach (var entry in ChangeTracker.Entries<SaleTransaction>().Where(x => x.OriginalValues.GetValue<Guid?>(nameof(SaleTransaction.OperationId)) != null))
             if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not
                 (nameof(SaleTransaction.Status) or nameof(SaleTransaction.Version) or nameof(SaleTransaction.CancelledAt) or nameof(SaleTransaction.CancelledByUserId) or nameof(SaleTransaction.CancellationReason))))
