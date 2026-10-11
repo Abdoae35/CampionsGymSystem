@@ -43,7 +43,7 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; shared Vault/reconciliation and global withdrawals verified.
+- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; direct paid expense and real-money return stage verified.
 - Owner confirms independent manually opened/closed employee shifts; overlaps valid, one active shift per employee, one shared branch drawer.
 - Direct paid expenses and distinct advances; no approvals/automation/payroll. Global capability restricts discretionary withdrawals; no routine Cash-In.
 - Counted physical cash carries forward; unresolved branch-wide discrepancies do not adjust ledger or blame employees.
@@ -51,7 +51,7 @@ it does not replace checking the actual repository.
 - Plan updated; new PrepareEmployeeShiftsAndSharedDrawer migration applied only to guarded localhost Development. Legacy facts preserved.
 - Build zero warnings/errors; lifecycle/domain 12 tests passed (prior domain/schema 31 passed); EF drift clean. Two new migrations applied in local Development; full suite pending.
 - Sales Offers.Manage/Installments.Manage/Sales.QuickCancel still have zero grants/overrides; no unrelated provisioning changes.
-- Next: direct paid expenses and explicit returned-money reversals, distinct advances, registration/Sales integration and APIs.
+- Next: distinct employee advances, registration/Sales integration, reporting/APIs and full validation.
 - Payroll/advance settlement, monthly closing, commissions, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
 
 ## Work history
@@ -2019,3 +2019,7 @@ Domain commit 7f30455 pushed successfully. Added Shift contracts and concrete Fi
 ### 2026-10-11 — Shared Vault, reconciliation and withdrawals
 
 Lifecycle commit 039fb6c pushed. Added VaultService/DTOs for globally authorized explicit one-drawer setup, bounded branch counts/movements/position and discretionary withdrawals. Virgin zero-opening accounts receive exactly one explicit non-sales InitialPosition credit; existing money is preserved without duplicate credit. Shift counts add no money. Latest physical observation plus subsequent sequence-bounded Cash movements determines availability; accounting stays ledger-derived and discrepancies remain branch-wide observations. Recounts do not erase shortages or invent employee liability. Cash withdrawals require Vault.Withdraw, Branches.AccessAll and the actor's own open Shift, and fail above physical funds even when book cash is higher. Counts/source/ledger/audit are atomic; setup retry returns its original snapshot after later movements, withdrawal retry survives closure. No cash-in endpoint or direct balance mutation. Added seven Vault tests; 14 combined lifecycle/Vault cases passed and after the setup snapshot refinement all three affected setup/history cases passed, zero failures/skips. Build zero warnings/errors; no schema change/drift since lifecycle stage. Diff reviewed; preparing requested Vault stage commit/push. Production and app money/permissions untouched. Next paid expenses/reversal then advances/integration/APIs/full suite.
+
+### 2026-10-11 — Direct operational expenses and actual-money returns
+
+Vault commit cebab5c pushed. Added ExpenseService/DTOs using existing Expense/ExpenseCategory and the one ledger: paid operations require own open Shift, active branch/source/category and Expenses.Create; no approval state/self-approval/threshold. Cash payout checks physical funds; InstaPay records actual authorized transfer with no inferred bank balance. Amount/source/date/employee/receipt/audit preserved; immutable original, distinct returned-money history capped at not-yet-returned paid amount. Expenses.Reverse and explicit FundsActuallyReturned confirmation required; no fake credit or legacy unpaid assumption. Global capability protects shared dynamic category administration; no invented category seeds. Retries preserve facts after closure. Eight targeted cases passed, zero failed/skipped, covering direct receptionist source separation, no revenue/commission, funds rejection, real partial/full returns, permissions/scope/category validation, missing shift, rollback and overnight/legacy history. Corrected initial anonymous audit-property/type-inference compiler errors and detached test fixture navigation references after expected rollback; final build zero warnings/errors. No migration/schema change or app money/permission writes. Diff/whitespace reviewed; checkpoint prepared for requested expense commit/push. Next advances, finance/registration gate integration, reporting/API/Postman and complete regression suite. Production untouched.
