@@ -25,6 +25,7 @@ public sealed class CrmConcurrencyTests : IAsyncLifetime
             ?? $"Host=localhost;Database=postgres;Username={Environment.UserName};Timeout=5");
         await using var admin = new NpgsqlConnection(config.ConnectionString); await admin.OpenAsync();
         await using var command = new NpgsqlCommand($"CREATE SCHEMA {schema}", admin); await command.ExecuteNonQueryAsync();
+        config.Pooling = false; // Dedicated disposable schemas must not leave one idle pool per test.
         config.SearchPath = schema; connection = config.ConnectionString;
         try
         {

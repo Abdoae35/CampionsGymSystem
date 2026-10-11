@@ -13,8 +13,9 @@ var configureMemberPermissions = args.Contains("--configure-member-permissions",
 var configureSubscriptionPermissions = args.Contains("--configure-subscription-permissions", StringComparer.Ordinal);
 var configureCheckInPermissions = args.Contains("--configure-checkin-permissions", StringComparer.Ordinal);
 var configureSalesPermissions = args.Contains("--configure-sales-permissions", StringComparer.Ordinal);
+var configureShiftPermissions = args.Contains("--configure-shift-permissions", StringComparer.Ordinal);
 var seedAuthDemo = args.Contains("--seed-auth-demo", StringComparer.Ordinal);
-var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--configure-crm-permissions" && arg != "--seed-auth-demo" && arg != "--configure-branch-permissions" && arg != "--configure-member-permissions" && arg != "--configure-subscription-permissions" && arg != "--configure-checkin-permissions" && arg != "--configure-sales-permissions").ToArray());
+var builder = WebApplication.CreateBuilder(args.Where(arg => arg != "--configure-crm-permissions" && arg != "--seed-auth-demo" && arg != "--configure-branch-permissions" && arg != "--configure-member-permissions" && arg != "--configure-subscription-permissions" && arg != "--configure-checkin-permissions" && arg != "--configure-sales-permissions" && arg != "--configure-shift-permissions").ToArray());
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -53,6 +54,11 @@ builder.Services.AddScoped<CampionsSystem.BLL.CheckIns.CheckInPermissionSetup>()
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.SalesService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.OfferService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.SalesPermissionSetup>();
+builder.Services.AddScoped<CampionsSystem.BLL.Shifts.ShiftService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Shifts.VaultService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Shifts.ExpenseService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Shifts.ShiftReportService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Shifts.ShiftPermissionSetup>();
 builder.Services.AddScoped<ActivityManagementService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Plans.MembershipPlanManagementService>();
 builder.Services.AddScoped<FreelancePlanService>();
@@ -70,6 +76,19 @@ var app = builder.Build();
 if (string.IsNullOrWhiteSpace(app.Configuration.GetConnectionString("DefaultConnection")))
     throw new InvalidOperationException(
         "Configure ConnectionStrings:DefaultConnection using user secrets or a production secret provider.");
+
+if (configureShiftPermissions)
+{
+    var target=new Npgsql.NpgsqlConnectionStringBuilder(app.Configuration.GetConnectionString("DefaultConnection"));
+    if(!app.Environment.IsDevelopment() || target.Host is not ("localhost" or "127.0.0.1" or "::1"))
+        throw new InvalidOperationException("Shift capability setup is allowed only in Development against localhost.");
+    var configuredRole=app.Configuration["Shifts:GlobalRoleId"];
+    Guid? role=string.IsNullOrWhiteSpace(configuredRole)?null:Guid.Parse(configuredRole);
+    await using(var scope=app.Services.CreateAsyncScope())
+        await scope.ServiceProvider.GetRequiredService<CampionsSystem.BLL.Shifts.ShiftPermissionSetup>().ConfigureAsync(role,app.Lifetime.ApplicationStopping);
+    Console.WriteLine("Shift/Vault/Expense capabilities configured; existing activation/grants/overrides preserved.");
+    await app.DisposeAsync();return;
+}
 
 if (configureSalesPermissions)
 {

@@ -29,6 +29,7 @@ public sealed partial class SalesConcurrencyTests : IAsyncLifetime
         var config=new NpgsqlConnectionStringBuilder(Environment.GetEnvironmentVariable("GYM_SCHEMA_TEST_CONNECTION")??$"Host=localhost;Database=postgres;Username={Environment.UserName};Timeout=5");
         if(config.Host is not ("localhost" or "127.0.0.1" or "::1"))throw new InvalidOperationException("Concurrency tests require localhost.");
         await using var admin=new NpgsqlConnection(config.ConnectionString);await admin.OpenAsync();await using var command=new NpgsqlCommand($"CREATE SCHEMA {schema}",admin);await command.ExecuteNonQueryAsync();
+        config.Pooling=false; // Dedicated disposable schemas must not leave one idle pool per test.
         config.SearchPath=schema;connection=config.ConnectionString;
         try
         {

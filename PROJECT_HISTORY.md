@@ -43,17 +43,16 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Shifts / Vault / Expenses on Shifts-Vault&Expenses-; registration/Sales/payment/refund integration verified.
-- Independent own employee shifts may overlap; one shared drawer, explicit cash counts and discrepancy carry-forward, no automatic ledger corrections.
-- Cash payouts enforce tracked physical availability; InstaPay has no inferred bank-balance check.
-- New operational Member creation, Sales/collections/refunds require own open shift; committed financial retries survive closure; historical null links preserved.
-- Employee transfer requires own manual shift closure; explicit BusinessDay rollover may proceed while employee shifts remain open.
-- CashDrawer locks coordinate money/count/closure; employee lock protects transfer/opening. No automatic recovery or manager approval.
-- Policy/branch concurrency 32 tests and HTTP regressions 92 passed. Prior integration run 210 passed / 1 fixture failure corrected; full suite pending.
-- Latest published a6d871c; integration commit/push next. Reporting/API implementation underway and not yet validated.
-- Two new migrations applied only guarded localhost Development; prior EF drift clean.
-- Sales Offers.Manage/Installments.Manage/Sales.QuickCancel provisioning gap remains; no unrelated grants/overrides mutated.
-- Payroll/advance settlement, commission, monthly close, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
+- Shifts / Vault / Expenses on Shifts-Vault&Expenses-; operational integration cdb9d94 pushed. Reporting/API and Postman stage verified with targeted tests; final full rerun underway.
+- Own manual overlapping employee shifts; one shared branch drawer; counts carry actual physical cash forward with unresolved discrepancies and no ledger correction/blame.
+- Cash payouts enforce physical availability; InstaPay has no inferred bank-balance check. Expenses/advances are direct paid facts; returns require actual received funds.
+- New Member creation, Sales/collections/refunds/payouts require actor's own open shift; financial retries survive closure. Legacy null associations are preserved.
+- Employee transfer requires own manual closure; explicit BusinessDay rollover may leave shifts open; later operations use new effective date.
+- Targeted policy/concurrency 32, HTTP regressions 92, reporting 32, API 12/13 and failure-fix 18 test runs passed. Initial full run: 724 passed / 9 fixture-resource failures; corrected and clean full rerun pending.
+- Build zero warnings/errors; EF drift none. Two migrations applied only localhost Development: five support tables, 36 indexes, 38 validated constraints, restrictive FKs and 18,2 money verified.
+- Development catalog adds seven missing capabilities only; no existing role grants/user overrides changed. Offers.Manage/Installments.Manage/Sales.QuickCancel remain unprovisioned.
+- Next: finish full-suite rerun, final checkpoint/doc commit/push and local/remote HEAD verification.
+- Payroll/advance settlement, discrepancy resolution, forced/automatic closing, commissions, monthly closing, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
 
 ## Work history
 
@@ -2038,3 +2037,13 @@ Changed: Member registration resolves trusted operational branch separately from
 Verification: integration run 211 tests: 210 passed, one branch-isolation fixture failed because it still operated B through A's shift. Corrected independent B actor/shift; policy and concurrency rerun 32/32 passed. HTTP/branch regression run 92/92 passed, zero failures/skips. Initial six fixture failures from an earlier integration run were corrected; no broken changes pushed. Reporting/API work started independently and awaits its own tests. Full suite and final EF/catalog verification remain pending.
 
 Commit/push: previous verified stages through a6d871c are published; operational integration prepared for its own verified commit. No production database or existing role/custom grants touched.
+
+### 2026-10-12 — Operational reporting/API, capability setup and final validation corrections
+
+Implemented branch/employee financial summaries separated from shared physical drawer snapshots, bounded movement/count/audit/expense-return/category queries, thin Shift/BusinessDay/Vault/Expense/Advance controllers and explicit local capability setup. Mutation DTOs reject unknown authoritative fields. New fresh-role templates permit own shifts/operational expenses/advances for Sales/Reception and branch oversight for managers, without default manager withdrawal; existing roles and user overrides remain untouched. Postman adds 28 intentional examples with stable operation variables and original close version. Feature documentation and corrected plan describe actual routes, source totals, setup and deferred policies.
+
+Verification: reporting/lifecycle 32 tests passed, API/catalog 12 tests passed, refined transfer/opening/day-rollover/override/default-template 13 tests passed. Build zero warnings/errors and EF drift none. Initial complete suite: 733 cases, 724 passed and nine failed: six disposable-schema pool connection-capacity failures, two CRM transfer fixtures not closing an existing shift, and one historical migration assertion reading modern Shift columns. Changed only test fixture setup/projection and disabled pooling for disposable committed concurrency schemas; affected 18-test rerun passed. A clean full-suite rerun is in progress; completion is not yet claimed.
+
+Guarded localhost Development verification: both new migrations applied, five new tables, 36 indexes and 38 validated constraints; no nonrestrictive new FKs or invalid numeric precision. No operational drawer/count/money/advance/expense data was seeded. Explicit CLI adds seven missing capability catalog entries only, with GlobalRoleId explicitly empty; no existing role grants/user overrides or unrelated Sales capabilities changed. Prior Offers.Manage/Installments.Manage/Sales.QuickCancel provisioning gap remains unresolved and documented. Production untouched.
+
+Commit/push: cdb9d94 operational integration published after preceding five implementation commits. Reporting/API checkpoint prepared for validated commit/push; final full results and docs checkpoint remain next.

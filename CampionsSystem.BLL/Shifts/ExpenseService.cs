@@ -62,6 +62,16 @@ public sealed partial class ExpenseService(ApplicationDbContext db, ICurrentUser
         var row=await db.Expenses.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw new BranchNotFoundException("Expense not found.");
         await access.RequireAsync(ShiftPermissions.ExpenseView,row.BranchId,ct);return await Details(row,ct);
     }
+    public async Task<ShiftPage<ExpenseReversalDetails>> ReturnsAsync(Guid id,int page=1,int pageSize=25,CancellationToken ct=default)
+    {
+        if(page<1||pageSize is <1 or >100)throw new BusinessRuleException("Invalid pagination.");
+        var branch=await db.Expenses.Where(x=>x.Id==id).Select(x=>(Guid?)x.BranchId).SingleOrDefaultAsync(ct)??throw new BranchNotFoundException("Expense not found.");
+        await access.RequireAsync(ShiftPermissions.ExpenseView,branch,ct);
+        var q=db.ExpenseReversals.AsNoTracking().Where(x=>x.ExpenseId==id);
+        var total=await q.CountAsync(ct);var items=await q.OrderByDescending(x=>x.OccurredAt).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize)
+            .Select(x=>new ExpenseReversalDetails(x.Id,x.ExpenseId,x.BranchId,x.ShiftId,x.Amount,x.Reason,x.ReturnReference,x.OccurredAt,x.BusinessDate)).ToListAsync(ct);
+        return new(items,total,page,pageSize);
+    }
     public async Task<ShiftPage<ExpenseDetails>> HistoryAsync(VaultHistoryRequest r,CancellationToken ct=default)
     {
         if(r.Page<1||r.PageSize is <1 or >100||r.From>r.To)throw new BusinessRuleException("Invalid history range or pagination.");
@@ -70,8 +80,14 @@ public sealed partial class ExpenseService(ApplicationDbContext db, ICurrentUser
         var total=await q.CountAsync(ct);var rows=await q.OrderByDescending(x=>x.ExpenseDate).ThenBy(x=>x.Id).Skip((r.Page-1)*r.PageSize).Take(r.PageSize).ToListAsync(ct);
         var items=new List<ExpenseDetails>();foreach(var row in rows)items.Add(await Details(row,ct));return new(items,total,r.Page,r.PageSize);
     }
-    public async Task<IReadOnlyList<ExpenseCategoryDetails>> CategoriesAsync(CancellationToken ct=default)
-    {await access.RequireAsync(ShiftPermissions.ExpenseView,null,ct);return await db.ExpenseCategories.AsNoTracking().OrderBy(x=>x.Name).Select(x=>new ExpenseCategoryDetails(x.Id,x.Name,x.IsActive)).ToListAsync(ct);}
+    public async Task<ShiftPage<ExpenseCategoryDetails>> CategoriesAsync(int page=1,int pageSize=25,CancellationToken ct=default)
+    {
+        await access.RequireAsync(ShiftPermissions.ExpenseView,null,ct);
+        if(page<1||pageSize is <1 or >100)throw new BusinessRuleException("Invalid category pagination.");
+        var q=db.ExpenseCategories.AsNoTracking();var total=await q.CountAsync(ct);
+        var items=await q.OrderBy(x=>x.Name).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).Select(x=>new ExpenseCategoryDetails(x.Id,x.Name,x.IsActive)).ToListAsync(ct);
+        return new(items,total,page,pageSize);
+    }
     public Task<ExpenseCategoryDetails> SetCategoryAsync(Guid? id,ExpenseCategoryRequest r,CancellationToken ct=default)=>money.TransactionAsync<ExpenseCategoryDetails>(async()=>
     {
         await access.RequireAsync(ShiftPermissions.ExpenseManage,null,ct);var actor=await access.RequireAsync("Branches.AccessAll",null,ct);

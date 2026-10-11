@@ -110,6 +110,7 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
         var actor = await access.RequireAsync(ShiftPermissions.Manage, info.BranchId, ct); await money.LockBranchAsync(info.BranchId, ct);
         var day = await db.BusinessDays.SingleAsync(x => x.Id == id, ct); await db.Entry(day).ReloadAsync(ct);
         if (day.Status == BusinessDayStatus.Closed) return day;
+        if(access.Now<day.OpenedAt)throw new BusinessRuleException("Cannot backdate BusinessDay closure.");
         day.ClosedAt = access.Now; day.ClosedByUserId = actor; day.Status = BusinessDayStatus.Closed;
         access.Audit(actor, day.BranchId, "BusinessDay.Closed", nameof(BusinessDay), id); return day;
     }, ct);

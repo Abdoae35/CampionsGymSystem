@@ -26,7 +26,7 @@ public sealed class BranchConcurrencyTests : IAsyncLifetime
             await connection.OpenAsync();
             await using var command = new NpgsqlCommand($"CREATE SCHEMA {schema}", connection); await command.ExecuteNonQueryAsync();
         }
-        scopedConnection = new NpgsqlConnectionStringBuilder(adminConnection) { SearchPath = schema }.ConnectionString;
+        scopedConnection = new NpgsqlConnectionStringBuilder(adminConnection) { SearchPath = schema, Pooling = false }.ConnectionString;
         await using var db = Context(); await db.Database.MigrateAsync();
         var actor = new ApplicationUser { UserName = "race-admin" };
         var source = new GymBranch { Name = "Race A", City = new City { Name = "Race" } };

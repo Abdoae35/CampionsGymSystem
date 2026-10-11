@@ -30,6 +30,9 @@ public sealed partial class CrmManagementTests
             SalesAttributionSnapshot=AssignmentType.Sales,CreatedByUserId=mohamed.UserId!.Value,GrossAmount=100,NetAmount=100};
         db.Add(sale);await db.SaveChangesAsync();
         var assignments=await db.MemberSalesAssignments.AsNoTracking().OrderBy(x=>x.Id).Select(x=>new{x.Id,x.SalesEmployeeId,x.AssignedAt,x.EndedAt}).ToListAsync();
+        Set(ahmed,"Shifts.Manage","Branches.AccessAll");
+        var ownedShift=await db.Shifts.SingleAsync(x=>x.EmployeeId==ahmed.Id&&x.Status==ShiftStatus.Open);
+        await new CampionsSystem.BLL.Shifts.ShiftService(db,current,access).CloseAsync(ownedShift.Id,new(Guid.NewGuid(),ownedShift.Version,100000));
         EmploymentManager();await EmployeeBranches().TransferAsync(ahmed.Id,new(b.Id,access.Today));
         Assert.Equal(assignments,await db.MemberSalesAssignments.AsNoTracking().OrderBy(x=>x.Id).Select(x=>new{x.Id,x.SalesEmployeeId,x.AssignedAt,x.EndedAt}).ToListAsync());
         Assert.All(await db.Members.ToListAsync(),m=>Assert.Equal(m.Id==second.Id?b.Id:a.Id,m.HomeBranchId));

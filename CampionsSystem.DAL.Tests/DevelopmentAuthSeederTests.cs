@@ -69,10 +69,17 @@ public sealed class DevelopmentAuthSeederTests : IAsyncLifetime
         Assert.NotNull(reception.EmployeeId);
         Assert.Equal("Auth Demo Branch", reception.CurrentBranch?.Name);
         Assert.Contains("Payments.Create", reception.Permissions);
+        Assert.Contains("Shifts.Manage", reception.Permissions);
+        Assert.Contains("Expenses.Create", reception.Permissions);
+        Assert.Contains("Advances.Create", reception.Permissions);
+        Assert.DoesNotContain("Vault.Withdraw", reception.Permissions);
         Assert.DoesNotContain("Branches.AccessAll", reception.Permissions);
         Assert.Empty(Assert.IsType<CurrentUserContext>(await Login("dev.no-permissions")).Permissions);
         Assert.Null(await Login("dev.inactive"));
         Assert.Null(await Login("dev.suspended"));
+        var manager=await db.Roles.SingleAsync(x=>x.Name=="BranchManager");
+        var management=await db.RolePermissions.Where(x=>x.RoleId==manager.Id).Select(x=>x.Permission.Code).ToListAsync();
+        Assert.Contains("Vault.Manage",management);Assert.DoesNotContain("Vault.Withdraw",management);
     }
     [Fact]
     public async Task RerunPreservesChangedAccountsAndRevokedGrants()

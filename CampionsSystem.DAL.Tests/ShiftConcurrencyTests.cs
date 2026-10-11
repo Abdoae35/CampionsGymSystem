@@ -62,4 +62,24 @@ public sealed partial class SalesConcurrencyTests
         Assert.Equal(paid,await verify.FinancialTransactions.Where(x=>x.TransactionType==FinancialTransactionType.Debit).SumAsync(x=>x.Amount));
         Assert.Equal(1200-paid,(await Operational(verify).Vault.PositionAsync()).BookCash);Assert.Equal(1200,(await Operational(verify).Vault.PositionAsync()).ExpectedPhysicalCash);
     }
+    [Fact] public async Task TransferAndShiftOpeningCannotStrandOpenEmployeeInOldBranch()
+    {
+        Guid employee,target;await using(var db=Context())
+        {
+            var shift=await db.Shifts.SingleAsync();employee=shift.EmployeeId!.Value;
+            await Operational(db).Shifts.CloseAsync(shift.Id,new(Guid.NewGuid(),shift.Version,0));
+            var old=await db.GymBranches.SingleAsync();var next=new GymBranch{Name="Transfer destination",CityId=old.CityId};target=next.Id;db.Add(next);await db.SaveChangesAsync();
+        }
+        async Task<bool> Open(){await using var db=Context();return await Attempt(async()=>await Operational(db).Shifts.OpenAsync(new(Guid.NewGuid(),0)));}
+        async Task<bool> Transfer()
+        {
+            await using var db=Context();var user=new TestBranchUser(new(actor,"transfer",null,null,[],["Employees.Transfer","Branches.AccessAll"],new(branch,"Branch")));
+            var access=new OperationAccess(user,db,new Clock(),Options.Create(new AuthContextOptions()));
+            return await Attempt(async()=>await new CampionsSystem.BLL.Branches.EmployeeBranchAssignmentService(db,user,access).TransferAsync(employee,new(target,access.Today)));
+        }
+        var open=Open();var transfer=Transfer();await Task.WhenAll(open,transfer);Assert.NotEqual(await open,await transfer);
+        await using var verify=Context();var active=await verify.Shifts.SingleOrDefaultAsync(x=>x.Status==ShiftStatus.Open);
+        var assignment=await verify.EmployeeBranchAssignments.SingleAsync(x=>x.EmployeeId==employee&&x.EndDate==null);
+        if(active!=null)Assert.Equal(active.BranchId,assignment.BranchId);else Assert.Equal(target,assignment.BranchId);
+    }
 }

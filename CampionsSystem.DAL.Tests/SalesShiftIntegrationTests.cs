@@ -45,4 +45,15 @@ public sealed partial class SalesTests
         var account=await Account();await Assert.ThrowsAsync<BusinessRuleException>(()=>Finance().CreateAsync(Purchase(new PaymentPartInput(account.Id,1200))));
         Assert.Single(await db.Shifts.Where(x=>x.Status==ShiftStatus.Open).ToListAsync());Assert.Empty(await db.Payments.ToListAsync());
     }
+    [Fact] public async Task PaymentsAcrossExplicitDayRolloverKeepOneOpenShiftAndSeparateBusinessDates()
+    {
+        var shifts=Shifts();var today=access.Today;var firstDay=await shifts.OpenBusinessDayAsync(new(Guid.NewGuid(),today.AddDays(-1)));
+        var account=await Account();var sale=await Finance().CreateAsync(Purchase(new PaymentPartInput(account.Id,200)) with{PurchaseMode=PurchaseMode.Reservation});
+        var own=await shifts.CurrentAsync();await shifts.CloseBusinessDayAsync(firstDay.Id);
+        var next=await shifts.OpenBusinessDayAsync(new(Guid.NewGuid(),today));
+        await Finance().RecordPaymentAsync(sale.SaleId,new(Guid.NewGuid(),1000,[new(account.Id,1000)]));
+        var payments=await db.Payments.OrderBy(x=>x.Amount).ToListAsync();
+        Assert.Equal(firstDay.Id,payments[0].BusinessDayId);Assert.Equal(next.Id,payments[1].BusinessDayId);
+        Assert.All(payments,x=>Assert.Equal(own!.Id,x.ShiftId));Assert.Equal(ShiftStatus.Open,(await shifts.CurrentAsync())!.Status);
+    }
 }

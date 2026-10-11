@@ -243,3 +243,24 @@ capability catalog and preserves existing grants, inactive capabilities and over
 It does not infer existing staff permissions. Assign them through authorization management;
 optional `Sales:ManagementRoleId` must identify a role with active `Branches.AccessAll`.
 See [Sales / Payments documentation](../docs/SALES_PAYMENTS.md).
+
+## Employee shifts, shared drawer, expenses and advances
+
+Folder **16** contains 28 manual examples for actual routes documented in
+[Shifts / Vault / Expenses](../docs/SHIFTS_VAULT_EXPENSES.md). Re-import the collection.
+Initial account/drawer setup is explicit and global; new operational Sales/payments/
+refunds and Member registration require your own open employee shift. Existing role
+grants are preserved, so configure capabilities deliberately for current accounts.
+
+Use real cash counts in drawerCount, cashAccountId/instaPayAccountId, expenseCategoryId,
+advanceRecipientEmployeeId and actual receipt/reference variables. Each modifying
+request initializes its operation variable only when empty. Preserve both that UUID
+and the original body on retry; clear it for a new intentional operation. Opening
+captures shiftId and shiftVersion; closing does not alter the original ExpectedVersion
+used for an exact retry. A closed shift cannot be edited or reopened by replay.
+
+Overlapping employee shifts share one drawer; never sum their opening counts or
+interpret a closing shortage as employee liability. Cash returns require actual
+returned funds. Advances are separate from expenses/payroll. Discretionary withdrawals
+require both explicit Vault.Withdraw and Branches.AccessAll plus an own active shift.
+Do not run the full folder blindly. No examples were sent against application data.
