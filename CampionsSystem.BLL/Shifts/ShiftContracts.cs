@@ -1,0 +1,26 @@
+using CampionsSystem.DAL.Enums;
+namespace CampionsSystem.BLL.Shifts;
+
+public static class ShiftPermissions
+{
+    public const string View = "Shifts.View", Manage = "Shifts.Manage", VaultView = "Vault.View", VaultManage = "Vault.Manage", Withdraw = "Vault.Withdraw",
+        ExpenseView = "Expenses.View", ExpenseCreate = "Expenses.Create", ExpenseManage = "Expenses.Manage", ExpenseReverse = "Expenses.Reverse",
+        AdvanceView = "Advances.View", AdvanceCreate = "Advances.Create";
+    public static readonly string[] Codes = [View, Manage, VaultView, VaultManage, Withdraw, ExpenseView, ExpenseCreate, ExpenseManage, ExpenseReverse, AdvanceView, AdvanceCreate];
+}
+public sealed record OpenShiftRequest(Guid OperationId, decimal OpeningCash, Guid? BranchId = null);
+public sealed record CloseShiftRequest(Guid OperationId, long ExpectedVersion, decimal CountedCash, string? Reason = null);
+public sealed record ShiftDetails(Guid Id, Guid BranchId, Guid? EmployeeId, string? EmployeeName, ShiftStatus Status, long Version,
+    DateTimeOffset OpenedAt, DateTimeOffset? ClosedAt, DateOnly? OpeningBusinessDate, DateOnly? ClosingBusinessDate,
+    decimal OpeningCash, decimal? ExpectedClosingCash, decimal? ActualClosingCash, decimal? Difference);
+public sealed record DrawerPosition(Guid BranchId, Guid AccountId, decimal BookCash, decimal ExpectedPhysicalCash, decimal LastCountedCash,
+    long MovementSequence, Guid? LastCountId, decimal ObservedDiscrepancies);
+public sealed record SetupDrawerRequest(Guid OperationId, Guid FinancialAccountId, decimal CountedCash, string Reason, Guid? BranchId = null);
+public sealed record CountCashRequest(Guid OperationId, decimal CountedCash, string Reason, Guid? BranchId = null);
+public sealed record WithdrawalRequest(Guid OperationId, decimal Amount, string Reason, Guid? BranchId = null);
+public sealed record OpenBusinessDayRequest(Guid OperationId, DateOnly BusinessDate, Guid? BranchId = null);
+public sealed record PaidExpenseRequest(Guid OperationId, Guid ExpenseCategoryId, Guid FinancialAccountId, decimal Amount, string Description, string? ReceiptReference = null, Guid? BranchId = null);
+public sealed record ReverseExpenseRequest(Guid OperationId, decimal ReturnedAmount, bool FundsActuallyReturned, string Reason, string? ReturnReference = null);
+public sealed record AdvanceRequest(Guid OperationId, Guid ReceivingEmployeeId, Guid FinancialAccountId, decimal Amount, string Reason, string? Reference = null, Guid? BranchId = null);
+public sealed record ShiftHistoryRequest(Guid? BranchId = null, Guid? EmployeeId = null, DateOnly? From = null, DateOnly? To = null, int Page = 1, int PageSize = 25);
+public sealed record ShiftPage<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize);

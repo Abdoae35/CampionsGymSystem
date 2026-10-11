@@ -15,6 +15,7 @@ public sealed class CashCount
     public Guid OperationId { get; set; }
     public string RequestHash { get; set; } = null!;
     public string Kind { get; set; } = null!;
+    public long ObservationOrder { get; set; }
     public long MovementSequence { get; set; }
     public decimal ExpectedCash { get; set; }
     public decimal CountedCash { get; set; }

@@ -41,13 +41,13 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; corrected domain/migration stage verified.
+- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; manual employee lifecycle stage verified.
 - Owner confirms independent manually opened/closed employee shifts; overlaps valid, one active shift per employee, one shared branch drawer.
 - Direct paid expenses and distinct advances; no approvals/automation/payroll. Global capability restricts discretionary withdrawals; no routine Cash-In.
 - Counted physical cash carries forward; unresolved branch-wide discrepancies do not adjust ledger or blame employees.
 - Cash payouts limited by physical availability; InstaPay has no invented bank-balance check (confirmed async reply).
 - Plan updated; new PrepareEmployeeShiftsAndSharedDrawer migration applied only to guarded localhost Development. Legacy facts preserved.
-- Build zero warnings/errors; 31 targeted schema/migration tests passed; EF drift clean. Full suite pending after remaining stages.
+- Build zero warnings/errors; lifecycle/domain 12 tests passed (prior domain/schema 31 passed); EF drift clean. Two new migrations applied in local Development; full suite pending.
 - Sales Offers.Manage/Installments.Manage/Sales.QuickCancel still have zero grants/overrides; no unrelated provisioning changes.
-- Next: employee Shift lifecycle and shared drawer coordination/services, then payouts/integration/API; all policy gaps resolved.
+- Next: shared Vault setup/reconciliation/withdrawals, direct expenses/advances, registration/Sales integration and APIs; all policy gaps resolved.
 - Payroll/advance settlement, monthly closing, commissions, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.

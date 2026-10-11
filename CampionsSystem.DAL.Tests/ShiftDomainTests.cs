@@ -63,7 +63,7 @@ public sealed class ShiftDomainTests
         var script = db.GetService<IMigrator>().GenerateScript("AddSaleGrantCancellationHistory", "PrepareEmployeeShiftsAndSharedDrawer").Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
         await db.Database.ExecuteSqlRawAsync(script); var legacy = await db.Shifts.SingleAsync();
         Assert.Equal(100, legacy.OpeningCash); Assert.Null(legacy.EmployeeId); Assert.Null(legacy.OperationId); Assert.Null(legacy.FinancialAccountId);
-        Assert.Empty(await db.CashDrawers.ToListAsync()); Assert.Empty(await db.CashCounts.ToListAsync()); Assert.Empty(await db.EmployeeAdvances.ToListAsync());
+        Assert.Empty(await db.CashDrawers.ToListAsync()); Assert.Empty(await db.CashCounts.Select(x => x.Id).ToListAsync()); Assert.Empty(await db.EmployeeAdvances.ToListAsync());
     }
 
     [Fact]

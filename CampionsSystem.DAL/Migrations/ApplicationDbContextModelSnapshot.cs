@@ -882,6 +882,12 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<long>("MovementSequence")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("ObservationOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("ObservationOrder"));
+
                     b.Property<DateTimeOffset>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -913,6 +919,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("ShiftId");
 
                     b.HasIndex("BranchId", "MovementSequence");
+
+                    b.HasIndex("BranchId", "ObservationOrder");
 
                     b.HasIndex("BranchId", "OccurredAt");
 

@@ -15,6 +15,8 @@ public sealed class CashCountConfiguration : IEntityTypeConfiguration<CashCount>
             t.HasCheckConstraint("CK_CashCounts_Kind", "\"Kind\" IN ('Initial', 'Opening', 'Closing', 'Recount')");
         });
         b.HasKey(x => x.Id);
+        b.Property(x => x.ObservationOrder).UseIdentityAlwaysColumn();
+        b.HasIndex(x => new { x.BranchId, x.ObservationOrder });
         b.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.FinancialAccount).WithMany().HasForeignKey(x => x.FinancialAccountId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Shift).WithMany().HasForeignKey(x => x.ShiftId).OnDelete(DeleteBehavior.Restrict);
