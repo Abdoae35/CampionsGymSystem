@@ -37,3 +37,6 @@ public sealed record ExpenseReversalDetails(Guid Id, Guid ExpenseId, Guid Branch
     string? ReturnReference, DateTimeOffset OccurredAt, DateOnly BusinessDate);
 public sealed record ExpenseCategoryRequest(string Name, bool IsActive = true);
 public sealed record ExpenseCategoryDetails(Guid Id, string Name, bool IsActive);
+public sealed record AdvanceDetails(Guid Id, Guid BranchId, Guid ShiftId, Guid ReceivingEmployeeId, string ReceivingEmployeeName,
+    Guid RecordingEmployeeId, Guid AccountId, FinancialAccountType Method, decimal Amount, string Reason, string? Reference,
+    DateTimeOffset OccurredAt, DateOnly BusinessDate);

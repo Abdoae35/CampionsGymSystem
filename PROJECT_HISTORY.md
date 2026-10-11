@@ -43,7 +43,7 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; direct paid expense and real-money return stage verified.
+- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; distinct employee advances stage verified.
 - Owner confirms independent manually opened/closed employee shifts; overlaps valid, one active shift per employee, one shared branch drawer.
 - Direct paid expenses and distinct advances; no approvals/automation/payroll. Global capability restricts discretionary withdrawals; no routine Cash-In.
 - Counted physical cash carries forward; unresolved branch-wide discrepancies do not adjust ledger or blame employees.
@@ -51,7 +51,7 @@ it does not replace checking the actual repository.
 - Plan updated; new PrepareEmployeeShiftsAndSharedDrawer migration applied only to guarded localhost Development. Legacy facts preserved.
 - Build zero warnings/errors; lifecycle/domain 12 tests passed (prior domain/schema 31 passed); EF drift clean. Two new migrations applied in local Development; full suite pending.
 - Sales Offers.Manage/Installments.Manage/Sales.QuickCancel still have zero grants/overrides; no unrelated provisioning changes.
-- Next: distinct employee advances, registration/Sales integration, reporting/APIs and full validation.
+- Next: registration/Sales/Payment/Refund shift integration, reporting/APIs and full validation.
 - Payroll/advance settlement, monthly closing, commissions, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
 
 ## Work history
@@ -2023,3 +2023,7 @@ Lifecycle commit 039fb6c pushed. Added VaultService/DTOs for globally authorized
 ### 2026-10-11 — Direct operational expenses and actual-money returns
 
 Vault commit cebab5c pushed. Added ExpenseService/DTOs using existing Expense/ExpenseCategory and the one ledger: paid operations require own open Shift, active branch/source/category and Expenses.Create; no approval state/self-approval/threshold. Cash payout checks physical funds; InstaPay records actual authorized transfer with no inferred bank balance. Amount/source/date/employee/receipt/audit preserved; immutable original, distinct returned-money history capped at not-yet-returned paid amount. Expenses.Reverse and explicit FundsActuallyReturned confirmation required; no fake credit or legacy unpaid assumption. Global capability protects shared dynamic category administration; no invented category seeds. Retries preserve facts after closure. Eight targeted cases passed, zero failed/skipped, covering direct receptionist source separation, no revenue/commission, funds rejection, real partial/full returns, permissions/scope/category validation, missing shift, rollback and overnight/legacy history. Corrected initial anonymous audit-property/type-inference compiler errors and detached test fixture navigation references after expected rollback; final build zero warnings/errors. No migration/schema change or app money/permission writes. Diff/whitespace reviewed; checkpoint prepared for requested expense commit/push. Next advances, finance/registration gate integration, reporting/API/Postman and complete regression suite. Production untouched.
+
+### 2026-10-11 — Distinct employee advances
+
+Expense stage d3453a3 pushed. Added EmployeeAdvance service/DTOs and bounded scoped history with receiving/recording Employee, source account, own Shift, actual timestamp, business date, reason/reference and audit. Cash/InstaPay posts use distinct EmployeeAdvance ledger source, never Expense/Payroll/Sales. Active recipient required; no approval, interest, repayment or payroll deductions. Own Shift/capability/source/funds checks, immutable facts and actor/hash operation identity preserve retry after closure. Four targeted advance cases passed, zero failures/skips; build zero warnings/errors; no model/migration change. Diff/whitespace reviewed; checkpoint prepared for requested advance commit/push. Next shared coordination integration with Sales/Payments/Refunds and registration, then reporting/API/defaults/Postman and full regressions. Production and app money/permissions untouched.
