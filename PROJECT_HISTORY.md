@@ -43,7 +43,7 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; manual employee lifecycle stage verified.
+- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; shared Vault/reconciliation and global withdrawals verified.
 - Owner confirms independent manually opened/closed employee shifts; overlaps valid, one active shift per employee, one shared branch drawer.
 - Direct paid expenses and distinct advances; no approvals/automation/payroll. Global capability restricts discretionary withdrawals; no routine Cash-In.
 - Counted physical cash carries forward; unresolved branch-wide discrepancies do not adjust ledger or blame employees.
@@ -51,7 +51,7 @@ it does not replace checking the actual repository.
 - Plan updated; new PrepareEmployeeShiftsAndSharedDrawer migration applied only to guarded localhost Development. Legacy facts preserved.
 - Build zero warnings/errors; lifecycle/domain 12 tests passed (prior domain/schema 31 passed); EF drift clean. Two new migrations applied in local Development; full suite pending.
 - Sales Offers.Manage/Installments.Manage/Sales.QuickCancel still have zero grants/overrides; no unrelated provisioning changes.
-- Next: shared Vault setup/reconciliation/withdrawals, direct expenses/advances, registration/Sales integration and APIs; all policy gaps resolved.
+- Next: direct paid expenses and explicit returned-money reversals, distinct advances, registration/Sales integration and APIs.
 - Payroll/advance settlement, monthly closing, commissions, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
 
 ## Work history
@@ -2015,3 +2015,7 @@ Extended existing Shift/Expense/FinancialTransaction with legacy-null operationa
 ### 2026-10-11 — Manual employee shift lifecycle
 
 Domain commit 7f30455 pushed successfully. Added Shift contracts and concrete FinancialOperations coordination plus ShiftService own manual open/close/current/scoped history. Different employees overlap; one open employee Shift enforced globally. Active linked employment, current branch assignment and approved leave validated. Forgotten Shift returned, no automation/approval; only opener closes, optimistic version and immutable final snapshots. Opening/closing count observes shared cash, never posts ledger or employee blame; idempotent identical retries survive closure. Explicit independent BusinessDay open/close, no midnight or Shift auto-close. Added ordered CashCount observation identity in new OrderSharedDrawerObservations migration to resolve equal timestamp counts; ledger sequence bounds later cash movements. Applied only to previously verified local Development; SQL artifact reviewed, EF drift clean. Added seven lifecycle tests; final 12 lifecycle/domain tests passed, zero failures/skips; build zero warnings/errors. Initial run caught historical CashCount projection loading later columns; narrowed assertion to Id and reran successfully. Existing full suite and committed-connection race tests await later integration. No app money/permission writes or Production access. Diff/whitespace reviewed; checkpoint prepared for requested lifecycle commit/push before Vault stage.
+
+### 2026-10-11 — Shared Vault, reconciliation and withdrawals
+
+Lifecycle commit 039fb6c pushed. Added VaultService/DTOs for globally authorized explicit one-drawer setup, bounded branch counts/movements/position and discretionary withdrawals. Virgin zero-opening accounts receive exactly one explicit non-sales InitialPosition credit; existing money is preserved without duplicate credit. Shift counts add no money. Latest physical observation plus subsequent sequence-bounded Cash movements determines availability; accounting stays ledger-derived and discrepancies remain branch-wide observations. Recounts do not erase shortages or invent employee liability. Cash withdrawals require Vault.Withdraw, Branches.AccessAll and the actor's own open Shift, and fail above physical funds even when book cash is higher. Counts/source/ledger/audit are atomic; setup retry returns its original snapshot after later movements, withdrawal retry survives closure. No cash-in endpoint or direct balance mutation. Added seven Vault tests; 14 combined lifecycle/Vault cases passed and after the setup snapshot refinement all three affected setup/history cases passed, zero failures/skips. Build zero warnings/errors; no schema change/drift since lifecycle stage. Diff reviewed; preparing requested Vault stage commit/push. Production and app money/permissions untouched. Next paid expenses/reversal then advances/integration/APIs/full suite.

@@ -74,7 +74,7 @@ All six policy decisions are now confirmed, including the subsequent Cash funds 
   No Manager default grant. No routine external Cash-In workflow.
 - Initial physical cash is an explicit globally authorized audited setup. Existing
   accounting balances are preserved; an empty zero-opening account may receive one
-  non-sales initial-position Adjustment, never a credit on employee Shift opening.
+  non-sales initial-position CashMovement credit, never a credit on employee Shift opening.
 - Confirmed funds policy: reject Cash payouts above tracked physical cash; InstaPay
   is reporting of actual authorized money, not a presumed live bank/overdraft balance.
   Latest physical count plus subsequent Cash movements is authoritative availability,
