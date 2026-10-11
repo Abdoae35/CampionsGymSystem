@@ -97,10 +97,10 @@ public sealed partial class SalesTests
     }
     [Fact] public async Task EntitlementInsertFailureRollsBackRealMoneyAndAllSnapshots()
     {
-        var cash=await Account();await db.Database.ExecuteSqlRawAsync("CREATE FUNCTION reject_paid_grant() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced grant failure'; END; $$; CREATE TRIGGER reject_grant BEFORE INSERT ON \"MemberSubscriptions\" FOR EACH ROW EXECUTE FUNCTION reject_paid_grant();");
+        var cash=await Account();var baselineAuditCount=await db.AuditLogs.CountAsync();await db.Database.ExecuteSqlRawAsync("CREATE FUNCTION reject_paid_grant() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced grant failure'; END; $$; CREATE TRIGGER reject_grant BEFORE INSERT ON \"MemberSubscriptions\" FOR EACH ROW EXECUTE FUNCTION reject_paid_grant();");
         await Assert.ThrowsAsync<DbUpdateException>(()=>Finance().CreateAsync(Purchase(new PaymentPartInput(cash.Id,1200))));
         Assert.Empty(await db.SaleTransactions.ToListAsync());Assert.Empty(await db.Payments.ToListAsync());Assert.Empty(await db.PaymentParts.ToListAsync());Assert.Empty(await db.FinancialTransactions.ToListAsync());
-        Assert.Empty(await db.MemberSubscriptions.ToListAsync());Assert.Empty(await db.AuditLogs.ToListAsync());
+        Assert.Empty(await db.MemberSubscriptions.ToListAsync());Assert.Equal(baselineAuditCount,await db.AuditLogs.CountAsync());
     }
     [Fact] public async Task DeferredActivationUsesOriginalSoldTermsAfterPlanAndBenefitEdits()
     {

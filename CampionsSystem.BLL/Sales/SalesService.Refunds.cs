@@ -21,6 +21,7 @@ public sealed partial class SalesService
     private async Task<RefundDetails> RefundCoreAsync(SaleTransaction sale,Guid op,string hash,decimal amount,IReadOnlyList<PaymentPartInput> parts,
         string reason,RefundType type,Guid actor,CancellationToken ct)
     {
+        var activeShift=await shiftMoney.RequireShiftAsync(sale.BranchId,actor,ct);
         Amount(amount,false);if(string.IsNullOrWhiteSpace(reason)||reason.Length>2000)throw new BusinessRuleException("A cancellation/refund reason is required (maximum 2000 characters).");
         var collected=await db.Payments.Where(p=>p.SaleTransactionId==sale.Id && p.Status==PaymentStatus.Completed).SumAsync(p=>p.Amount,ct);
         var refunded=await db.Refunds.Where(r=>r.SaleTransactionId==sale.Id).SumAsync(r=>r.Amount,ct);
@@ -28,11 +29,11 @@ public sealed partial class SalesService
         if(amount>0)await AccountsAsync(sale.BranchId,parts,amount,ct,type==RefundType.QuickRefund);
         else if(parts==null || parts.Count!=0)throw new BusinessRuleException("A zero refund/cancellation must have no financial parts.");
         var (date,day)=await BusinessDateAsync(sale.BranchId,ct);
-        var refund=new Refund{SaleTransactionId=sale.Id,BranchId=sale.BranchId,OperationId=op,RequestHash=hash,Amount=amount,RefundType=type,
+        var refund=new Refund{ShiftId=activeShift.Id,SaleTransactionId=sale.Id,BranchId=sale.BranchId,OperationId=op,RequestHash=hash,Amount=amount,RefundType=type,
             Reason=reason.Trim(),ProcessedByUserId=actor,ApprovedByUserId=actor,CreatedAt=access.Now,BusinessDate=date,BusinessDayId=day};db.Add(refund);
         foreach(var part in parts)db.Add(new RefundPart{Refund=refund,FinancialAccountId=part.FinancialAccountId,Amount=part.Amount,ProviderReference=part.ProviderReference});
-        foreach(var group in parts.GroupBy(p=>p.FinancialAccountId))db.Add(new FinancialTransaction{Refund=refund,FinancialAccountId=group.Key,BranchId=sale.BranchId,
-            TransactionType=FinancialTransactionType.Debit,SourceType=FinancialSourceType.Refund,Amount=group.Sum(p=>p.Amount),BusinessDate=date,BusinessDayId=day,OccurredAt=access.Now,CreatedByUserId=actor});
+        foreach(var group in parts.GroupBy(p=>p.FinancialAccountId))await shiftMoney.PostAsync(new FinancialTransaction{ShiftId=activeShift.Id,Refund=refund,FinancialAccountId=group.Key,BranchId=sale.BranchId,
+            TransactionType=FinancialTransactionType.Debit,SourceType=FinancialSourceType.Refund,Amount=group.Sum(p=>p.Amount),BusinessDate=date,BusinessDayId=day,OccurredAt=access.Now,CreatedByUserId=actor},ct,type==RefundType.QuickRefund);
         if(sale.CancelledAt==null)
         {
             await subscriptions.CancelSaleGrantAsync(sale,refund,actor,ct);

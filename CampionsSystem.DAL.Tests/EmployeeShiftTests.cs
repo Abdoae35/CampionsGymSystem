@@ -80,11 +80,35 @@ public sealed partial class EmployeeShiftTests : IAsyncLifetime
         var service = Service(); var day = await service.OpenBusinessDayAsync(new(Guid.NewGuid(),today));
         var one = await service.OpenAsync(new(Guid.NewGuid(),100000)); clock.Now = new(2026,10,11,22,0,0,TimeSpan.Zero);
         Assert.Equal(today.AddDays(1),access.Today);
-        await Assert.ThrowsAsync<BusinessRuleException>(()=>service.CloseBusinessDayAsync(day.Id));
         var closed = await service.CloseAsync(one.Id,new(Guid.NewGuid(),one.Version,100000));
         Assert.Equal(today,closed.OpeningBusinessDate); Assert.Equal(today,closed.ClosingBusinessDate); Assert.Equal(clock.Now,closed.ClosedAt);
         Assert.Equal(BusinessDayStatus.Open,(await db.BusinessDays.SingleAsync()).Status); await service.CloseBusinessDayAsync(day.Id);
         Assert.Equal(BusinessDayStatus.Closed,(await db.BusinessDays.SingleAsync()).Status);
+    }
+    [Fact] public async Task ExplicitDayRolloverKeepsShiftOpenAndLaterExpenseUsesNewBusinessDate()
+    {
+        var service = Service(); var day = await service.OpenBusinessDayAsync(new(Guid.NewGuid(),today));
+        var shift = await service.OpenAsync(new(Guid.NewGuid(),100000)); clock.Now = clock.Now.AddDays(1);
+        await service.CloseBusinessDayAsync(day.Id);
+        var next = await service.OpenBusinessDayAsync(new(Guid.NewGuid(),today.AddDays(1)));
+        var category = new ExpenseCategory { Name = "Supplies" }; db.Add(category); await db.SaveChangesAsync();
+        var paid = await new ExpenseService(db,user,access).RecordPaidAsync(new(Guid.NewGuid(),category.Id,cash.Id,100,"Supplies"));
+        Assert.Equal(shift.Id,paid.ShiftId); Assert.Equal(next.BusinessDate,paid.BusinessDate);
+        Assert.Equal(next.Id,(await db.Expenses.SingleAsync()).BusinessDayId);
+        Assert.Equal(ShiftStatus.Open,(await service.CurrentAsync())!.Status);
+        var closed = await service.CloseAsync(shift.Id,new(Guid.NewGuid(),shift.Version,99900));
+        Assert.Equal(today,closed.OpeningBusinessDate); Assert.Equal(next.BusinessDate,closed.ClosingBusinessDate);
+    }
+    [Fact] public async Task EmployeeTransferRequiresOwnManualClosure()
+    {
+        user.Context = user.Context! with { Permissions = [..user.Context.Permissions,"Employees.Transfer"] };
+        var shift = await Service().OpenAsync(new(Guid.NewGuid(),100000));
+        var transfers = new CampionsSystem.BLL.Branches.EmployeeBranchAssignmentService(db,user,access);
+        await Assert.ThrowsAsync<BusinessRuleException>(()=>transfers.TransferAsync(ea.Id,new(other.Id,today)));
+        Assert.Equal(branch.Id,(await db.EmployeeBranchAssignments.SingleAsync(x=>x.EmployeeId==ea.Id)).BranchId);
+        await Service().CloseAsync(shift.Id,new(Guid.NewGuid(),shift.Version,100000));
+        Assert.Equal(other.Id,(await transfers.TransferAsync(ea.Id,new(other.Id,today))).BranchId);
+        Assert.Equal(ShiftStatus.Closed,(await db.Shifts.SingleAsync()).Status);
     }
     [Fact] public async Task TiedTimestampCountsUsePersistedObservationOrderForCarryForward()
     {

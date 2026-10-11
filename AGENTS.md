@@ -41,13 +41,14 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; distinct employee advances stage verified.
-- Owner confirms independent manually opened/closed employee shifts; overlaps valid, one active shift per employee, one shared branch drawer.
-- Direct paid expenses and distinct advances; no approvals/automation/payroll. Global capability restricts discretionary withdrawals; no routine Cash-In.
-- Counted physical cash carries forward; unresolved branch-wide discrepancies do not adjust ledger or blame employees.
-- Cash payouts limited by physical availability; InstaPay has no invented bank-balance check (confirmed async reply).
-- Plan updated; new PrepareEmployeeShiftsAndSharedDrawer migration applied only to guarded localhost Development. Legacy facts preserved.
-- Build zero warnings/errors; lifecycle/domain 12 tests passed (prior domain/schema 31 passed); EF drift clean. Two new migrations applied in local Development; full suite pending.
-- Sales Offers.Manage/Installments.Manage/Sales.QuickCancel still have zero grants/overrides; no unrelated provisioning changes.
-- Next: registration/Sales/Payment/Refund shift integration, reporting/APIs and full validation.
-- Payroll/advance settlement, monthly closing, commissions, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
+- Shifts / Vault / Expenses on Shifts-Vault&Expenses-; registration/Sales/payment/refund integration verified.
+- Independent own employee shifts may overlap; one shared drawer, explicit cash counts and discrepancy carry-forward, no automatic ledger corrections.
+- Cash payouts enforce tracked physical availability; InstaPay has no inferred bank-balance check.
+- New operational Member creation, Sales/collections/refunds require own open shift; committed financial retries survive closure; historical null links preserved.
+- Employee transfer requires own manual shift closure; explicit BusinessDay rollover may proceed while employee shifts remain open.
+- CashDrawer locks coordinate money/count/closure; employee lock protects transfer/opening. No automatic recovery or manager approval.
+- Policy/branch concurrency 32 tests and HTTP regressions 92 passed. Prior integration run 210 passed / 1 fixture failure corrected; full suite pending.
+- Latest published a6d871c; integration commit/push next. Reporting/API implementation underway and not yet validated.
+- Two new migrations applied only guarded localhost Development; prior EF drift clean.
+- Sales Offers.Manage/Installments.Manage/Sales.QuickCancel provisioning gap remains; no unrelated grants/overrides mutated.
+- Payroll/advance settlement, commission, monthly close, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.

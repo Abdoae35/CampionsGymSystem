@@ -66,9 +66,16 @@ public sealed partial class CrmManagementTests
         var l=await Lead();await service.AssignLeadAsync(l.Id,new(){SalesEmployeeId=ahmed.Id});
         if(ownerTransferred)
         {
+            Set(ahmed,"Shifts.Manage","Branches.AccessAll");
+            var ahmedShift=await db.Shifts.SingleAsync(x=>x.EmployeeId==ahmed.Id&&x.Status==ShiftStatus.Open);
+            await new CampionsSystem.BLL.Shifts.ShiftService(db,current,access).CloseAsync(ahmedShift.Id,new(Guid.NewGuid(),ahmedShift.Version,100000));
             EmploymentManager();await EmployeeBranches().TransferAsync(ahmed.Id,new(b.Id,access.Today));
         }
+        Set(mohamed,"Shifts.Manage","Branches.AccessAll");
+        var own=await db.Shifts.SingleAsync(x=>x.EmployeeId==mohamed.Id&&x.Status==CampionsSystem.DAL.Enums.ShiftStatus.Open);
+        await new CampionsSystem.BLL.Shifts.ShiftService(db,current,access).CloseAsync(own.Id,new(Guid.NewGuid(),own.Version,100000));
         EmploymentManager();await EmployeeBranches().TransferAsync(mohamed.Id,new(b.Id,access.Today));
+        await OperationalShiftFixture.OpenAsync(db,mohamed.UserId!.Value,b.Id);
         // Ali/Mohamed registers at B. Source A is not browsing scope, nor is assignment permission granted.
         Set(mohamed,"Leads.Convert","Members.Create","Leads.View","Members.View");
         current.Context=current.Context! with{CurrentBranch=new(b.Id,b.Name)};

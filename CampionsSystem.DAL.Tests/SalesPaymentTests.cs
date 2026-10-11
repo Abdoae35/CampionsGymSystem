@@ -8,19 +8,19 @@ public sealed partial class SalesTests
 {
     private SalesService Finance() => new(db, user, access, offers, subscriptions);
     private async Task<FinancialAccount> Account(FinancialAccountType type = FinancialAccountType.Cash, Guid? branch = null)
-    { var account = new FinancialAccount { BranchId = branch ?? b.Id, Name = type.ToString(), AccountType = type }; db.Add(account); await db.SaveChangesAsync(); return account; }
+    { if(type==FinancialAccountType.Cash && (branch==null||branch==b.Id)) return await db.FinancialAccounts.SingleAsync(x=>x.Id==db.CashDrawers.Where(d=>d.BranchId==b.Id).Select(d=>d.FinancialAccountId).Single()); var account = new FinancialAccount { BranchId = branch ?? b.Id, Name = type.ToString(), AccountType = type }; db.Add(account); await db.SaveChangesAsync(); return account; }
     private CreateSaleRequest Purchase(params PaymentPartInput[] parts) => new(Guid.NewGuid(), member.Id, plan.Id, PurchaseMode.FullPayment, SubscriptionActivationMode.Now, parts);
     [Theory][InlineData(FinancialAccountType.Cash)][InlineData(FinancialAccountType.InstaPay)]
-    public async Task FullSaleRecordsRealAccountMoneyWithoutFakeShiftOrCommission(FinancialAccountType type)
+    public async Task FullSaleRecordsRealOwnShiftMoneyWithoutCommission(FinancialAccountType type)
     {
         var account = await Account(type); var receipt = await Finance().RecordSaleAsync(Purchase(new PaymentPartInput(account.Id, 1200)));
         var sale = await db.SaleTransactions.SingleAsync(); var payment = await db.Payments.SingleAsync(); var ledger = await db.FinancialTransactions.SingleAsync();
         Assert.Equal(receipt.SaleId, sale.Id); Assert.Equal(b.Id, sale.BranchId); Assert.Equal(b.Id, payment.BranchId); Assert.Equal(b.Id, ledger.BranchId);
         Assert.Equal(a.Id, member.HomeBranchId); Assert.Equal(1200, payment.Amount); Assert.Equal(1200, ledger.Amount);
         Assert.Equal(FinancialTransactionType.Credit, ledger.TransactionType); Assert.Equal(account.Id, ledger.FinancialAccountId);
-        Assert.Null(payment.ShiftId); Assert.Null(payment.CommissionPeriodId); Assert.Equal(AssignmentType.House, sale.SalesAttributionSnapshot);
+        Assert.Equal((await db.Shifts.SingleAsync()).Id,payment.ShiftId); Assert.Null(payment.CommissionPeriodId); Assert.Equal(AssignmentType.House, sale.SalesAttributionSnapshot);
         Assert.Null(sale.SalesEmployeeId); Assert.False(sale.CommissionEligible); Assert.False(sale.TargetEligible);
-        Assert.Empty(await db.CommissionPeriods.ToListAsync()); Assert.Empty(await db.Payrolls.ToListAsync()); Assert.Empty(await db.Shifts.ToListAsync());
+        Assert.Empty(await db.CommissionPeriods.ToListAsync()); Assert.Empty(await db.Payrolls.ToListAsync()); Assert.Single(await db.Shifts.ToListAsync());
     }
     [Fact] public async Task SplitTenderIsOneSaleOnePaymentWithExactSourcesAndRetryIdentity()
     {
@@ -91,11 +91,11 @@ public sealed partial class SalesTests
     }
     [Fact] public async Task InsertFailureRollsBackSalePartsSnapshotsLedgerAndAuditTogether()
     {
-        var cash = await Account();
+        var cash = await Account(); var previousAudits = await db.AuditLogs.CountAsync();
         await db.Database.ExecuteSqlRawAsync("CREATE FUNCTION reject_finance_insert() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'forced finance failure'; END; $$; CREATE TRIGGER reject_finance BEFORE INSERT ON \"FinancialTransactions\" FOR EACH ROW EXECUTE FUNCTION reject_finance_insert();");
         await Assert.ThrowsAsync<DbUpdateException>(() => Finance().RecordSaleAsync(Purchase(new PaymentPartInput(cash.Id,1200))));
         Assert.Empty(await db.SaleTransactions.ToListAsync()); Assert.Empty(await db.Payments.ToListAsync()); Assert.Empty(await db.PaymentParts.ToListAsync());
-        Assert.Empty(await db.SaleMembershipSnapshots.ToListAsync()); Assert.Empty(await db.FinancialTransactions.ToListAsync()); Assert.Empty(await db.AuditLogs.ToListAsync());
+        Assert.Empty(await db.SaleMembershipSnapshots.ToListAsync()); Assert.Empty(await db.FinancialTransactions.ToListAsync()); Assert.Equal(previousAudits,await db.AuditLogs.CountAsync());
     }
 
 }

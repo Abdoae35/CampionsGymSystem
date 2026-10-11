@@ -39,6 +39,7 @@ public sealed partial class SalesConcurrencyTests : IAsyncLifetime
             var p=new MembershipPlan{Name="Monthly",Branch=b,City=b.City,DurationDays=30,Price=1200};plan=p.Id;
             var cash=new FinancialAccount{Branch=b,Name="Cash",AccountType=FinancialAccountType.Cash};account=cash.Id;
             db.AddRange(m,p,cash);await db.SaveChangesAsync();
+            await OperationalShiftFixture.OpenAsync(db,actor,branch,new Clock(),cash.Id);
         }
         catch{await DisposeAsync();throw;}
     }

@@ -26,6 +26,7 @@ public sealed partial class SalesTests : IAsyncLifetime
         women = new() { Name = "Women" }; kids = new() { Name = "Kids" }; db.AddRange(member, plan, c, women, kids); await db.SaveChangesAsync();
         user = new(new(actor.Id, "staff", null, null, [], [..SalesPermissions.Codes, ..SubscriptionPermissions.Codes, "Members.Manage", "Branches.AccessAll"], new(b.Id, b.Name)));
         clock = new(); access = new(user, db, clock, Options.Create(new AuthContextOptions())); subscriptions = new(db, user, access); offers = new(db, user, access, subscriptions);
+        await OperationalShiftFixture.OpenAsync(db,actor.Id,b.Id,clock);
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
     private OfferRequest OfferInput(OfferEligibilityMode mode = OfferEligibilityMode.General, Guid? audience = null,

@@ -14,11 +14,23 @@ public sealed partial class AuthenticationApiTests
     private async Task GrantMembers(params string[] codes)
     {
         foreach (var code in codes) await GrantPermission("ConfigurableMemberOperator", code);
+        if(codes.Contains("Members.Create"))
+        {
+            await using var scope=factory.Services.CreateAsyncScope(); var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var operational=await db.EmployeeBranchAssignments.Where(x=>x.Employee.UserId==userId&&x.EndDate==null).Select(x=>x.BranchId).FirstOrDefaultAsync();
+            if(operational!=Guid.Empty)await OperationalShiftFixture.OpenAsync(db,userId,operational);
+        }
     }
     private static CreateMemberRequest Registration(Guid branch, string phone = "+201212345678") => new()
         { FullName = "HTTP Member", PrimaryPhone = phone, TargetRegistrationBranchId = branch, CreationType = MemberCreationType.NormalSales };
     private async Task<MemberDetails> Register(Guid branch, string phone = "+201212345678")
     {
+        await using(var scope=factory.Services.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var operational=await db.EmployeeBranchAssignments.Where(x=>x.Employee.UserId==userId&&x.EndDate==null).Select(x=>x.BranchId).FirstAsync();
+            await OperationalShiftFixture.OpenAsync(db,userId,operational);
+        }
         using var response = await client.PostAsJsonAsync("/api/members", Registration(branch, phone));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return (await response.Content.ReadFromJsonAsync<MemberDetails>())!;

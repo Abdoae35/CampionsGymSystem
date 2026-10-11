@@ -85,6 +85,10 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
         Scope(user, request.TargetBranchId);
         return await EmployeeAssignmentTransaction.RunAsync(database, employeeId, async employee =>
         {
+            // Opening an owned shift takes this same employee row lock. Transfers
+            // must not strand an open shift outside the employee's new branch scope.
+            if (await database.Shifts.AnyAsync(x => x.EmployeeId == employeeId && x.Status == ShiftStatus.Open, ct))
+                throw new BusinessRuleException("Close your own shift before transferring branches.");
             if (employee.EmploymentStatus != EmploymentStatus.Active || request.EffectiveDate < access.Today
                 || request.EffectiveDate < employee.HireDate || employee.TerminationDate < request.EffectiveDate)
                 throw new BusinessRuleException("Employee must be active and transfer date must be today or later within employment dates.");

@@ -16,7 +16,7 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
 {
     private string connection = null!;
     private string schema = "gym_member_concurrent_" + Guid.NewGuid().ToString("N");
-    private Guid a, b, actor, owner;
+    private Guid a, b, actor, actorB, owner;
     private ApplicationDbContext Context() => new(new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connection).Options);
     public async Task InitializeAsync()
     {
@@ -34,6 +34,10 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
             var second = new GymBranch { Name = "B", City = first.City };
             var sales = new Employee { FullName = "Concurrent Sales", Phone = "sales", UserId = actor, HireDate = new(2026,1,1) };
             owner = sales.Id; a = first.Id; b = second.Id; db.AddRange(user, first, second, sales); await db.SaveChangesAsync();
+            await OperationalShiftFixture.OpenAsync(db,actor,a);
+            var secondUser = new ApplicationUser { UserName = "concurrent-member-b" }; actorB=secondUser.Id;
+            db.Add(secondUser); await db.SaveChangesAsync();
+            await OperationalShiftFixture.OpenAsync(db,actorB,b);
         }
         catch
         {
@@ -48,10 +52,11 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
         await using var command = new NpgsqlCommand($"DROP SCHEMA IF EXISTS {schema} CASCADE", cn); await command.ExecuteNonQueryAsync();
     }
     private int phoneCounter;
-    private MemberManagementService Service(ApplicationDbContext db)
+    private MemberManagementService Service(ApplicationDbContext db, Guid? operationalBranch = null)
     {
-        var user = new TestBranchUser(new(actor, "concurrent-member", null, null, [],
-            ["Members.Create", "Members.AssignSales", "Branches.AccessAll"], null));
+        var branch = operationalBranch ?? a;
+        var user = new TestBranchUser(new(branch==b?actorB:actor, "concurrent-member", null, null, [],
+            ["Members.Create", "Members.AssignSales", "Branches.AccessAll"], new(branch,"Operational branch")));
         return new(db, user, new OperationAccess(user, db, TimeProvider.System, Options.Create(new AuthContextOptions())), new Capabilities());
     }
     private sealed class Capabilities : IPermissionService
@@ -62,7 +67,7 @@ public sealed class MemberClientCodeConcurrencyTests : IAsyncLifetime
     private async Task<long> CreateAsync(Guid branch)
     {
         await using var db = Context();
-        var result = await Service(db).CreateMemberAsync(new() { FullName = "Concurrent", PrimaryPhone = "+44123456" + Interlocked.Increment(ref phoneCounter).ToString("D4"),
+        var result = await Service(db,branch).CreateMemberAsync(new() { FullName = "Concurrent", PrimaryPhone = "+44123456" + Interlocked.Increment(ref phoneCounter).ToString("D4"),
             TargetRegistrationBranchId = branch, CreationType = MemberCreationType.ManagementCreated, SalesEmployeeId = owner });
         return result.ClientCode!.Value;
     }

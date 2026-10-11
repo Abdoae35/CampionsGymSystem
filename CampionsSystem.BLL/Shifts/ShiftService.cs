@@ -11,6 +11,13 @@ namespace CampionsSystem.BLL.Shifts;
 public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService current, OperationAccess access)
 {
     private readonly FinancialOperations money = new(db, current, access);
+    public async Task<BusinessDayDetails?> CurrentBusinessDayAsync(Guid? branchId=null,CancellationToken ct=default)
+    {
+        var(branch,_)=await money.ResolveAsync(ShiftPermissions.View,branchId,ct);
+        var row=await db.BusinessDays.AsNoTracking().SingleOrDefaultAsync(x=>x.BranchId==branch&&x.Status==BusinessDayStatus.Open,ct);
+        return row==null?null:DayDetails(row);
+    }
+    public static BusinessDayDetails DayDetails(BusinessDay day)=>new(day.Id,day.BranchId,day.BusinessDate,day.Status,day.OpenedAt,day.ClosedAt,day.OpenedByUserId,day.ClosedByUserId);
     private async Task<ShiftDetails> Details(Shift row, CancellationToken ct) => new(row.Id, row.BranchId, row.EmployeeId,
         row.EmployeeId == null ? null : await db.Employees.Where(x => x.Id == row.EmployeeId).Select(x => x.FullName).SingleAsync(ct),
         row.Status, row.Version, row.OpenedAt, row.ClosedAt, row.OpeningBusinessDate, row.ClosingBusinessDate, row.OpeningCash,
@@ -41,6 +48,7 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
     public Task<ShiftDetails> CloseAsync(Guid id, CloseShiftRequest r, CancellationToken ct = default) => money.TransactionAsync(async () =>
     {
         FinancialOperations.Operation(r.OperationId); FinancialOperations.Money(r.CountedCash);
+        if(r.Reason?.Length>2000)throw new BusinessRuleException("Closing reason must be at most 2000 characters.");
         var info = await db.Shifts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BranchNotFoundException("Shift not found.");
         var actor = await access.RequireAsync(ShiftPermissions.Manage, info.BranchId, ct);
         if (info.OpenedByUserId != actor || info.EmployeeId == null || info.OperationId == null) throw new UnauthorizedAccessException();
@@ -102,7 +110,6 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
         var actor = await access.RequireAsync(ShiftPermissions.Manage, info.BranchId, ct); await money.LockBranchAsync(info.BranchId, ct);
         var day = await db.BusinessDays.SingleAsync(x => x.Id == id, ct); await db.Entry(day).ReloadAsync(ct);
         if (day.Status == BusinessDayStatus.Closed) return day;
-        if (await db.Shifts.AnyAsync(x => x.BranchId == day.BranchId && x.Status == ShiftStatus.Open, ct)) throw new BusinessRuleException("Close employee shifts before closing the BusinessDay.");
         day.ClosedAt = access.Now; day.ClosedByUserId = actor; day.Status = BusinessDayStatus.Closed;
         access.Audit(actor, day.BranchId, "BusinessDay.Closed", nameof(BusinessDay), id); return day;
     }, ct);

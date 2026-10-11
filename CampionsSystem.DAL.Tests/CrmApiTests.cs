@@ -10,7 +10,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class AuthenticationApiTests
 {
-    private async Task GrantCrm(params string[] codes){foreach(var code in codes)await GrantPermission("ConfigurableCrmOperator",code);}
+    private async Task GrantCrm(params string[] codes)
+    {
+        foreach(var code in codes)await GrantPermission("ConfigurableCrmOperator",code);
+        if(codes.Contains("Members.Create"))
+        {
+            await using var scope=factory.Services.CreateAsyncScope();
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var branch=await db.EmployeeBranchAssignments.Where(x=>x.Employee.UserId==userId&&x.EndDate==null).Select(x=>x.BranchId).FirstOrDefaultAsync();
+            if(branch!=Guid.Empty)await OperationalShiftFixture.OpenAsync(db,userId,branch);
+        }
+    }
     private async Task<LeadDetails> CreateHttpLead(Guid branch,string phone="+201212345678")
     {
         using var response=await client.PostAsJsonAsync("/api/leads",new{branchId=branch,fullName="HTTP Prospect",primaryPhone=phone});

@@ -17,6 +17,7 @@ public sealed partial class AuthenticationApiTests
         var member=new Member{MemberCode="M-HTTP-SALE",FullName="Buyer",PrimaryPhone="http-buyer",HomeBranchId=f.Target,CreatedByUserId=userId};
         var plan=new MembershipPlan{Name="Monthly",BranchId=f.Source,CityId=city,DurationDays=30,Price=1200};
         var account=new FinancialAccount{BranchId=f.Source,Name="Cash",AccountType=FinancialAccountType.Cash};db.AddRange(member,plan,account);await db.SaveChangesAsync();
+        await OperationalShiftFixture.OpenAsync(db,userId,f.Source,accountId:account.Id);
         return(member.Id,plan.Id,account.Id,f.Source,f.Target);
     }
     [Fact] public async Task SalesHttpRequiresCapabilitiesAndRejectsCrossBranchSpoofing()

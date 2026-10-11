@@ -5,6 +5,7 @@ using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Branches;
 using CampionsSystem.BLL.Operations;
 using CampionsSystem.BLL.Subscriptions;
+using CampionsSystem.BLL.Shifts;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
@@ -14,6 +15,7 @@ namespace CampionsSystem.BLL.Sales;
 public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserService current,
     OperationAccess access, OfferService offers, SubscriptionService subscriptions)
 {
+    private readonly FinancialOperations shiftMoney = new(db, current, access);
     private static string Hash<T>(T request) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(request))));
     private static void Operation(Guid id) { if (id == Guid.Empty) throw new BusinessRuleException("A nonempty operation identity is required."); }
     private static void Amount(decimal value, bool positive = true)
@@ -44,7 +46,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
     {
         var info = await db.SaleTransactions.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.MemberId, x.BranchId }).SingleOrDefaultAsync(ct)
             ?? throw new BranchNotFoundException("Sale not found.");
-        await RequireAsync(permission, info.BranchId, ct); await LockMemberAsync(info.MemberId, ct);
+        await RequireAsync(permission, info.BranchId, ct); await shiftMoney.LockBranchAsync(info.BranchId, ct); await LockMemberAsync(info.MemberId, ct);
         var sale = await db.SaleTransactions.FromSqlInterpolated($"SELECT * FROM \"SaleTransactions\" WHERE \"Id\"={id} FOR UPDATE").SingleAsync(ct);
         await db.Entry(sale).ReloadAsync(ct);
         if (sale.OperationId == null) throw new BusinessRuleException("Legacy Sale requires reconciliation before managed Finance operations.");
@@ -69,6 +71,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             var account = await db.FinancialAccounts.FromSqlInterpolated($"SELECT * FROM \"FinancialAccounts\" WHERE \"Id\"={id} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
             if (account is null || !historicalReversal && !account.IsActive || account.BranchId != branch || account.AccountType is not (FinancialAccountType.Cash or FinancialAccountType.InstaPay))
                 throw new BusinessRuleException("Select an active Cash or InstaPay account of the operational branch.");
+            await shiftMoney.AccountAsync(branch, id, ct, historicalReversal);
             accounts.Add(account);
         }
         return accounts;
@@ -76,10 +79,11 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
     private async Task<Payment> PaymentAsync(SaleTransaction sale, Guid operation, string hash, decimal amount,
         IReadOnlyList<PaymentPartInput> parts, Guid actor, CancellationToken ct)
     {
+        var activeShift = await shiftMoney.RequireShiftAsync(sale.BranchId, actor, ct);
         await AccountsAsync(sale.BranchId, parts, amount, ct);
         var (date, day) = await BusinessDateAsync(sale.BranchId, ct);
         var payment = new Payment { SaleTransaction = sale, BranchId = sale.BranchId, OperationId = operation, RequestHash = hash,
-            Amount = amount, Status = PaymentStatus.Completed, PaidAt = access.Now, ReceivedByUserId = actor, BusinessDate = date, BusinessDayId = day };
+            ShiftId = activeShift.Id, Amount = amount, Status = PaymentStatus.Completed, PaidAt = access.Now, ReceivedByUserId = actor, BusinessDate = date, BusinessDayId = day };
         db.Add(payment);
         foreach (var p in parts)
         {
@@ -87,10 +91,10 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             db.Add(part); access.Audit(actor, sale.BranchId, "Payment.PartRecorded", nameof(PaymentPart), part.Id,
                 after: new { payment.Id, p.FinancialAccountId, p.Amount });
         }
-        foreach (var group in parts.GroupBy(x => x.FinancialAccountId)) db.Add(new FinancialTransaction {
-            FinancialAccountId = group.Key, BranchId = sale.BranchId, Payment = payment, SourceType = FinancialSourceType.Payment,
+        foreach (var group in parts.GroupBy(x => x.FinancialAccountId)) await shiftMoney.PostAsync(new FinancialTransaction {
+            FinancialAccountId = group.Key, BranchId = sale.BranchId, ShiftId = activeShift.Id, Payment = payment, SourceType = FinancialSourceType.Payment,
             TransactionType = FinancialTransactionType.Credit, Amount = group.Sum(x => x.Amount), BusinessDate = date,
-            BusinessDayId = day, OccurredAt = access.Now, CreatedByUserId = actor });
+            BusinessDayId = day, OccurredAt = access.Now, CreatedByUserId = actor }, ct);
         access.Audit(actor, sale.BranchId, "Payment.Recorded", nameof(Payment), payment.Id, after: new { sale.Id, amount, date });
         return payment;
     }
@@ -101,6 +105,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
         var actor = await current.GetAsync(ct) ?? throw new UnauthorizedAccessException();
         var branch = r.BranchId ?? actor.CurrentBranchId ?? throw new BusinessRuleException("Select an operational branch.");
         actor = await RequireAsync(SalesPermissions.Create, branch, ct);
+        await shiftMoney.LockBranchAsync(branch, ct);
         var branchRow = await db.GymBranches.FromSqlInterpolated($"SELECT * FROM \"GymBranches\" WHERE \"Id\"={branch} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
         if (branchRow is null || !branchRow.IsActive || !await db.Cities.AnyAsync(x => x.Id == branchRow.CityId && x.IsActive, ct)) throw new BusinessRuleException("Selling branch must be active.");
         // Match the existing plan-edit lock before member locks; delayed activation uses the immutable sold snapshot.
@@ -113,6 +118,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             if (prior.RequestHash != hash || prior.CreatedByUserId != actor.UserId || prior.BranchId != branch) throw new BusinessRuleException("Operation identity belongs to another Sale request.");
             return new SaleReceipt(prior.Id, await db.Payments.Where(x => x.SaleTransactionId == prior.Id).Select(x => x.Id).ToListAsync(ct));
         }
+        var activeShift = await shiftMoney.RequireShiftAsync(branch, actor.UserId, ct);
         if (r.PurchaseMode is not (PurchaseMode.FullPayment or PurchaseMode.Reservation or PurchaseMode.Installment or PurchaseMode.StandaloneSingleSession) || !Enum.IsDefined(r.ActivationMode) || r.PaymentParts is null
             || (r.ActivationMode == SubscriptionActivationMode.SpecificDate) != r.StartDate.HasValue
             || r.PaymentParts.Count > 20 || r.PurchaseMode != PurchaseMode.Installment && r.PaymentParts.Count == 0 || r.PaymentParts.Any(x => x is null)
@@ -140,7 +146,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
         var owned = owner?.AssignmentType == AssignmentType.Sales;
         var renewal = await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.EmployeeId == null && !x.IsStandaloneVisit, ct);
         var sale = new SaleTransaction { MemberId = member.Id, BranchId = branch, SaleType = SaleType.GymMembership,
-            OperationId = r.OperationId, RequestHash = hash, BusinessDate = date, BusinessDayId = day,
+            OperationId = r.OperationId, RequestHash = hash, CreatedShiftId = activeShift.Id, BusinessDate = date, BusinessDayId = day,
             PurchaseMode = r.PurchaseMode, ActivationMode = r.ActivationMode, RequestedStartDate = r.StartDate, ReservationDueDate = r.ReservationDueDate, InitialPaymentRequired = initialRequired,
             GrossAmount = price.OriginalPrice, DiscountAmount = price.Discount, NetAmount = price.FinalPrice, Status = tender == price.FinalPrice ? SaleStatus.Completed : SaleStatus.Open,
             OfferId = price.OfferId, OfferNameSnapshot = price.OfferName, OfferTypeSnapshot = price.OfferType, OfferValueSnapshot = price.OfferValue,

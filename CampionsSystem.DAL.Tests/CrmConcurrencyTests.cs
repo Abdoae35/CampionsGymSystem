@@ -35,6 +35,7 @@ public sealed class CrmConcurrencyTests : IAsyncLifetime
             var second = new GymBranch { Name = "B", City = first.City };
             var sales = new Employee { FullName = "Concurrent Sales", Phone = "sales", UserId = actor, HireDate = new(2026,1,1) };
             owner = sales.Id; a = first.Id; b = second.Id; db.AddRange(user, first, second, sales); await db.SaveChangesAsync();
+            await OperationalShiftFixture.OpenAsync(db,actor,a);
         }
         catch
         {

@@ -43,16 +43,17 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Shifts / Vault / Expenses implementation on Shifts-Vault&Expenses-; distinct employee advances stage verified.
-- Owner confirms independent manually opened/closed employee shifts; overlaps valid, one active shift per employee, one shared branch drawer.
-- Direct paid expenses and distinct advances; no approvals/automation/payroll. Global capability restricts discretionary withdrawals; no routine Cash-In.
-- Counted physical cash carries forward; unresolved branch-wide discrepancies do not adjust ledger or blame employees.
-- Cash payouts limited by physical availability; InstaPay has no invented bank-balance check (confirmed async reply).
-- Plan updated; new PrepareEmployeeShiftsAndSharedDrawer migration applied only to guarded localhost Development. Legacy facts preserved.
-- Build zero warnings/errors; lifecycle/domain 12 tests passed (prior domain/schema 31 passed); EF drift clean. Two new migrations applied in local Development; full suite pending.
-- Sales Offers.Manage/Installments.Manage/Sales.QuickCancel still have zero grants/overrides; no unrelated provisioning changes.
-- Next: registration/Sales/Payment/Refund shift integration, reporting/APIs and full validation.
-- Payroll/advance settlement, monthly closing, commissions, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
+- Shifts / Vault / Expenses on Shifts-Vault&Expenses-; registration/Sales/payment/refund integration verified.
+- Independent own employee shifts may overlap; one shared drawer, explicit cash counts and discrepancy carry-forward, no automatic ledger corrections.
+- Cash payouts enforce tracked physical availability; InstaPay has no inferred bank-balance check.
+- New operational Member creation, Sales/collections/refunds require own open shift; committed financial retries survive closure; historical null links preserved.
+- Employee transfer requires own manual shift closure; explicit BusinessDay rollover may proceed while employee shifts remain open.
+- CashDrawer locks coordinate money/count/closure; employee lock protects transfer/opening. No automatic recovery or manager approval.
+- Policy/branch concurrency 32 tests and HTTP regressions 92 passed. Prior integration run 210 passed / 1 fixture failure corrected; full suite pending.
+- Latest published a6d871c; integration commit/push next. Reporting/API implementation underway and not yet validated.
+- Two new migrations applied only guarded localhost Development; prior EF drift clean.
+- Sales Offers.Manage/Installments.Manage/Sales.QuickCancel provisioning gap remains; no unrelated grants/overrides mutated.
+- Payroll/advance settlement, commission, monthly close, automation, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
 
 ## Work history
 
@@ -2027,3 +2028,13 @@ Vault commit cebab5c pushed. Added ExpenseService/DTOs using existing Expense/Ex
 ### 2026-10-11 — Distinct employee advances
 
 Expense stage d3453a3 pushed. Added EmployeeAdvance service/DTOs and bounded scoped history with receiving/recording Employee, source account, own Shift, actual timestamp, business date, reason/reference and audit. Cash/InstaPay posts use distinct EmployeeAdvance ledger source, never Expense/Payroll/Sales. Active recipient required; no approval, interest, repayment or payroll deductions. Own Shift/capability/source/funds checks, immutable facts and actor/hash operation identity preserve retry after closure. Four targeted advance cases passed, zero failures/skips; build zero warnings/errors; no model/migration change. Diff/whitespace reviewed; checkpoint prepared for requested advance commit/push. Next shared coordination integration with Sales/Payments/Refunds and registration, then reporting/API/defaults/Postman and full regressions. Production and app money/permissions untouched.
+
+### 2026-10-12 — Own-shift operational integration and confirmed recovery boundaries
+
+Request: continue feature checkpoint with Cash funds policy confirmed; Owner also confirms manual own-shift closure before employee transfer and explicit BusinessDay rollover with shifts open.
+
+Changed: Member registration resolves trusted operational branch separately from registration destination; new Sales, payments, reservations/installments and refunds require actor's own shift and record new explicit Shift links. Cash posts use the shared drawer sequence and payout check inside existing financial/entitlement transactions. Dedicated CashDrawer row coordinates counts/closing/money before Member/Sale locks, avoiding branch-exclusive versus Plan lock inversion. Quick Cancel retains original historical-account reversal behavior, while enforcing actual Cash availability. Retry lookup precedes new-operation shift gating. Transfer checks open shifts under the existing employee lock. Day rollover leaves employee shifts untouched. Test fixtures create real owned shifts through lifecycle services and retain legacy history; no production compatibility bypass.
+
+Verification: integration run 211 tests: 210 passed, one branch-isolation fixture failed because it still operated B through A's shift. Corrected independent B actor/shift; policy and concurrency rerun 32/32 passed. HTTP/branch regression run 92/92 passed, zero failures/skips. Initial six fixture failures from an earlier integration run were corrected; no broken changes pushed. Reporting/API work started independently and awaits its own tests. Full suite and final EF/catalog verification remain pending.
+
+Commit/push: previous verified stages through a6d871c are published; operational integration prepared for its own verified commit. No production database or existing role/custom grants touched.

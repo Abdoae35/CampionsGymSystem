@@ -1,6 +1,7 @@
 using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Branches;
 using CampionsSystem.BLL.Operations;
+using CampionsSystem.BLL.Shifts;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -124,6 +125,14 @@ public sealed partial class MemberManagementService
     {
         return await TransactionAsync(async () =>
         {
+            var operationalBranch = user.CurrentBranchId ?? request.TargetRegistrationBranchId;
+            var financial = new FinancialOperations(db, current, access);
+            // Cross-branch registration still occurs at the actor's trusted operational
+            // branch. Lock existing drawers in Guid order before the branch code/Plan locks.
+            foreach (var branchId in new[] { operationalBranch, request.TargetRegistrationBranchId }.Distinct().Order())
+                await db.CashDrawers.FromSqlInterpolated($"SELECT * FROM \"CashDrawers\" WHERE \"BranchId\"={branchId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
+            await financial.LockBranchAsync(operationalBranch, ct);
+            var activeShift = await financial.RequireShiftAsync(operationalBranch, user.UserId, ct);
             // Revalidate under a transaction-held employee lock so termination cannot race registration.
             if (owner.HasValue) await EligibleOwnerAsync(owner.Value, ct);
             // Match plan administration lock order before allocating the branch code.
@@ -174,7 +183,7 @@ public sealed partial class MemberManagementService
             }
             access.Audit(user.UserId, branch.Id, "Member.Created", nameof(Member), member.Id,
                 after: new { member.FullName, member.PrimaryPhone, member.PrimaryPhoneNormalized, member.ClientCode,
-                    RegistrationBranchId = branch.Id, request.CreationType, SalesEmployeeId = owner });
+                    RegistrationBranchId = branch.Id, OperationalBranchId = operationalBranch, ShiftId = activeShift.Id, request.CreationType, SalesEmployeeId = owner });
             await db.SaveChangesAsync(ct);
             return await DetailsAsync(member, ct);
         }, ct);

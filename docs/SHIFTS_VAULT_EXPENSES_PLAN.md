@@ -79,6 +79,10 @@ All six policy decisions are now confirmed, including the subsequent Cash funds 
   is reporting of actual authorized money, not a presumed live bank/overdraft balance.
   Latest physical count plus subsequent Cash movements is authoritative availability,
   even when unresolved count discrepancies differ from accounting balance.
+- Employee branch transfer requires manual closure of that employee's own shift first.
+  Employee-row locking makes transfer versus opening safe; no forced/backdated closure.
+- Authorized staff may explicitly close/open a BusinessDay while employee shifts remain
+  open. Later operations use the newly open day; no shift is automatically closed.
 - BusinessDay remains explicit, branch scoped and independent from shifts. No fixed
   seasonal hours, midnight/logout closure, backdated recovery or fake legacy shifts.
 
@@ -106,7 +110,7 @@ unique operations, indexed FKs and legacy nullable associations remain consisten
 
 ## Transaction and reconciliation invariants
 
-1. Lock the branch coordination row before employee/shift, Member/Sale/account locks.
+1. Lock the dedicated CashDrawer coordination row before employee/shift, Member/Sale/account locks.
    All money and cash observations take the same lock: closing one employee cannot
    miss other employees' concurrent drawer movements or charge them to that employee.
 2. Under that lock validate the acting employee's open Shift and branch; close affects

@@ -16,7 +16,9 @@ public sealed class VaultService(ApplicationDbContext db, ICurrentUserService cu
     {
         FinancialOperations.Operation(r.OperationId); FinancialOperations.Money(r.CountedCash); FinancialOperations.Reason(r.Reason);
         var (branch,actor) = await money.ResolveAsync(ShiftPermissions.VaultManage,r.BranchId,ct);
-        await access.RequireAsync("Branches.AccessAll",branch,ct); await money.LockBranchAsync(branch,ct);
+        await access.RequireAsync("Branches.AccessAll",branch,ct);
+        var branchRow = await db.GymBranches.FromSqlInterpolated($"SELECT * FROM \"GymBranches\" WHERE \"Id\"={branch} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(ct);
+        if(branchRow==null || !branchRow.IsActive)throw new BusinessRuleException("Select an active branch.");
         var hash = FinancialOperations.Hash(r with { BranchId = branch });
         var prior = await db.CashDrawers.SingleOrDefaultAsync(x=>x.OperationId==r.OperationId,ct);
         if (prior != null) { FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor); if(prior.BranchId!=branch) throw new UnauthorizedAccessException(); return SetupSnapshot(await db.CashCounts.AsNoTracking().SingleAsync(x=>x.OperationId==r.OperationId,ct)); }

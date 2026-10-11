@@ -37,7 +37,10 @@ public sealed partial class CrmManagementTests : IAsyncLifetime
         access=new(current,db,TimeProvider.System,Options.Create(new AuthContextOptions()));
         db.AddRange(a,b,ahmed,mohamed,new EmployeeBranchAssignment{Employee=ahmed,Branch=a,StartDate=new(2020,1,1),IsPrimary=true,AssignedByUser=ahmed.User},
             new EmployeeBranchAssignment{Employee=mohamed,Branch=a,StartDate=new(2020,1,1),IsPrimary=true,AssignedByUser=ahmed.User});
-        await db.SaveChangesAsync();members=new(db,current,access,capabilities);service=new(db,current,access,capabilities,members);Manager();
+        await db.SaveChangesAsync();
+        await OperationalShiftFixture.OpenAsync(db,ahmed.UserId!.Value,a.Id);
+        await OperationalShiftFixture.OpenAsync(db,mohamed.UserId!.Value,a.Id);
+        members=new(db,current,access,capabilities);service=new(db,current,access,capabilities,members);Manager();
     }
     public async Task DisposeAsync(){await db.DisposeAsync();await fixture.DisposeAsync();}
     private void Manager()=>Set(ahmed,"Leads.View","Leads.Manage","Leads.Assign","Leads.Convert","Members.Create","Members.View","Members.AssignSales","Members.CreateCrossBranch","Branches.AccessAll","CRM.ViewMemberFollowUps","CRM.ManageMemberFollowUps","CRM.ManageHouseFollowUps");

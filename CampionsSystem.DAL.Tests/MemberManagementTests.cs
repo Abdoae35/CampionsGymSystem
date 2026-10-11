@@ -20,6 +20,7 @@ public sealed class MemberManagementTests : IAsyncLifetime
     private GymBranch a = null!, b = null!;
     private Member first = null!, second = null!;
     private Employee sales = null!;
+    private int initialAuditCount;
     private readonly OwnerPermissions ownerPermissions = new();
     public async Task InitializeAsync()
     {
@@ -39,6 +40,8 @@ public sealed class MemberManagementTests : IAsyncLifetime
             new MemberSalesAssignment { Member = first, SalesEmployee = sales, AssignmentType = AssignmentType.Sales,
                 AssignedAt = access.Now, AssignedByUser = user });
         await db.SaveChangesAsync();
+        await OperationalShiftFixture.OpenAsync(db,user.Id,a.Id);
+        initialAuditCount=await db.AuditLogs.CountAsync();
         service = new(db, current, access, ownerPermissions);
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
@@ -121,7 +124,7 @@ public sealed class MemberManagementTests : IAsyncLifetime
         Scoped("Members.Create", "Members.OwnSalesCustomers");
         await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateMemberAsync(NewMember(phone: "+201212345678")));
         Assert.Equal(100, await db.GymBranches.Where(x => x.Id == a.Id).Select(x => x.LastMemberClientCode).SingleAsync());
-        Assert.Empty(await db.AuditLogs.ToListAsync());
+        Assert.Equal(initialAuditCount,await db.AuditLogs.CountAsync());
         await db.GymBranches.Where(x => x.Id == a.Id).ExecuteUpdateAsync(x => x.SetProperty(y => y.IsActive, false));
         await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateMemberAsync(NewMember()));
         Assert.Equal(2, await db.Members.CountAsync());
@@ -258,7 +261,7 @@ public sealed class MemberManagementTests : IAsyncLifetime
         ownerPermissions.Enabled = true;
         await db.Employees.Where(x => x.Id == sales.Id).ExecuteUpdateAsync(x => x.SetProperty(y => y.EmploymentStatus, EmploymentStatus.Suspended));
         await Assert.ThrowsAsync<BusinessRuleException>(() => service.AssignSalesAsync(first.Id, new() { SalesEmployeeId = sales.Id }));
-        Assert.Single(await db.MemberSalesAssignments.ToListAsync()); Assert.Empty(await db.AuditLogs.ToListAsync());
+        Assert.Single(await db.MemberSalesAssignments.ToListAsync()); Assert.Equal(initialAuditCount,await db.AuditLogs.CountAsync());
     }
     [Fact] public async Task HistoryAndReturnRequireTheirPermissions()
     {
@@ -318,7 +321,7 @@ public sealed class MemberManagementTests : IAsyncLifetime
         var request = NewMember(); request.CreationType = MemberCreationType.FreelanceHouse; request.FreelancePlanId = plan.Id;
         await Assert.ThrowsAsync<BusinessRuleException>(() => service.CreateMemberAsync(request));
         Assert.Equal(2, await db.Members.CountAsync()); Assert.Empty(await db.MembershipPlanEligibleMembers.ToListAsync());
-        Assert.Empty(await db.AuditLogs.ToListAsync());
+        Assert.Equal(initialAuditCount,await db.AuditLogs.CountAsync());
     }
     [Theory][InlineData(false)][InlineData(true)]
     public async Task FreelanceRegistrationCannotBypassPlanAdministrativeScope(bool legacy)

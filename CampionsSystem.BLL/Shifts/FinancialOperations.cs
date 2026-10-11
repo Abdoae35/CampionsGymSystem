@@ -38,7 +38,12 @@ public sealed class FinancialOperations(ApplicationDbContext db, ICurrentUserSer
     }
     public async Task LockBranchAsync(Guid branch, CancellationToken ct)
     {
-        var row = await db.GymBranches.FromSqlInterpolated($"SELECT * FROM \"GymBranches\" WHERE \"Id\"={branch} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(ct);
+        if (db.Database.CurrentTransaction == null) throw new InvalidOperationException("Drawer coordination requires a transaction.");
+        // Lock the dedicated shared drawer, not the branch exclusively: existing Plan
+        // administration takes branch SHARE after Plan locks and must not deadlock here.
+        var drawer = await db.CashDrawers.FromSqlInterpolated($"SELECT * FROM \"CashDrawers\" WHERE \"BranchId\"={branch} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(ct);
+        if (drawer == null) throw new BusinessRuleException("Configure the branch shared drawer first.");
+        var row = await db.GymBranches.FromSqlInterpolated($"SELECT * FROM \"GymBranches\" WHERE \"Id\"={branch} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
         if (row is null) throw new BranchNotFoundException("Branch not found.");
         if (!row.IsActive) throw new BusinessRuleException("Branch is inactive.");
     }
@@ -98,10 +103,10 @@ public sealed class FinancialOperations(ApplicationDbContext db, ICurrentUserSer
         db.Add(count); access.Audit(actor, branch, "Vault.CashCounted", nameof(CashCount), count.Id, after: new { kind, shift, count.ExpectedCash, counted, count.Difference, count.BookCash, date });
         return count;
     }
-    public async Task<FinancialAccount> AccountAsync(Guid branch, Guid id, CancellationToken ct)
+    public async Task<FinancialAccount> AccountAsync(Guid branch, Guid id, CancellationToken ct, bool historicalReversal = false)
     {
-        var account = await db.FinancialAccounts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
-        if (account == null || account.BranchId != branch || !account.IsActive || account.AccountType is not (FinancialAccountType.Cash or FinancialAccountType.InstaPay))
+        var account = await db.FinancialAccounts.FromSqlInterpolated($"SELECT * FROM \"FinancialAccounts\" WHERE \"Id\"={id} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
+        if (account == null || account.BranchId != branch || !historicalReversal && !account.IsActive || account.AccountType is not (FinancialAccountType.Cash or FinancialAccountType.InstaPay))
             throw new BusinessRuleException("Select an active Cash or InstaPay account of this branch.");
         if (account.AccountType == FinancialAccountType.Cash && (await DrawerAsync(branch, ct)).FinancialAccountId != id)
             throw new BusinessRuleException("Cash operations must use the configured shared drawer account.");
@@ -109,9 +114,10 @@ public sealed class FinancialOperations(ApplicationDbContext db, ICurrentUserSer
     }
     public async Task CheckCashPayoutAsync(Guid branch, decimal amount, CancellationToken ct)
     { Money(amount); if ((await PositionAsync(branch, ct)).ExpectedPhysicalCash < amount) throw new BusinessRuleException("Insufficient tracked physical Cash."); }
-    public async Task PostAsync(FinancialTransaction row, CancellationToken ct)
+    public async Task PostAsync(FinancialTransaction row, CancellationToken ct, bool historicalReversal = false)
     {
-        var account = await AccountAsync(row.BranchId, row.FinancialAccountId, ct);
+        if (db.Database.CurrentTransaction == null) throw new InvalidOperationException("Financial posting requires a transaction.");
+        var account = await AccountAsync(row.BranchId, row.FinancialAccountId, ct, historicalReversal);
         if (account.AccountType == FinancialAccountType.Cash)
         {
             if (row.TransactionType == FinancialTransactionType.Debit) await CheckCashPayoutAsync(row.BranchId, row.Amount, ct);
