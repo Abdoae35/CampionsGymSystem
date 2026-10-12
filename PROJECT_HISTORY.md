@@ -43,17 +43,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Shifts / Vault / Expenses complete within confirmed manual scope on Shifts-Vault&Expenses-; implementation through 0ac425c pushed; final documentation/results recorded in this checkpoint.
-- Own manual overlapping employee shifts; one shared branch drawer. Actual counts carry forward with unresolved discrepancies, no ledger adjustments/blame.
-- Cash payouts reject above physical availability; InstaPay has no inferred bank balance. Expenses/advances are direct paid facts; returns require real returned funds.
-- New operational registration, Sales/payments/refunds and payouts require own active shift; committed financial retries survive closure; historical null links remain unchanged.
-- Employee transfer requires own manual closure; explicit BusinessDay rollover may leave shifts open and later transactions use the new date.
-- Final full suite 733 passed / zero failures/skips (55 added over baseline). Build zero warnings/errors; EF drift none. Earlier nine fixture/resource failures corrected and rerun green.
-- Two new migrations verified only localhost Development: five support tables, 36 indexes, 38 validated constraints, restrictive FKs and exact 18,2 money.
-- Seven missing capability catalog entries added only; existing grants/overrides preserved. Prior Offers.Manage/Installments.Manage/Sales.QuickCancel provisioning gap remains.
-- Rollout needs explicit existing-user grants and account/drawer/category initialization; Development still has no application operational/financial setup data.
-- docs/SHIFTS_VAULT_EXPENSES.md documents actual routes and policies; Postman adds 28 examples. No unresolved business-policy blocker.
-- Payroll/advance settlement, discrepancy resolution, forced/automatic closing, commission/monthly closing, Private/Classes finance, frontend and sync deferred. Stop after this feature.
+- Sales Commissions & independent New/Renewal targets started on existing SalesCommissions&Targets, verified base 5244d48226e9122558081869cadf8f2a97837d6c; completed Shifts/Vault remains intact.
+- Clean initial checkout; existing local/remote feature, master and Shifts heads verified. Compact design in docs/SALES_COMMISSIONS_PLAN.md; no commission domain/financial mutations yet.
+- Reuse CommissionPeriod, CommissionRule, EmployeeCommissionSummary and immutable Sales/Payment/Refund facts. Separate targets, collected money only, retained otherwise-eligible cancellation cash counts without extra ledger credit.
+- Local Development read-only: no configured commission rules/periods/summaries or Sales/Payments; no conflicting defaults. Existing Commission capabilities granted; prior three Sales capabilities remain active but ungranted, unchanged.
+- Fresh baseline build zero warnings/errors; EF drift none. Fresh full regression run started and results pending at this checkpoint; prior verified baseline was 733 passing.
+- Blocking decision submitted: manual partial refund source allocation across payment periods/employees/House collections. Current API has no original-payment allocation; do not invent which target/employee decreases.
+- Next: confirmed allocation policy, then domain/settings, attribution, calculation/statements and APIs/tests/docs with incremental validated commits/pushes. No payroll/payouts, monthly closing, financial redesign or production changes.
 
 ## Work history
 
@@ -2060,3 +2056,13 @@ Development catalog-only setup adds seven missing Shift/Vault/Expense/Advance ca
 Confirmed final boundaries: transfer requires own manual shift closure; authorized explicit BusinessDay rollover leaves employee shifts open. Cash funds use actual physical carry-forward; unresolved discrepancies do not mutate ledger or payroll. Expenses and advances are direct paid histories, discretionary withdrawals are global-capability only, no manager default or routine Cash-In. No known unresolved business-policy blocker within implemented manual scope. Forced/automatic closure, discrepancy resolution, payroll/advance settlement, monthly closing, commissions, Private/Classes finance, frontend and sync remain deferred.
 
 Published implementation commits: 7f30455 domain/migrations; 039fb6c lifecycle; cebab5c reconciliation/withdrawals; d3453a3 expenses/returns; a6d871c advances; cdb9d94 operational integration; 0ac425c reporting/API. All pushed to existing Shifts-Vault&Expenses-. Final documentation checkpoint will be committed/pushed, then local/remote HEAD and clean tree verified; its hash is intentionally not embedded in its own contents.
+
+### 2026-10-12 — Sales commissions source inspection and minimal design
+
+Requested end-to-end independent New/Renewal targets and collection-based Sales commission, overriding prior cancellation-fee commission exclusion. Verified initially clean user-created SalesCommissions&Targets at 5244d48226e9122558081869cadf8f2a97837d6c, containing completed Shifts/Vault. Verified local and remote feature/master/Shifts heads agree; no branch duplication, merge, reset or discarded work. Read required instructions/history, Sales/Shifts documentation and relevant commission, employee, ownership, financial, permission, audit and transaction code; applied ASP.NET Core, schema design and project-history skills.
+
+Created docs/SALES_COMMISSIONS_PLAN.md before domain changes, mapping existing CommissionPeriod/CommissionRule/EmployeeCommissionSummary, nullable Payment period links, immutable Sale/Payment/Refund facts, source gaps, proposed minimal integrations, date/configuration/statement strategy, invariants and tests. Found current category based on subscription existence rather than complete purchase history. Employment reactivation clears termination date, requiring durable collection-time commission evidence. No commission service/calculation currently exists. No new application models, migrations, financial records, role grants or source-fact rewrites.
+
+Guarded read-only localhost Development check: zero commission rules, periods, summaries, Sales and Payments; no differing configured default to overwrite. Commission.View/ManageRules/ClosePeriod active with existing grants. Offers.Manage, Installments.Manage, Sales.QuickCancel active but zero grants/overrides; unrelated provisioning gap preserved. Fresh build passed with zero warnings/errors; EF drift none. Fresh full regression run started, final results pending. Initial process lookup denied by sandbox and rerun with approved escalation to avoid duplicate test runs; corrected unsupported older Git --show-current using symbolic-ref. Source searches corrected guessed missing paths/globs; no application change.
+
+Genuine financial allocation ambiguity submitted as one blocking question: Refund has nullable OriginalPaymentId but manual RefundRequest/RefundCore do not specify/populate collection allocations. Partial refunds across periods or employee-before-resignation/House-afterward collections can reduce different employee targets depending on newest/oldest/explicit policy. Requested explicit original-payment allocation (recommended), newest-first or oldest-first decision. Do not implement inferred financial policy; no finalization/source mutation until confirmed. Quick Cancel full reversal is unambiguous. Planning checkpoint prepared for requested validated docs commit/push; publication and final status verified separately. Production untouched. Feature incomplete; next is confirmed source allocation and implementation from this plan without restarting.
