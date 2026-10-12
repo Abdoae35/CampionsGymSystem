@@ -5,6 +5,13 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class CommissionPeriod
 {
+    public DateOnly? StartBusinessDate { get; set; }
+    public DateOnly? EndBusinessDate { get; set; }
+    public Guid? OperationId { get; set; }
+    public string? RequestHash { get; set; }
+    public Guid? CloseOperationId { get; set; }
+    public string? CloseRequestHash { get; set; }
+    public int Version { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;

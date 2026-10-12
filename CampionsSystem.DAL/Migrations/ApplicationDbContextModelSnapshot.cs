@@ -1265,6 +1265,36 @@ namespace CampionsSystem.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionCollection", b =>
+                {
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EligibilityReason")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("CommissionCollections", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CommissionCollections_Category", "\"Category\" IN ('NewMembership','Renewal')");
+                        });
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionPeriod", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1273,6 +1303,13 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CloseOperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CloseRequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1286,10 +1323,16 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<DateTimeOffset?>("EndAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateOnly?>("EndBusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset?>("ReopenedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1297,13 +1340,24 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("ReopenedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTimeOffset>("StartAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("StartBusinessDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -1311,15 +1365,47 @@ namespace CampionsSystem.DAL.Migrations
                         .IsUnique()
                         .HasFilter("\"Status\" = 'Open'");
 
+                    b.HasIndex("CloseOperationId")
+                        .IsUnique();
+
                     b.HasIndex("ClosedByUserId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
 
                     b.HasIndex("ReopenedByUserId");
 
+                    b.HasIndex("BranchId", "StartBusinessDate");
+
                     b.ToTable("CommissionPeriods", null, t =>
                         {
+                            t.HasCheckConstraint("CK_CommissionPeriods_BusinessDates", "(\"StartBusinessDate\" IS NULL AND \"EndBusinessDate\" IS NULL) OR (\"StartBusinessDate\" IS NOT NULL AND \"EndBusinessDate\" IS NOT NULL AND \"EndBusinessDate\" >= \"StartBusinessDate\")");
+
                             t.HasCheckConstraint("CK_CommissionPeriods_StartAtEndAt", "\"EndAt\" >= \"StartAt\"");
 
                             t.HasCheckConstraint("CK_CommissionPeriods_Status", "\"Status\" IN ('Open', 'Closed')");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionRefundAllocation", b =>
+                {
+                    b.Property<Guid>("RefundId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("RefundId", "PaymentId");
+
+                    b.HasIndex("PaymentId");
+
+                    b.ToTable("CommissionRefundAllocations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CommissionRefundAllocations_Amount", "\"Amount\" > 0");
                         });
                 });
 
@@ -1375,9 +1461,19 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal?>("ReachedTargetRate")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)");
+
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer");
 
                     b.Property<Guid?>("SportsActivityId")
                         .HasColumnType("uuid");
@@ -1395,6 +1491,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("GroupClassId");
 
                     b.HasIndex("SportsActivityId");
+
+                    b.HasIndex("OperationId", "CommissionType")
+                        .IsUnique();
 
                     b.HasIndex("BranchId", "EmployeeId", "CommissionType", "EffectiveFrom");
 
@@ -1415,6 +1514,52 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_CommissionRules_ReachedTargetRate", "\"ReachedTargetRate\" >= 0 AND \"ReachedTargetRate\" <= 100");
 
                             t.HasCheckConstraint("CK_CommissionRules_TargetAmount", "\"TargetAmount\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionStatementLine", b =>
+                {
+                    b.Property<Guid>("CommissionPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("EligibilityReason")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<decimal>("EligibleAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("GrossAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("RefundedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("CommissionPeriodId", "PaymentId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("PaymentId");
+
+                    b.ToTable("CommissionStatementLines", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CommissionStatementLines_Amounts", "\"GrossAmount\" >= 0 AND \"RefundedAmount\" >= 0 AND \"RefundedAmount\" <= \"GrossAmount\" AND \"EligibleAmount\" >= 0 AND \"EligibleAmount\" <= \"GrossAmount\" - \"RefundedAmount\"");
+
+                            t.HasCheckConstraint("CK_CommissionStatementLines_Category", "\"Category\" IN ('NewMembership','Renewal')");
                         });
                 });
 
@@ -1654,6 +1799,10 @@ namespace CampionsSystem.DAL.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)");
 
+                    b.Property<decimal?>("BelowTargetRateSnapshot")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
@@ -1662,6 +1811,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid>("CommissionPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CommissionRuleId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("CommissionType")
@@ -1681,6 +1833,10 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("GroupClassId")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal?>("ReachedTargetRateSnapshot")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
                     b.Property<Guid?>("SportsActivityId")
                         .HasColumnType("uuid");
 
@@ -1698,6 +1854,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
+
+                    b.HasIndex("CommissionRuleId");
 
                     b.HasIndex("EmployeeId");
 
@@ -5849,6 +6007,24 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("GroupClass");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionCollection", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Payment", "Payment")
+                        .WithOne()
+                        .HasForeignKey("CampionsSystem.DAL.Entities.CommissionCollection", "PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Payment");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionPeriod", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
@@ -5872,6 +6048,25 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("ClosedByUser");
 
                     b.Navigation("ReopenedByUser");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionRefundAllocation", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Refund", "Refund")
+                        .WithMany()
+                        .HasForeignKey("RefundId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("Refund");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionRule", b =>
@@ -5912,6 +6107,32 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("GroupClass");
 
                     b.Navigation("SportsActivity");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionStatementLine", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
+                        .WithMany()
+                        .HasForeignKey("CommissionPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CommissionPeriod");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Payment");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.ContractTemplate", b =>
@@ -6041,6 +6262,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.CommissionRule", "CommissionRule")
+                        .WithMany()
+                        .HasForeignKey("CommissionRuleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
@@ -6060,6 +6286,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Branch");
 
                     b.Navigation("CommissionPeriod");
+
+                    b.Navigation("CommissionRule");
 
                     b.Navigation("Employee");
 

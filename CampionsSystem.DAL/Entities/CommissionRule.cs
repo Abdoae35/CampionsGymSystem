@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class CommissionRule
 {
+    public Guid? OperationId { get; set; }
+    public string? RequestHash { get; set; }
+    public int Revision { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;

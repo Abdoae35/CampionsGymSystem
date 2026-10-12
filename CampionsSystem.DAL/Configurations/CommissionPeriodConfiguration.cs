@@ -12,8 +12,15 @@ public sealed class CommissionPeriodConfiguration : IEntityTypeConfiguration<Com
         {
             table.HasCheckConstraint("CK_CommissionPeriods_Status", "\"Status\" IN ('Open', 'Closed')");
             table.HasCheckConstraint("CK_CommissionPeriods_StartAtEndAt", "\"EndAt\" >= \"StartAt\"");
+            table.HasCheckConstraint("CK_CommissionPeriods_BusinessDates", "(\"StartBusinessDate\" IS NULL AND \"EndBusinessDate\" IS NULL) OR (\"StartBusinessDate\" IS NOT NULL AND \"EndBusinessDate\" IS NOT NULL AND \"EndBusinessDate\" >= \"StartBusinessDate\")");
         });
         builder.HasKey(x => x.Id);
+        builder.HasIndex(x => x.OperationId).IsUnique();
+        builder.HasIndex(x => x.CloseOperationId).IsUnique();
+        builder.Property(x => x.RequestHash).HasMaxLength(64);
+        builder.Property(x => x.CloseRequestHash).HasMaxLength(64);
+        builder.Property(x => x.Version).IsConcurrencyToken();
+        builder.HasIndex(x => new { x.BranchId, x.StartBusinessDate });
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Name).HasMaxLength(256).IsRequired();
         builder.Property(x => x.StartAt).HasColumnType("timestamp with time zone");

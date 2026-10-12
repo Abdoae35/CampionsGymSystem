@@ -60,6 +60,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<ShiftEmployee> ShiftEmployees => Set<ShiftEmployee>();
     public DbSet<CommissionPeriod> CommissionPeriods => Set<CommissionPeriod>();
     public DbSet<CommissionRule> CommissionRules => Set<CommissionRule>();
+    public DbSet<CommissionCollection> CommissionCollections => Set<CommissionCollection>();
+    public DbSet<CommissionRefundAllocation> CommissionRefundAllocations => Set<CommissionRefundAllocation>();
+    public DbSet<CommissionStatementLine> CommissionStatementLines => Set<CommissionStatementLine>();
     public DbSet<EmployeeCommissionSummary> EmployeeCommissionSummaries => Set<EmployeeCommissionSummary>();
     public DbSet<Payroll> Payrolls => Set<Payroll>();
     public DbSet<PayrollDeduction> PayrollDeductions => Set<PayrollDeduction>();
@@ -113,6 +116,17 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        if (ChangeTracker.Entries<CommissionCollection>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<CommissionRefundAllocation>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<CommissionStatementLine>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<EmployeeCommissionSummary>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<CommissionRule>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(CommissionRule.OperationId)) != null && x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Commission evidence, rules and finalized statements are append-only.");
+        foreach (var entry in ChangeTracker.Entries<CommissionPeriod>().Where(x => x.OriginalValues.GetValue<Guid?>(nameof(CommissionPeriod.OperationId)) != null))
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&
+                (entry.OriginalValues.GetValue<CampionsSystem.DAL.Enums.CommissionPeriodStatus>(nameof(CommissionPeriod.Status)) == CampionsSystem.DAL.Enums.CommissionPeriodStatus.Closed
+                || entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(CommissionPeriod.Status) or nameof(CommissionPeriod.ClosedAt) or nameof(CommissionPeriod.ClosedByUserId) or nameof(CommissionPeriod.CloseOperationId) or nameof(CommissionPeriod.CloseRequestHash) or nameof(CommissionPeriod.Version)))))
+                throw new InvalidOperationException("Commission period boundaries and finalized periods are immutable.");
         if (ChangeTracker.Entries<CashCount>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<CashMovement>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<EmployeeAdvance>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)

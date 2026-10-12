@@ -43,13 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Sales Commissions & independent New/Renewal targets started on existing SalesCommissions&Targets, verified base 5244d48226e9122558081869cadf8f2a97837d6c; completed Shifts/Vault remains intact.
-- Clean initial checkout; existing local/remote feature, master and Shifts heads verified. Compact design in docs/SALES_COMMISSIONS_PLAN.md; no commission domain/financial mutations yet.
-- Reuse CommissionPeriod, CommissionRule, EmployeeCommissionSummary and immutable Sales/Payment/Refund facts. Separate targets, collected money only, retained otherwise-eligible cancellation cash counts without extra ledger credit.
-- Local Development read-only: no configured commission rules/periods/summaries or Sales/Payments; no conflicting defaults. Existing Commission capabilities granted; prior three Sales capabilities remain active but ungranted, unchanged.
-- Fresh baseline build zero warnings/errors; EF drift none. Fresh full regression suite independently passed 733/733, zero failed/skipped. Planning commit 6e89bd4 pushed; source allocation question awaits Owner decision.
-- Blocking decision submitted: manual partial refund source allocation across payment periods/employees/House collections. Current API has no original-payment allocation; do not invent which target/employee decreases.
-- Next: confirmed allocation policy, then domain/settings, attribution, calculation/statements and APIs/tests/docs with incremental validated commits/pushes. No payroll/payouts, monthly closing, financial redesign or production changes.
+- Sales Commissions implementation on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; initial tree clean and remote verified.
+- Owner confirmed newest-first refunds, deterministic PaidAt then Guid chronology; refunds touching finalized source periods reject atomically. No unresolved refund policy.
+- Domain prepared: reuse periods/rules/summaries; three append-only collection/allocation/statement evidence tables, nullable legacy-compatible date/operation/snapshot fields; new AddSalesCommissionEvidence migration reviewed.
+- Three domain tests passed; build zero warnings/errors before calculation draft. Prior fresh full baseline 733 passed; final complete feature validation pending.
+- BLL configuration/source/calculation work is in progress separately; no production or application data/permission mutations. Migration Development application pending.
+- Next: verify configuration lifecycle, integrate collection attribution and refund allocation, APIs/reporting/tests/docs. Existing unrelated Sales permission gap preserved.
 
 ## Work history
 
@@ -2068,3 +2067,7 @@ Guarded read-only localhost Development check: zero commission rules, periods, s
 Genuine financial allocation ambiguity submitted as one blocking question: Refund has nullable OriginalPaymentId but manual RefundRequest/RefundCore do not specify/populate collection allocations. Partial refunds across periods or employee-before-resignation/House-afterward collections can reduce different employee targets depending on newest/oldest/explicit policy. Requested explicit original-payment allocation (recommended), newest-first or oldest-first decision. Do not implement inferred financial policy; no finalization/source mutation until confirmed. Quick Cancel full reversal is unambiguous. Planning checkpoint prepared for requested validated docs commit/push; publication and final status verified separately. Production untouched. Feature incomplete; next is confirmed source allocation and implementation from this plan without restarting.
 
 Baseline completion: fresh commissions-baseline.trx independently reports 733 executed/passed, zero failed/not-executed/error/timeout/aborted. Planning commit 6e89bd492db37b2acb520675c6a01b0b64a11e21 pushed successfully to origin/SalesCommissions&Targets; tree clean after publication. Recording completed verification in this follow-up documentation checkpoint; no code/database/grant changes. Refund allocation answer still pending; feature is not implemented or claimed complete.
+
+### 2026-10-12 — Commission domain and confirmed refund policy
+
+Continued clean verified f8530e9 on existing SalesCommissions&Targets; did not restart discovery. Owner confirms newest actual collections first and atomically rejecting refunds whose allocation reaches a finalized commission source period. Updated existing plan before domain work. Reused CommissionPeriod/Rule/EmployeeCommissionSummary, added CommissionCollection payment-time attribution, CommissionRefundAllocation and immutable CommissionStatementLine source evidence. Added nullable business bounds/operation/snapshot fields for legacy compatibility, exact 18,2 money/5,2 rates, restrictive FKs, source/operation uniqueness and append-only guards. New 20261012013412_AddSalesCommissionEvidence migration reviewed; no old migration edits or fabricated historical links. Three targeted domain tests passed; build zero warnings/errors. Initial draft compilation hit IDictionary helper inference, corrected to concrete Dictionary and reran green. BLL drafts remain in-progress separately; migration application/complete regression pending. No financial, role-grant or Production writes. Preparing requested reviewed domain commit/push, followed by configuration/source/calculation stages.

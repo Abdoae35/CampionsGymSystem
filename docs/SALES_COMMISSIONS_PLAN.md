@@ -1,7 +1,7 @@
 # Sales commissions and independent targets — implementation plan
 
-Status: source-contract inspection complete; implementation awaits the refund
-allocation decision below. No commission domain or financial data has been changed.
+Status: implementation in progress from planning checkpoint f8530e9. Owner confirmed
+newest-first refund allocation. Completed financial facts remain unchanged.
 
 ## Verified baseline and existing capabilities
 
@@ -77,25 +77,21 @@ or historical audit facts.
   mutation that would invalidate finalized commission source facts; do not rewrite
   finalized statements. Exact late-refund handling depends on allocation below.
 
-## Blocking source-policy decision: partial refund allocation
+## Confirmed partial refund allocation
 
-Refund has optional OriginalPaymentId, but current manual RefundRequest accepts
-only Sale, amount, outbound account parts and reason. RefundCore does not populate
-OriginalPaymentId; Quick Cancel also aggregates source-account parts across Payments.
-No existing refund-to-collection allocation/history or ordering policy was found.
+Owner confirmed newest collections first: sort completed Sale Payments by actual
+PaidAt descending, then stable Guid Id descending to break identical timestamps.
+Each refund consumes the newest still-unrefunded collection, then earlier ones;
+never reduce a collection below zero. Preserve each original BusinessDate, period,
+Sales employee/House and category. Append refund-to-payment allocations for new
+refunds, and deterministically derive legacy allocation without rewriting history.
+Split-tender parts do not create additional collections. Zero cancellation allocates
+nothing; retained otherwise-eligible cash continues to count once.
 
-A Sale may have payments in different commission periods, or employee-attributed
-payments before resignation and House payments afterward. A partial refund therefore
-cannot be assigned to a period/employee without a business allocation rule. Selecting
-oldest/newest/proportional/explicit payments produces different target attainment and
-commission. Outbound Cash/InstaPay accounts do not identify the original collections.
-
-Decision required: should manual partial refunds reduce newest collected Payments,
-oldest collected Payments, or explicitly selected original-payment allocations?
-Explicit allocations are recommended for transparent source reconciliation. Whichever
-policy is confirmed, preserve original Refund/Payment/ledger facts, cap each collection
-at its unrefunded amount, and guard finalized affected periods. Quick Cancel's full
-reversal has no partial allocation ambiguity. Do not implement an inferred policy.
+If allocation reaches a finalized source period, its statement cannot be rewritten.
+Owner confirmed rejecting that refund atomically before any financial or entitlement
+change. Unaffected operations continue normally. No salary clawback or
+negative payout workflow will be introduced.
 
 ## BLL/API, integrity and verification plan
 

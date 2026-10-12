@@ -41,10 +41,9 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales Commissions & independent New/Renewal targets started on existing SalesCommissions&Targets, verified base 5244d48226e9122558081869cadf8f2a97837d6c; completed Shifts/Vault remains intact.
-- Clean initial checkout; existing local/remote feature, master and Shifts heads verified. Compact design in docs/SALES_COMMISSIONS_PLAN.md; no commission domain/financial mutations yet.
-- Reuse CommissionPeriod, CommissionRule, EmployeeCommissionSummary and immutable Sales/Payment/Refund facts. Separate targets, collected money only, retained otherwise-eligible cancellation cash counts without extra ledger credit.
-- Local Development read-only: no configured commission rules/periods/summaries or Sales/Payments; no conflicting defaults. Existing Commission capabilities granted; prior three Sales capabilities remain active but ungranted, unchanged.
-- Fresh baseline build zero warnings/errors; EF drift none. Fresh full regression suite independently passed 733/733, zero failed/skipped. Planning commit 6e89bd4 pushed; source allocation question awaits Owner decision.
-- Blocking decision submitted: manual partial refund source allocation across payment periods/employees/House collections. Current API has no original-payment allocation; do not invent which target/employee decreases.
-- Next: confirmed allocation policy, then domain/settings, attribution, calculation/statements and APIs/tests/docs with incremental validated commits/pushes. No payroll/payouts, monthly closing, financial redesign or production changes.
+- Sales Commissions implementation on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; initial tree clean and remote verified.
+- Owner confirmed newest-first refunds, deterministic PaidAt then Guid chronology; refunds touching finalized source periods reject atomically. No unresolved refund policy.
+- Domain prepared: reuse periods/rules/summaries; three append-only collection/allocation/statement evidence tables, nullable legacy-compatible date/operation/snapshot fields; new AddSalesCommissionEvidence migration reviewed.
+- Three domain tests passed; build zero warnings/errors before calculation draft. Prior fresh full baseline 733 passed; final complete feature validation pending.
+- BLL configuration/source/calculation work is in progress separately; no production or application data/permission mutations. Migration Development application pending.
+- Next: verify configuration lifecycle, integrate collection attribution and refund allocation, APIs/reporting/tests/docs. Existing unrelated Sales permission gap preserved.

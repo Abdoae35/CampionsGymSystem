@@ -5,6 +5,10 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class EmployeeCommissionSummary
 {
+    public Guid? CommissionRuleId { get; set; }
+    public CommissionRule? CommissionRule { get; set; }
+    public decimal? BelowTargetRateSnapshot { get; set; }
+    public decimal? ReachedTargetRateSnapshot { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid CommissionPeriodId { get; set; }
     public CommissionPeriod CommissionPeriod { get; set; } = null!;

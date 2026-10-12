@@ -18,6 +18,9 @@ public sealed class EmployeeCommissionSummaryConfiguration : IEntityTypeConfigur
             table.HasCheckConstraint("CK_EmployeeCommissionSummaries_CommissionAmount", "\"CommissionAmount\" >= 0");
         });
         builder.HasKey(x => x.Id);
+        builder.HasOne(x => x.CommissionRule).WithMany().HasForeignKey(x => x.CommissionRuleId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.BelowTargetRateSnapshot).HasPrecision(5, 2);
+        builder.Property(x => x.ReachedTargetRateSnapshot).HasPrecision(5, 2);
         builder.HasOne(x => x.CommissionPeriod).WithMany().HasForeignKey(x => x.CommissionPeriodId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);

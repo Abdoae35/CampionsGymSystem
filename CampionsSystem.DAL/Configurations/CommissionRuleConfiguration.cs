@@ -20,6 +20,8 @@ public sealed class CommissionRuleConfiguration : IEntityTypeConfiguration<Commi
             table.HasCheckConstraint("CK_CommissionRules_EffectiveFromEffectiveTo", "\"EffectiveTo\" >= \"EffectiveFrom\"");
         });
         builder.HasKey(x => x.Id);
+        builder.HasIndex(x => new { x.OperationId, x.CommissionType }).IsUnique();
+        builder.Property(x => x.RequestHash).HasMaxLength(64);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.CommissionType).HasConversion<string>().HasMaxLength(40);
