@@ -46,4 +46,4 @@ read this file and `PROJECT_HISTORY.md` before working.
 - Domain prepared: reuse periods/rules/summaries; three append-only collection/allocation/statement evidence tables, nullable legacy-compatible date/operation/snapshot fields; new AddSalesCommissionEvidence migration reviewed.
 - Three domain tests passed; build zero warnings/errors before calculation draft. Prior fresh full baseline 733 passed; final complete feature validation pending.
 - BLL configuration/source/calculation work is in progress separately; no production or application data/permission mutations. Migration Development application pending.
-- Next: verify configuration lifecycle, integrate collection attribution and refund allocation, APIs/reporting/tests/docs. Existing unrelated Sales permission gap preserved.
+- Four configuration/lifecycle/scope tests passed. Next: verify actual collection/refund attribution and calculations, APIs/reporting/tests/docs. Existing unrelated Sales permission gap preserved.

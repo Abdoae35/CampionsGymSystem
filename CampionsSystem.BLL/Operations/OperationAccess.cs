@@ -18,9 +18,12 @@ public sealed class OperationAccess(ICurrentUserService current, ApplicationDbCo
         TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZoneId)).DateTime);
 
     public (DateTimeOffset Start, DateTimeOffset End) DayBounds()
+        => BusinessDateBounds(Today);
+
+    public (DateTimeOffset Start, DateTimeOffset End) BusinessDateBounds(DateOnly businessDate)
     {
         var zone = TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZoneId);
-        var date = Today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
+        var date = businessDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified);
         return (new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(date, zone)),
             new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(date.AddDays(1), zone)));
     }
