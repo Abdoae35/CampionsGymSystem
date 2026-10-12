@@ -1,0 +1,7 @@
+# Actual branch snapshot OpenAPI
+
+Frozen `2026-10-12T10:44:04.604445+00:00`, branch `PrivateCoaching-Classes-Implementation`, HEAD `bf733e2502a85603b80f8ad8a01747264a0f518b` plus uncommitted BLL/API files. Built isolated source snapshot; actual Development API `/openapi/v1.json` HTTP 200. Unmodified JSON: OpenAPI 3.1.1, 152 paths, 191 operations, 102 schemas, 245210 bytes. All 190 MVC actions plus development health; document-serving endpoint excludes itself. Capture server 127.0.0.1:18747 is temporary, not application profile URL. Disabled DB target, ephemeral key, no seed/setup/migration switches; only OpenAPI requested; process stopped.
+
+366 reachable compiler type shapes, clean semantic controller extraction. Application builds with zero warnings/errors; temporary exporter has three nullable warnings. No current business workflow/runtime test is claimed. This snapshot is branch-only, with 35 uncommitted Coaching actions and three changed legacy Class actions now 410; do not use it as stable master contract. See [branch status](../BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md) and [baseline provenance](../OPENAPI_STATUS.md).
+
+Real OpenAPI omits many IActionResult bodies/policies. Use [catalog](API_ENDPOINT_CATALOG.md), [DTOs](DTO_AND_ENUM_REFERENCE.md) and [compiler supplement](endpoint-contracts.json). Old catalog text referring to baseline means inherited route provenance only; snapshot availability is governed by this file and branch status.

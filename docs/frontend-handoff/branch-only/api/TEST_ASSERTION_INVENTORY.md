@@ -1,0 +1,627 @@
+# Test assertion inventory
+
+Present baseline test methods grouped by test class. **DOCUMENTED SOURCE EVIDENCE**, not individual execution proof. Fresh audit ran only CheckInContractTests (5/5); historical 772/772 belongs to baseline history, not a new run. Database-dependent suites were not run to avoid operational/schema writes.
+
+## ActivitiesClassesFreelanceTests.cs
+
+Source `CampionsSystem.DAL.Tests/ActivitiesClassesFreelanceTests.cs`.
+
+`InternalCoachLinksToEmployee`, `ExternalCoachNeedsNeitherEmployeeNorIdentityAccount`, `ActivityPurchaseRequiresSelectedAssignedCoach`, `PercentageChangePreservesPurchaseSnapshot`, `PercentageOutOfRangeRejected`, `ActivityEntitlementUsesCollectedInstallmentNotPackagePrice`, `DiscountedSplitPaymentCountedOnlyOnce`, `OpenPeriodRefundReducesRevenueAndEntitlement`, `InternalFinalizationBridgesEmployeeSummaryExactlyOnce`, `ExternalEntitlementNeedsNoEmployeePayroll`, `ClosedSnapshotIgnoresLaterRefundAndRateChange`, `CompletedClassCounts`, `ZeroAttendanceIncludedInDenominator`, `CancelledAndScheduledClassesExcluded`, `ActualSubstituteReceivesStatistics`, `AttendanceAverageUsesActualUniqueCheckIns`, `ClassStatisticsNeverCreateFinancialPayout`, `IneligibleMemberCannotPurchaseFreelancePlan`, `LegacyEligibleFreelancePurchaseIsDisabled`, `FreelanceRenewalCannotConvertEmployeeEntitlementIntoPurchase`, `FreelancePlanRequiresActiveFreelanceCoach`, `DisabledLegacyPurchaseCannotChangeCurrentSalesOwnership`, `FreelanceReportShowsActualGymMoneyAndHouse`, `DuplicateEligibilityPreventedByDatabase`, `RemovingEligibilityPreventsFuturePurchaseAndPreservesHistory`, `MemberMayBeEligibleForMoreThanOneFreelanceCoach`, `ActivityBatchAttributionCannotBeRewritten`, `BranchScopedReportRejectsOtherBranch`, `RenewalCanSelectAnotherCoachWithoutMovingOldPaidRevenue`, `ReopenedPeriodDoesNotSilentlyReplaceActivitySnapshot`, `PlanReassignmentPreservesHistoricalPurchaseCoachAndPrice`, `AmbiguousActivityRefundIsRejectedInsteadOfGuessed`, `DuplicateActualSessionAttendanceIsRejectedByDatabase`, `GetAsync`
+
+## ActivityRuleMigrationTests.cs
+
+Source `CampionsSystem.DAL.Tests/ActivityRuleMigrationTests.cs`.
+
+`ExistingEmployeeAssignmentSubscriptionAndClassAttendanceSurviveUpgrade`, `DatabaseRejectsInvalidCoachShape`, `NewRelationshipsNeverCascadeAndMoneyUsesExactPrecision`
+
+## AuthenticationApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/AuthenticationApiTests.cs`.
+
+`ActiveUserCanLoginAndJwtHasOnlyUsefulClaims`, `InvalidPasswordAndUnknownUserReturnSame401`, `InactiveUserCannotLogin`, `MeRequiresAuthentication`, `MeResolvesLinkedEmployeeAndPrimaryCurrentBranch`, `OwnerWithoutEmployeeOrBranchIsSafe`, `ExistingJwtIsRejectedWhenUserIsDeactivated`, `TamperedJwtIsRejected`, `JwtValidationRejectsInvalidTokens`, `PermissionAllowsProtectedAction`, `MissingPermissionReturns403`, `AnonymousPermissionRequestReturns401`, `MeReturnsUnionOfRolesWithDistinctActivePermissions`, `PermissionRevocationAffectsExistingJwt`, `PermissionDeactivationAffectsExistingJwt`, `RoleRevocationAffectsEvenRoleOnlyChecksOnExistingJwt`, `DynamicProviderPreservesStandardPolicies`, `InvalidRequestReturns400`, `NewManagementEndpointsRequirePermissions`, `AuthorizedActivityManagementCreatesExternalCoachAndAudit`, `BranchManagementRequiresPermissionAndCreatesAuditWhenAuthorized`, `DirectBranchPermissionDenyAffectsExistingJwt`, `BranchListRequiresAuthenticationAndPermission`, `BranchEmployeeCannotReadOrUpdateAnotherBranchAndCannotHardDeleteHistory`, `TransferApiPreservesHistoryAndMeResolvesNewBranchOnSameJwt`, `TransferWithoutPermissionOrCrossBranchScopeReturns403`, `InitialAssignmentApiAndCurrentQueryWorkWithoutEmployeeCrud`, `InvalidBranchRequestReturns400InsteadOfInternalError`, `EmployeeEndpointsRequireAuthenticationAndPermissions`, `EmployeeListAndBranchRouteCannotEscapeCurrentScope`, `EmployeeCreateUpdateAndStatusHttpFlowPreservesHistoryWithoutAccountCreation`, `EmployeeProfileRejectsBranchAccountAndStatusMassAssignment`, `EmployeeInvalidRequestsReturn400`, `EmployeeApiInitialAssignmentFailureDoesNotLeavePartialEmployee`
+
+## AuthenticationServiceTests.cs
+
+Source `CampionsSystem.DAL.Tests/AuthenticationServiceTests.cs`.
+
+`ActiveUserLogsInByUserNameOrEmail`, `InvalidPasswordIsRejectedAndCounted`, `InactiveUserIsRejected`, `SuspendedEmployeeIsRejected`, `CurrentBranchUsesDateEligiblePrimaryAssignment`, `GlobalOwnerDoesNotRequireEmployeeOrBranch`, `PermissionsUnionIsDistinctAndIgnoresInactiveCodes`, `TwoFactorAccountDoesNotReceivePasswordOnlyLogin`, `LockedOutAccountIsRejected`, `AnonymousCurrentUserReturnsNull`
+
+## BranchConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/BranchConcurrencyTests.cs`.
+
+`CompetingTransfersCannotCreateTwoCurrentAssignments`, `CompetingInitialAssignmentsCannotOverlap`
+
+## BranchManagementTests.cs
+
+Source `CampionsSystem.DAL.Tests/BranchManagementTests.cs`.
+
+`GlobalAccountWithoutBranchCanCreateUpdateAndAudit`, `ScopedUserListsOnlyCurrentBranchAndCannotSpoofAnother`, `MissingPermissionCannotManageEvenWithGlobalScope`, `UnknownBranchReturnsNotFoundForGlobalUser`, `InvalidNameRejected`, `InactiveCityCannotReceiveNewBranch`, `GetAsync`
+
+## BranchSecurityTests.cs
+
+Source `CampionsSystem.DAL.Tests/BranchSecurityTests.cs`.
+
+`NormalEmployeeCannotAccessOrSelectAnotherBranch`, `GlobalPermissionAllowsExplicitValidatedSelectionWithoutInventingCurrentBranch`, `OwnerRoleAloneDoesNotBypassBranchScope`, `InactiveBranchesAreRejectedForOperationsEvenWithGlobalAccess`, `AnonymousAndBranchlessNormalUsersFailClosed`, `DirectDenyOverridesRoleGrantAndDirectAllowWorksWithoutRole`, `ExplicitPermissionSetupIsIdempotentAndCreatesNoAccounts`
+
+## CheckInAccessTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInAccessTests.cs`.
+
+`InactiveAndUnknownMembersHaveExactReasons`, `NoEntitlementDoesNotGrantOrBorrow`, `SameCityAcceptsDifferentRegistrationAndPlanBranches`, `ZeroSessionsBeforeDateExpiryDoesNotPermitBorrowing`, `DateExpiryPreservesUnusedSessionsAndOffersExplicitBorrow`, `FrozenAndScheduledPeriodsDoNotGrantAccess`, `ClosureBlocksRegardlessOfCompensation`, `OvernightBusinessDateAndSubscriptionStatusAreShared`, `AmbiguousPeriodsFailClosed`, `OperationalScopeIsIndependentOfOwnershipPrivileges`, `EmployeeEntitlementTracksEmploymentAndSurvivesBranchChange`
+
+## CheckInApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInApiTests.cs`.
+
+`CheckInHttpRequiresCapabilityAndCannotSpoofOperationalBranch`, `CheckInScannerManualRetriesAndDistinctOperationsUseSameAccessRules`, `CheckInHttpRejectsClientAuthoritativeFacts`, `CheckInHttpBorrowingIsExplicitAndHistoryHasIndependentViewCapability`, `ReceptionLookupReturnsMinimalIdentityAndTrialRedemptionUsesExistingInvitation`
+
+## CheckInBorrowTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInBorrowTests.cs`.
+
+`BorrowNeedsConfirmationAndNeverReactivatesOrConsumesExpiredBalance`, `BorrowRetryCreatesOneDebtAndEntry`, `FuturePeriodDoesNotGrantEarlyNormalAccessOrHideExpiredBorrowCycle`, `CancelledExhaustedFrozenAndWrongCityPeriodsCannotBorrow`, `ConcurrentBorrowersCannotUseMoreThanOneRemainingSlot`, `ConcurrentIdenticalBorrowCreatesOnlyOneDebt`
+
+## CheckInConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInConcurrencyTests.cs`.
+
+`ConcurrentFinalSessionHasExactlyOneWinner`, `ConcurrentSameOperationConsumesAndRecordsOnce`
+
+## CheckInContractTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInContractTests.cs`.
+
+`MutationDoesNotAcceptAuthoritativeClientFacts`, `EnumCompatibilityAndExplicitBorrowDefaultArePreserved`
+
+## CheckInEntitlementIntegrationTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInEntitlementIntegrationTests.cs`.
+
+`FreelanceEntrancePreservesSalesOrHouseAssignmentAndCreatesNoFinance`, `EmployeeEntranceRemainsUnlimitedThroughRealBranchTransferAndStopsOnInactiveEmployment`
+
+## CheckInEntryTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInEntryTests.cs`.
+
+`FailedCheckInInsertRollsBackSessionDeduction`, `EntryPreservesActualMidnightTimestampAndOpenBusinessDate`, `EveryRealEntryIsRecordedAndOnlySessionBasedDeducts`, `RetryReturnsOriginalSnapshotAfterFurtherEntryAndExpiry`, `DeniedEntriesNeverWriteOrConsume`, `ScannerAndManualShareValidationWithoutCoachOverride`, `NewCheckInHistoryCannotBeRewritten`
+
+## CheckInMigrationTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInMigrationTests.cs`.
+
+`OperationalUpgradePreservesLegacyTrialWithoutInventingDateOperationOrBalance`
+
+## CheckInPermissionTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInPermissionTests.cs`.
+
+`CheckInCatalogPreservesActivationExistingGrantsAndDirectDenies`, `CheckInSetupDoesNotInferStaffGrantsOrGiveGlobalCapability`
+
+## CheckInQueryTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInQueryTests.cs`.
+
+`HistoryIsPaginatedFilteredAndScopedToVisitedBranch`, `CurrentDayHelperFindsEntranceButDoesNotPreventReentry`, `OperationalLookupReusesSearchAndKeepsClientCodesBranchLocal`, `DebtHistoryShowsCycleAndExactSettlingGrant`, `InvalidPaginationRejected`, `LegacyUnknownBusinessDateIsNotGuessedFromUtcTimestamp`
+
+## CheckInRenewalDebtTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInRenewalDebtTests.cs`.
+
+`RenewalSettlesFullDebtAndPreservesBothCycleAndExactGrantHistory`, `InsufficientNormalRenewalRejectsWithoutPartialSettlementOrNewCycle`, `InitialCustomerGrantCannotBypassOutstandingDebt`, `ExactDebtSizedGrantSettlesFullyWithoutNegativeSessions`, `BorrowRacingRenewalCannotLeaveDebtUnsettledOrDeductTwice`
+
+## CheckInTrialTests.cs
+
+Source `CampionsSystem.DAL.Tests/CheckInTrialTests.cs`.
+
+`TrialRedemptionAndRetryAreOneTimeHistoricalAndNonFinancial`, `TrialUsesExistingMemberIdentityWithoutChangingRegistrationOrOwnership`, `TrialUnavailableStatesDoNotCreateEntrance`, `TrialIdentityAndSelectedBranchMustMatchIssuedRecord`, `TrialRejectsInactiveKnownMemberAndClosureRegardlessOfCompensation`, `TrialOperationCannotBeReboundToAnotherInvitation`, `MemberInvitationConsumesExactlyOneSnapshotUnitOnlyAtRedemption`, `NonGuestBenefitCannotBeRedeemedAsInvitation`, `ConcurrentTrialRedemptionsConsumePersonOnce`, `ConcurrentInvitationsCannotConsumeSameFinalGuestBenefitUnit`, `FailedTrialInsertRollsBackBenefitAndRedemptionTogether`, `GuestTrialRetryAfterMemberRegistrationPreservesOriginalGuestEntryIdentity`
+
+## CoachingApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/CoachingApiTests.cs`.
+
+`CoachingApiRequiresAuthenticationAndExplicitCapabilities`, `CoachingApiPackageCatalogIsBranchScopedAndRejectsSpoofedFinancialTerms`, `CoachingApiDirectDenyOverridesPayAndTargetRoleCapabilitiesImmediately`, `CoachingApiLegacyClassAttendanceWriteIsDisabled`
+
+## CoachingClassesPayoutTests.cs
+
+Source `CampionsSystem.DAL.Tests/CoachingClassesPayoutTests.cs`.
+
+`CoachingClassesNeedNoReceptionOrRegularMembershipAndShareOneBalanceAcrossTypes`, `CoachingClassesPreventDuplicateMemberOccurrenceEvenWithDifferentOperationsOrPackages`, `CoachingClassesRequireAuthorizedAssignedCoachAndPreClassRegistration`, `CoachingClassesRejectExpiredAndRefundCancelledPackage`, `CoachingClassesAttendanceAverageIncludesZeroAttendanceCompletedOccurrencesAndConfiguredTarget`, `CoachingClassesTenEightTwelveAttendeesAverageTen`, `CoachingOccurrenceCompletionIsIdempotentAndCannotCancelAttendance`, `CoachingBranchScopeAndMemberSearchPreservePurchaseOriginRatherThanHomeBranch`, `CoachingOwnerPartialPayoutsReduceFourThousandToTwoThousandThenZeroExactlyOnce`, `CoachingPayoutRejectsOverpaymentAndKeepsLedgerUnchanged`, `CoachingPayoutRequiresOwnerCapabilitiesAndGlobalPermissionEvenWhenBranchManagerHasPay`, `CoachingPayoutChecksPhysicalCashAndElectronicAccountFundsWithoutInventingMoney`, `CoachingPayoutCannotBypassBalanceThroughGenericExpenseReversal`, `CoachingRecognitionRetryPreservesFinalEvidenceAndDoesNotWriteMoney`
+
+## CoachingConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/CoachingConcurrencyTests.cs`.
+
+`CoachingConcurrentPrivateRetryConsumesExactlyOneSession`, `CoachingConcurrentDifferentPrivateOperationsCannotConsumeSameReceptionTwice`, `CoachingConcurrentClassesCannotOveruseLastSharedSessionAcrossDifferentTypes`, `CoachingConcurrentPartialPayoutsCannotOverpayOutstandingBalance`, `CoachingConcurrentPayoutRetryDebitsOneExpenseExactlyOnce`, `CoachingConcurrentRefundAndRecognitionNeverRecognizeRefundedMoney`
+
+## CoachingOperationsTests.cs
+
+Source `CampionsSystem.DAL.Tests/CoachingOperationsTests.cs`.
+
+`CoachingPrivateRequiresReceptionAndNeverDeductsOnReceptionAlone`, `CoachingPrivateRejectsExpiredRegularMembershipEvenWithPriorReception`, `CoachingPrivateRejectsMembershipExpiredAfterReceptionOnSameBusinessDate`, `CoachingPrivateCannotUseFrozenRegularMembership`, `CoachingPrivateNormalCoachUsesIndependentNetFundedTarget`, `CoachingPrivateFinancialTargetSettingsNeverBlockAttendance`, `CoachingTransferPreservesDeliveredAttributionAndIncomingFixedFifty`, `CoachingTransferRetryIsIdempotentAndCannotRewriteSessionCoach`, `CoachingPrivateSnapshotsAndDeterministicRemainderSurviveCatalogEdits`, `CoachingPartialCollectionsDeferDeliveryAndLaterFundSameOriginalSourceOnce`, `CoachingExpiryRecognizesCurrentTransferredCoachWithoutFakeAttendanceOrDoubleSettlement`, `CoachingRefundBeforeRecognitionReducesEligibleCollectedValueAndRevokesUnusedGrant`, `CoachingRefundAffectingFinalizedEarningsRejectsAtomically`
+
+## CommissionApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/CommissionApiTests.cs`.
+
+`CommissionApiRequiresAuthenticationAndExplicitCapabilities`, `CommissionApiProvidesScopedProgressAndOwnerConfiguredRulesWithoutShift`, `CommissionDirectDenyOverridesRoleAndBranchOwnershipCannotLeakReports`, `CommissionRuleContractRejectsClientComputedCommission`
+
+## CommissionCollectionTests.cs
+
+Source `CampionsSystem.DAL.Tests/CommissionCollectionTests.cs`.
+
+`CommissionIndependentTargetsProduceConfirmed2500Example`, `CommissionNewTargetUnlocksAllNewRevenueWithoutChangingRenewalRate`, `CommissionCancelledRetainedCashCountsOriginalEligibleMoneyOnce`, `CommissionNewestFirstPreservesOriginalPeriodAndInstallmentCategory`, `CommissionRefundWalksBackwardWithoutNegativeCollectionsOrDuplicateParts`, `CommissionFinalizedSourceRejectsRefundAndPreservesStatementAndGrantAtomically`, `CommissionResignationAndRehireDoNotRestoreOldContractCollectionRights`, `CommissionFirstPurchaseHistoryIncludesPendingCancelledHouseAndCrossBranchSales`, `CommissionOwnerReassignmentChangesFutureRenewalOnly`, `CommissionRegistrationAndUnpaidInstallmentsContributeZero`, `CommissionOpenRefundRecomputesAllCategoryMoneyAtBelowTargetRate`, `CommissionRoundsCategoryAggregateOnceWithAwayFromZero`, `CommissionBusinessDateUsesOpenOperationalDayAcrossMidnight`, `CommissionActualInstallmentAllocationsKeepNewCategoryAcrossPeriods`, `CommissionStaleBusinessDayCannotRestoreDepartedEmployeesRights`, `CommissionCrossBranchPurchaseIsRenewalAndRevenueNeverMoves`, `CommissionFinalizedRatesStayImmutableAfterFutureEmployeeConfiguration`, `CommissionBranchDefaultsCoverNewEmployeeAndFutureOverrideLeavesCurrentEstimateUnchanged`, `CommissionFreelanceFixedGymRevenueRemainsExcluded`, `CommissionHouseAndStandaloneAreExcludedEvenAfterCollection`
+
+## CommissionConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/CommissionConcurrencyTests.cs`.
+
+`CommissionConcurrentFirstPurchasesClassifyOnceUnderMemberLock`, `CommissionConcurrentPeriodRequestsCannotOverlapAndExactRetryIsIdempotent`, `CommissionConcurrentRefundRetryAllocatesOneRefundExactlyOnce`, `CommissionRefundAndFinalizationSerializeWithoutChangingFinalizedFacts`
+
+## CommissionConfigurationTests.cs
+
+Source `CampionsSystem.DAL.Tests/CommissionConfigurationTests.cs`.
+
+`CommissionSettingsAreIndependentFutureOnlyAndPreserveRuleHistory`, `CommissionPeriodsRequireContiguousBoundsAndManualNarrowFinalization`, `CommissionBranchesHaveIndependentBoundariesAndScope`, `CommissionRuleAdministrationRequiresCapabilityAndGlobalScope`
+
+## CommissionDomainTests.cs
+
+Source `CampionsSystem.DAL.Tests/CommissionDomainTests.cs`.
+
+`EvidenceUsesRestrictiveSourceReferencesAndExactPrecision`, `SourceEvidenceAndFinalizedSummariesCannotBeRewritten`, `ManagedRulesAndClosedPeriodsCannotBeEditedOrReopened`
+
+## CommissionMigrationTests.cs
+
+Source `CampionsSystem.DAL.Tests/CommissionMigrationTests.cs`.
+
+`CommissionUpgradePreservesLegacyRulesMoneyAndNullOperationalLinks`
+
+## CrmApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmApiTests.cs`.
+
+`CrmEndpointsRequireAuthenticationAndActionPermissions`, `CrmManagerDistributesContactsAndChangesLifecycleWithHistory`, `CrmBulkReturnsInvalidRowsAndDuplicateResultsWithoutRejectingBatch`, `CrmSalesCannotSeeOthersOrSpoofAssignmentAndConversionOwner`, `CrmCrossBranchConversionAndFollowUpDoNotExpandMemberBrowsing`, `CrmStatusAndProfileRejectMissingOrProtectedFields`, `CrmPhoneOnlyLeadNeedsFullMemberProfileBeforeConversion`, `AuthorizedRegistrationOperatorConvertsForeignLeadWithoutBrowsingOrAssignmentGrants`
+
+## CrmAssignmentTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmAssignmentTests.cs`.
+
+`AssignmentReassignmentPreservesHistoryAndMyLeads`, `IneligibleAndWrongBranchEmployeesCannotOwnLeads`, `SalesCannotAssignOrStealAnotherLead`, `EligibleSalesCreatingProspectGetsTheirOwnAssignment`
+
+## CrmConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmConcurrencyTests.cs`.
+
+`IndependentSessionsCannotConvertOneLeadTwice`, `ConcurrentLeadCreationReturnsOneCreatedAndOneDuplicate`, `IndependentReassignmentsPreserveOneCurrentAssignment`, `IndependentSessionsCannotDuplicateOpenMemberWork`, `TerminationRacingConversionCannotLeaveActiveSalesOwnership`
+
+## CrmConversionTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmConversionTests.cs`.
+
+`ManagerConversionKeepsOriginalOwnerAndDestinationCodeWithoutPurchase`, `AssignedOwnerConvertsWithoutBroadAssignmentPermission`, `EmployeeWithoutConversionCapabilityCannotConvertOrBypassLeadThroughMemberCreation`, `UnassignedOrDuplicateMemberConversionFailsAtomically`, `ExplicitFreelanceConversionOverridesLeadOwnerWithAuditedHouseException`, `AuthorizedNonOwnerRegistersWalkInWithoutTakingOwnership`, `OperationalConversionRequiresCapabilitiesActiveEmployeeAndDestinationScope`, `NonOwnerConversionCannotChangeLeadPhoneOrUsePublicOwnershipOverride`, `ConversionUsesLatestAuthorizedReassignmentRatherThanOriginalOwnerOrActor`
+
+## CrmEmployeeOwnershipTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmEmployeeOwnershipTests.cs`.
+
+`TransferPreservesOwnershipAndFollowUpsAcrossBranches`, `InactiveEmploymentClosesOwnershipToHouseAndManagementWithoutDeletingHistory`, `FutureDatedOwnershipPreventsPartialTermination`
+
+## CrmInteractionTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmInteractionTests.cs`.
+
+`InteractionsAppendAndNewScheduleIsQueryable`, `DueTodayAndOverdueUseGymCalendarAndExcludeTerminalLeads`, `AnotherSalesCannotContactUnownedLeadAndInvalidSchedulingFails`
+
+## CrmLifecycleTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmLifecycleTests.cs`.
+
+`LostLeadRemainsAndManagerReactivatesWithoutLosingOwner`, `LifecycleCannotPretendToConvertOrEraseContactMeaning`, `LeadProfileCannotChangeOwnerOrOperationalBranch`
+
+## CrmManagementTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmManagementTests.cs`.
+
+`ManagerCreatesUnassignedLeadWithConfiguredPhone`, `MemberTakesLookupPriorityAndLeadDuplicateIsReported`, `BulkReturnsPerRowResultsWithoutRollingBackValidRows`, `ListSearchAndBranchIsolationWork`, `InaccessibleDuplicateReturnsNoPrivateDetails`
+
+## CrmMemberFollowUpTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmMemberFollowUpTests.cs`.
+
+`CrossBranchMemberWorkBelongsOnlyToCurrentOwner`, `HouseQueueDistributionUsesExistingMemberAssignmentAndTracksReassignment`, `EquivalentOpenWorkIsUpdatedWithoutDuplicatesAndCompletedWorkRemains`, `UnifiedQueueContainsOnlyAssignedLeadAndOwnedMemberWork`
+
+## CrmModelTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmModelTests.cs`.
+
+`HistoryAndOpenWorkHaveDatabaseProtection`, `CrmMigrationAppliesInIsolatedSchema`
+
+## CrmPermissionTests.cs
+
+Source `CampionsSystem.DAL.Tests/CrmPermissionTests.cs`.
+
+`ExplicitSetupIsIdempotentAndPreservesInactiveCapabilities`
+
+## CurrentBranchContextTests.cs
+
+Source `CampionsSystem.DAL.Tests/CurrentBranchContextTests.cs`.
+
+`ResolverUsesInclusiveDatesAndExcludesHistoricalAndFutureAssignments`, `OverlappingLegacyAssignmentsFailClosedEvenWithPrimary`, `InactiveBranchDoesNotProvideOperationalScope`, `GlobalAccountWithoutEmployeeOrBranchIsSafeAndPermissionBased`, `ContextReusesCurrentUserBranchAndDoesNotCacheOldAssignment`
+
+## DevelopmentAuthSeederTests.cs
+
+Source `CampionsSystem.DAL.Tests/DevelopmentAuthSeederTests.cs`.
+
+`RepeatedSeedDoesNotDuplicateFixtures`, `FixturesExerciseRealIdentityAndCurrentContext`, `RerunPreservesChangedAccountsAndRevokedGrants`
+
+## EmployeeAdvanceTests.cs
+
+Source `CampionsSystem.DAL.Tests/EmployeeAdvanceTests.cs`.
+
+`DirectAdvanceIsDistinctPayoutWithRecipientRecorderAndNoPayrollOrExpense`, `AdvanceRequiresOwnShiftPermissionActiveRecipientAndCashFunds`, `AdvanceHistoryRejectsCrossBranchAndChangedOperationAndPreservesOriginal`
+
+## EmployeeBranchAssignmentTests.cs
+
+Source `CampionsSystem.DAL.Tests/EmployeeBranchAssignmentTests.cs`.
+
+`InitialAssignmentCanBeReadWithHistoryAndAudit`, `SecondOpenAssignmentIsRejected`, `BoundedNonprimaryOverlapAlsoRejected`, `FutureAssignmentDoesNotBecomeCurrentEarly`, `InactiveBranchRejectedWithoutPartialAssignmentOrAudit`, `BackdatedInitialAssignmentRejected`, `ScopeAndPermissionEnforcedForAssignment`
+
+## EmployeeBranchTransferTests.cs
+
+Source `CampionsSystem.DAL.Tests/EmployeeBranchTransferTests.cs`.
+
+`TransferClosesOriginalCreatesNewAndAuditsWithoutMovingHistory`, `FutureTransferPreservesCurrentBranchUntilEffectiveDate`, `InvalidTransferLeavesOriginalUnchanged`, `TransferRequiresPermissionAndBothBranchScopes`, `MissingAssignmentFailsSafely`, `FailureAfterClosingOldAssignmentRollsBackBothSaves`, `MaximumBoundedEndDateDoesNotOverflowTransferValidation`
+
+## EmployeeGymMembershipTests.cs
+
+Source `CampionsSystem.DAL.Tests/EmployeeGymMembershipTests.cs`.
+
+`EmployeeMayExistWithoutMemberThenLinkOneProfile`, `SameMemberCannotLinkMultipleEmployees`, `UnlimitedOpenPeriodNeedsNoPurchaseOrFinancialRecordAndUsesNormalCheckIn`, `OnlyOneOpenPeriodPerEmployeeAndMember`, `LeavingClosesOldPeriodAndRehireCreatesIndependentHistory`, `HistoricalEmployeePeriodCannotBeDeletedOrReopenedThroughEf`, `InvalidEmployeePlanRejected`, `NormalSubscriptionStillRequiresEndDate`, `InvalidEmploymentPeriodRejected`, `EmployeeLinksAreRestrictedAndPurchaseSnapshotsStayPaidOnly`
+
+## EmployeeManagementTests.cs
+
+Source `CampionsSystem.DAL.Tests/EmployeeManagementTests.cs`.
+
+`GlobalListAndDetailsReturnBranchWithoutIdentityData`, `SearchFiltersAndPaginationRunInDatabase`, `BranchFilterAndDetailsFailClosedForOtherBranch`, `PermissionIsRequiredEvenForGlobalUser`, `UnassignedAndAmbiguousEmployeesAreOnlyGloballyVisible`, `CreateDoesNotCreateSystemAccount`, `CreateWithBranchUsesExistingAssignmentAndAudit`, `FailedInitialAssignmentRollsBackEmployeeAndAudit`, `ScopedCreateCannotOmitOrSpoofBranch`, `UpdateChangesOnlyProfileAndAudits`, `SuspendReactivateAndEndEmploymentPreserveHistory`, `UpdateAndStatusRespectScopeAndPermissions`, `InvalidProfileOrStatusLeavesEmployeeUnchanged`
+
+## EmployeeShiftTests.cs
+
+Source `CampionsSystem.DAL.Tests/EmployeeShiftTests.cs`.
+
+`OverlappingEmployeesOwnIndependentShiftsAndObserveOneDrawer`, `ForgottenShiftIsReturnedAndCannotBeDuplicatedOrAutomaticallyClosed`, `OpeningAndClosingRetriesSurviveFinalClosureAndRejectChangedPayloads`, `StaleCloseAndBranchSpoofingRejectedWithoutCountSideEffects`, `OvernightShiftPreservesActualTimestampsAndExplicitBusinessDate`, `ExplicitDayRolloverKeepsShiftOpenAndLaterExpenseUsesNewBusinessDate`, `EmployeeTransferRequiresOwnManualClosure`, `TiedTimestampCountsUsePersistedObservationOrderForCarryForward`, `ActiveLinkedEmploymentAndBranchAssignmentRequired`
+
+## FinalAlignmentMigrationTests.cs
+
+Source `CampionsSystem.DAL.Tests/FinalAlignmentMigrationTests.cs`.
+
+`UpgradePreservesLegacySaleShiftAndPlanWithoutInventingBusinessDaysOrCategories`
+
+## FinalSchemaAlignmentTests.cs
+
+Source `CampionsSystem.DAL.Tests/FinalSchemaAlignmentTests.cs`.
+
+`DirectOverridePersistsWithNullableCreator`, `OverridePairIsUniqueInDatabase`, `InvalidOverrideEffectRejected`, `InheritedRoleGrantAndDirectDenyCanCoexistAsFacts`, `OnlyOneOpenDayPerBranch`, `BranchBusinessDateUniqueEvenWhenClosed`, `DifferentBranchesCanHaveOpenDayOnSameDate`, `ClosedDayAllowsNextOpenDay`, `InvalidBusinessDayLifecycleRejected`, `AfterMidnightPurchaseKeepsPriorOperationalDateAndActualTimestamp`, `AudienceIsDynamicAndIndependentOfNormalFreelanceCategory`, `LegacyPlanMayRemainUnclassified`, `DuplicateAudienceNameRejected`, `LeaveRequestAndReviewPersist`, `ReversedLeaveDatesRejected`, `ReviewedLeaveRequiresReviewTime`, `ShiftReplacementPreservesOriginalAssignmentAndRepeatedChanges`, `ReplacementMustBeDifferentEmployee`, `ReferencedBusinessDayCannotBeDeleted`, `ModelHasOnlyRestrictedNewFksNoShadowPropertiesAndNullableTransitions`
+
+## GuestInvitationTests.cs
+
+Source `CampionsSystem.DAL.Tests/GuestInvitationTests.cs`.
+
+`GymGuestNeedsNoMemberInviterOrFinance`, `MemberSourceRequiresInviter`, `InviteeMayBeLinkedAfterIssueAndRedemptionHasGuestCheckIn`, `DuplicateRedeemedPhoneRejected`, `DuplicateRedeemedMemberWithDifferentPhoneRejected`, `DifferentPeopleAndCancelledHistoryDoNotBlockTrials`, `RedeemedHistoryCannotBeErasedEvenThroughSql`, `OptionalBenefitGrantConnectsToSpecificPurchaseBatch`, `RelationshipsRestrictDeletesAndHaveNoFinancialForeignKeys`, `NonTrialStillRequiresMemberAndTrialCannotConsumePaidAccess`, `ReferencedCheckInCannotBeDeleted`
+
+## JwtConfigurationTests.cs
+
+Source `CampionsSystem.DAL.Tests/JwtConfigurationTests.cs`.
+
+`InvalidJwtSettingsAreRejected`
+
+## MemberApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/MemberApiTests.cs`.
+
+`MemberEndpointsRequireAuthenticationAndActionPermissions`, `MemberCrossBranchReferralRequiresSpecificPermissionAndDoesNotGrantOtherScope`, `MemberHttpWorkflowUpdatesStatusAndOwnershipWithoutDeletingHistory`, `MemberApiRejectsProtectedFieldsAndSensitivePhoneWithoutPermission`, `MemberApiRejectsDuplicatePhonesInactiveBranchesAndInvalidRequests`, `MemberSalesCapabilityCanBeRevokedAndCannotAssignWithoutManagementPermission`, `MemberFreelanceHouseHttpFlowRequiresEligibilityPermission`, `MemberManagerWithoutOwnCapabilityCanAssignEligibleEmployeeFromOtherBranch`
+
+## MemberClientCodeConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/MemberClientCodeConcurrencyTests.cs`.
+
+`IndependentConnectionsCreateUniqueSameBranchCodes`, `DifferentBranchesAllocateIndependently`, `OneBranchLockDoesNotBlockOtherBranch`, `ConcurrentAssignmentsSerializeAndRetainOneActiveOwner`
+
+## MemberClientCodeTests.cs
+
+Source `CampionsSystem.DAL.Tests/MemberClientCodeTests.cs`.
+
+`NumericLegacyCodeIsPreservedExactlyWithGuidRelationships`, `DuplicateClientCodeInSameBranchIsRejected`, `NonpositiveClientCodeIsRejected`, `MultipleUncodedMembersRemainNullWithoutInventedValues`, `DifferentBranchesCanHaveSameClientCode`, `GuidRemainsPrimaryAndAllRelationshipKeysRemainUnchanged`, `MigrationAddsOnlyColumnUniqueIndexAndPositiveCheckWithoutGeneratedDefault`, `ScopingMigrationOnlyRelaxesNullabilityAndReplacesGlobalIndex`, `UpgradePreservesExistingMemberIdentityCodeAndRelationships`
+
+## MemberManagementTests.cs
+
+Source `CampionsSystem.DAL.Tests/MemberManagementTests.cs`.
+
+`NamePhoneCodeAndMemberCodeSearchWork`, `FiltersAndPaginationWork`, `BranchReadsDoNotExpandWithSalesOwnership`, `DetailsDeriveHouseAndRetainEmployeeLink`, `MissingPermissionAndInvalidPaginationFail`, `NormalSalesCreationOwnsMemberAndCreatesNoPurchase`, `CrossBranchReferralKeepsSalesEmployeeAndDoesNotExpandScope`, `CreationCannotSpoofOwnerOrBypassCrossBranchPermission`, `DuplicateAndInactiveBranchRollbackMemberCounterAndAudit`, `FreelanceHouseCreatesEligibilityWithoutSalesAssignment`, `ManagementCreationRequiresExplicitSalesOwner`, `ProfileUpdatePreservesIdentifiersOwnershipAndLegacyPhone`, `PhoneChangeRequiresDedicatedPermissionAndResetsVerification`, `BranchCountryChangeDoesNotRewriteExistingNormalizedPhone`, `ProfileUpdateDeniesOtherBranchDuplicatesAndMissingPermission`, `UpdateContractRejectsProtectedFields`, `StatusPreservesOwnershipEmployeeInvitationAndCheckInHistory`, `StatusRejectsMissingStatusNoOpWrongBranchAndMissingPermission`, `HouseAssignmentReassignmentAndReturnPreserveHistory`, `AssignmentRequiresPermissionScopeAndEligibleActiveSalesAccount`, `HistoryAndReturnRequireTheirPermissions`, `LegacyHouseRowsArePreservedWhenAssigningSales`, `DatabaseRejectsTwoActiveAssignments`, `NormalizedPhoneUniquenessAllowsSameDisplayInDifferentCountries`, `ExplicitPermissionSetupIsIdempotentAndPreservesDisabledPermissions`, `GlobalBranchAccessDoesNotReplaceSalesReferralPermission`, `FreelanceRegistrationRejectsCoachWhoseEmploymentTypeChanged`, `FreelanceRegistrationCannotBypassPlanAdministrativeScope`
+
+## MemberMigrationTests.cs
+
+Source `CampionsSystem.DAL.Tests/MemberMigrationTests.cs`.
+
+`UpgradeSeedsCounterPreservesAmbiguousPhonesAndBackfillsOnlyUniqueInternationalPhones`
+
+## MemberPhoneTests.cs
+
+Source `CampionsSystem.DAL.Tests/MemberPhoneTests.cs`.
+
+`NormalizationUsesConfigurationAndRespectsInternationalInput`, `InvalidOrUnconfiguredPhonesFail`
+
+## MembershipBenefitsTests.cs
+
+Source `CampionsSystem.DAL.Tests/MembershipBenefitsTests.cs`.
+
+`PlanMayHaveZeroOrMultipleBenefitsAndCatalogIsReusable`, `DuplicatePlanBenefitRejected`, `ValidPlanGrantConfigurationPersists`, `InvalidPlanGrantRejected`, `SameCatalogBenefitCanBeQuantityOrAccessOnDifferentPlans`, `TransactionHasMultipleSnapshotsIndependentOfConfigurationAndCatalogChanges`, `RenewalRetainsSeparateSourceBatchAndUpdatedGrantQuantity`, `InvalidSnapshotQuantityRejected`, `DuplicateGrantForSameTransactionAndBenefitRejected`, `UsageTracksSpecificGrantBranchActorAndRemainingQuantityWithoutFinance`, `NonpositiveUsageRejected`, `DeactivationAndPlanConfigurationRemovalPreserveGrantAndUsage`, `ReferencedHistoryCannotBeCascadeDeleted`, `CatalogCodeAndNameAreUnique`, `BenefitModelIsNormalizedAndHistoryRelationshipsRestrictDeletion`, `MigrationOnlyCreatesFourBenefitTablesAndIndexes`
+
+## OperationalExpenseTests.cs
+
+Source `CampionsSystem.DAL.Tests/OperationalExpenseTests.cs`.
+
+`ReceptionDirectExpenseIsPaidOnceWithoutApprovalsAndUsesCorrectSource`, `ExpenseCannotExceedPhysicalCashButInstaPayHasNoInventedOverdraftPolicy`, `ActualExpenseReturnPreservesOriginalAndCannotCreditUnreturnedOrExcessMoney`, `ExpensePermissionsBranchAndCategoryValidationCannotBeBypassed`, `MissingEmployeeShiftAndIncorrectCashAccountAreRejected`, `LedgerFailureRollsBackExpenseAndAuditWithoutPartialPayout`, `ExpenseBusinessDateUsesOpenDayAndLegacyUnpaidRowsRemainUninferred`
+
+## PlanBenefitConfigurationTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanBenefitConfigurationTests.cs`.
+
+`PlanBenefitsCanBeAddedUpdatedRemovedAndInactiveCatalogRetainedOnlyUnchanged`, `InvalidBenefitGrantConfigurationRejected`, `AccessAndDuplicateBenefitRulesAreEnforced`, `TemplateBenefitRemovalDoesNotRewriteSubscriptionSnapshot`
+
+## PlanBranchOwnershipTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanBranchOwnershipTests.cs`.
+
+`MigrationPreservesUnmappedPlansAndRestrictsBranchDeletion`
+
+## PlanCatalogTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanCatalogTests.cs`.
+
+`BenefitCatalogManagementUsesUniqueCodeAndNameAndWritesAudit`, `BranchManagerCannotChangeSharedBenefits`
+
+## PlanCreationTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanCreationTests.cs`.
+
+`NormalCreationPersistsIndependentBranchCityAndAudienceWithoutPurchase`, `FreelanceAndEmployeeTypesEnforceInternalRules`, `InvalidPlanConfigurationRollsBack`, `NewPlanCannotSelectInactiveAudienceOrOwningBranch`
+
+## PlanEligibilityTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanEligibilityTests.cs`.
+
+`CrossRegistrationEligibilityPreservesSalesOwnershipAndHouseState`, `EligibilityRequiresPlanScopePermissionAndValidFreelanceConfiguration`
+
+## PlanManagementApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanManagementApiTests.cs`.
+
+`PlanCatalogEndpointsRequireAuthenticationAndPermission`, `PlanHttpAdministrationUsesBranchNotCityAndGlobalCatalogScope`, `ReadOnlyPlanUserCannotSeeInternalEmployeeProducts`, `FreelanceHttpConfigurationSupportsCrossRegistrationMembersWithoutOwnershipChanges`
+
+## PlanManagementTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanManagementTests.cs`.
+
+`GlobalCategoryManagementPreservesReferencesAndSupportsSearch`, `BranchManagerMayReadButCannotEditGlobalCatalog`
+
+## PlanQueryTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanQueryTests.cs`.
+
+`QueriesRespectBranchNotCityAndHideInternalProducts`, `QueriesFilterSearchPageAndReturnLightweightBenefits`
+
+## PlanUpdateTests.cs
+
+Source `CampionsSystem.DAL.Tests/PlanUpdateTests.cs`.
+
+`UpdateAndStatusPreserveHistoricalCommercialData`, `UpdateCannotBypassBranchScopeOrChangeBehavioralType`, `LegacyPlansRequireGlobalExplicitMappingAndInactiveBranchesCanBeDisabled`
+
+## PrivateAndFreelanceSchemaTests.cs
+
+Source `CampionsSystem.DAL.Tests/PrivateAndFreelanceSchemaTests.cs`.
+
+`NormalPlanAllowsNullCoach`, `FreelancePlanRequiresCoach`, `NormalPlanRejectsCoach`, `CoachesHaveIndependentPlanPrices`, `PurchaseSnapshotSurvivesPlanEdit`, `OnlyOneCurrentAssignment`, `TransferAllowedAfterPeriodClose`, `OldSessionsRetainDeliveringCoachAfterTransfer`, `NewSessionsUseNewCoach`, `SessionPreservesPurchasedBatchAndPrice`, `ExpiryCannotSettleBatchTwice`, `ExpiryRecordsCurrentCoachAndOpenPeriod`, `TransferDoesNotModifyClosedPeriodOrItsSessions`, `ExpiryRejectsIncorrectEligibleAmount`, `DeliveredCoachCannotBeDeleted`, `BatchPriceIsImmutableButRemainingCounterCanChange`, `MigrationBackfillsUnusedLegacyBatchWithoutLosingAssignmentData`, `MigrationRejectsUnreconciledHistoryWithoutChangingIt`, `BusinessHistoryHasRestrictedForeignKeysAndNoShadowProperties`
+
+## PrivateClassesModelTests.cs
+
+Source `CampionsSystem.DAL.Tests/PrivateClassesModelTests.cs`.
+
+`EarningsPayoutsAndSharedPackagesUseRestrictiveForeignKeys`, `EarningsAndPayoutEvidenceRejectMutationBeforeConnecting`, `ForwardMigrationCreatesEvidenceWithoutRoleGrants`
+
+## SalesActivationTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesActivationTests.cs`.
+
+`PaidNowCreatesExactlyOneEntitlementInTheFinancialTransaction`, `SpecificDateDoesNotGrantEarlyAccessAndStartsOnChosenDay`, `FirstEntryIsUndatedUntilValidEntranceAndRetryActivatesOnlyOnce`, `ClosureAndWrongCityDoNotActivateFirstEntryEntitlement`, `EarlyRenewalIsImmediateDespiteActivationChoiceAndPreservesCarry`, `ScheduledModeChangePreservesCurrentPeriodAndFutureOwnQuantity`, `MultiplePaidFirstEntryEntitlementsCannotConflict`, `CompatibleEarlyRenewalShiftsOneQueuedSuccessorWithoutAllowingAnotherFuturePurchase`, `EntitlementInsertFailureRollsBackRealMoneyAndAllSnapshots`, `DeferredActivationUsesOriginalSoldTermsAfterPlanAndBenefitEdits`, `FirstEntryUsesActualVisitedBranchBusinessDateRatherThanSaleOriginDate`, `PaidExpiredRenewalSettlesCycleDebtAndPreservesUnusedSessions`, `ExhaustedPeriodCanReceivePaidRenewalWithoutBlockingNewSessionAccess`
+
+## SalesApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesApiTests.cs`.
+
+`SalesHttpRequiresCapabilitiesAndRejectsCrossBranchSpoofing`, `SalesHttpRejectsAuthoritativePriceOwnerAndEntitlementFacts`, `SaleHttpPaymentCancellationAndQueriesHaveIndependentCapabilities`, `OfferHttpConfigurationAndApplicationRequireExplicitEligibility`, `AccountProvisioningRequiresGlobalManagementAndCannotInjectOpeningMoney`, `InstallmentCreationCannotUseOnlyNormalPaymentPermission`
+
+## SalesConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesConcurrencyTests.cs`.
+
+`ConcurrentDuplicateSaleHasOnePaymentLedgerAndEntitlement`, `ConcurrentFirstEntryRetryCreatesOnlyOneActivationAndEntry`, `ConcurrentPaidPendingRequestsCannotCreateConflictingEntitlements`, `ConcurrentVisitorPurchasesAndEntriesCannotDuplicatePaidAllowance`, `ConcurrentRefundsCannotExceedCollectedMoneyOrRepeatGrantReversal`, `ConcurrentDuplicateRefundProducesOneHistoricalReversal`, `QuickCancelAndCheckInSerializeUseWithCancellation`
+
+## SalesDomainTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesDomainTests.cs`.
+
+`FinanceReusesExistingAccountsAndAddsExplicitAllocation`, `SoldTermsAndFinancialPartsCannotBeRewritten`, `CreateContractRejectsAuthoritySpoofing`, `PendingActivationNeedsNoFakeSubscriptionDates`
+
+## SalesInstallmentTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesInstallmentTests.cs`.
+
+`FlexibleScheduleAndPositiveInitialPaymentGrantCompliantAccess`, `UnpaidInstallmentSaleCannotActivateUntilAgreedPositivePaymentIsReceived`, `OverdueAccessIsDerivedAndPaymentResumesWithoutExtendingEndDate`, `OnePaymentCanExplicitlySettleMultipleInstallmentsAndRetryDoesNotDuplicate`, `InvalidSchedulesAndMissingPermissionCannotCreateFinanceFacts`, `MissingWrongAndOverAllocatedObligationsFailWithoutMoneyChanges`, `OverduePendingFirstEntryDoesNotStartUntilObligationsAreCompliant`, `ConcurrentInstallmentAllocationsCannotOverpaySameObligation`
+
+## SalesMigrationTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesMigrationTests.cs`.
+
+`CancellationUpgradePreservesLegacySettlementWithoutInventingEvents`, `FinanceUpgradePreservesLegacyMoneyAndUnknownWorkflowFacts`
+
+## SalesOfferTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesOfferTests.cs`.
+
+`GeneralOfferDoesNotRequireMemberGrantOrRegistrationBranchMatch`, `MemberOnlyRequiresCurrentGrantAndHonorsRevocation`, `ExpiredAndFutureMemberGrantsDoNotQualify`, `GeneralAudienceUsesExplicitDynamicAssignmentsRatherThanGenderStrings`, `MemberOnlyAudienceRequiresBothIndependentConditions`, `OfferCannotBroadenAuthoritativePlanAudience`, `CommercialPricingSupportsExistingOfferTypes`, `WrongBranchPlanInactiveAndOutOfDateOfferAreRejected`, `OfferPermissionsAndMemberAudienceScopeAreAuthoritative`, `UnclassifiedLegacyOfferFailsClosedAndCannotBeInferredFromGrantRows`, `OfferEditsNeverRewriteStoredSaleTerms`, `InvalidOfferValuesAreRejected`
+
+## SalesPaymentTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesPaymentTests.cs`.
+
+`FullSaleRecordsRealOwnShiftMoneyWithoutCommission`, `SplitTenderIsOneSaleOnePaymentWithExactSourcesAndRetryIdentity`, `InvalidTenderNeverWritesSaleOrPayment`, `BranchSpoofingWrongAccountAndOwnershipPrivilegesCannotBypassScope`, `OfferAndBenefitTermsAreSoldSnapshotsRatherThanLiveReferences`, `MoneyHistoryCannotBeRewrittenAndOperationRequiresPermission`, `OvernightMoneyPreservesOpenBusinessDateAndRealTimestamp`, `NormalAndFreelanceSalesSnapshotExistingOwnerWithoutReassignment`, `InsertFailureRollsBackSalePartsSnapshotsLedgerAndAuditTogether`
+
+## SalesPermissionTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesPermissionTests.cs`.
+
+`FinancialCatalogPreservesInactiveCapabilitiesAndOverridesAndInfersNoRoleGrants`
+
+## SalesQueryTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesQueryTests.cs`.
+
+`ScopedHistoryDetailsAndMethodTotalsPreserveFinancialFactsAndRetainedFee`, `ReservationStatusPaymentHistoryAndPaginationAreAuthoritative`, `InstallmentQueriesIgnoreTamperedCachesAndUseActualAllocations`, `AccountMethodBranchAndOpeningFactsCannotRewriteHistory`, `OwnedFreelanceRevenueReportAcceptsFixedGymSaleWithoutReclassifyingOwner`
+
+## SalesQuickCancelTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesQuickCancelTests.cs`.
+
+`QuickCancelFullyReversesOriginalAccountEvenIfLaterInactive`, `QuickCancelReversesSplitTenderAndCancelsCurrentFutureOrUndatedGrant`, `QuickCancelBoundaryIsExactly24ActualHoursAndExplicitCapability`, `CheckInUseAndDebtSettlementRejectQuickCancel`, `BenefitUseRejectsQuickCancellation`, `QuickCancellingUnusedAppendedRenewalKeepsPreviousPaidGrant`
+
+## SalesRefundTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesRefundTests.cs`.
+
+`ManualSplitRefundCancelsAccessAndPreservesOriginalMoney`, `ReservationManagementChoosesZeroPartialOrFullRefund`, `CancellingAppendedRenewalPreservesEarlierPaidTimeSessionsBenefitsAndAllowance`, `CancellationReopensOnlyItsSettledDebtsAndLaterRenewalSettlesAgainWithoutRewritingHistory`, `RefundPermissionBranchReasonAndPartsAreRequired`, `CancellingOlderPartlyUsedGrantPreservesLaterPaidSessionsAndTime`, `RefundInsertFailureDoesNotHalfCancelOrDebit`
+
+## SalesReservationTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesReservationTests.cs`.
+
+`ReservationReceivesDepositsButGrantsNoAccessUntilFullPayment`, `PastReservationDeadlineDoesNotCancelAndLateSpecificDateStartsOnCompletionDay`, `CompletedReservationCanRemainPendingFirstEntryWithoutFakeDates`, `PaymentPartsMismatchAndOverpaymentCannotChangeReservationBalance`, `ConcurrentFinalReservationPaymentsCannotOverpayOrActivateTwice`
+
+## SalesShiftIntegrationTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesShiftIntegrationTests.cs`.
+
+`PaidSaleRequiresActingEmployeesShiftButIdenticalCommittedRetrySurvivesClosure`, `AdditionalReservationCollectionRequiresNewOwnShiftAndRetainsOriginalPaymentLinks`, `CashRefundRequiresActualPhysicalFundsWithoutRewritingEarlierMoneyOrGrant`, `AnotherEmployeesOpenShiftDoesNotAuthorizeFinancialOperationsForClosedActor`, `PaymentsAcrossExplicitDayRolloverKeepOneOpenShiftAndSeparateBusinessDates`
+
+## SalesStandaloneTests.cs
+
+Source `CampionsSystem.DAL.Tests/SalesStandaloneTests.cs`.
+
+`PaidVisitorHasExactlyOneEntryAndNeverCreatesBorrowCycle`, `VisitorPreservesTwoOldDebtsAndCannotResetBorrowAllowance`, `OwnedStandaloneSalePreservesOwnerAndIsExcludedFromCommissionAndTargets`, `VisitorHonorsActivationChoiceAndRetry`, `ConflictingVisitorPurchaseRollsBackMoneyAndRegularRenewalCannotUseVisitorCycle`, `VisitorIntentRejectsMultiSessionPlan`
+
+## SharedVaultTests.cs
+
+Source `CampionsSystem.DAL.Tests/SharedVaultTests.cs`.
+
+`ExplicitVirginSetupRecordsOpeningPositionOnceWithoutSalesRevenue`, `ExistingOpeningBookBalanceIsNeverCreditedAgainBySetupOrShiftCounts`, `CountCarryForwardPreservesBookDiscrepancyWithoutEmployeeLiability`, `CashWithdrawalUsesPhysicalFundsRatherThanHigherBookBalanceAndRetriesAfterClose`, `WithdrawalRequiresBothGlobalCapabilityAndOwnOpenEmployeeShift`, `SequenceBoundsIncludeCashMovementsAtIdenticalCountTimestamps`, `VaultHistoryIsBoundedAndBranchScopedWithLegacyNullShiftMovements`
+
+## ShiftApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/ShiftApiTests.cs`.
+
+`ShiftRoutesRequireAuthenticationAndActionCapabilities`, `ReceptionOwnShiftExpenseAdvanceAndCloseHaveScopedExactFinancialEffects`, `DirectDenyOverrideBlocksExpenseDespiteRoleGrantAndOpenShift`, `DrawerSetupAndDiscretionaryWithdrawalRequireExplicitGlobalCapability`, `ShiftOpeningRejectsAuthoritativeEmployeeAndComputedCashInput`
+
+## ShiftConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/ShiftConcurrencyTests.cs`.
+
+`ShiftCloseAndCashSaleRaceIncludesOnlyCommittedPriorMovement`, `ConcurrentPayoutsCannotSpendFinalPhysicalCashTwice`, `ConcurrentDuplicateExpenseReturnCreatesOneCompensatingFact`, `EmployeeOpenRaceCannotCreateTwoOwnedShifts`, `ConcurrentRefundExpenseAdvanceAndCloseUseOneDrawerBoundary`, `TransferAndShiftOpeningCannotStrandOpenEmployeeInOldBranch`
+
+## ShiftDomainTests.cs
+
+Source `CampionsSystem.DAL.Tests/ShiftDomainTests.cs`.
+
+`EmployeeUniquenessAllowsOverlappingColleaguesAndIndependentBranches`, `OnePhysicalDrawerMappingPerBranchDoesNotCreateEmployeeAccounts`, `CashObservationsAreImmutableAndDoNotPostMoney`, `UpgradeKeepsLegacyShiftOwnershipAndMoneyReferencesUnknown`, `NewMoneyColumnsUseExactPrecisionAndRestrictiveRelationships`
+
+## ShiftPermissionTests.cs
+
+Source `CampionsSystem.DAL.Tests/ShiftPermissionTests.cs`.
+
+`CapabilityCatalogPreservesDisabledFlagsAndOverridesAndInfersNoDefaultGrants`
+
+## ShiftReportingTests.cs
+
+Source `CampionsSystem.DAL.Tests/ShiftReportingTests.cs`.
+
+`EmployeeActivityAndSharedDrawerRemainSeparateAcrossOverlappingShifts`, `LegacyUnshiftedMovementsRemainVisibleWithoutAttributingToEmployeeShift`, `ExpenseReturnsAndAuditHistoryRemainBoundedAndPreserveOriginalPaidFacts`
+
+## SubscriptionApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionApiTests.cs`.
+
+`SubscriptionHttpReadsRequirePermissionAndUseOriginScope`, `FreezeHttpValidatesVersionIdempotencyAndMassAssignment`, `ExtensionRequiresDistinctManagementCapabilityAndReason`, `HolidayHttpRequiresGlobalCapabilityEvenInOwnBranch`, `EmployeeGrantRequiresBothCapabilitiesAndRejectsPaidPlan`, `PaidHttpActivationAndRenewalAreAbsentAndLegacyFreelanceIsGone`
+
+## SubscriptionConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionConcurrencyTests.cs`.
+
+`IndependentRenewalsCannotDoubleApplyOneObservedVersion`, `IndependentRequestsCannotCreateConflictingFutureSubscriptions`, `ConcurrentSameOperationIsIdempotent`
+
+## SubscriptionCustomerTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionCustomerTests.cs`.
+
+`FreelanceGrantPreservesSalesOrHouseAndCreatesNoFinance`, `FreelanceGrantRequiresEligibilityAndActiveCoach`, `PlanOwnershipRequiresOriginBranchRatherThanMemberHome`, `LegacyFreelanceServiceCannotBypassGrantBoundary`
+
+## SubscriptionDomainTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionDomainTests.cs`.
+
+`ExistingGrantSupportsNonFinancialEmploymentSnapshot`, `QueueAndProtectedDaysHaveUniqueDatabaseInvariants`, `SnapshotFactsCannotBeEditedOrDeleted`
+
+## SubscriptionEmployeeTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionEmployeeTests.cs`.
+
+`EmployeeGrantIsLinkedFreeUnlimitedAndProtected`, `BranchTransferKeepsEmployeeEntitlementAndEmploymentClosureEndsIt`, `RehireCreatesNewHistoricalPeriodRatherThanReopeningOldOne`, `InactiveEmployeeOrCustomerPlanCannotReceiveEmployeeEntitlement`
+
+## SubscriptionExtensionTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionExtensionTests.cs`.
+
+`CustomMedicalExtensionIsSeparateFromNormalAllowanceAndIdempotent`, `CustomExtensionRequiresPositiveDurationAndReason`, `CustomExtensionRequiresElevatedCapabilityAndOriginScope`, `CustomExtensionMovesUnstartedSuccessorWithoutFreezingAccess`
+
+## SubscriptionFreezeTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionFreezeTests.cs`.
+
+`FreezeConsumesSnapshotAllowanceExtendsDatesAndCompletesWithoutDeletingHistory`, `InvalidFreezeDurationOrAllowanceCannotChangeEntitlement`, `OverlapExcessAllowanceAndExpiredFreezeAreRejected`, `FreezeMovesQueuedSuccessorAndDoesNotDeductSessions`, `RegistrationOwnershipDoesNotAllowUnrelatedBranchFreeze`, `IndependentFreezeRequestsCannotConsumeOneAllowanceTwice`, `FreezeAfterCompensatedHolidayAddsOnlyUnprotectedDays`
+
+## SubscriptionHolidayTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionHolidayTests.cs`.
+
+`HolidayDoesNotAddArtificialExpiryToEmploymentEntitlement`, `OwnerSelectedOriginBranchControlsCompensationRatherThanCityOrMemberHome`, `HolidayWithoutCompensationDoesNotChangeSubscription`, `SevenFrozenDaysIncludingHolidayProduceSevenDaysOfProtectionOnly`, `HolidayThenFreezeAlsoProtectsSameDayOnlyOnce`, `HolidaySkipsExpiredFutureCancelledAndEmploymentEntitlements`, `FutureHolidayIsDeferredUntilItsBusinessDateAndMovesQueuedSuccessor`, `GlobalCapabilityIsRequiredForMassHolidayCompensation`, `ExistingDeclaredHolidayAppliesToSubsequentGrantWithoutFinance`, `OverlappingOfficialClosuresCannotCompensateSameDayTwice`, `IndependentHolidayApplicationsAreIdempotent`, `RacingFreezeAndHolidayCannotProtectOneDayTwice`
+
+## SubscriptionPermissionTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionPermissionTests.cs`.
+
+`SubscriptionCatalogSetupPreservesDisabledPermissionsGrantsAndDenies`, `SubscriptionSetupDoesNotInferRolesOrGrantBranchRoleGlobalManagement`
+
+## SubscriptionQueryTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionQueryTests.cs`.
+
+`InclusiveThirtyDayPeriodAndEffectiveStatus`, `SessionBasedDateExpiryWinsOverUnusedSessions`, `ExhaustedSessionsDoNotGrantAccess`, `LegacyFrozenStateWithoutDatedHistoryFailsClosed`, `FrozenAndScheduledSubscriptionsDoNotGrantCurrentAccess`, `CurrentLookupUsesSnapshotCityAndBranchAdministrationUsesOrigin`, `OvernightOpenBusinessDayPreventsPrematureDateExpiry`, `InactiveEmploymentStopsOpenEntitlementWithoutFarFutureDates`
+
+## SubscriptionRenewalTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionRenewalTests.cs`.
+
+`ActiveUnlimitedRenewalPreservesExactlyRemainingTimeAndGrantHistory`, `ActiveSessionRenewalCarriesFourPlusTwelveAndTime`, `ExpiredRenewalCreatesNewCycleWithOnlyNewSessionsAndPreservesUnusedHistory`, `DifferentModeQueuesOwnEntitlementWithoutMergingOrEarlyAccess`, `CompatibleRenewalCanSelectAnotherPlanAndRetryIsIdempotent`, `SecondPendingPeriodIsRejected`
+
+## SubscriptionSnapshotTests.cs
+
+Source `CampionsSystem.DAL.Tests/SubscriptionSnapshotTests.cs`.
+
+`PlanAndBenefitEditsCannotChangeGrantedSnapshot`, `InitialSessionQuantityAndMidnightBusinessDateAreSnapshotted`, `GrantRetryDoesNotDuplicateEntitlementBenefitsOrAudit`, `InternalCustomerGrantRequiresGlobalManagementAndRejectsEmployeePlan`, `InactiveConfiguredBenefitRejectsGrantAtomically`
