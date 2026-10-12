@@ -12,8 +12,13 @@ public sealed class PrivateExpirySettlementConfiguration : IEntityTypeConfigurat
         {
             table.HasCheckConstraint("CK_PrivateExpirySettlements_RemainingSessions", "\"RemainingSessions\" > 0");
             table.HasCheckConstraint("CK_PrivateExpirySettlements_UnitSessionValue", "\"UnitSessionValue\" >= 0");
-            table.HasCheckConstraint("CK_PrivateExpirySettlements_EligibleAmount", "\"EligibleAmount\" = \"RemainingSessions\" * \"UnitSessionValue\"");
+            table.HasCheckConstraint("CK_PrivateExpirySettlements_EligibleAmount", "\"EligibleAmount\" = \"RemainingSessions\" * \"UnitSessionValue\" + \"RemainderValue\"");
         });
+        builder.HasOne(x => x.PrivateCoachAssignment).WithMany().HasForeignKey(x => x.PrivateCoachAssignmentId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.OperationId).IsUnique();
+        builder.Property(x => x.RequestHash).HasMaxLength(64);
+        builder.Property(x => x.Reason).HasMaxLength(2000);
+        builder.Property(x => x.RemainderValue).HasPrecision(18, 2);
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.PrivateSubscription).WithMany(x => x.ExpirySettlements).HasForeignKey(x => x.PrivateSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.PrivateSubscriptionTransaction).WithOne(x => x.ExpirySettlement).HasForeignKey<PrivateExpirySettlement>(x => x.PrivateSubscriptionTransactionId).OnDelete(DeleteBehavior.Restrict);

@@ -5,6 +5,7 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class PrivateSubscription
 {
+    public int Version { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid MemberId { get; set; }
     public Member Member { get; set; } = null!;

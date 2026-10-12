@@ -35,6 +35,12 @@ public sealed class PrivateSubscriptionTransactionConfiguration : IEntityTypeCon
         })
             builder.Property(name).Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Throw);
         builder.HasIndex(x => new { x.PrivateSubscriptionId, x.CreatedAt, x.Id });
+        builder.HasOne(x => x.OriginalCoachEmployee).WithMany().HasForeignKey(x => x.OriginalCoachEmployeeId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.OriginalAssignment).WithMany().HasForeignKey(x => x.OriginalAssignmentId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.PackageNameSnapshot).HasMaxLength(256);
+        builder.Property(x => x.RemainderValue).HasPrecision(18, 2);
+        builder.HasIndex(x => x.SaleTransactionId).IsUnique();
+        builder.ToTable("PrivateSubscriptionTransactions", t => t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_Snapshot", "\"OriginalCoachEmployeeId\" IS NULL OR (\"OriginalAssignmentId\" IS NOT NULL AND \"StartDateSnapshot\" IS NOT NULL AND \"PackageNameSnapshot\" IS NOT NULL AND \"NetAmount\" = \"SessionsAdded\" * \"UnitSessionValue\" + \"RemainderValue\" AND \"RemainderValue\" >= 0 AND \"RemainderValue\" < \"SessionsAdded\" * 0.01)"));
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.PrivateSubscription).WithMany(x => x.Transactions).HasForeignKey(x => x.PrivateSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.SaleTransaction).WithMany().HasForeignKey(x => x.SaleTransactionId).OnDelete(DeleteBehavior.Restrict);

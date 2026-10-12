@@ -5,6 +5,14 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class PrivateSubscriptionTransaction
 {
+    // Nullable only for legacy data. New purchases snapshot all these facts.
+    public Guid? OriginalCoachEmployeeId { get; set; }
+    public Employee? OriginalCoachEmployee { get; set; }
+    public Guid? OriginalAssignmentId { get; set; }
+    public PrivateCoachAssignment? OriginalAssignment { get; set; }
+    public DateOnly? StartDateSnapshot { get; set; }
+    public string? PackageNameSnapshot { get; set; }
+    public decimal RemainderValue { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid PrivateSubscriptionId { get; set; }
     public PrivateSubscription PrivateSubscription { get; set; } = null!;

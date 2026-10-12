@@ -6,4 +6,5 @@ public enum SaleType
     Private = 1,
     Activity = 2,
     Other = 3,
+    Classes = 4,
 }

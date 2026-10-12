@@ -15,13 +15,16 @@ public sealed class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
             table.HasCheckConstraint("CK_CheckIns_Member", "\"CheckInType\" = 'Trial' OR \"MemberId\" IS NOT NULL");
             table.HasCheckConstraint("CK_CheckIns_CheckInMethod", "\"CheckInMethod\" IN ('Scanner', 'Manual', 'Coach')");
         });
+        builder.HasOne(x => x.ClassesSubscription).WithMany().HasForeignKey(x => x.ClassesSubscriptionId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.RequestHash).HasMaxLength(64);
+        builder.ToTable("CheckIns", t => t.HasCheckConstraint("CK_CheckIns_ClassesSubscription", "\"ClassesSubscriptionId\" IS NULL OR (\"CheckInType\" = 'Class' AND \"ClassSessionId\" IS NOT NULL AND \"SessionConsumed\")"));
         builder.HasKey(x => x.Id);
         builder.HasIndex(x => x.OperationId).IsUnique();
         builder.HasIndex(x => new { x.BranchId, x.BusinessDate, x.MemberId });
         builder.ToTable("CheckIns", t =>
         {
             t.HasCheckConstraint("CK_CheckIns_OperationalDate", "\"OperationId\" IS NULL OR \"BusinessDate\" IS NOT NULL");
-            t.HasCheckConstraint("CK_CheckIns_SessionSnapshot", "(\"SessionsBefore\" IS NULL AND \"SessionsAfter\" IS NULL) OR (\"SessionsBefore\" IS NOT NULL AND \"SessionsAfter\" IS NOT NULL AND \"SessionsBefore\" > 0 AND \"SessionsAfter\" = \"SessionsBefore\" - 1 AND \"CheckInType\" = 'Gym' AND \"SessionConsumed\")");
+            t.HasCheckConstraint("CK_CheckIns_SessionSnapshot", "(\"SessionsBefore\" IS NULL AND \"SessionsAfter\" IS NULL) OR (\"SessionsBefore\" IS NOT NULL AND \"SessionsAfter\" IS NOT NULL AND \"SessionsBefore\" > 0 AND \"SessionsAfter\" = \"SessionsBefore\" - 1 AND \"CheckInType\" IN ('Gym', 'Class') AND \"SessionConsumed\")");
         });
         builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);

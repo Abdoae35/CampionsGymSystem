@@ -41,10 +41,9 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales Commissions & Independent Targets complete on SalesCommissions&Targets, continued from verified planning f8530e9 and completed backend 5244d48; no restart or discarded work.
-- Published implementation checkpoints: 974f116 domain, 5bf9bd9 rules/periods, 1ba9a14 collections/refunds, 71e0331 scoped API/statements/Postman. Final documentation checkpoint records verification below; verify actual Git HEAD/status before continuing.
-- Independent configurable New/Renewal targets/rates, first-ever purchase history, collection-time commercial employee/House facts, retained cancellation eligibility and newest-first refund allocations implemented. Finalized-source refunds reject atomically; no unresolved business-policy issue.
-- Final full suite 772/772 passed, zero failures/skips (39 new cases over verified 733). Targeted 44/44 and concurrency rerun 4/4 passed; build zero warnings/errors; EF drift none.
-- Two new migrations applied only to guarded localhost Development: three evidence tables, seven indexes, 14 validated constraints, restrictive FKs/exact precision. All 42 old migration files unchanged. No operational data/rules/periods/grants seeded; Production untouched.
-- Rollout: explicitly configure branch fallback/employee rules and branch periods. Legacy undated sources/periods need explicit historical reconciliation. Existing Offers.Manage/Installments.Manage/Sales.QuickCancel active-but-ungranted gap preserved.
-- docs/SALES_COMMISSIONS.md contains actual nine routes, capabilities, setup and examples. Payroll, actual commission payouts, full monthly closing, late-refund adjustments, Private/Classes finance, frontend and sync remain deferred. Stop after this feature.
+- Private/Classes implementation in progress on PrivateCoaching-Classes-Implementation from clean verified baseline 0bc4476 (772/772 passed; EF baseline drift none).
+- Domain checkpoint adds shared Classes packages/balances and immutable Private attribution, session/remainder, independent coach targets, earnings and partial payout evidence; migration 20261012101654_ImplementPrivateClassesAndCoachEarnings is generated only, not applied to application/Production.
+- Owner confirmed: expiry unused sessions all belong to coach assigned at expiry; incoming transferred package fixed 50%; Private target uses actual net funded delivered/expiry value; partial collections defer unfunded value. Classes target is average actual attendees; compensation remains disabled until defined.
+- Owner confirmed rejection of refunds affecting finalized Private earnings until adjustment policy exists. Original Private rate is 50/60 with explicit per-coach/branch-period target; no defaults, attendance unblocked by missing targets.
+- Domain build zero warnings/errors, three model/forward-migration checks passed; old migration files unchanged. Operational API/services/tests are uncommitted work in progress; initial operational failures corrected, focused rerun pending.
+- User-created docs/frontend-handoff/ appeared during work and is preserved outside assistant commits. Continue focused validation, operational/API checkpoints and full regression; user explicitly authorized checkpoint commits/pushes. No application DB update, no grants seeded.

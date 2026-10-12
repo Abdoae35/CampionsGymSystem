@@ -4,6 +4,12 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class ClassSession
 {
+    public Guid? OperationId { get; set; }
+    public string? RequestHash { get; set; }
+    public DateOnly? BusinessDate { get; set; }
+    public Guid? CreatedByUserId { get; set; }
+    public ApplicationUser? CreatedByUser { get; set; }
+    public int Version { get; set; }
     // Nullable for legacy reconciliation; preserve operational date independently of real timestamps.
     public Guid? BusinessDayId { get; set; }
     public BusinessDay? BusinessDay { get; set; }

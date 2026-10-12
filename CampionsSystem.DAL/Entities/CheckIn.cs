@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class CheckIn
 {
+    public Guid? ClassesSubscriptionId { get; set; }
+    public ClassesSubscription? ClassesSubscription { get; set; }
+    public string? RequestHash { get; set; }
     // Null only for legacy attendance; new managed entries preserve explicit operational facts.
     public Guid? OperationId { get; set; }
     public DateOnly? BusinessDate { get; set; }

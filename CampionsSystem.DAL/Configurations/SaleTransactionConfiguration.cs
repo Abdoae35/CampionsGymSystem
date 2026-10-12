@@ -10,7 +10,7 @@ public sealed class SaleTransactionConfiguration : IEntityTypeConfiguration<Sale
     {
         builder.ToTable("SaleTransactions", table =>
         {
-            table.HasCheckConstraint("CK_SaleTransactions_SaleType", "\"SaleType\" IN ('GymMembership', 'Private', 'Activity', 'Other')");
+            table.HasCheckConstraint("CK_SaleTransactions_SaleType", "\"SaleType\" IN ('GymMembership', 'Private', 'Activity', 'Other', 'Classes')");
             table.HasCheckConstraint("CK_SaleTransactions_SaleCategory", "\"SaleCategory\" IN ('NewMembership', 'Renewal')");
             table.HasCheckConstraint("CK_SaleTransactions_GrossAmount", "\"GrossAmount\" >= 0");
             table.HasCheckConstraint("CK_SaleTransactions_DiscountAmount", "\"DiscountAmount\" >= 0");

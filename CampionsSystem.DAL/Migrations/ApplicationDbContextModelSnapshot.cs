@@ -1080,6 +1080,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("ClassSessionId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("ClassesSubscriptionId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("CoachEmployeeId")
                         .HasColumnType("uuid");
 
@@ -1101,6 +1104,10 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("OperationId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<bool>("SessionConsumed")
                         .HasColumnType("boolean");
 
@@ -1115,6 +1122,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("ActivitySubscriptionId");
 
                     b.HasIndex("BusinessDayId");
+
+                    b.HasIndex("ClassesSubscriptionId");
 
                     b.HasIndex("CoachEmployeeId");
 
@@ -1145,11 +1154,13 @@ namespace CampionsSystem.DAL.Migrations
 
                             t.HasCheckConstraint("CK_CheckIns_ClassSession", "\"ClassSessionId\" IS NULL OR \"CheckInType\" = 'Class'");
 
+                            t.HasCheckConstraint("CK_CheckIns_ClassesSubscription", "\"ClassesSubscriptionId\" IS NULL OR (\"CheckInType\" = 'Class' AND \"ClassSessionId\" IS NOT NULL AND \"SessionConsumed\")");
+
                             t.HasCheckConstraint("CK_CheckIns_Member", "\"CheckInType\" = 'Trial' OR \"MemberId\" IS NOT NULL");
 
                             t.HasCheckConstraint("CK_CheckIns_OperationalDate", "\"OperationId\" IS NULL OR \"BusinessDate\" IS NOT NULL");
 
-                            t.HasCheckConstraint("CK_CheckIns_SessionSnapshot", "(\"SessionsBefore\" IS NULL AND \"SessionsAfter\" IS NULL) OR (\"SessionsBefore\" IS NOT NULL AND \"SessionsAfter\" IS NOT NULL AND \"SessionsBefore\" > 0 AND \"SessionsAfter\" = \"SessionsBefore\" - 1 AND \"CheckInType\" = 'Gym' AND \"SessionConsumed\")");
+                            t.HasCheckConstraint("CK_CheckIns_SessionSnapshot", "(\"SessionsBefore\" IS NULL AND \"SessionsAfter\" IS NULL) OR (\"SessionsBefore\" IS NOT NULL AND \"SessionsAfter\" IS NOT NULL AND \"SessionsBefore\" > 0 AND \"SessionsAfter\" = \"SessionsBefore\" - 1 AND \"CheckInType\" IN ('Gym', 'Class') AND \"SessionConsumed\")");
 
                             t.HasCheckConstraint("CK_CheckIns_SubscriptionType", "(\"CheckInType\" IN ('Gym', 'BorrowedGym') AND \"MemberSubscriptionId\" IS NOT NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Activity' AND \"ActivitySubscriptionId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL) OR (\"CheckInType\" = 'Class' AND \"GroupClassId\" IS NOT NULL AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL) OR (\"CheckInType\" = 'Trial' AND \"MemberSubscriptionId\" IS NULL AND \"ActivitySubscriptionId\" IS NULL AND \"GroupClassId\" IS NULL)");
                         });
@@ -1219,6 +1230,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<Guid?>("BusinessDayId")
                         .HasColumnType("uuid");
 
@@ -1231,11 +1245,21 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset?>("EndedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("GroupClassId")
                         .HasColumnType("uuid");
+
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<DateTimeOffset>("StartedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1245,11 +1269,20 @@ namespace CampionsSystem.DAL.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
 
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessDayId");
 
                     b.HasIndex("ClassScheduleId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
 
                     b.HasIndex("BranchId", "StartedAt");
 
@@ -1262,6 +1295,358 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_ClassSessions_Status", "\"Status\" IN ('Scheduled', 'Completed', 'Cancelled')");
 
                             t.HasCheckConstraint("CK_ClassSessions_Times", "(\"EndedAt\" IS NULL OR \"EndedAt\" >= \"StartedAt\") AND (\"Status\" <> 'Completed' OR \"EndedAt\" IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ClassesPackage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("SessionCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ClassesPackages", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ClassesPackages_Terms", "length(btrim(\"Name\")) > 0 AND \"SessionCount\" > 0 AND \"DurationDays\" > 0 AND \"Price\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ClassesSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClassesPackageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PackageName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("PurchasedSessions")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("RemainderValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("RemainingSessions")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SaleTransactionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("UnitSessionValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClassesPackageId");
+
+                    b.HasIndex("MemberId");
+
+                    b.HasIndex("SaleTransactionId")
+                        .IsUnique();
+
+                    b.HasIndex("BranchId", "MemberId", "EndDate");
+
+                    b.ToTable("ClassesSubscriptions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ClassesSubscriptions_Balance", "\"PurchasedSessions\" > 0 AND \"RemainingSessions\" >= 0 AND \"RemainingSessions\" <= \"PurchasedSessions\" AND \"EndDate\" >= \"StartDate\"");
+
+                            t.HasCheckConstraint("CK_ClassesSubscriptions_Value", "\"Price\" > 0 AND \"UnitSessionValue\" >= 0 AND \"RemainderValue\" >= 0 AND \"RemainderValue\" < \"PurchasedSessions\" * 0.01 AND \"Price\" = \"PurchasedSessions\" * \"UnitSessionValue\" + \"RemainderValue\"");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CoachEarning", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("CoachEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CoachTargetRuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CommissionPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("EligibleValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("PrivateExpirySettlementId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PrivateSessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Rate")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<Guid>("RecognitionOperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("SaleTransactionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("Target")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TargetProgress")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool>("TransferredPackage")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachEmployeeId");
+
+                    b.HasIndex("CoachTargetRuleId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("PrivateExpirySettlementId");
+
+                    b.HasIndex("PrivateSessionId");
+
+                    b.HasIndex("RecognitionOperationId");
+
+                    b.HasIndex("SaleTransactionId");
+
+                    b.HasIndex("CommissionPeriodId", "PrivateExpirySettlementId")
+                        .IsUnique()
+                        .HasFilter("\"PrivateExpirySettlementId\" IS NOT NULL");
+
+                    b.HasIndex("CommissionPeriodId", "PrivateSessionId")
+                        .IsUnique()
+                        .HasFilter("\"PrivateSessionId\" IS NOT NULL");
+
+                    b.HasIndex("BranchId", "CoachEmployeeId", "BusinessDate");
+
+                    b.ToTable("CoachEarnings", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CoachEarnings_Amounts", "\"EligibleValue\" > 0 AND \"Amount\" >= 0 AND \"Amount\" <= \"EligibleValue\" AND \"TargetProgress\" >= 0");
+
+                            t.HasCheckConstraint("CK_CoachEarnings_Rate", "(\"TransferredPackage\" AND \"Rate\" = 50) OR (NOT \"TransferredPackage\" AND \"CoachTargetRuleId\" IS NOT NULL AND \"Target\" > 0 AND ((\"TargetProgress\" >= \"Target\" AND \"Rate\" = 60) OR (\"TargetProgress\" < \"Target\" AND \"Rate\" = 50)))");
+
+                            t.HasCheckConstraint("CK_CoachEarnings_Source", "(\"PrivateSessionId\" IS NOT NULL) <> (\"PrivateExpirySettlementId\" IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CoachPayout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("AuthorizedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("BalanceBefore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("CoachEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ExpenseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorizedByUserId");
+
+                    b.HasIndex("CoachEmployeeId");
+
+                    b.HasIndex("ExpenseId")
+                        .IsUnique();
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("BranchId", "CoachEmployeeId", "PaidAt");
+
+                    b.ToTable("CoachPayouts", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CoachPayouts_Balance", "\"Amount\" > 0 AND \"BalanceBefore\" >= \"Amount\" AND \"BalanceAfter\" = \"BalanceBefore\" - \"Amount\"");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CoachPayoutAllocation", b =>
+                {
+                    b.Property<Guid>("CoachPayoutId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CoachEarningId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("CoachPayoutId", "CoachEarningId");
+
+                    b.HasIndex("CoachEarningId");
+
+                    b.ToTable("CoachPayoutAllocations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CoachPayoutAllocations_Amount", "\"Amount\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CoachTargetRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("ClassesAverageTarget")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<Guid>("CoachEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CommissionPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("PrivateTarget")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachEmployeeId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("CommissionPeriodId", "CoachEmployeeId")
+                        .IsUnique();
+
+                    b.ToTable("CoachTargetRules", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CoachTargetRules_Targets", "(\"PrivateTarget\" IS NULL OR \"PrivateTarget\" > 0) AND (\"ClassesAverageTarget\" IS NULL OR \"ClassesAverageTarget\" > 0) AND (\"PrivateTarget\" IS NOT NULL OR \"ClassesAverageTarget\" IS NOT NULL)");
                         });
                 });
 
@@ -4169,8 +4554,15 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<DateTimeOffset?>("EndedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("PrivateSubscriptionId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<int>("SessionsAllocated")
                         .ValueGeneratedOnAdd()
@@ -4190,6 +4582,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("CoachEmployeeId");
 
                     b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
 
                     b.HasIndex("PrivateSubscriptionId")
                         .IsUnique()
@@ -4217,6 +4612,9 @@ namespace CampionsSystem.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<Guid>("CoachEmployeeId")
                         .HasColumnType("uuid");
 
@@ -4233,17 +4631,38 @@ namespace CampionsSystem.DAL.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PrivateCoachAssignmentId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("PrivateSubscriptionId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("PrivateSubscriptionTransactionId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Reason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<decimal>("RemainderValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<int>("RemainingSessions")
                         .HasColumnType("integer");
 
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTimeOffset>("SettledAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool?>("TransferredPackage")
+                        .HasColumnType("boolean");
 
                     b.Property<decimal>("UnitSessionValue")
                         .HasPrecision(18, 2)
@@ -4257,6 +4676,11 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("PrivateCoachAssignmentId");
+
                     b.HasIndex("PrivateSubscriptionId");
 
                     b.HasIndex("PrivateSubscriptionTransactionId")
@@ -4264,7 +4688,7 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.ToTable("PrivateExpirySettlements", null, t =>
                         {
-                            t.HasCheckConstraint("CK_PrivateExpirySettlements_EligibleAmount", "\"EligibleAmount\" = \"RemainingSessions\" * \"UnitSessionValue\"");
+                            t.HasCheckConstraint("CK_PrivateExpirySettlements_EligibleAmount", "\"EligibleAmount\" = \"RemainingSessions\" * \"UnitSessionValue\" + \"RemainderValue\"");
 
                             t.HasCheckConstraint("CK_PrivateExpirySettlements_RemainingSessions", "\"RemainingSessions\" > 0");
 
@@ -4322,10 +4746,13 @@ namespace CampionsSystem.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("BusinessDate")
+                        .HasColumnType("date");
+
                     b.Property<Guid>("CoachEmployeeId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CommissionPeriodId")
+                    b.Property<Guid?>("CommissionPeriodId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("CreatedByUserId")
@@ -4337,14 +4764,34 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PrivateCoachAssignmentId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("PrivateSubscriptionId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("PrivateSubscriptionTransactionId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTimeOffset>("SessionAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("SessionNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("SessionValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<bool?>("TransferredPackage")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -4352,15 +4799,27 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("GymCheckInId");
+                    b.HasIndex("GymCheckInId")
+                        .IsUnique()
+                        .HasFilter("\"OperationId\" IS NOT NULL");
 
-                    b.HasIndex("PrivateSubscriptionTransactionId");
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("PrivateCoachAssignmentId");
 
                     b.HasIndex("CoachEmployeeId", "SessionAt");
 
                     b.HasIndex("PrivateSubscriptionId", "SessionAt");
 
-                    b.ToTable("PrivateSessions", (string)null);
+                    b.HasIndex("PrivateSubscriptionTransactionId", "SessionNumber")
+                        .IsUnique()
+                        .HasFilter("\"OperationId\" IS NOT NULL");
+
+                    b.ToTable("PrivateSessions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PrivateSessions_Operational", "\"OperationId\" IS NULL OR (\"BusinessDate\" IS NOT NULL AND \"RequestHash\" IS NOT NULL AND \"PrivateCoachAssignmentId\" IS NOT NULL AND \"SessionValue\" >= 0 AND \"SessionNumber\" > 0 AND \"TransferredPackage\" IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.PrivateSubscription", b =>
@@ -4393,6 +4852,10 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("character varying(40)");
 
                     b.Property<int>("TotalSessions")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -4434,6 +4897,16 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<DateOnly>("NewEndDate")
                         .HasColumnType("date");
 
+                    b.Property<Guid?>("OriginalAssignmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("OriginalCoachEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PackageNameSnapshot")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<DateOnly?>("PreviousEndDate")
                         .HasColumnType("date");
 
@@ -4443,6 +4916,10 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("PrivateSubscriptionId")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal>("RemainderValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<int>("RemainingSessions")
                         .HasColumnType("integer");
 
@@ -4451,6 +4928,9 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Property<int>("SessionsAdded")
                         .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("StartDateSnapshot")
+                        .HasColumnType("date");
 
                     b.Property<string>("TransactionType")
                         .IsRequired()
@@ -4463,9 +4943,14 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OriginalAssignmentId");
+
+                    b.HasIndex("OriginalCoachEmployeeId");
+
                     b.HasIndex("PrivatePackageId");
 
-                    b.HasIndex("SaleTransactionId");
+                    b.HasIndex("SaleTransactionId")
+                        .IsUnique();
 
                     b.HasIndex("PrivateSubscriptionId", "CreatedAt", "Id");
 
@@ -4478,6 +4963,8 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_RemainingSessions", "\"RemainingSessions\" >= 0 AND \"RemainingSessions\" <= \"SessionsAdded\"");
 
                             t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_SessionsAdded", "\"SessionsAdded\" > 0");
+
+                            t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_Snapshot", "\"OriginalCoachEmployeeId\" IS NULL OR (\"OriginalAssignmentId\" IS NOT NULL AND \"StartDateSnapshot\" IS NOT NULL AND \"PackageNameSnapshot\" IS NOT NULL AND \"NetAmount\" = \"SessionsAdded\" * \"UnitSessionValue\" + \"RemainderValue\" AND \"RemainderValue\" >= 0 AND \"RemainderValue\" < \"SessionsAdded\" * 0.01)");
 
                             t.HasCheckConstraint("CK_PrivateSubscriptionTransactions_TransactionType", "\"TransactionType\" IN ('Initial', 'Renewal')");
 
@@ -4892,7 +5379,7 @@ namespace CampionsSystem.DAL.Migrations
 
                             t.HasCheckConstraint("CK_SaleTransactions_SaleCategory", "\"SaleCategory\" IN ('NewMembership', 'Renewal')");
 
-                            t.HasCheckConstraint("CK_SaleTransactions_SaleType", "\"SaleType\" IN ('GymMembership', 'Private', 'Activity', 'Other')");
+                            t.HasCheckConstraint("CK_SaleTransactions_SaleType", "\"SaleType\" IN ('GymMembership', 'Private', 'Activity', 'Other', 'Classes')");
 
                             t.HasCheckConstraint("CK_SaleTransactions_Status", "\"Status\" IN ('Open', 'Completed', 'Cancelled', 'PartiallyRefunded', 'Refunded')");
 
@@ -5910,6 +6397,11 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("ClassSessionId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CampionsSystem.DAL.Entities.ClassesSubscription", "ClassesSubscription")
+                        .WithMany()
+                        .HasForeignKey("ClassesSubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
                         .WithMany()
                         .HasForeignKey("CoachEmployeeId")
@@ -5943,6 +6435,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("BusinessDay");
 
                     b.Navigation("ClassSession");
+
+                    b.Navigation("ClassesSubscription");
 
                     b.Navigation("CoachEmployee");
 
@@ -5990,6 +6484,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.GroupClass", "GroupClass")
                         .WithMany()
                         .HasForeignKey("GroupClassId")
@@ -6004,7 +6503,200 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Navigation("CoachEmployee");
 
+                    b.Navigation("CreatedByUser");
+
                     b.Navigation("GroupClass");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ClassesPackage", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ClassesSubscription", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ClassesPackage", "ClassesPackage")
+                        .WithMany()
+                        .HasForeignKey("ClassesPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.SaleTransaction", "SaleTransaction")
+                        .WithMany()
+                        .HasForeignKey("SaleTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("ClassesPackage");
+
+                    b.Navigation("Member");
+
+                    b.Navigation("SaleTransaction");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CoachEarning", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
+                        .WithMany()
+                        .HasForeignKey("CoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.CoachTargetRule", "CoachTargetRule")
+                        .WithMany()
+                        .HasForeignKey("CoachTargetRuleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
+                        .WithMany()
+                        .HasForeignKey("CommissionPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.PrivateExpirySettlement", "PrivateExpirySettlement")
+                        .WithMany()
+                        .HasForeignKey("PrivateExpirySettlementId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.PrivateSession", "PrivateSession")
+                        .WithMany()
+                        .HasForeignKey("PrivateSessionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.SaleTransaction", "SaleTransaction")
+                        .WithMany()
+                        .HasForeignKey("SaleTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("CoachEmployee");
+
+                    b.Navigation("CoachTargetRule");
+
+                    b.Navigation("CommissionPeriod");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("PrivateExpirySettlement");
+
+                    b.Navigation("PrivateSession");
+
+                    b.Navigation("SaleTransaction");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CoachPayout", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "AuthorizedByUser")
+                        .WithMany()
+                        .HasForeignKey("AuthorizedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
+                        .WithMany()
+                        .HasForeignKey("CoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Expense", "Expense")
+                        .WithMany()
+                        .HasForeignKey("ExpenseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AuthorizedByUser");
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("CoachEmployee");
+
+                    b.Navigation("Expense");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CoachPayoutAllocation", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.CoachEarning", "CoachEarning")
+                        .WithMany()
+                        .HasForeignKey("CoachEarningId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.CoachPayout", "CoachPayout")
+                        .WithMany()
+                        .HasForeignKey("CoachPayoutId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachEarning");
+
+                    b.Navigation("CoachPayout");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.CoachTargetRule", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "CoachEmployee")
+                        .WithMany()
+                        .HasForeignKey("CoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
+                        .WithMany()
+                        .HasForeignKey("CommissionPeriodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachEmployee");
+
+                    b.Navigation("CommissionPeriod");
+
+                    b.Navigation("CreatedByUser");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.CommissionCollection", b =>
@@ -7429,6 +8121,11 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CampionsSystem.DAL.Entities.PrivateCoachAssignment", "PrivateCoachAssignment")
+                        .WithMany()
+                        .HasForeignKey("PrivateCoachAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.PrivateSubscription", "PrivateSubscription")
                         .WithMany("ExpirySettlements")
                         .HasForeignKey("PrivateSubscriptionId")
@@ -7446,6 +8143,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("CommissionPeriod");
 
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("PrivateCoachAssignment");
 
                     b.Navigation("PrivateSubscription");
 
@@ -7474,8 +8173,7 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
                         .WithMany()
                         .HasForeignKey("CommissionPeriodId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
                         .WithMany()
@@ -7488,6 +8186,11 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("GymCheckInId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.PrivateCoachAssignment", "PrivateCoachAssignment")
+                        .WithMany()
+                        .HasForeignKey("PrivateCoachAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.PrivateSubscription", "PrivateSubscription")
                         .WithMany("Sessions")
@@ -7508,6 +8211,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("GymCheckIn");
+
+                    b.Navigation("PrivateCoachAssignment");
 
                     b.Navigation("PrivateSubscription");
 
@@ -7535,6 +8240,16 @@ namespace CampionsSystem.DAL.Migrations
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.PrivateSubscriptionTransaction", b =>
                 {
+                    b.HasOne("CampionsSystem.DAL.Entities.PrivateCoachAssignment", "OriginalAssignment")
+                        .WithMany()
+                        .HasForeignKey("OriginalAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Employee", "OriginalCoachEmployee")
+                        .WithMany()
+                        .HasForeignKey("OriginalCoachEmployeeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.PrivatePackage", "PrivatePackage")
                         .WithMany()
                         .HasForeignKey("PrivatePackageId")
@@ -7552,6 +8267,10 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("SaleTransactionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("OriginalAssignment");
+
+                    b.Navigation("OriginalCoachEmployee");
 
                     b.Navigation("PrivatePackage");
 

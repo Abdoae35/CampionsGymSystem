@@ -16,6 +16,7 @@ public sealed class PrivateSubscriptionConfiguration : IEntityTypeConfiguration<
             table.HasCheckConstraint("CK_PrivateSubscriptions_StartDateEndDate", "\"EndDate\" >= \"StartDate\"");
             table.HasCheckConstraint("CK_PrivateSubscriptions_SessionBounds", "\"RemainingSessions\" <= \"TotalSessions\" AND ((\"TotalSessions\" IS NULL) = (\"RemainingSessions\" IS NULL))");
         });
+        builder.Property(x => x.Version).IsConcurrencyToken();
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);

@@ -8,6 +8,9 @@ public sealed class ClassSessionConfiguration : IEntityTypeConfiguration<ClassSe
 {
     public void Configure(EntityTypeBuilder<ClassSession> b)
     {
+        b.HasIndex(x => x.OperationId).IsUnique(); b.Property(x => x.RequestHash).HasMaxLength(64);
+        b.Property(x => x.Version).IsConcurrencyToken();
+        b.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         b.HasKey(x => x.Id);
         b.ToTable("ClassSessions", t =>
         {

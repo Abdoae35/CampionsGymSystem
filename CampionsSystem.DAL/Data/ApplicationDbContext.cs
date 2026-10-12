@@ -108,6 +108,13 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<EmployeeAdvance> EmployeeAdvances => Set<EmployeeAdvance>();
     public DbSet<ExpenseReversal> ExpenseReversals => Set<ExpenseReversal>();
 
+    public DbSet<ClassesPackage> ClassesPackages => Set<ClassesPackage>();
+    public DbSet<ClassesSubscription> ClassesSubscriptions => Set<ClassesSubscription>();
+    public DbSet<CoachTargetRule> CoachTargetRules => Set<CoachTargetRule>();
+    public DbSet<CoachEarning> CoachEarnings => Set<CoachEarning>();
+    public DbSet<CoachPayout> CoachPayouts => Set<CoachPayout>();
+    public DbSet<CoachPayoutAllocation> CoachPayoutAllocations => Set<CoachPayoutAllocation>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -116,6 +123,22 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        if (ChangeTracker.Entries<CoachTargetRule>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<CoachEarning>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<CoachPayout>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<CoachPayoutAllocation>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<PrivateSession>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(PrivateSession.OperationId)) != null && x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<PrivateExpirySettlement>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Coach earnings, payouts and Private evidence are append-only.");
+        foreach (var entry in ChangeTracker.Entries<ClassesSubscription>())
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(ClassesSubscription.RemainingSessions) or nameof(ClassesSubscription.Version))))
+                throw new InvalidOperationException("Classes purchased terms are immutable.");
+        foreach (var entry in ChangeTracker.Entries<PrivateCoachAssignment>().Where(x => x.OriginalValues.GetValue<Guid?>(nameof(PrivateCoachAssignment.OperationId)) != null))
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && (entry.OriginalValues.GetValue<DateTimeOffset?>(nameof(PrivateCoachAssignment.EndedAt)) != null || entry.Properties.Any(p => p.IsModified && p.Metadata.Name != nameof(PrivateCoachAssignment.EndedAt))))
+                throw new InvalidOperationException("Private assignment history can only be ended once.");
+        foreach (var entry in ChangeTracker.Entries<PrivateSubscriptionTransaction>())
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name != nameof(PrivateSubscriptionTransaction.RemainingSessions)))
+                throw new InvalidOperationException("Private purchase facts are immutable.");
         if (ChangeTracker.Entries<CommissionCollection>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<CommissionRefundAllocation>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<CommissionStatementLine>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)

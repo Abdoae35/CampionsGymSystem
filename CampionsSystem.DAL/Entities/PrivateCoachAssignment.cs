@@ -5,6 +5,8 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class PrivateCoachAssignment
 {
+    public Guid? OperationId { get; set; }
+    public string? RequestHash { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid PrivateSubscriptionId { get; set; }
     public PrivateSubscription PrivateSubscription { get; set; } = null!;
