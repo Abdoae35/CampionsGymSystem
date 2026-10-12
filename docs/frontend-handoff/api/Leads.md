@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Crm.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 
 <a id="get-api-leads"></a>
 ## GET /api/leads
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:9`, action `List`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -54,7 +54,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-leads-my"></a>
 ## GET /api/leads/my
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:11`, action `Mine`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -99,7 +99,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-leads-lookup"></a>
 ## GET /api/leads/lookup
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:13`, action `Lookup`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -138,7 +138,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-leads-id-guid"></a>
 ## GET /api/leads/{id:guid}
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:15`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -189,7 +189,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-leads"></a>
 ## POST /api/leads
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:17`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -234,7 +234,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-leads-bulk"></a>
 ## POST /api/leads/bulk
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:19`, action `Bulk`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.Assign`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). BLL additionally requires Leads.Manage; 1..100 JSON rows with row-level results, not all-or-nothing importer.
 ### Path/query inputs
@@ -275,7 +275,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-leads-id-guid"></a>
 ## PUT /api/leads/{id:guid}
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:21`, action `Update`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -336,7 +336,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-leads-id-guid-assign"></a>
 ## POST /api/leads/{id:guid}/assign
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:23`, action `Assign`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.Assign`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -393,7 +393,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-leads-id-guid-assignment"></a>
 ## GET /api/leads/{id:guid}/assignment
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:25`, action `Assignment`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -425,7 +425,7 @@ null
 <a id="get-api-leads-id-guid-assignment-history"></a>
 ## GET /api/leads/{id:guid}/assignment-history
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:27`, action `AssignmentHistory`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -457,7 +457,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-leads-id-guid-interactions"></a>
 ## POST /api/leads/{id:guid}/interactions
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:29`, action `Contact`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -518,7 +518,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-leads-id-guid-interactions"></a>
 ## GET /api/leads/{id:guid}/interactions
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:31`, action `Contacts`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -552,7 +552,7 @@ Schema-shaped response (not an executed response):
 <a id="patch-api-leads-id-guid-status"></a>
 ## PATCH /api/leads/{id:guid}/status
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:33`, action `Status`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). Read/contact visibility follows management scope or narrow active Sales ownership across branches. Assign/reassign limited to operational branch/global scope; selected new owner must be eligible in that branch. Conversion is a narrow authorized destination workflow.
 ### Path/query inputs
@@ -610,7 +610,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-leads-id-guid-convert"></a>
 ## POST /api/leads/{id:guid}/convert
 Source: `CampionsSystem.API/Controllers/LeadsController.cs:35`, action `Convert`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Leads.Convert`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). BLL additionally requires Members.Create, active converter Employee, own Shift and destination/cross-branch/Freelance checks. Preserve current eligible Lead owner; normal unassigned Lead rejects.
 ### Path/query inputs

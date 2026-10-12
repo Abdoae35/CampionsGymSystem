@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Branches.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Directory/read/update limited to effective current branch unless Branches.AccessAll. Create additionally requires Branches.AccessAll. Active City/branch rules still apply.
 
 <a id="get-api-branches"></a>
 ## GET /api/branches
 Source: `CampionsSystem.API/Controllers/BranchesController.cs:11`, action `List`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Branches.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Branches.md). Directory/read/update limited to effective current branch unless Branches.AccessAll. Create additionally requires Branches.AccessAll. Active City/branch rules still apply.
 ### Path/query inputs
@@ -41,7 +41,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-branches-id-guid"></a>
 ## GET /api/branches/{id:guid}
 Source: `CampionsSystem.API/Controllers/BranchesController.cs:14`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Branches.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Branches.md). Directory/read/update limited to effective current branch unless Branches.AccessAll. Create additionally requires Branches.AccessAll. Active City/branch rules still apply.
 ### Path/query inputs
@@ -84,7 +84,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-branches"></a>
 ## POST /api/branches
 Source: `CampionsSystem.API/Controllers/BranchesController.cs:17`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Branches.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Branches.md). Directory/read/update limited to effective current branch unless Branches.AccessAll. Create additionally requires Branches.AccessAll. Active City/branch rules still apply.
 ### Path/query inputs
@@ -135,7 +135,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-branches-id-guid"></a>
 ## PUT /api/branches/{id:guid}
 Source: `CampionsSystem.API/Controllers/BranchesController.cs:20`, action `Update`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Branches.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Branches.md). Directory/read/update limited to effective current branch unless Branches.AccessAll. Create additionally requires Branches.AccessAll. Active City/branch rules still apply.
 ### Path/query inputs

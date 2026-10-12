@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Members.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Registration-branch directory/administration scope; Sales ownership alone does not broaden ordinary directory. Create needs active eligible Employee and own Shift; creationType controls ownership and additional capabilities.
 
 <a id="get-api-members"></a>
 ## GET /api/members
 Source: `CampionsSystem.API/Controllers/MembersController.cs:11`, action `List`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Registration-branch directory/administration scope; Sales ownership alone does not broaden ordinary directory. Create needs active eligible Employee and own Shift; creationType controls ownership and additional capabilities.
 ### Path/query inputs
@@ -54,7 +54,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-members-id-guid"></a>
 ## GET /api/members/{id:guid}
 Source: `CampionsSystem.API/Controllers/MembersController.cs:13`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Registration-branch directory/administration scope; Sales ownership alone does not broaden ordinary directory. Create needs active eligible Employee and own Shift; creationType controls ownership and additional capabilities.
 ### Path/query inputs
@@ -108,7 +108,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-members"></a>
 ## POST /api/members
 Source: `CampionsSystem.API/Controllers/MembersController.cs:15`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Members.OwnSalesCustomers for NormalSales; Members.AssignSales for ManagementCreated; FreelancePlans.ManageEligibleMembers for FreelanceHouse; Members.CreateCrossBranch when applicable; actual own Shift gate.
 ### Path/query inputs
@@ -172,7 +172,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-members-id-guid"></a>
 ## PUT /api/members/{id:guid}
 Source: `CampionsSystem.API/Controllers/MembersController.cs:17`, action `Update`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.Edit`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Changed primary phone additionally requires Members.ChangePrimaryPhone.
 ### Path/query inputs
@@ -236,7 +236,7 @@ Schema-shaped response (not an executed response):
 <a id="patch-api-members-id-guid-status"></a>
 ## PATCH /api/members/{id:guid}/status
 Source: `CampionsSystem.API/Controllers/MembersController.cs:19`, action `Status`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.ChangeStatus`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Registration-branch directory/administration scope; Sales ownership alone does not broaden ordinary directory. Create needs active eligible Employee and own Shift; creationType controls ownership and additional capabilities.
 ### Path/query inputs
@@ -296,7 +296,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-members-id-guid-sales-assignment"></a>
 ## GET /api/members/{id:guid}/sales-assignment
 Source: `CampionsSystem.API/Controllers/MembersController.cs:21`, action `CurrentSales`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Registration-branch directory/administration scope; Sales ownership alone does not broaden ordinary directory. Create needs active eligible Employee and own Shift; creationType controls ownership and additional capabilities.
 ### Path/query inputs
@@ -328,7 +328,7 @@ null
 <a id="get-api-members-id-guid-sales-history"></a>
 ## GET /api/members/{id:guid}/sales-history
 Source: `CampionsSystem.API/Controllers/MembersController.cs:23`, action `SalesHistory`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.ViewSalesHistory`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Registration-branch directory/administration scope; Sales ownership alone does not broaden ordinary directory. Create needs active eligible Employee and own Shift; creationType controls ownership and additional capabilities.
 ### Path/query inputs
@@ -360,7 +360,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-members-id-guid-assign-sales"></a>
 ## POST /api/members/{id:guid}/assign-sales
 Source: `CampionsSystem.API/Controllers/MembersController.cs:25`, action `AssignSales`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.AssignSales`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Registration-branch directory/administration scope; Sales ownership alone does not broaden ordinary directory. Create needs active eligible Employee and own Shift; creationType controls ownership and additional capabilities.
 ### Path/query inputs
@@ -420,7 +420,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-members-id-guid-return-to-house"></a>
 ## POST /api/members/{id:guid}/return-to-house
 Source: `CampionsSystem.API/Controllers/MembersController.cs:27`, action `ReturnToHouse`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.AssignSales`.
 Scope/actor: apply module rules above and [guard evidence](rules/Members.md). Registration-branch directory/administration scope; Sales ownership alone does not broaden ordinary directory. Create needs active eligible Employee and own Shift; creationType controls ownership and additional capabilities.
 ### Path/query inputs

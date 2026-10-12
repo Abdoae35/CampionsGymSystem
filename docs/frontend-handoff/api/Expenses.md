@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Shifts.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 
 <a id="post-api-expenses"></a>
 ## POST /api/expenses
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:8`, action `Paid`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Expenses.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 ### Path/query inputs
@@ -69,7 +69,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-expenses"></a>
 ## GET /api/expenses
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:10`, action `History`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Expenses.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 ### Path/query inputs
@@ -112,7 +112,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-expenses-id-guid"></a>
 ## GET /api/expenses/{id:guid}
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:12`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Expenses.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 ### Path/query inputs
@@ -161,7 +161,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-expenses-id-guid-returns"></a>
 ## POST /api/expenses/{id:guid}/returns
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:14`, action `Return`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Expenses.Reverse`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 ### Path/query inputs
@@ -212,7 +212,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-expenses-id-guid-returns"></a>
 ## GET /api/expenses/{id:guid}/returns
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:16`, action `Returns`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Expenses.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 ### Path/query inputs
@@ -251,7 +251,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-expenses-categories"></a>
 ## GET /api/expenses/categories
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:18`, action `Categories`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Expenses.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 ### Path/query inputs
@@ -289,7 +289,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-expenses-categories"></a>
 ## POST /api/expenses/categories
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:20`, action `Category`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Expenses.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 ### Path/query inputs
@@ -331,7 +331,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-expenses-categories-id-guid"></a>
 ## PUT /api/expenses/categories/{id:guid}
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:22`, action `Category`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Expenses.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account financial history; paid/return operations require own Shift. Categories are global shared catalog; category writes additionally require Branches.AccessAll. Returns use original source account and actual funds.
 ### Path/query inputs

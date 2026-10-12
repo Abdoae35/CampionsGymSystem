@@ -1,42 +1,30 @@
-# Backend gaps and integration blockers
+# Implemented functionality and operational limitations
 
-Latest source check: **191 controller actions / 36 Coaching**; one late Member attendance read fully documented in [source addendum](LATE_SOURCE_ADDENDUM.md). No DTO contract drift. Occurrence future-date concern is corrected in later source. Captured OpenAPI retains its exact earlier snapshot.
+## Implemented and completed
 
+Private, shared Classes, independent coach targets, net-funded Private earnings and partial Owner payouts are complete in source, with all 36 operations documented. Implementation history records 822 passing tests, clean build and no EF drift. The earlier draft/build/publication blockers are superseded. Attendance never depends on target setup. Confirmed expiry beneficiary, partial-collection funding and Private 50/60/fixed-transfer policy are settled business rules; see [feature rules](PRIVATE_CLASSES.md).
 
-Latest branch update: frozen 2026-10-12T10:44:04.604445+00:00 at `bf733e2502a85603b80f8ad8a01747264a0f518b` plus uncommitted operational files adds **35 Coaching routes** (190 current actions total). The later isolated snapshot builds; initial CS8999 was superseded by concurrent domain publication. Stable contracts below remain at 0bc4476; new draft contracts/confirmed policies and three legacy Class 410 changes are in [branch-only status](BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md). **Use that update before interpreting any earlier pending/no-route statement below.**
+## Rollout prerequisites, not missing APIs
 
+- Coaching migrations `20261012101654_ImplementPrivateClassesAndCoachEarnings` and `20261012104721_EnforceCoachingEvidenceCompleteness` were generated/tested only; application/Production application was not performed by the implementation handoff. This task did not inspect deployed migration history or apply migrations. Verify the target environment separately.
+- Eight added catalog capabilities are not grants: Private.RegisterSession, Private.Transfer, Private.SettleExpiry, Classes.RegisterAttendance, CoachEarnings.View, CoachEarnings.ManageTargets, CoachEarnings.Recognize, CoachEarnings.Pay. Provision explicitly, preserving direct Deny overrides. Discretionary expiry/targets/recognition/payout additionally require Branches.AccessAll. Read/manage existing module capabilities are also needed.
+- Historical Offers.Manage, Installments.Manage and Sales.QuickCancel were active but ungranted at earlier guarded checks. Current deployment grants are unknown; an authorized operator must recheck/provision. No permission-administration HTTP API is supplied.
+- Configure branch CommissionPeriods with explicit contiguous inclusive BusinessDates and positive per-coach Private and/or Classes-average thresholds. No default threshold, Sales-target substitution or Classes commission rate exists. Targets are immutable per coach/period; configure both desired dimensions together.
+- Provide authorized accounts/Employee assignments/current branch, active cities/catalogs, package/type coaches, branch accounts, actual drawer initialization, expense categories and own active employee shifts for money operations. A global user still needs their own shift for purchases/collections/payouts. No fictitious money/data should be seeded by the frontend.
+- No CORS policy is registered. Use an agreed same-origin development proxy or obtain approved backend origin configuration. Deployed API URL/certificates are not established here. Local profiles are HTTPS 7186 / HTTP 5236; capture server 18748 is not the application URL.
 
-## P0 — choose a buildable released baseline
+## Intentionally unavailable business functionality
 
-Initial branch `PrivateCoaching-Classes-Implementation` was at `0bc4476ef184dd95a4f771624d4a8860c00f1332` with no upstream; later domain publication added bf733e2 and an upstream. Live remote master/SalesCommissions&Targets/PrivateCoaching&Classes matched the commit. The initial `dotnet build CampionsGymSystem.slnx --no-restore` failed with **CS8999**, `DAL/Migrations/20261012095814_ImplementPrivateClassesAndCoachEarnings.cs:16` raw-string whitespace. Audit did not fix it. Other development continued and later files may differ. The baseline export comes from an isolated exact Git archive, not stale bin output or a claim of current draft readiness.
+- **Classes compensation is unimplemented until the Owner defines its formula.** Reports return CompensationStatus="NotConfigured". Actual attendance, completed counts/averages and explicit target comparisons are available. Do not infer earnings from Private/Sales rates.
+- Refunds reducing retained collections below finalized Private eligible funding reject atomically for unpaid or paid earnings until an adjustment policy exists. Existing finalized Sales-source protections also apply. Coach payout expense reversal/correction has no authorized adjustment flow.
+- Sales commission payout/payroll, advances repayment, full monthly closing, automatic expiry recognition, forced/automatic shifts, discrepancy settlement, routine external Cash-In, booking/waitlist/capacity and sync/messaging/notifications are outside scope.
+- No refresh/logout/revocation/password reset/registration/account-grant administration endpoints. Local logout clears client state; expired sessions reauthenticate. City and some legacy activity catalogs require out-of-band provisioning.
 
-Working snapshot 2026-10-12T10:07:06.774981+00:00 contains uncommitted DAL entities/configuration/snapshot/new migration for Private/Classes/earnings, Coaching contracts/service drafts, Sales Coaching integration and three changed existing BLL integration files. **Branch-only, uncommitted, not tested by this audit**. At the **earlier** snapshot no Coaching controller/registration/public routes existed; the later catalog includes all 35 draft routes. No stable Private/Coach earnings integration contract should be inferred from entities, draft DTOs, migration permission inserts or a feature plan. Working-tree drift is reported in [audit](COMPLETENESS_AUDIT.md); get a newly verified published package before those screens.
+## Contract and historical-data limitations
 
-## P1 — browser/auth/operational setup
+- Raw OpenAPI lacks many IActionResult success/error/auth schemas and misrepresents some property converters; the source-derived openapi.integration.json adds response/auth/converter metadata. Use the compiler supplement, catalog, DTO tables and guard evidence for remaining guards. There is no universal envelope, branch header, ETag or universal idempotency header. Selected stale-version guards return 400, while EF conflicts return 409; use per-action evidence.
+- Decimal numeric(18,2), bigint ClientCode and long versions can exceed JavaScript precision. No decimal-string transport policy exists. Use decimal-safe input/display and returned totals, and review supported frontend value bounds explicitly.
+- Incomplete legacy Private assignment/value/date facts fail closed for mutation; undated legacy Classes do not enter dated target reporting. Unknown historical subscriptions/financial attribution need explicit reconciliation; frontend must not backfill invented facts.
+- Four compatibility routes deliberately return 410: three old Classes writes and Freelance compatibility purchase. Historical reports remain available.
 
-- CORS has no policy/registration. Backend team must establish allowed origins or agree a dev proxy. Actual deployed URL/HTTPS certificate and proxy behavior UNKNOWN.
-- No refresh/logout/revocation/password reset/registration/account/permission administration API. Frontend can bootstrap with login/me and local logout only. Provision accounts/grants out of band; do not add guessed settings screens.
-- Historically Offers.Manage, Installments.Manage, Sales.QuickCancel were active but ungranted. Current DB grants **UNKNOWN**, not rechecked; ask authorized administrator for intended provisioning. Fresh role templates do not update existing roles.
-- Active cities/branch calling codes, Employee-account/assignment, mapped financial accounts/drawer initial count, ExpenseCategory and intended capabilities are prerequisites. No City catalog CRUD/list or complete SportsActivity/ActivityPackage/GroupClass/Schedule management API. Some operations need IDs currently unavailable through a self-service catalog route.
-- Sales commission fallback/employee rules and branch period boundaries must be explicitly configured; missing rules show unconfigured and block finalization. No default 30k/rates automatically exist.
-
-## P1 — current Private/Classes release blockers
-
-Latest source and confirmed project-history decisions: unused expired Private value belongs to coach assigned at expiry; partial net collections fund delivered/expiry value; explicit Private target uses normal 50/60 and transferred fixed 50. These are no longer unanswered questions. **Classes compensation formula remains undefined and disabled**; actual statistics/average target exist in branch draft. Refund adjustments invalidating recognized/paid Private earnings remain deferred; protected refunds reject. See branch-only status for exact implemented draft sequences and later corrected occurrence-timestamp guard. Operational final regression/publication/deployed migration/grants are not established by this audit.
-
-## P2 — existing compatibility and API gaps
-
-- Legacy Activity purchase records entitlement/amount due, without managed collection API; legacy Class attendance lacks new sale-linked entitlement check. Legacy reports are not new Private/Classes coach earnings or payout. `/api/freelance-plans/purchases` is exposed but intentionally **410 disabled**.
-- OpenAPI uses IActionResult and omits most actual success body types/policies. Supplemental catalog recovers Execute generic types, anonymous wrappers and exact source. Generated TS clients must be reviewed/augmented; OpenAPI alone is incomplete. Query/body required flags and nonnullable C# fields need distinction from business guards.
-- Serialization is mixed: many DTO status fields are strings; several actual enum-valued outputs/inputs are numeric, selected property/type converters are string. Pagination count uses totalCount vs total vs employeeCount. Some successful null results become 204. No universal data envelope.
-- No ETag/If-Match or universal retry key. Some mutations have operationId, selected expectedVersion, others neither. A duplicate/rebound operation can be 400, not uniformly 409. Check-in/trial denial is 200 with false.
-- Monetary numeric(18,2), ClientCode bigint and Shift long version can exceed JS precision. No decimal-string transport policy is implemented. Backend should decide any contract change separately; frontend must not treat binary floats as financial authority.
-- Same-city access is separate from administrative branch scope. CRM cross-branch ownership does not grant Member directory/financial rights. Member branch financial transfer is absent.
-- No automatic holiday apply, follow-up generation, midnight/forced Shift closure, routine external Cash-In, discrepancy settlement, advance repayment/payroll, monthly closing, Sales commission payouts or late-finalized-refund adjustment flow.
-- No file/report export, invitation issuance, hardware scanner integration, message delivery, notifications or offline sync APIs.
-
-## P2 — legacy reconciliation
-
-Null historical plan ownership/snapshots/BusinessDate/Shift/period attribution remain unknown. Ambiguous phone/assignments/entitlements, unmanaged paid expense, undated commission sources/legacy periods and incomplete coach revenue attribution fail closed or exclude/reconcile explicitly. Frontend cannot backfill facts or infer them from current templates. Historical migration application and current production schema/grants are **UNKNOWN** to this audit: no DB accessed/applied/deployed.
-
-Remaining backend attention: build/verify/publish pending branch, approve outstanding Coaching policies, supply approved browser origins/dev integration and test identities/grants/catalog/drawer/rule configuration, then recapture contract. No application changes, migrations, grants or operational data changes were performed for this documentation task.
+No database, deployment, grants or operational data were inspected or changed in this documentation task. These prerequisites require environment verification by the backend operator, not frontend guesses.

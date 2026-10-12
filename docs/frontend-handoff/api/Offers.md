@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Sales.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 
 <a id="get-api-offers"></a>
 ## GET /api/offers
 Source: `CampionsSystem.API/Controllers/OffersController.cs:8`, action `Eligible`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs
@@ -43,7 +43,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-offers-quote"></a>
 ## GET /api/offers/quote
 Source: `CampionsSystem.API/Controllers/OffersController.cs:10`, action `Quote`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs
@@ -89,7 +89,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-offers-management"></a>
 ## GET /api/offers/management
 Source: `CampionsSystem.API/Controllers/OffersController.cs:12`, action `Management`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Offers.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs
@@ -128,7 +128,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-offers-id-guid"></a>
 ## GET /api/offers/{id:guid}
 Source: `CampionsSystem.API/Controllers/OffersController.cs:14`, action `Details`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Offers.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs
@@ -173,7 +173,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-offers"></a>
 ## POST /api/offers
 Source: `CampionsSystem.API/Controllers/OffersController.cs:16`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Offers.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs
@@ -232,7 +232,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-offers-id-guid"></a>
 ## PUT /api/offers/{id:guid}
 Source: `CampionsSystem.API/Controllers/OffersController.cs:18`, action `Update`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Offers.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs
@@ -291,7 +291,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-offers-id-guid-member-entitlements"></a>
 ## POST /api/offers/{id:guid}/member-entitlements
 Source: `CampionsSystem.API/Controllers/OffersController.cs:20`, action `Grant`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Offers.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs
@@ -337,7 +337,7 @@ Schema-shaped response (not an executed response):
 <a id="delete-api-offers-id-guid-member-entitlements-grantid-guid"></a>
 ## DELETE /api/offers/{id:guid}/member-entitlements/{grantId:guid}
 Source: `CampionsSystem.API/Controllers/OffersController.cs:22`, action `Revoke`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Offers.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs
@@ -377,7 +377,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-members-memberid-guid-audience-categories"></a>
 ## PUT /api/members/{memberId:guid}/audience-categories
 Source: `CampionsSystem.API/Controllers/OffersController.cs:24`, action `Audiences`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Members.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Plan/Sale operational branch and plan/offer/audience/Member qualification. Global offer/cross-branch administration needs effective scope; Member audiences use registration branch and Members.Manage.
 ### Path/query inputs

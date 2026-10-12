@@ -1,6 +1,6 @@
 # Sales rule/validation evidence
 
-Baseline source, not new Private drafts. Shared cross-cutting helpers: Authentication, Branches, Operations and Shifts.
+Completed source; deployment/configuration prerequisites are separate. Shared cross-cutting helpers: Authentication, Branches, Operations and Shifts.
 
 ## CampionsSystem.BLL/Sales/OfferService.cs
 
@@ -321,6 +321,78 @@ Lines 170–175
 
 ```
 
+## CampionsSystem.BLL/Sales/SalesService.Coaching.cs
+
+Lines 17–66
+
+```csharp
+
+            var packageBranch = classes
+                ? await db.ClassesPackages.Where(x => x.Id == r.PackageId).Select(x => (Guid?)x.BranchId).SingleOrDefaultAsync(ct)
+                : await db.PrivatePackages.Where(x => x.Id == r.PackageId).Select(x => (Guid?)x.BranchId).SingleOrDefaultAsync(ct);
+            var branch = packageBranch ?? throw new BranchNotFoundException("Package not found.");
+            var actor = await RequireAsync(SalesPermissions.Create, branch, ct);
+            await RequireAsync(classes ? CoachingPermissions.ClassesManage : CoachingPermissions.PrivateManage, branch, ct);
+            await shiftMoney.LockBranchAsync(branch, ct);
+            if (!await db.GymBranches.AnyAsync(b => b.Id == branch && b.IsActive && b.City.IsActive, ct)) throw new BusinessRuleException("Active selling branch and city required.");
+            var member = await LockMemberAsync(r.MemberId, ct); var hash = Hash(new { r, classes, branch });
+            var prior = await db.SaleTransactions.AsNoTracking().SingleOrDefaultAsync(x => x.OperationId == r.OperationId, ct);
+            if (prior != null)
+            {
+                if (prior.RequestHash != hash || prior.CreatedByUserId != actor.UserId || prior.BranchId != branch) throw new BusinessRuleException("Operation belongs to another coaching purchase.");
+                var subId = classes ? await db.ClassesSubscriptions.Where(s => s.SaleTransactionId == prior.Id).Select(s => s.Id).SingleAsync(ct)
+                    : await db.PrivateSubscriptionTransactions.Where(t => t.SaleTransactionId == prior.Id).Select(t => t.PrivateSubscriptionId).SingleAsync(ct);
+                return new CoachingPurchaseReceipt(subId, prior.Id, await db.Payments.Where(p => p.SaleTransactionId == prior.Id).Select(p => p.Id).ToListAsync(ct));
+            }
+            var shift = await shiftMoney.RequireShiftAsync(branch, actor.UserId, ct);
+            var (date, day) = await BusinessDateAsync(branch, ct);
+            string name; int count, days; decimal price;
+            if (classes)
+            {
+                if (r.CoachEmployeeId != null) throw new BusinessRuleException("Classes packages share sessions across types and are not assigned to a Private coach.");
+                var p = await db.ClassesPackages.FromSqlInterpolated($"SELECT * FROM \"ClassesPackages\" WHERE \"Id\"={r.PackageId} FOR SHARE").AsNoTracking().SingleAsync(ct);
+                if (!p.IsActive) throw new BusinessRuleException("Package is inactive.");
+                (name, count, days, price) = (p.Name, p.SessionCount, p.DurationDays, p.Price);
+            }
+            else
+            {
+                var p = await db.PrivatePackages.FromSqlInterpolated($"SELECT * FROM \"PrivatePackages\" WHERE \"Id\"={r.PackageId} FOR SHARE").AsNoTracking().SingleAsync(ct);
+                if (!p.IsActive || r.CoachEmployeeId == null) throw new BusinessRuleException("Active Private package and assigned coach required.");
+                await new CoachingService(db, current, access, subscriptions).ValidateCoachAsync(r.CoachEmployeeId.Value, branch, date, ct);
+                (name, count, days, price) = (p.Name, p.SessionCount, p.DurationDays, p.Price);
+            }
+            if (!member.IsActive || count <= 0 || days <= 0 || days > DateOnly.MaxValue.DayNumber - date.DayNumber) throw new BusinessRuleException("Invalid package duration/count or inactive member.");
+            Amount(price);
+            if (r.PurchaseMode is not (PurchaseMode.FullPayment or PurchaseMode.Installment) || r.PaymentParts == null || r.PaymentParts.Count is < 1 or > 20 || r.PaymentParts.Any(p => p is null))
+                throw new BusinessRuleException("Coaching packages support full payment or an explicitly scheduled installment purchase with an initial collection.");
+            foreach (var p in r.PaymentParts) Amount(p.Amount);
+            var tender = r.PaymentParts.Sum(p => p.Amount); Amount(tender);
+            if (tender > price || r.PurchaseMode == PurchaseMode.FullPayment && (tender != price || r.Installments is { Count: > 0 })) throw new BusinessRuleException("Invalid package collection total.");
+            if (r.PurchaseMode == PurchaseMode.Installment)
+            {
+                await RequireAsync(SalesPermissions.Installments, branch, ct);
+                ValidateInstallmentSchedule(r.Installments, price - tender, tender, price, date);
+            }
+            var sale = new SaleTransaction { MemberId = member.Id, BranchId = branch, SaleType = classes ? SaleType.Classes : SaleType.Private,
+                OperationId = r.OperationId, RequestHash = hash, CreatedShiftId = shift.Id, BusinessDate = date, BusinessDayId = day,
+                PurchaseMode = r.PurchaseMode, ActivationMode = SubscriptionActivationMode.Now, InitialPaymentRequired = r.PurchaseMode == PurchaseMode.Installment ? tender : null,
+                GrossAmount = price, NetAmount = price, Status = tender == price ? SaleStatus.Completed : SaleStatus.Open,
+
+```
+
+Lines 98–103
+
+```csharp
+
+    {
+        if (sale.SaleType != SaleType.Private) return;
+        var protectedValue = await db.CoachEarnings.Where(e => e.SaleTransactionId == sale.Id).SumAsync(e => e.EligibleValue, ct);
+        if (newNetCollection < protectedValue) throw new BusinessRuleException("Refund affects finalized Private earnings. An Owner adjustment policy is required; nothing was changed.");
+    }
+    private async Task CancelCoachingGrantAsync(SaleTransaction sale, Guid actor, CancellationToken ct)
+
+```
+
 ## CampionsSystem.BLL/Sales/SalesContracts.cs
 
 Lines 3–26
@@ -522,7 +594,7 @@ Lines 15–20
 
 ```
 
-Lines 22–40
+Lines 22–41
 
 ```csharp
 
@@ -533,6 +605,7 @@ Lines 22–40
         var collected=await db.Payments.Where(p=>p.SaleTransactionId==sale.Id && p.Status==PaymentStatus.Completed).SumAsync(p=>p.Amount,ct);
         var refunded=await db.Refunds.Where(r=>r.SaleTransactionId==sale.Id).SumAsync(r=>r.Amount,ct);
         if(amount>collected-refunded)throw new BusinessRuleException("Refund exceeds the collected, unrefunded amount.");
+        await GuardCoachingRefundAsync(sale,collected-refunded-amount,ct);
         if(amount>0)await AccountsAsync(sale.BranchId,parts,amount,ct,type==RefundType.QuickRefund);
         else if(parts==null || parts.Count!=0)throw new BusinessRuleException("A zero refund/cancellation must have no financial parts.");
         var (date,day)=await BusinessDateAsync(sale.BranchId,ct);
@@ -548,7 +621,7 @@ Lines 22–40
 
 ```
 
-Lines 53–59
+Lines 55–61
 
 ```csharp
 

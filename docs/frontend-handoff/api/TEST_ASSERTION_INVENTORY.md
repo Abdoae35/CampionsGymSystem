@@ -1,6 +1,6 @@
 # Test assertion inventory
 
-Present baseline test methods grouped by test class. **DOCUMENTED SOURCE EVIDENCE**, not individual execution proof. Fresh audit ran only CheckInContractTests (5/5); historical 772/772 belongs to baseline history, not a new run. Database-dependent suites were not run to avoid operational/schema writes.
+Preserved source test inventory from the earlier snapshot, not an exhaustive final 822-case inventory or fresh execution proof. Previous audit ran baseline CheckInContractTests 5/5; completed feature history reports 822/822. No tests were rerun for this documentation finalization; see PRIVATE_CLASSES.md and COMPLETENESS_AUDIT.md.
 
 ## ActivitiesClassesFreelanceTests.cs
 
@@ -115,6 +115,30 @@ Source `CampionsSystem.DAL.Tests/CheckInRenewalDebtTests.cs`.
 Source `CampionsSystem.DAL.Tests/CheckInTrialTests.cs`.
 
 `TrialRedemptionAndRetryAreOneTimeHistoricalAndNonFinancial`, `TrialUsesExistingMemberIdentityWithoutChangingRegistrationOrOwnership`, `TrialUnavailableStatesDoNotCreateEntrance`, `TrialIdentityAndSelectedBranchMustMatchIssuedRecord`, `TrialRejectsInactiveKnownMemberAndClosureRegardlessOfCompensation`, `TrialOperationCannotBeReboundToAnotherInvitation`, `MemberInvitationConsumesExactlyOneSnapshotUnitOnlyAtRedemption`, `NonGuestBenefitCannotBeRedeemedAsInvitation`, `ConcurrentTrialRedemptionsConsumePersonOnce`, `ConcurrentInvitationsCannotConsumeSameFinalGuestBenefitUnit`, `FailedTrialInsertRollsBackBenefitAndRedemptionTogether`, `GuestTrialRetryAfterMemberRegistrationPreservesOriginalGuestEntryIdentity`
+
+## CoachingApiTests.cs
+
+Source `CampionsSystem.DAL.Tests/CoachingApiTests.cs`.
+
+`CoachingApiRequiresAuthenticationAndExplicitCapabilities`, `CoachingApiPackageCatalogIsBranchScopedAndRejectsSpoofedFinancialTerms`, `CoachingApiDirectDenyOverridesPayAndTargetRoleCapabilitiesImmediately`, `CoachingApiLegacyClassAttendanceWriteIsDisabled`
+
+## CoachingClassesPayoutTests.cs
+
+Source `CampionsSystem.DAL.Tests/CoachingClassesPayoutTests.cs`.
+
+`CoachingClassesNeedNoReceptionOrRegularMembershipAndShareOneBalanceAcrossTypes`, `CoachingClassesPreventDuplicateMemberOccurrenceEvenWithDifferentOperationsOrPackages`, `CoachingClassesRequireAuthorizedAssignedCoachAndPreClassRegistration`, `CoachingClassesRejectExpiredAndRefundCancelledPackage`, `CoachingClassesAttendanceAverageIncludesZeroAttendanceCompletedOccurrencesAndConfiguredTarget`, `CoachingClassesTenEightTwelveAttendeesAverageTen`, `CoachingOccurrenceCompletionIsIdempotentAndCannotCancelAttendance`, `CoachingBranchScopeAndMemberSearchPreservePurchaseOriginRatherThanHomeBranch`, `CoachingOwnerPartialPayoutsReduceFourThousandToTwoThousandThenZeroExactlyOnce`, `CoachingPayoutRejectsOverpaymentAndKeepsLedgerUnchanged`, `CoachingPayoutRequiresOwnerCapabilitiesAndGlobalPermissionEvenWhenBranchManagerHasPay`, `CoachingPayoutChecksPhysicalCashAndElectronicAccountFundsWithoutInventingMoney`, `CoachingPayoutCannotBypassBalanceThroughGenericExpenseReversal`, `CoachingRecognitionRetryPreservesFinalEvidenceAndDoesNotWriteMoney`
+
+## CoachingConcurrencyTests.cs
+
+Source `CampionsSystem.DAL.Tests/CoachingConcurrencyTests.cs`.
+
+`CoachingConcurrentPrivateRetryConsumesExactlyOneSession`, `CoachingConcurrentDifferentPrivateOperationsCannotConsumeSameReceptionTwice`, `CoachingConcurrentClassesCannotOveruseLastSharedSessionAcrossDifferentTypes`, `CoachingConcurrentPartialPayoutsCannotOverpayOutstandingBalance`, `CoachingConcurrentPayoutRetryDebitsOneExpenseExactlyOnce`, `CoachingConcurrentRefundAndRecognitionNeverRecognizeRefundedMoney`
+
+## CoachingOperationsTests.cs
+
+Source `CampionsSystem.DAL.Tests/CoachingOperationsTests.cs`.
+
+`CoachingPrivateRequiresReceptionAndNeverDeductsOnReceptionAlone`, `CoachingPrivateRejectsExpiredRegularMembershipEvenWithPriorReception`, `CoachingPrivateRejectsMembershipExpiredAfterReceptionOnSameBusinessDate`, `CoachingPrivateCannotUseFrozenRegularMembership`, `CoachingPrivateNormalCoachUsesIndependentNetFundedTarget`, `CoachingPrivateFinancialTargetSettingsNeverBlockAttendance`, `CoachingTransferPreservesDeliveredAttributionAndIncomingFixedFifty`, `CoachingTransferRetryIsIdempotentAndCannotRewriteSessionCoach`, `CoachingPrivateSnapshotsAndDeterministicRemainderSurviveCatalogEdits`, `CoachingPartialCollectionsDeferDeliveryAndLaterFundSameOriginalSourceOnce`, `CoachingExpiryRecognizesCurrentTransferredCoachWithoutFakeAttendanceOrDoubleSettlement`, `CoachingRefundBeforeRecognitionReducesEligibleCollectedValueAndRevokesUnusedGrant`, `CoachingRefundAffectingFinalizedEarningsRejectsAtomically`
 
 ## CommissionApiTests.cs
 
@@ -397,6 +421,12 @@ Source `CampionsSystem.DAL.Tests/PlanUpdateTests.cs`.
 Source `CampionsSystem.DAL.Tests/PrivateAndFreelanceSchemaTests.cs`.
 
 `NormalPlanAllowsNullCoach`, `FreelancePlanRequiresCoach`, `NormalPlanRejectsCoach`, `CoachesHaveIndependentPlanPrices`, `PurchaseSnapshotSurvivesPlanEdit`, `OnlyOneCurrentAssignment`, `TransferAllowedAfterPeriodClose`, `OldSessionsRetainDeliveringCoachAfterTransfer`, `NewSessionsUseNewCoach`, `SessionPreservesPurchasedBatchAndPrice`, `ExpiryCannotSettleBatchTwice`, `ExpiryRecordsCurrentCoachAndOpenPeriod`, `TransferDoesNotModifyClosedPeriodOrItsSessions`, `ExpiryRejectsIncorrectEligibleAmount`, `DeliveredCoachCannotBeDeleted`, `BatchPriceIsImmutableButRemainingCounterCanChange`, `MigrationBackfillsUnusedLegacyBatchWithoutLosingAssignmentData`, `MigrationRejectsUnreconciledHistoryWithoutChangingIt`, `BusinessHistoryHasRestrictedForeignKeysAndNoShadowProperties`
+
+## PrivateClassesModelTests.cs
+
+Source `CampionsSystem.DAL.Tests/PrivateClassesModelTests.cs`.
+
+`EarningsPayoutsAndSharedPackagesUseRestrictiveForeignKeys`, `EarningsAndPayoutEvidenceRejectMutationBeforeConnecting`, `ForwardMigrationCreatesEvidenceWithoutRoleGrants`
 
 ## SalesActivationTests.cs
 

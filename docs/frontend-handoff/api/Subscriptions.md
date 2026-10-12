@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Subscriptions.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 
 <a id="get-api-members-memberid-guid-subscriptions"></a>
 ## GET /api/members/{memberId:guid}/subscriptions
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:9`, action `History`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs
@@ -55,7 +55,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-members-memberid-guid-subscriptions-current"></a>
 ## GET /api/members/{memberId:guid}/subscriptions/current
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:12`, action `Current`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs
@@ -92,7 +92,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-subscriptions-id-guid"></a>
 ## GET /api/subscriptions/{id:guid}
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:15`, action `Details`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs
@@ -152,7 +152,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-subscriptions-id-guid-freeze"></a>
 ## POST /api/subscriptions/{id:guid}/freeze
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:17`, action `Freeze`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.Freeze`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs
@@ -206,7 +206,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-subscriptions-id-guid-freezes-freezeid-guid-complete"></a>
 ## POST /api/subscriptions/{id:guid}/freezes/{freezeId:guid}/complete
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:20`, action `Complete`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.Freeze`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs
@@ -258,7 +258,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-subscriptions-id-guid-custom-extension"></a>
 ## POST /api/subscriptions/{id:guid}/custom-extension
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:23`, action `Extend`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.Extend`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs
@@ -312,7 +312,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-employees-id-guid-membership-entitlement"></a>
 ## POST /api/employees/{id:guid}/membership-entitlement
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:26`, action `Employee`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.Manage`, `Permission:Employees.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs
@@ -356,7 +356,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-subscriptions-official-holidays"></a>
 ## POST /api/subscriptions/official-holidays
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:29`, action `Holiday`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.Extend`, `Permission:Branches.AccessAll`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs
@@ -402,7 +402,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-subscriptions-official-holidays-id-guid-apply"></a>
 ## POST /api/subscriptions/official-holidays/{id:guid}/apply
 Source: `CampionsSystem.API/Controllers/SubscriptionsController.cs:32`, action `ApplyHoliday`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Subscriptions.Extend`, `Permission:Branches.AccessAll`.
 Scope/actor: apply module rules above and [guard evidence](rules/Subscriptions.md). History/management uses subscription origin branch; current entitlement resolves visited operational branch and sold City snapshot. Ownership is not subscription authority. Employee entitlement also needs Employees.Manage; holidays need global scope.
 ### Path/query inputs

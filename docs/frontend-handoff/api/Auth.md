@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Authentication.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** No operation branch selector. Login anonymous; /me re-resolves identity/permissions/current branch.
 
 <a id="post-api-auth-login"></a>
 ## POST /api/auth/login
 Source: `CampionsSystem.API/Controllers/AuthController.cs:13`, action `Login`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: anonymous allowed. Exact controller policies (AND): none on anonymous action.
 Scope/actor: apply module rules above and [guard evidence](rules/Authentication.md). No operation branch selector. Login anonymous; /me re-resolves identity/permissions/current branch.
 ### Path/query inputs
@@ -62,8 +62,8 @@ Schema-shaped response (not an executed response):
 <a id="get-api-auth-me"></a>
 ## GET /api/auth/me
 Source: `CampionsSystem.API/Controllers/AuthController.cs:22`, action `Me`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
-Auth: Bearer authentication required. Exact controller policies (AND): `None`.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
+Auth: Bearer authentication required. Exact controller policies (AND): none on anonymous action.
 Scope/actor: apply module rules above and [guard evidence](rules/Authentication.md). No operation branch selector. Login anonymous; /me re-resolves identity/permissions/current branch.
 ### Path/query inputs
 | Name / location | Required | Exact OpenAPI type/constraints | Declared default |

@@ -6,36 +6,60 @@
   ],
   "route": "/api/coaching/classes/members/{member:guid}/attendance",
   "policies": [
+    null,
     "Permission:Classes.View"
   ],
   "source": "CampionsSystem.API/Controllers/CoachingController.cs",
   "line": 49,
-  "status": "VERIFIED FROM CODE; branch-only uncommitted late addition",
-  "capturedUtc": "2026-10-12T10:55:15.206924+00:00",
+  "status": "VERIFIED FROM CODE; completed backend",
   "parameters": [
     {
       "name": "member",
       "type": "System.Guid",
+      "nullable": "NotAnnotated",
+      "hasDefault": false,
+      "defaultValue": null,
+      "attributes": [],
       "binding": "Path"
     },
     {
       "name": "branchId",
       "type": "System.Guid",
+      "nullable": "NotAnnotated",
+      "hasDefault": false,
+      "defaultValue": null,
+      "attributes": [],
       "binding": "Query"
     },
     {
       "name": "page",
       "type": "int",
-      "binding": "Query",
-      "default": 1
+      "nullable": "NotAnnotated",
+      "hasDefault": true,
+      "defaultValue": 1,
+      "attributes": [],
+      "binding": "Query"
     },
     {
       "name": "pageSize",
       "type": "int",
-      "binding": "Query",
-      "default": 25
+      "nullable": "NotAnnotated",
+      "hasDefault": true,
+      "defaultValue": 25,
+      "attributes": [],
+      "binding": "Query"
     }
   ],
   "response": "CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.ClassAttendanceDetails>",
-  "sourceAction": "[HttpGet(\"classes/members/{member:guid}/attendance\"), Authorize(Policy = \"Permission:Classes.View\")]\npublic Task<IActionResult> ClassMemberAttendance(Guid member, Guid branchId, int page = 1, int pageSize = 25, CancellationToken ct = default) => Execute(() => coaching.ClassMemberHistoryAsync(branchId, member, page, pageSize, ct));"
+  "sourceAction": "[HttpGet(\"classes/members/{member:guid}/attendance\"), Authorize(Policy = \"Permission:Classes.View\")]\n    public Task<IActionResult> ClassMemberAttendance(Guid member, Guid branchId, int page = 1, int pageSize = 25, CancellationToken ct = default) => Execute(() => coaching.ClassMemberHistoryAsync(branchId, member, page, pageSize, ct));",
+  "anonymous": false,
+  "calls": [
+    {
+      "service": "CampionsSystem.BLL.Coaching.CoachingService",
+      "method": "ClassMemberHistoryAsync",
+      "returnType": "System.Threading.Tasks.Task<CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.ClassAttendanceDetails>>"
+    }
+  ],
+  "catalogFile": "api/Coaching.md",
+  "catalogAnchor": "get-api-coaching-classes-members-member-guid-attendance"
 }

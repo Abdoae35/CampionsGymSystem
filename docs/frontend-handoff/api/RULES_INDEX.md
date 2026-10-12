@@ -8,6 +8,8 @@
 
 - [CheckIns](rules/CheckIns.md)
 
+- [Coaching](rules/Coaching.md)
+
 - [Commissions](rules/Commissions.md)
 
 - [Crm](rules/Crm.md)

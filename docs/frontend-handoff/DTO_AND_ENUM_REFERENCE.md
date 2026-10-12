@@ -1,9 +1,6 @@
 # DTO and enum reference
 
-Latest branch update: frozen 2026-10-12T10:44:04.604445+00:00 at `bf733e2502a85603b80f8ad8a01747264a0f518b` plus uncommitted operational files adds **35 Coaching routes** (190 current actions total). The later isolated snapshot builds; initial CS8999 was superseded by concurrent domain publication. Stable contracts below remain at 0bc4476; new draft contracts/confirmed policies and three legacy Class 410 changes are in [branch-only status](BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md). **Use that update before interpreting any earlier pending/no-route statement below.**
-
-
-**VERIFIED FROM CODE**, committed baseline. 311 reachable compiler type shapes, including framework primitives/constructed/nullable containers; this is not 311 distinct public DTO classes. Every endpoint links its exact request/output type here. JSON camelCase, null values emitted by default, computed getter properties included. No universal envelope. **Read all inherited fields** in each table.
+**VERIFIED FROM CODE**, completed backend source including Coaching. 366 reachable compiler type shapes, including framework primitives/constructed/nullable containers; this is not 366 distinct public DTO classes. Every endpoint links its exact request/output type here. JSON camelCase, null values emitted by default, computed getter properties included. No universal envelope. **Read all inherited fields** in each table.
 
 C# primitive mapping: Guid → UUID string; DateOnly → YYYY-MM-DD string; DateTimeOffset → offset timestamp string; decimal → JSON number on output (exact backend decimal); int/long → JSON integer; bool → boolean; IReadOnlyList/List/array → JSON array. Nullable T?/reference annotations permit null; nonnullable does not alone guarantee omission validation. Web number handling accepts numeric strings on input; exported OpenAPI records number|string shapes, but outputs are numbers. `long`/ClientCode/large decimal can exceed JS precision. Status fields typed `string` are strings even when DAL persists an enum.
 
@@ -56,7 +53,7 @@ C# type: `CampionsSystem.API.Controllers.OperationsController.PercentageRequest`
 <a id="campionssystem-bll-authentication-branchcontext"></a>
 ## Authentication.BranchContext
 C# type: `CampionsSystem.BLL.Authentication.BranchContext`; source: `CampionsSystem.BLL/Authentication/AuthContracts.cs:13`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -64,7 +61,7 @@ Type attributes:
 <a id="campionssystem-bll-authentication-branchcontext"></a>
 ## Authentication.BranchContext?
 C# type: `CampionsSystem.BLL.Authentication.BranchContext?`; source: `CampionsSystem.BLL/Authentication/AuthContracts.cs:13`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -72,7 +69,7 @@ Type attributes:
 <a id="campionssystem-bll-authentication-currentusercontext"></a>
 ## Authentication.CurrentUserContext
 C# type: `CampionsSystem.BLL.Authentication.CurrentUserContext`; source: `CampionsSystem.BLL/Authentication/AuthContracts.cs:14`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `userId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -86,7 +83,7 @@ Type attributes:
 <a id="campionssystem-bll-authentication-loginrequest"></a>
 ## Authentication.LoginRequest
 C# type: `CampionsSystem.BLL.Authentication.LoginRequest`; source: `CampionsSystem.BLL/Authentication/AuthContracts.cs:5`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `userNameOrEmail` | `string` | No | `System.ComponentModel.DataAnnotations.MaxLengthAttribute(256)`<br>`System.ComponentModel.DataAnnotations.RequiredAttribute` | string.Empty |
@@ -94,7 +91,7 @@ Type attributes:
 <a id="campionssystem-bll-authentication-loginresponse"></a>
 ## Authentication.LoginResponse
 C# type: `CampionsSystem.BLL.Authentication.LoginResponse`; source: `CampionsSystem.BLL/Authentication/AuthContracts.cs:22`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `accessToken` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -103,7 +100,7 @@ Type attributes:
 <a id="campionssystem-bll-authentication-loginuser"></a>
 ## Authentication.LoginUser
 C# type: `CampionsSystem.BLL.Authentication.LoginUser`; source: `CampionsSystem.BLL/Authentication/AuthContracts.cs:20`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -114,7 +111,7 @@ Type attributes:
 <a id="campionssystem-bll-branches-assignbranchrequest"></a>
 ## Branches.AssignBranchRequest
 C# type: `CampionsSystem.BLL.Branches.AssignBranchRequest`; source: `CampionsSystem.BLL/Branches/EmployeeBranchAssignmentService.cs:12`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -122,7 +119,7 @@ Type attributes:
 <a id="campionssystem-bll-branches-branchassignmentdetails"></a>
 ## Branches.BranchAssignmentDetails
 C# type: `CampionsSystem.BLL.Branches.BranchAssignmentDetails`; source: `CampionsSystem.BLL/Branches/EmployeeBranchAssignmentService.cs:10`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -137,7 +134,7 @@ Type attributes:
 <a id="campionssystem-bll-branches-branchassignmentdetails"></a>
 ## Branches.BranchAssignmentDetails?
 C# type: `CampionsSystem.BLL.Branches.BranchAssignmentDetails?`; source: `CampionsSystem.BLL/Branches/EmployeeBranchAssignmentService.cs:10`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -152,7 +149,7 @@ Type attributes:
 <a id="campionssystem-bll-branches-branchdetails"></a>
 ## Branches.BranchDetails
 C# type: `CampionsSystem.BLL.Branches.BranchDetails`; source: `CampionsSystem.BLL/Branches/BranchContracts.cs:15`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -168,7 +165,7 @@ Type attributes:
 <a id="campionssystem-bll-branches-savebranchrequest"></a>
 ## Branches.SaveBranchRequest
 C# type: `CampionsSystem.BLL.Branches.SaveBranchRequest`; source: `CampionsSystem.BLL/Branches/BranchContracts.cs:5`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `name` | `string` | No | `System.ComponentModel.DataAnnotations.MaxLengthAttribute(256)`<br>`System.ComponentModel.DataAnnotations.RequiredAttribute` | No declared optional default; CLR initialization and BLL checks apply |
@@ -182,7 +179,7 @@ Type attributes:
 <a id="campionssystem-bll-branches-transferbranchrequest"></a>
 ## Branches.TransferBranchRequest
 C# type: `CampionsSystem.BLL.Branches.TransferBranchRequest`; source: `CampionsSystem.BLL/Branches/EmployeeBranchAssignmentService.cs:13`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `targetBranchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -190,7 +187,7 @@ Type attributes:
 <a id="campionssystem-bll-checkins-accessdecision"></a>
 ## CheckIns.AccessDecision
 C# type: `CampionsSystem.BLL.CheckIns.AccessDecision`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:40`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `allowed` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -220,7 +217,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-checkins-borroweddebtdetails"></a>
 ## CheckIns.BorrowedDebtDetails
 C# type: `CampionsSystem.BLL.CheckIns.BorrowedDebtDetails`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:61`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -236,7 +233,7 @@ Type attributes:
 <a id="campionssystem-bll-checkins-borroweddebthistory"></a>
 ## CheckIns.BorrowedDebtHistory
 C# type: `CampionsSystem.BLL.CheckIns.BorrowedDebtHistory`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:81`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<CheckIns.BorrowedDebtDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -255,7 +252,7 @@ C# type: `CampionsSystem.BLL.CheckIns.BorrowedDebtHistoryRequest`; source: `Camp
 <a id="campionssystem-bll-checkins-borrowedsettlementdetails"></a>
 ## CheckIns.BorrowedSettlementDetails
 C# type: `CampionsSystem.BLL.CheckIns.BorrowedSettlementDetails`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:64`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `sequence` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -266,7 +263,7 @@ Type attributes:
 <a id="campionssystem-bll-checkins-checkindetails"></a>
 ## CheckIns.CheckInDetails
 C# type: `CampionsSystem.BLL.CheckIns.CheckInDetails`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:44`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -288,7 +285,7 @@ Type attributes:
 <a id="campionssystem-bll-checkins-checkindetails"></a>
 ## CheckIns.CheckInDetails?
 C# type: `CampionsSystem.BLL.CheckIns.CheckInDetails?`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:44`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -310,7 +307,7 @@ Type attributes:
 <a id="campionssystem-bll-checkins-checkinhistory"></a>
 ## CheckIns.CheckInHistory
 C# type: `CampionsSystem.BLL.CheckIns.CheckInHistory`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:60`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<CheckIns.CheckInDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -333,7 +330,7 @@ C# type: `CampionsSystem.BLL.CheckIns.CheckInHistoryRequest`; source: `CampionsS
 <a id="campionssystem-bll-checkins-checkinmembermatch"></a>
 ## CheckIns.CheckInMemberMatch
 C# type: `CampionsSystem.BLL.CheckIns.CheckInMemberMatch`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:72`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -345,7 +342,7 @@ Type attributes:
 <a id="campionssystem-bll-checkins-checkinmembermatches"></a>
 ## CheckIns.CheckInMemberMatches
 C# type: `CampionsSystem.BLL.CheckIns.CheckInMemberMatches`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:73`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<CheckIns.CheckInMemberMatch>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -355,7 +352,7 @@ Type attributes:
 <a id="campionssystem-bll-checkins-checkinmembersearchrequest"></a>
 ## CheckIns.CheckInMemberSearchRequest
 C# type: `CampionsSystem.BLL.CheckIns.CheckInMemberSearchRequest`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:65`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `search` | `string` | No | No attribute; see BLL guard evidence | "" |
@@ -365,7 +362,7 @@ Type attributes:
 <a id="campionssystem-bll-checkins-checkinresult"></a>
 ## CheckIns.CheckInResult
 C# type: `CampionsSystem.BLL.CheckIns.CheckInResult`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:48`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `decision` | [CheckIns.AccessDecision](DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-checkins-accessdecision) | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -395,13 +392,497 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-checkins-trialcheckinresult"></a>
 ## CheckIns.TrialCheckInResult
 C# type: `CampionsSystem.BLL.CheckIns.TrialCheckInResult`; source: `CampionsSystem.BLL/CheckIns/CheckInContracts.cs:85`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `allowed` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
 | `reasonCode` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
 | `invitationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
 | `checkIn` | [CheckIns.CheckInDetails?](DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-checkins-checkindetails) | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-classattendancedetails"></a>
+## Coaching.ClassAttendanceDetails
+C# type: `CampionsSystem.BLL.Coaching.ClassAttendanceDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:52`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `memberId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `subscriptionId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `classSessionId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `businessDate` | `DateOnly` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `remainingSessions` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `registeredAt` | `DateTimeOffset` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-classattendancerequest"></a>
+## Coaching.ClassAttendanceRequest
+C# type: `CampionsSystem.BLL.Coaching.ClassAttendanceRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:49`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `memberId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `classesSubscriptionId` | `Guid?` | Yes | No attribute; see BLL guard evidence | null |
+<a id="campionssystem-bll-coaching-classcoachstatistics"></a>
+## Coaching.ClassCoachStatistics
+C# type: `CampionsSystem.BLL.Coaching.ClassCoachStatistics`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:54`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `completedClasses` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalAttendance` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `averageAttendance` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `target` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `targetReached` | `bool?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `occurrences` | `IReadOnlyList<Coaching.ClassOccurrenceDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `compensationStatus` | `string` | No | No attribute; see BLL guard evidence | "NotConfigured" |
+<a id="campionssystem-bll-coaching-classoccurrencedetails"></a>
+## Coaching.ClassOccurrenceDetails
+C# type: `CampionsSystem.BLL.Coaching.ClassOccurrenceDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:50`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `classTypeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `businessDate` | `DateOnly?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `startsAt` | `DateTimeOffset` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `endedAt` | `DateTimeOffset?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `status` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `attendance` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `version` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-classoccurrencerequest"></a>
+## Coaching.ClassOccurrenceRequest
+C# type: `CampionsSystem.BLL.Coaching.ClassOccurrenceRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:45`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `classTypeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `startsAt` | `DateTimeOffset` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-classtypedetails"></a>
+## Coaching.ClassTypeDetails
+C# type: `CampionsSystem.BLL.Coaching.ClassTypeDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:43`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `name` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `isActive` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `description` | `string?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-classtyperequest"></a>
+## Coaching.ClassTypeRequest
+C# type: `CampionsSystem.BLL.Coaching.ClassTypeRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:42`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `name` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `isActive` | `bool` | No | No attribute; see BLL guard evidence | true |
+| `description` | `string?` | Yes | No attribute; see BLL guard evidence | null |
+<a id="campionssystem-bll-coaching-classessubscriptiondetails"></a>
+## Coaching.ClassesSubscriptionDetails
+C# type: `CampionsSystem.BLL.Coaching.ClassesSubscriptionDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:39`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `memberId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `saleId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `packageName` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `startDate` | `DateOnly` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `endDate` | `DateOnly` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `purchasedSessions` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `remainingSessions` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `price` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `cancelled` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `version` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachbalance"></a>
+## Coaching.CoachBalance
+C# type: `CampionsSystem.BLL.Coaching.CoachBalance`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:67`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `earned` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `paid` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `outstanding` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachearningdetails"></a>
+## Coaching.CoachEarningDetails
+C# type: `CampionsSystem.BLL.Coaching.CoachEarningDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:65`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `periodId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `saleId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `sessionId` | `Guid?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `expirySettlementId` | `Guid?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `eligibleValue` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `rate` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `earned` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `transferredPackage` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `businessDate` | `DateOnly` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachearningsprogress"></a>
+## Coaching.CoachEarningsProgress
+C# type: `CampionsSystem.BLL.Coaching.CoachEarningsProgress`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:64`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `periodId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `finalized` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coaches` | `IReadOnlyList<Coaching.CoachProgress>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachpayoutdetails"></a>
+## Coaching.CoachPayoutDetails
+C# type: `CampionsSystem.BLL.Coaching.CoachPayoutDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:71`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `expenseId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `accountId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `method` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `amount` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `balanceBefore` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `balanceAfter` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `businessDate` | `DateOnly` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `paidAt` | `DateTimeOffset` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `authorizedByUserId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachpayoutrequest"></a>
+## Coaching.CoachPayoutRequest
+C# type: `CampionsSystem.BLL.Coaching.CoachPayoutRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:69`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `amount` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `financialAccountId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `expenseCategoryId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `reason` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `receiptReference` | `string?` | Yes | No attribute; see BLL guard evidence | null |
+<a id="campionssystem-bll-coaching-coachprogress"></a>
+## Coaching.CoachProgress
+C# type: `CampionsSystem.BLL.Coaching.CoachProgress`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:62`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `eligibleValue` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `target` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `targetReached` | `bool?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `normalRate` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `projectedEarnings` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `deferredValue` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachtargetdetails"></a>
+## Coaching.CoachTargetDetails
+C# type: `CampionsSystem.BLL.Coaching.CoachTargetDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:59`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `periodId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `privateTarget` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `classesAverageTarget` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachtargetrequest"></a>
+## Coaching.CoachTargetRequest
+C# type: `CampionsSystem.BLL.Coaching.CoachTargetRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:57`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `commissionPeriodId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `privateTarget` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `classesAverageTarget` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingmemberresult"></a>
+## Coaching.CoachingMemberResult
+C# type: `CampionsSystem.BLL.Coaching.CoachingMemberResult`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:37`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `memberCode` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `clientCode` | `long?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `name` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `phone` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpackagedetails"></a>
+## Coaching.CoachingPackageDetails
+C# type: `CampionsSystem.BLL.Coaching.CoachingPackageDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:16`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `name` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `sessionCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `durationDays` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `price` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `isActive` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpackagerequest"></a>
+## Coaching.CoachingPackageRequest
+C# type: `CampionsSystem.BLL.Coaching.CoachingPackageRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:15`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `name` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `sessionCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `durationDays` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `price` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `isActive` | `bool` | No | No attribute; see BLL guard evidence | true |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-classattendancedetails"></a>
+## Coaching.CoachingPage<Coaching.ClassAttendanceDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.ClassAttendanceDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.ClassAttendanceDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-classoccurrencedetails"></a>
+## Coaching.CoachingPage<Coaching.ClassOccurrenceDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.ClassOccurrenceDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.ClassOccurrenceDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-classtypedetails"></a>
+## Coaching.CoachingPage<Coaching.ClassTypeDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.ClassTypeDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.ClassTypeDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-classessubscriptiondetails"></a>
+## Coaching.CoachingPage<Coaching.ClassesSubscriptionDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.ClassesSubscriptionDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.ClassesSubscriptionDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-coachearningdetails"></a>
+## Coaching.CoachingPage<Coaching.CoachEarningDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.CoachEarningDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.CoachEarningDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-coachpayoutdetails"></a>
+## Coaching.CoachingPage<Coaching.CoachPayoutDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.CoachPayoutDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.CoachPayoutDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-coachingmemberresult"></a>
+## Coaching.CoachingPage<Coaching.CoachingMemberResult>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.CoachingMemberResult>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.CoachingMemberResult>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-coachingpackagedetails"></a>
+## Coaching.CoachingPage<Coaching.CoachingPackageDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.CoachingPackageDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.CoachingPackageDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-privateattendancedetails"></a>
+## Coaching.CoachingPage<Coaching.PrivateAttendanceDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.PrivateAttendanceDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.PrivateAttendanceDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-privatedetails"></a>
+## Coaching.CoachingPage<Coaching.PrivateDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.PrivateDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.PrivateDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpage-campionssystem-bll-coaching-privateexpirydetails"></a>
+## Coaching.CoachingPage<Coaching.PrivateExpiryDetails>
+C# type: `CampionsSystem.BLL.Coaching.CoachingPage<CampionsSystem.BLL.Coaching.PrivateExpiryDetails>`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:38`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `items` | `IReadOnlyList<Coaching.PrivateExpiryDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `totalCount` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `page` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `pageSize` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpurchasereceipt"></a>
+## Coaching.CoachingPurchaseReceipt
+C# type: `CampionsSystem.BLL.Coaching.CoachingPurchaseReceipt`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:21`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `subscriptionId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `saleId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `paymentIds` | `IReadOnlyList<Guid>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-coachingpurchaserequest"></a>
+## Coaching.CoachingPurchaseRequest
+C# type: `CampionsSystem.BLL.Coaching.CoachingPurchaseRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:18`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `memberId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `packageId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `paymentParts` | `IReadOnlyList<Sales.PaymentPartInput>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid?` | Yes | No attribute; see BLL guard evidence | null |
+| `purchaseMode` | [PurchaseMode](DTO_AND_ENUM_REFERENCE.md#campionssystem-dal-enums-purchasemode) | No | No attribute; see BLL guard evidence | 0 |
+| `installments` | `IReadOnlyList<Sales.InstallmentLineInput>?` | Yes | No attribute; see BLL guard evidence | null |
+<a id="campionssystem-bll-coaching-completeclassrequest"></a>
+## Coaching.CompleteClassRequest
+C# type: `CampionsSystem.BLL.Coaching.CompleteClassRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:47`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `expectedVersion` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `cancelled` | `bool` | No | No attribute; see BLL guard evidence | false |
+<a id="campionssystem-bll-coaching-privateassignmentdetails"></a>
+## Coaching.PrivateAssignmentDetails
+C# type: `CampionsSystem.BLL.Coaching.PrivateAssignmentDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:28`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `assignedAt` | `DateTimeOffset` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `endedAt` | `DateTimeOffset?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `reason` | `string?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-privateattendancedetails"></a>
+## Coaching.PrivateAttendanceDetails
+C# type: `CampionsSystem.BLL.Coaching.PrivateAttendanceDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:29`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `subscriptionId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `gymCheckInId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `businessDate` | `DateOnly?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `sessionAt` | `DateTimeOffset` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `sessionNumber` | `int?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `sessionValue` | `decimal?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `transferredPackage` | `bool?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-privateattendancerequest"></a>
+## Coaching.PrivateAttendanceRequest
+C# type: `CampionsSystem.BLL.Coaching.PrivateAttendanceRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:23`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `gymCheckInId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `notes` | `string?` | Yes | No attribute; see BLL guard evidence | null |
+<a id="campionssystem-bll-coaching-privatedetails"></a>
+## Coaching.PrivateDetails
+C# type: `CampionsSystem.BLL.Coaching.PrivateDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:31`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `memberId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `startDate` | `DateOnly` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `endDate` | `DateOnly` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `purchasedSessions` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `usedSessions` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `remainingSessions` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `version` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `cancelled` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `packageName` | `string?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `price` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `unitSessionValue` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `remainderValue` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `originalCoachEmployeeId` | `Guid?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `assignments` | `IReadOnlyList<Coaching.PrivateAssignmentDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-privateexpirydetails"></a>
+## Coaching.PrivateExpiryDetails
+C# type: `CampionsSystem.BLL.Coaching.PrivateExpiryDetails`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:35`.
+Type attributes:
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `subscriptionId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `unusedSessions` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `eligibleValue` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `transferredPackage` | `bool?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `businessDate` | `DateOnly?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `settledAt` | `DateTimeOffset` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `reason` | `string?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-privateexpiryrequest"></a>
+## Coaching.PrivateExpiryRequest
+C# type: `CampionsSystem.BLL.Coaching.PrivateExpiryRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:27`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `commissionPeriodId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `reason` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-privatetransferrequest"></a>
+## Coaching.PrivateTransferRequest
+C# type: `CampionsSystem.BLL.Coaching.PrivateTransferRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:25`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `expectedVersion` | `int` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `reason` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+<a id="campionssystem-bll-coaching-recognizecoachearningsrequest"></a>
+## Coaching.RecognizeCoachEarningsRequest
+C# type: `CampionsSystem.BLL.Coaching.RecognizeCoachEarningsRequest`; source: `CampionsSystem.BLL/Coaching/CoachingContracts.cs:61`.
+Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttribute(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)`
+| Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
+|---|---|---|---|---|
+| `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `commissionPeriodId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
 <a id="campionssystem-bll-commissions-categoryruleinput"></a>
 ## Commissions.CategoryRuleInput
 C# type: `CampionsSystem.BLL.Commissions.CategoryRuleInput`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:8`.
@@ -414,7 +895,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-commissions-commissioncategoryprogress"></a>
 ## Commissions.CommissionCategoryProgress
 C# type: `CampionsSystem.BLL.Commissions.CommissionCategoryProgress`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:20`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `category` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -433,7 +914,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionpage-campionssystem-bll-commissions-commissionperioddetails"></a>
 ## Commissions.CommissionPage<Commissions.CommissionPeriodDetails>
 C# type: `CampionsSystem.BLL.Commissions.CommissionPage<CampionsSystem.BLL.Commissions.CommissionPeriodDetails>`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:34`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Commissions.CommissionPeriodDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -443,7 +924,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionpage-campionssystem-bll-commissions-commissionrefundsource"></a>
 ## Commissions.CommissionPage<Commissions.CommissionRefundSource>
 C# type: `CampionsSystem.BLL.Commissions.CommissionPage<CampionsSystem.BLL.Commissions.CommissionRefundSource>`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:34`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Commissions.CommissionRefundSource>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -453,7 +934,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionpage-campionssystem-bll-commissions-commissionruledetails"></a>
 ## Commissions.CommissionPage<Commissions.CommissionRuleDetails>
 C# type: `CampionsSystem.BLL.Commissions.CommissionPage<CampionsSystem.BLL.Commissions.CommissionRuleDetails>`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:34`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Commissions.CommissionRuleDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -463,7 +944,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionpage-campionssystem-bll-commissions-commissionsourceline"></a>
 ## Commissions.CommissionPage<Commissions.CommissionSourceLine>
 C# type: `CampionsSystem.BLL.Commissions.CommissionPage<CampionsSystem.BLL.Commissions.CommissionSourceLine>`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:34`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Commissions.CommissionSourceLine>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -473,7 +954,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionperioddetails"></a>
 ## Commissions.CommissionPeriodDetails
 C# type: `CampionsSystem.BLL.Commissions.CommissionPeriodDetails`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:16`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -487,7 +968,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionprogress"></a>
 ## Commissions.CommissionProgress
 C# type: `CampionsSystem.BLL.Commissions.CommissionProgress`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:27`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `period` | [Commissions.CommissionPeriodDetails](DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-commissions-commissionperioddetails) | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -510,7 +991,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionrefundsource"></a>
 ## Commissions.CommissionRefundSource
 C# type: `CampionsSystem.BLL.Commissions.CommissionRefundSource`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:35`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `refundId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -522,7 +1003,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionruledetails"></a>
 ## Commissions.CommissionRuleDetails
 C# type: `CampionsSystem.BLL.Commissions.CommissionRuleDetails`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:18`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -537,7 +1018,7 @@ Type attributes:
 <a id="campionssystem-bll-commissions-commissionsourceline"></a>
 ## Commissions.CommissionSourceLine
 C# type: `CampionsSystem.BLL.Commissions.CommissionSourceLine`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:31`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `paymentId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -569,7 +1050,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-commissions-employeecommissionstatement"></a>
 ## Commissions.EmployeeCommissionStatement
 C# type: `CampionsSystem.BLL.Commissions.EmployeeCommissionStatement`; source: `CampionsSystem.BLL/Commissions/CommissionContracts.cs:25`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `employeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -630,7 +1111,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-crm-followupitem"></a>
 ## Crm.FollowUpItem
 C# type: `CampionsSystem.BLL.Crm.FollowUpItem`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:84`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -656,7 +1137,7 @@ C# type: `CampionsSystem.BLL.Crm.FollowUpListRequest`; source: `CampionsSystem.B
 <a id="campionssystem-bll-crm-followuplistresult"></a>
 ## Crm.FollowUpListResult
 C# type: `CampionsSystem.BLL.Crm.FollowUpListResult`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:87`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Crm.FollowUpItem>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -676,7 +1157,7 @@ Type default JSON: **string names**; a property converter can change this.
 <a id="campionssystem-bll-crm-leadassignmentdetails"></a>
 ## Crm.LeadAssignmentDetails
 C# type: `CampionsSystem.BLL.Crm.LeadAssignmentDetails`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:31`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -689,7 +1170,7 @@ Type attributes:
 <a id="campionssystem-bll-crm-leadassignmentdetails"></a>
 ## Crm.LeadAssignmentDetails?
 C# type: `CampionsSystem.BLL.Crm.LeadAssignmentDetails?`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:31`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -710,7 +1191,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-crm-leadcreationresult"></a>
 ## Crm.LeadCreationResult
 C# type: `CampionsSystem.BLL.Crm.LeadCreationResult`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:40`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `result` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -721,7 +1202,7 @@ Type attributes:
 <a id="campionssystem-bll-crm-leaddetails"></a>
 ## Crm.LeadDetails
 C# type: `CampionsSystem.BLL.Crm.LeadDetails`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:33`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -745,7 +1226,7 @@ Type attributes:
 <a id="campionssystem-bll-crm-leaddetails"></a>
 ## Crm.LeadDetails?
 C# type: `CampionsSystem.BLL.Crm.LeadDetails?`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:33`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -769,7 +1250,7 @@ Type attributes:
 <a id="campionssystem-bll-crm-leadinteractiondetails"></a>
 ## Crm.LeadInteractionDetails
 C# type: `CampionsSystem.BLL.Crm.LeadInteractionDetails`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:59`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -796,7 +1277,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-crm-leadlistrequest"></a>
 ## Crm.LeadListRequest
 C# type: `CampionsSystem.BLL.Crm.LeadListRequest`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:9`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `search` | `string?` | Yes | `System.ComponentModel.DataAnnotations.MaxLengthAttribute(256)` | No declared optional default; CLR initialization and BLL checks apply |
@@ -810,7 +1291,7 @@ Type attributes:
 <a id="campionssystem-bll-crm-leadlistresult"></a>
 ## Crm.LeadListResult
 C# type: `CampionsSystem.BLL.Crm.LeadListResult`; source: `CampionsSystem.BLL/Crm/CrmContracts.cs:38`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Crm.LeadDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -870,7 +1351,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-employees-employeedetails"></a>
 ## Employees.EmployeeDetails
 C# type: `CampionsSystem.BLL.Employees.EmployeeDetails`; source: `CampionsSystem.BLL/Employees/EmployeeContracts.cs:16`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -886,7 +1367,7 @@ Type attributes:
 <a id="campionssystem-bll-employees-employeelistrequest"></a>
 ## Employees.EmployeeListRequest
 C# type: `CampionsSystem.BLL.Employees.EmployeeListRequest`; source: `CampionsSystem.BLL/Employees/EmployeeContracts.cs:6`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `search` | `string?` | Yes | `System.ComponentModel.DataAnnotations.MaxLengthAttribute(256)` | No declared optional default; CLR initialization and BLL checks apply |
@@ -898,7 +1379,7 @@ Type attributes:
 <a id="campionssystem-bll-employees-employeelistresult"></a>
 ## Employees.EmployeeListResult
 C# type: `CampionsSystem.BLL.Employees.EmployeeListResult`; source: `CampionsSystem.BLL/Employees/EmployeeContracts.cs:19`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Employees.EmployeeDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -943,7 +1424,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-members-eligiblefreelanceplan"></a>
 ## Members.EligibleFreelancePlan
 C# type: `CampionsSystem.BLL.Members.EligibleFreelancePlan`; source: `CampionsSystem.BLL/Members/MemberContracts.cs:27`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `planId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -962,7 +1443,7 @@ Type default JSON: **string names**; a property converter can change this.
 <a id="campionssystem-bll-members-memberdetails"></a>
 ## Members.MemberDetails
 C# type: `CampionsSystem.BLL.Members.MemberDetails`; source: `CampionsSystem.BLL/Members/MemberContracts.cs:29`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -986,7 +1467,7 @@ Type attributes:
 <a id="campionssystem-bll-members-memberemployeelink"></a>
 ## Members.MemberEmployeeLink?
 C# type: `CampionsSystem.BLL.Members.MemberEmployeeLink?`; source: `CampionsSystem.BLL/Members/MemberContracts.cs:28`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -994,7 +1475,7 @@ Type attributes:
 <a id="campionssystem-bll-members-memberlistrequest"></a>
 ## Members.MemberListRequest
 C# type: `CampionsSystem.BLL.Members.MemberListRequest`; source: `CampionsSystem.BLL/Members/MemberContracts.cs:7`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `search` | `string?` | Yes | `System.ComponentModel.DataAnnotations.MaxLengthAttribute(256)` | No declared optional default; CLR initialization and BLL checks apply |
@@ -1008,7 +1489,7 @@ Type attributes:
 <a id="campionssystem-bll-members-memberlistresult"></a>
 ## Members.MemberListResult
 C# type: `CampionsSystem.BLL.Members.MemberListResult`; source: `CampionsSystem.BLL/Members/MemberContracts.cs:37`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Members.MemberSummary>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1018,7 +1499,7 @@ Type attributes:
 <a id="campionssystem-bll-members-membersummary"></a>
 ## Members.MemberSummary
 C# type: `CampionsSystem.BLL.Members.MemberSummary`; source: `CampionsSystem.BLL/Members/MemberContracts.cs:22`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1040,7 +1521,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-members-salesassignmentdetails"></a>
 ## Members.SalesAssignmentDetails?
 C# type: `CampionsSystem.BLL.Members.SalesAssignmentDetails?`; source: `CampionsSystem.BLL/Members/MemberContracts.cs:18`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1052,7 +1533,7 @@ Type attributes:
 <a id="campionssystem-bll-members-salesassignmenthistoryitem"></a>
 ## Members.SalesAssignmentHistoryItem
 C# type: `CampionsSystem.BLL.Members.SalesAssignmentHistoryItem`; source: `CampionsSystem.BLL/Members/MemberContracts.cs:20`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1085,7 +1566,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-operations-activitycoachreport"></a>
 ## Operations.ActivityCoachReport
 C# type: `CampionsSystem.BLL.Operations.ActivityCoachReport`; source: `CampionsSystem.BLL/Operations/CoachReportService.cs:8`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `coachId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1101,7 +1582,7 @@ Type attributes:
 <a id="campionssystem-bll-operations-activitypurchaserequest"></a>
 ## Operations.ActivityPurchaseRequest
 C# type: `CampionsSystem.BLL.Operations.ActivityPurchaseRequest`; source: `CampionsSystem.BLL/Operations/SubscriptionPurchaseService.cs:9`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `memberId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1111,7 +1592,7 @@ Type attributes:
 <a id="campionssystem-bll-operations-classcoachreport"></a>
 ## Operations.ClassCoachReport
 C# type: `CampionsSystem.BLL.Operations.ClassCoachReport`; source: `CampionsSystem.BLL/Operations/CoachReportService.cs:11`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `coachEmployeeId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1122,7 +1603,7 @@ Type attributes:
 <a id="campionssystem-bll-operations-createactivitycoachrequest"></a>
 ## Operations.CreateActivityCoachRequest
 C# type: `CampionsSystem.BLL.Operations.CreateActivityCoachRequest`; source: `CampionsSystem.BLL/Operations/ActivityManagementService.cs:8`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `coachType` | [ActivityCoachType](DTO_AND_ENUM_REFERENCE.md#campionssystem-dal-enums-activitycoachtype) | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1133,7 +1614,7 @@ Type attributes:
 <a id="campionssystem-bll-operations-freelanceplanreport"></a>
 ## Operations.FreelancePlanReport
 C# type: `CampionsSystem.BLL.Operations.FreelancePlanReport`; source: `CampionsSystem.BLL/Operations/CoachReportService.cs:13`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `membershipPlanId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1147,7 +1628,7 @@ Type attributes:
 <a id="campionssystem-bll-operations-freelancepurchaserequest"></a>
 ## Operations.FreelancePurchaseRequest
 C# type: `CampionsSystem.BLL.Operations.FreelancePurchaseRequest`; source: `CampionsSystem.BLL/Operations/SubscriptionPurchaseService.cs:11`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `memberId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1157,7 +1638,7 @@ Type attributes:
 <a id="campionssystem-bll-operations-purchaseresult"></a>
 ## Operations.PurchaseResult
 C# type: `CampionsSystem.BLL.Operations.PurchaseResult`; source: `CampionsSystem.BLL/Operations/SubscriptionPurchaseService.cs:13`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `subscriptionId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1167,7 +1648,7 @@ Type attributes:
 <a id="campionssystem-bll-operations-saveclasssessionrequest"></a>
 ## Operations.SaveClassSessionRequest
 C# type: `CampionsSystem.BLL.Operations.SaveClassSessionRequest`; source: `CampionsSystem.BLL/Operations/ClassSessionService.cs:8`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `groupClassId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1179,7 +1660,7 @@ Type attributes:
 <a id="campionssystem-bll-operations-savefreelanceplanrequest"></a>
 ## Operations.SaveFreelancePlanRequest
 C# type: `CampionsSystem.BLL.Operations.SaveFreelancePlanRequest`; source: `CampionsSystem.BLL/Operations/FreelancePlanService.cs:6`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `cityId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1194,7 +1675,7 @@ Type attributes:
 <a id="campionssystem-bll-plans-catalogdetails"></a>
 ## Plans.CatalogDetails
 C# type: `CampionsSystem.BLL.Plans.CatalogDetails`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:25`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1206,7 +1687,7 @@ Type attributes:
 <a id="campionssystem-bll-plans-cataloglistrequest"></a>
 ## Plans.CatalogListRequest
 C# type: `CampionsSystem.BLL.Plans.CatalogListRequest`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:6`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `search` | `string?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1216,7 +1697,7 @@ Type attributes:
 <a id="campionssystem-bll-plans-cataloglistresult"></a>
 ## Plans.CatalogListResult
 C# type: `CampionsSystem.BLL.Plans.CatalogListResult`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:26`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Plans.CatalogDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1251,7 +1732,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-plans-eligiblemembercandidaterequest"></a>
 ## Plans.EligibleMemberCandidateRequest
 C# type: `CampionsSystem.BLL.Plans.EligibleMemberCandidateRequest`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:93`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `memberId` | `Guid?` | Yes | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1260,7 +1741,7 @@ Type attributes:
 <a id="campionssystem-bll-plans-eligiblememberdetails"></a>
 ## Plans.EligibleMemberDetails
 C# type: `CampionsSystem.BLL.Plans.EligibleMemberDetails`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:90`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `memberId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1273,7 +1754,7 @@ Type attributes:
 <a id="campionssystem-bll-plans-eligiblememberlistresult"></a>
 ## Plans.EligibleMemberListResult
 C# type: `CampionsSystem.BLL.Plans.EligibleMemberListResult`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:92`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Plans.EligibleMemberDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1290,7 +1771,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-plans-membershipplandetails"></a>
 ## Plans.MembershipPlanDetails
 C# type: `CampionsSystem.BLL.Plans.MembershipPlanDetails`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:70`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `plan` | [Plans.MembershipPlanSummary](DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-plans-membershipplansummary) | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1316,7 +1797,7 @@ C# type: `CampionsSystem.BLL.Plans.MembershipPlanListRequest`; source: `Campions
 <a id="campionssystem-bll-plans-membershipplanlistresult"></a>
 ## Plans.MembershipPlanListResult
 C# type: `CampionsSystem.BLL.Plans.MembershipPlanListResult`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:72`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Plans.MembershipPlanSummary>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1326,7 +1807,7 @@ Type attributes:
 <a id="campionssystem-bll-plans-membershipplansummary"></a>
 ## Plans.MembershipPlanSummary
 C# type: `CampionsSystem.BLL.Plans.MembershipPlanSummary`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:63`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1347,7 +1828,7 @@ Type attributes:
 <a id="campionssystem-bll-plans-planbenefitdetails"></a>
 ## Plans.PlanBenefitDetails
 C# type: `CampionsSystem.BLL.Plans.PlanBenefitDetails`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:69`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1369,7 +1850,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-plans-planreference"></a>
 ## Plans.PlanReference
 C# type: `CampionsSystem.BLL.Plans.PlanReference`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:24`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1377,7 +1858,7 @@ Type attributes:
 <a id="campionssystem-bll-plans-planreference"></a>
 ## Plans.PlanReference?
 C# type: `CampionsSystem.BLL.Plans.PlanReference?`; source: `CampionsSystem.BLL/Plans/PlanContracts.cs:24`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1427,7 +1908,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-sales-branchfinancialtotals"></a>
 ## Sales.BranchFinancialTotals
 C# type: `CampionsSystem.BLL.Sales.BranchFinancialTotals`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:73`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1468,7 +1949,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-sales-financialaccountdetails"></a>
 ## Sales.FinancialAccountDetails
 C# type: `CampionsSystem.BLL.Sales.FinancialAccountDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:89`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1479,7 +1960,7 @@ Type attributes:
 <a id="campionssystem-bll-sales-financialpartdetails"></a>
 ## Sales.FinancialPartDetails
 C# type: `CampionsSystem.BLL.Sales.FinancialPartDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:43`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `accountId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1507,7 +1988,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-sales-installmentdetails"></a>
 ## Sales.InstallmentDetails
 C# type: `CampionsSystem.BLL.Sales.InstallmentDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:49`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1527,7 +2008,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-sales-memberaudiencedetails"></a>
 ## Sales.MemberAudienceDetails
 C# type: `CampionsSystem.BLL.Sales.MemberAudienceDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:81`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1538,7 +2019,7 @@ Type attributes:
 <a id="campionssystem-bll-sales-memberoffergrantdetails"></a>
 ## Sales.MemberOfferGrantDetails
 C# type: `CampionsSystem.BLL.Sales.MemberOfferGrantDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:78`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1550,7 +2031,7 @@ Type attributes:
 <a id="campionssystem-bll-sales-offerdetails"></a>
 ## Sales.OfferDetails
 C# type: `CampionsSystem.BLL.Sales.OfferDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:38`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1568,7 +2049,7 @@ Type attributes:
 <a id="campionssystem-bll-sales-offerhistory"></a>
 ## Sales.OfferHistory
 C# type: `CampionsSystem.BLL.Sales.OfferHistory`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:86`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Sales.OfferDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1596,7 +2077,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-sales-paymentdetails"></a>
 ## Sales.PaymentDetails
 C# type: `CampionsSystem.BLL.Sales.PaymentDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:44`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1611,7 +2092,7 @@ Type attributes:
 <a id="campionssystem-bll-sales-paymenthistory"></a>
 ## Sales.PaymentHistory
 C# type: `CampionsSystem.BLL.Sales.PaymentHistory`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:84`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Sales.PaymentDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1630,7 +2111,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-sales-pricingresult"></a>
 ## Sales.PricingResult
 C# type: `CampionsSystem.BLL.Sales.PricingResult`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:40`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `originalPrice` | `decimal` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1664,7 +2145,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-sales-refunddetails"></a>
 ## Sales.RefundDetails
 C# type: `CampionsSystem.BLL.Sales.RefundDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:47`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1679,7 +2160,7 @@ Type attributes:
 <a id="campionssystem-bll-sales-refundhistory"></a>
 ## Sales.RefundHistory
 C# type: `CampionsSystem.BLL.Sales.RefundHistory`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:85`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Sales.RefundDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1699,7 +2180,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-sales-saledetails"></a>
 ## Sales.SaleDetails
 C# type: `CampionsSystem.BLL.Sales.SaleDetails`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:53`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `sale` | [Sales.SaleSummary](DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-sales-salesummary) | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1734,7 +2215,7 @@ Type attributes:
 <a id="campionssystem-bll-sales-salehistory"></a>
 ## Sales.SaleHistory
 C# type: `CampionsSystem.BLL.Sales.SaleHistory`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:72`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Sales.SaleSummary>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1756,7 +2237,7 @@ C# type: `CampionsSystem.BLL.Sales.SaleHistoryRequest`; source: `CampionsSystem.
 <a id="campionssystem-bll-sales-salereceipt"></a>
 ## Sales.SaleReceipt
 C# type: `CampionsSystem.BLL.Sales.SaleReceipt`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:83`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `saleId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1764,7 +2245,7 @@ Type attributes:
 <a id="campionssystem-bll-sales-salesummary"></a>
 ## Sales.SaleSummary
 C# type: `CampionsSystem.BLL.Sales.SaleSummary`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:50`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1793,7 +2274,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-shifts-advancedetails"></a>
 ## Shifts.AdvanceDetails
 C# type: `CampionsSystem.BLL.Shifts.AdvanceDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:51`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1825,7 +2306,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-shifts-branchfinancialsummary"></a>
 ## Shifts.BranchFinancialSummary
 C# type: `CampionsSystem.BLL.Shifts.BranchFinancialSummary`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:61`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1836,7 +2317,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-businessdaydetails"></a>
 ## Shifts.BusinessDayDetails
 C# type: `CampionsSystem.BLL.Shifts.BusinessDayDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:54`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1850,7 +2331,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-businessdaydetails"></a>
 ## Shifts.BusinessDayDetails?
 C# type: `CampionsSystem.BLL.Shifts.BusinessDayDetails?`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:54`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1864,7 +2345,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-cashcountdetails"></a>
 ## Shifts.CashCountDetails
 C# type: `CampionsSystem.BLL.Shifts.CashCountDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:37`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1883,7 +2364,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-cashmovementdetails"></a>
 ## Shifts.CashMovementDetails
 C# type: `CampionsSystem.BLL.Shifts.CashMovementDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:39`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1917,7 +2398,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-shifts-drawerposition"></a>
 ## Shifts.DrawerPosition
 C# type: `CampionsSystem.BLL.Shifts.DrawerPosition`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:19`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `branchId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1931,7 +2412,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-expensecategorydetails"></a>
 ## Shifts.ExpenseCategoryDetails
 C# type: `CampionsSystem.BLL.Shifts.ExpenseCategoryDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:50`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1948,7 +2429,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-shifts-expensedetails"></a>
 ## Shifts.ExpenseDetails
 C# type: `CampionsSystem.BLL.Shifts.ExpenseDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:43`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1970,7 +2451,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-expensereversaldetails"></a>
 ## Shifts.ExpenseReversalDetails
 C# type: `CampionsSystem.BLL.Shifts.ExpenseReversalDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:46`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1985,7 +2466,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-financialauditdetails"></a>
 ## Shifts.FinancialAuditDetails
 C# type: `CampionsSystem.BLL.Shifts.FinancialAuditDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:63`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -1999,7 +2480,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-financialmovementdetails"></a>
 ## Shifts.FinancialMovementDetails
 C# type: `CampionsSystem.BLL.Shifts.FinancialMovementDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:41`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2015,7 +2496,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-methodfinancialtotals"></a>
 ## Shifts.MethodFinancialTotals
 C# type: `CampionsSystem.BLL.Shifts.MethodFinancialTotals`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:56`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `method` | [FinancialAccountType](DTO_AND_ENUM_REFERENCE.md#campionssystem-dal-enums-financialaccounttype) | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2086,7 +2567,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-shifts-shiftdetails"></a>
 ## Shifts.ShiftDetails
 C# type: `CampionsSystem.BLL.Shifts.ShiftDetails`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:16`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2106,7 +2587,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftdetails"></a>
 ## Shifts.ShiftDetails?
 C# type: `CampionsSystem.BLL.Shifts.ShiftDetails?`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:16`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2126,7 +2607,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftfinancialsummary"></a>
 ## Shifts.ShiftFinancialSummary
 C# type: `CampionsSystem.BLL.Shifts.ShiftFinancialSummary`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:59`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `shift` | [Shifts.ShiftDetails](DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-shifts-shiftdetails) | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2135,7 +2616,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shifthistoryrequest"></a>
 ## Shifts.ShiftHistoryRequest
 C# type: `CampionsSystem.BLL.Shifts.ShiftHistoryRequest`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:35`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `branchId` | `Guid?` | Yes | No attribute; see BLL guard evidence | null |
@@ -2147,7 +2628,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftpage-campionssystem-bll-shifts-advancedetails"></a>
 ## Shifts.ShiftPage<Shifts.AdvanceDetails>
 C# type: `CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.AdvanceDetails>`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:36`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Shifts.AdvanceDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2157,7 +2638,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftpage-campionssystem-bll-shifts-cashcountdetails"></a>
 ## Shifts.ShiftPage<Shifts.CashCountDetails>
 C# type: `CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.CashCountDetails>`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:36`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Shifts.CashCountDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2167,7 +2648,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftpage-campionssystem-bll-shifts-expensecategorydetails"></a>
 ## Shifts.ShiftPage<Shifts.ExpenseCategoryDetails>
 C# type: `CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.ExpenseCategoryDetails>`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:36`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Shifts.ExpenseCategoryDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2177,7 +2658,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftpage-campionssystem-bll-shifts-expensedetails"></a>
 ## Shifts.ShiftPage<Shifts.ExpenseDetails>
 C# type: `CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.ExpenseDetails>`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:36`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Shifts.ExpenseDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2187,7 +2668,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftpage-campionssystem-bll-shifts-expensereversaldetails"></a>
 ## Shifts.ShiftPage<Shifts.ExpenseReversalDetails>
 C# type: `CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.ExpenseReversalDetails>`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:36`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Shifts.ExpenseReversalDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2197,7 +2678,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftpage-campionssystem-bll-shifts-financialauditdetails"></a>
 ## Shifts.ShiftPage<Shifts.FinancialAuditDetails>
 C# type: `CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.FinancialAuditDetails>`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:36`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Shifts.FinancialAuditDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2207,7 +2688,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftpage-campionssystem-bll-shifts-financialmovementdetails"></a>
 ## Shifts.ShiftPage<Shifts.FinancialMovementDetails>
 C# type: `CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.FinancialMovementDetails>`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:36`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Shifts.FinancialMovementDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2217,7 +2698,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-shiftpage-campionssystem-bll-shifts-shiftdetails"></a>
 ## Shifts.ShiftPage<Shifts.ShiftDetails>
 C# type: `CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.ShiftDetails>`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:36`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Shifts.ShiftDetails>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2227,7 +2708,7 @@ Type attributes:
 <a id="campionssystem-bll-shifts-vaulthistoryrequest"></a>
 ## Shifts.VaultHistoryRequest
 C# type: `CampionsSystem.BLL.Shifts.VaultHistoryRequest`; source: `CampionsSystem.BLL/Shifts/ShiftContracts.cs:40`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `branchId` | `Guid?` | Yes | No attribute; see BLL guard evidence | null |
@@ -2249,7 +2730,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-subscriptions-benefitsnapshot"></a>
 ## Subscriptions.BenefitSnapshot
 C# type: `CampionsSystem.BLL.Subscriptions.BenefitSnapshot`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:28`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2288,7 +2769,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-subscriptions-freezedetails"></a>
 ## Subscriptions.FreezeDetails
 C# type: `CampionsSystem.BLL.Subscriptions.FreezeDetails`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:34`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2316,7 +2797,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-subscriptions-holidayapplicationresult"></a>
 ## Subscriptions.HolidayApplicationResult
 C# type: `CampionsSystem.BLL.Subscriptions.HolidayApplicationResult`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:56`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `closureId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2325,7 +2806,7 @@ Type attributes:
 <a id="campionssystem-bll-subscriptions-holidayextensiondetails"></a>
 ## Subscriptions.HolidayExtensionDetails
 C# type: `CampionsSystem.BLL.Subscriptions.HolidayExtensionDetails`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:37`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `closureId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2334,7 +2815,7 @@ Type attributes:
 <a id="campionssystem-bll-subscriptions-memberentitlement"></a>
 ## Subscriptions.MemberEntitlement
 C# type: `CampionsSystem.BLL.Subscriptions.MemberEntitlement`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:57`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `hasAccess` | `bool` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2353,7 +2834,7 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 <a id="campionssystem-bll-subscriptions-subscriptiondetails"></a>
 ## Subscriptions.SubscriptionDetails
 C# type: `CampionsSystem.BLL.Subscriptions.SubscriptionDetails`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:38`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `subscription` | [Subscriptions.SubscriptionSummary](DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-subscriptions-subscriptionsummary) | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2368,7 +2849,7 @@ Type attributes:
 <a id="campionssystem-bll-subscriptions-subscriptiongrantdetails"></a>
 ## Subscriptions.SubscriptionGrantDetails
 C# type: `CampionsSystem.BLL.Subscriptions.SubscriptionGrantDetails`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:29`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2397,7 +2878,7 @@ Type attributes:
 <a id="campionssystem-bll-subscriptions-subscriptiongrantresult"></a>
 ## Subscriptions.SubscriptionGrantResult
 C# type: `CampionsSystem.BLL.Subscriptions.SubscriptionGrantResult`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:45`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `subscriptionId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2406,7 +2887,7 @@ Type attributes:
 <a id="campionssystem-bll-subscriptions-subscriptionhistory"></a>
 ## Subscriptions.SubscriptionHistory
 C# type: `CampionsSystem.BLL.Subscriptions.SubscriptionHistory`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:27`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `items` | `IReadOnlyList<Subscriptions.SubscriptionSummary>` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2428,7 +2909,7 @@ C# type: `CampionsSystem.BLL.Subscriptions.SubscriptionHistoryRequest`; source: 
 <a id="campionssystem-bll-subscriptions-subscriptionsummary"></a>
 ## Subscriptions.SubscriptionSummary
 C# type: `CampionsSystem.BLL.Subscriptions.SubscriptionSummary`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:23`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2451,7 +2932,7 @@ Type attributes:
 <a id="campionssystem-bll-subscriptions-subscriptionsummary"></a>
 ## Subscriptions.SubscriptionSummary?
 C# type: `CampionsSystem.BLL.Subscriptions.SubscriptionSummary?`; source: `CampionsSystem.BLL/Subscriptions/SubscriptionContracts.cs:23`.
-Type attributes: 
+Type attributes:
 | Exact JSON field | C# type/nesting | Null allowed | Validation/converter | Default (input) / getter |
 |---|---|---|---|---|
 | `id` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
@@ -2802,6 +3283,90 @@ JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.C
 
 JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.CheckIns.CheckInMemberMatch](#campionssystem-bll-checkins-checkinmembermatch).
 
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-classattendancedetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.ClassAttendanceDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.ClassAttendanceDetails](#campionssystem-bll-coaching-classattendancedetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-classoccurrencedetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.ClassOccurrenceDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.ClassOccurrenceDetails](#campionssystem-bll-coaching-classoccurrencedetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-classtypedetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.ClassTypeDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.ClassTypeDetails](#campionssystem-bll-coaching-classtypedetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-classessubscriptiondetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.ClassesSubscriptionDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.ClassesSubscriptionDetails](#campionssystem-bll-coaching-classessubscriptiondetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-coachearningdetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.CoachEarningDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.CoachEarningDetails](#campionssystem-bll-coaching-coachearningdetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-coachpayoutdetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.CoachPayoutDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.CoachPayoutDetails](#campionssystem-bll-coaching-coachpayoutdetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-coachprogress"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.CoachProgress>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.CoachProgress](#campionssystem-bll-coaching-coachprogress).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-coachtargetdetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.CoachTargetDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.CoachTargetDetails](#campionssystem-bll-coaching-coachtargetdetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-coachingmemberresult"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.CoachingMemberResult>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.CoachingMemberResult](#campionssystem-bll-coaching-coachingmemberresult).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-coachingpackagedetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.CoachingPackageDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.CoachingPackageDetails](#campionssystem-bll-coaching-coachingpackagedetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-privateassignmentdetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.PrivateAssignmentDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.PrivateAssignmentDetails](#campionssystem-bll-coaching-privateassignmentdetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-privateattendancedetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.PrivateAttendanceDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.PrivateAttendanceDetails](#campionssystem-bll-coaching-privateattendancedetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-privatedetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.PrivateDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.PrivateDetails](#campionssystem-bll-coaching-privatedetails).
+
+<a id="system-collections-generic-ireadonlylist-campionssystem-bll-coaching-privateexpirydetails"></a>
+
+### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Coaching.PrivateExpiryDetails>`
+
+JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.Coaching.PrivateExpiryDetails](#campionssystem-bll-coaching-privateexpirydetails).
+
 <a id="system-collections-generic-ireadonlylist-campionssystem-bll-commissions-commissionperioddetails"></a>
 
 ### `System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Commissions.CommissionPeriodDetails>`
@@ -3106,7 +3671,7 @@ JSON array for list/collection interfaces; element schema: [CampionsSystem.BLL.P
 
 ### `System.DateOnly`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="system-dateonly"></a>
 
@@ -3118,7 +3683,7 @@ Framework/constructed type. Nullable wrapper; preserve null rather than substitu
 
 ### `System.DateTimeOffset`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="system-datetimeoffset"></a>
 
@@ -3130,7 +3695,7 @@ Framework/constructed type. Nullable wrapper; preserve null rather than substitu
 
 ### `System.Guid`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="system-guid"></a>
 
@@ -3142,7 +3707,7 @@ Framework/constructed type. Nullable wrapper; preserve null rather than substitu
 
 ### `System.Text.Json.JsonElement`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="system-text-json-jsonelement"></a>
 
@@ -3154,7 +3719,7 @@ JSON array; element System.Text.Json.JsonElement
 
 ### `bool`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="bool"></a>
 
@@ -3166,7 +3731,7 @@ Framework/constructed type. Nullable wrapper; preserve null rather than substitu
 
 ### `decimal`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="decimal"></a>
 
@@ -3178,7 +3743,7 @@ Framework/constructed type. Nullable wrapper; preserve null rather than substitu
 
 ### `int`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="int"></a>
 
@@ -3190,7 +3755,7 @@ Framework/constructed type. Nullable wrapper; preserve null rather than substitu
 
 ### `long`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="long"></a>
 
@@ -3202,7 +3767,7 @@ Framework/constructed type. Nullable wrapper; preserve null rather than substitu
 
 ### `string`
 
-Framework/constructed type. 
+Framework/constructed type.
 
 <a id="string"></a>
 
@@ -3240,3 +3805,7 @@ Several response fields are explicitly C# string and project `Enum.ToString()`, 
 | SaleCategory | `NewMembership`, `Renewal` | `DAL/Enums/SaleCategory.cs` |
 | CommissionType | `SalesNew`, `SalesRenewal`, `Private`, `Activity`, `Class`, `Freelance` | `DAL/Enums/CommissionType.cs` |
 | ClassSessionStatus | `Scheduled`, `Completed`, `Cancelled` | `DAL/Enums/ClassSessionStatus.cs` |
+
+## Generator supplement
+
+Use [openapi.integration.json](openapi.integration.json) for typed success responses and verified property-converter overrides, and [OpenAPI provenance](OPENAPI_STATUS.md) to distinguish this source-derived specification from the unmodified runtime export. The catalog and BLL validation remain authoritative.

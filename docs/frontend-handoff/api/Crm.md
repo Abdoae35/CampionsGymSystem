@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Crm.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** My queue resolves actor Employee, across owned subjects. House queue/distribution is registration-branch management scope; open/complete requires ownership or Members.AssignSales with branch scope. Distribution also calls Members.AssignSales.
 
 <a id="get-api-crm-my-follow-ups"></a>
 ## GET /api/crm/my-follow-ups
 Source: `CampionsSystem.API/Controllers/CrmController.cs:9`, action `Mine`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CRM.ViewMemberFollowUps`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). My queue resolves actor Employee, across owned subjects. House queue/distribution is registration-branch management scope; open/complete requires ownership or Members.AssignSales with branch scope. Distribution also calls Members.AssignSales.
 ### Path/query inputs
@@ -50,7 +50,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-crm-house-follow-ups"></a>
 ## GET /api/crm/house-follow-ups
 Source: `CampionsSystem.API/Controllers/CrmController.cs:11`, action `House`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CRM.ManageHouseFollowUps`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). My queue resolves actor Employee, across owned subjects. House queue/distribution is registration-branch management scope; open/complete requires ownership or Members.AssignSales with branch scope. Distribution also calls Members.AssignSales.
 ### Path/query inputs
@@ -91,7 +91,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-crm-members-id-guid-follow-ups"></a>
 ## POST /api/crm/members/{id:guid}/follow-ups
 Source: `CampionsSystem.API/Controllers/CrmController.cs:13`, action `Open`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CRM.ManageMemberFollowUps`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). My queue resolves actor Employee, across owned subjects. House queue/distribution is registration-branch management scope; open/complete requires ownership or Members.AssignSales with branch scope. Distribution also calls Members.AssignSales.
 ### Path/query inputs
@@ -130,7 +130,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-crm-member-follow-ups-id-guid-complete"></a>
 ## POST /api/crm/member-follow-ups/{id:guid}/complete
 Source: `CampionsSystem.API/Controllers/CrmController.cs:15`, action `Complete`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CRM.ManageMemberFollowUps`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). My queue resolves actor Employee, across owned subjects. House queue/distribution is registration-branch management scope; open/complete requires ownership or Members.AssignSales with branch scope. Distribution also calls Members.AssignSales.
 ### Path/query inputs
@@ -162,7 +162,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-crm-house-follow-ups-id-guid-assign"></a>
 ## POST /api/crm/house-follow-ups/{id:guid}/assign
 Source: `CampionsSystem.API/Controllers/CrmController.cs:17`, action `Assign`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CRM.ManageHouseFollowUps`.
 Scope/actor: apply module rules above and [guard evidence](rules/Crm.md). BLL invokes Members.AssignSales and checks registration-branch scope; no arbitrary random owner.
 ### Path/query inputs

@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Sales.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Immutable Sale/Payment financial branch scope; normal actor uses current branch, global explicit target still requires own Employee assignment/own open Shift for finance. Original commercial owner differs from cashier/current owner/registration.
 
 <a id="post-api-sales"></a>
 ## POST /api/sales
 Source: `CampionsSystem.API/Controllers/SalesController.cs:8`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Installment additionally needs Installments.Manage. Full/standalone exact tender; reservation positive deposit; initial threshold/schedule rules. Returns SaleReceipt only; refetch details.
 ### Path/query inputs
@@ -60,7 +60,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-sales"></a>
 ## GET /api/sales
 Source: `CampionsSystem.API/Controllers/SalesController.cs:10`, action `History`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Immutable Sale/Payment financial branch scope; normal actor uses current branch, global explicit target still requires own Employee assignment/own open Shift for finance. Original commercial owner differs from cashier/current owner/registration.
 ### Path/query inputs
@@ -104,7 +104,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-sales-id-guid"></a>
 ## GET /api/sales/{id:guid}
 Source: `CampionsSystem.API/Controllers/SalesController.cs:12`, action `Details`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Immutable Sale/Payment financial branch scope; normal actor uses current branch, global explicit target still requires own Employee assignment/own open Shift for finance. Original commercial owner differs from cashier/current owner/registration.
 ### Path/query inputs
@@ -183,7 +183,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-sales-id-guid-payments"></a>
 ## POST /api/sales/{id:guid}/payments
 Source: `CampionsSystem.API/Controllers/SalesController.cs:14`, action `Pay`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Immutable Sale/Payment financial branch scope; normal actor uses current branch, global explicit target still requires own Employee assignment/own open Shift for finance. Original commercial owner differs from cashier/current owner/registration.
 ### Path/query inputs
@@ -239,7 +239,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-sales-id-guid-payments"></a>
 ## GET /api/sales/{id:guid}/payments
 Source: `CampionsSystem.API/Controllers/SalesController.cs:16`, action `Payments`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Immutable Sale/Payment financial branch scope; normal actor uses current branch, global explicit target still requires own Employee assignment/own open Shift for finance. Original commercial owner differs from cashier/current owner/registration.
 ### Path/query inputs
@@ -278,7 +278,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-sales-id-guid-installments"></a>
 ## GET /api/sales/{id:guid}/installments
 Source: `CampionsSystem.API/Controllers/SalesController.cs:18`, action `Installments`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Immutable Sale/Payment financial branch scope; normal actor uses current branch, global explicit target still requires own Employee assignment/own open Shift for finance. Original commercial owner differs from cashier/current owner/registration.
 ### Path/query inputs
@@ -310,7 +310,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-sales-id-guid-refunds"></a>
 ## POST /api/sales/{id:guid}/refunds
 Source: `CampionsSystem.API/Controllers/SalesController.cs:20`, action `Refund`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.Refund`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Manual chosen amount, including zero with empty parts; positive unrefunded collection cap. Newest-first source allocation; any finalized affected commission source rejects whole operation. Own Shift.
 ### Path/query inputs
@@ -366,7 +366,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-sales-id-guid-refunds"></a>
 ## GET /api/sales/{id:guid}/refunds
 Source: `CampionsSystem.API/Controllers/SalesController.cs:22`, action `Refunds`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Immutable Sale/Payment financial branch scope; normal actor uses current branch, global explicit target still requires own Employee assignment/own open Shift for finance. Original commercial owner differs from cashier/current owner/registration.
 ### Path/query inputs
@@ -405,7 +405,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-sales-id-guid-quick-cancel"></a>
 ## POST /api/sales/{id:guid}/quick-cancel
 Source: `CampionsSystem.API/Controllers/SalesController.cs:24`, action `QuickCancel`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Sales.QuickCancel`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Independent Sales.QuickCancel; exact 24-hour actual window and unused grant; full reversal to original accounts. Own Shift. No client refund formula.
 ### Path/query inputs
@@ -453,7 +453,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-sales-branch-totals"></a>
 ## GET /api/sales/branch-totals
 Source: `CampionsSystem.API/Controllers/SalesController.cs:26`, action `Totals`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Immutable Sale/Payment financial branch scope; normal actor uses current branch, global explicit target still requires own Employee assignment/own open Shift for finance. Original commercial owner differs from cashier/current owner/registration.
 ### Path/query inputs

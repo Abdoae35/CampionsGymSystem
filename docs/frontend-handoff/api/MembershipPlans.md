@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Plans.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 
 <a id="get-api-membership-plans"></a>
 ## GET /api/membership-plans
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:8`, action `List`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -57,7 +57,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-membership-plans-id-guid"></a>
 ## GET /api/membership-plans/{id:guid}
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:10`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -113,7 +113,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-membership-plans"></a>
 ## POST /api/membership-plans
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:12`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -183,7 +183,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-membership-plans-id-guid"></a>
 ## PUT /api/membership-plans/{id:guid}
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:14`, action `Update`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -253,7 +253,7 @@ Schema-shaped response (not an executed response):
 <a id="patch-api-membership-plans-id-guid-status"></a>
 ## PATCH /api/membership-plans/{id:guid}/status
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:16`, action `Status`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -314,7 +314,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-membership-plans-id-guid-benefits"></a>
 ## GET /api/membership-plans/{id:guid}/benefits
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:18`, action `Benefits`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -346,7 +346,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-membership-plans-id-guid-benefits"></a>
 ## PUT /api/membership-plans/{id:guid}/benefits
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:20`, action `SetBenefits`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -383,7 +383,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-membership-plans-id-guid-eligible-members"></a>
 ## GET /api/membership-plans/{id:guid}/eligible-members
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:22`, action `Eligible`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.ManageEligibleMembers`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -425,7 +425,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-membership-plans-id-guid-eligible-members-candidates"></a>
 ## GET /api/membership-plans/{id:guid}/eligible-members/candidates
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:24`, action `Candidates`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.ManageEligibleMembers`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -461,7 +461,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-membership-plans-id-guid-eligible-members"></a>
 ## POST /api/membership-plans/{id:guid}/eligible-members
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:26`, action `AddEligible`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.ManageEligibleMembers`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs
@@ -498,7 +498,7 @@ false
 <a id="delete-api-membership-plans-id-guid-eligible-members-memberid-guid"></a>
 ## DELETE /api/membership-plans/{id:guid}/eligible-members/{memberId:guid}
 Source: `CampionsSystem.API/Controllers/MembershipPlansController.cs:28`, action `RemoveEligible`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.ManageEligibleMembers`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Plan owning BranchId controls administration, CityId controls future access. Global/unmapped/internal rules differ; Employee detail/list opt-in also needs MembershipPlans.Manage. Freelance eligibility uses plan scope without restricting Member registration branch.
 ### Path/query inputs

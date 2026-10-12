@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Branches.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Current assignment scope for reads, destination and source scope for transfer; inactive/overlapping/future assignments fail closed. Transfer requires own Shift already closed and preserves CRM ownership.
 
 <a id="get-api-employees-employeeid-guid-branch-assignment"></a>
 ## GET /api/employees/{employeeId:guid}/branch-assignment
 Source: `CampionsSystem.API/Controllers/EmployeeBranchesController.cs:11`, action `Current`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Branches.md). Current assignment scope for reads, destination and source scope for transfer; inactive/overlapping/future assignments fail closed. Transfer requires own Shift already closed and preserves CRM ownership.
 ### Path/query inputs
@@ -41,7 +41,7 @@ null
 <a id="get-api-employees-employeeid-guid-branch-history"></a>
 ## GET /api/employees/{employeeId:guid}/branch-history
 Source: `CampionsSystem.API/Controllers/EmployeeBranchesController.cs:14`, action `History`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Branches.md). Current assignment scope for reads, destination and source scope for transfer; inactive/overlapping/future assignments fail closed. Transfer requires own Shift already closed and preserves CRM ownership.
 ### Path/query inputs
@@ -73,7 +73,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-employees-employeeid-guid-assign-branch"></a>
 ## POST /api/employees/{employeeId:guid}/assign-branch
 Source: `CampionsSystem.API/Controllers/EmployeeBranchesController.cs:17`, action `Assign`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Branches.md). Current assignment scope for reads, destination and source scope for transfer; inactive/overlapping/future assignments fail closed. Transfer requires own Shift already closed and preserves CRM ownership.
 ### Path/query inputs
@@ -121,7 +121,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-employees-employeeid-guid-transfer-branch"></a>
 ## POST /api/employees/{employeeId:guid}/transfer-branch
 Source: `CampionsSystem.API/Controllers/EmployeeBranchesController.cs:19`, action `Transfer`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.Transfer`.
 Scope/actor: apply module rules above and [guard evidence](rules/Branches.md). Current assignment scope for reads, destination and source scope for transfer; inactive/overlapping/future assignments fail closed. Transfer requires own Shift already closed and preserves CRM ownership.
 ### Path/query inputs

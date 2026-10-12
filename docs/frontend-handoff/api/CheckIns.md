@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/CheckIns.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Trusted visited operational branch + sold City snapshot. Ordinary users cannot target another branch; global target allowed with workflow capability. Exactly one identity; authoritative re-evaluation and own branch closure/date rules. Check-in does not require own Shift.
 
 <a id="post-api-check-ins"></a>
 ## POST /api/check-ins
 Source: `CampionsSystem.API/Controllers/CheckInsController.cs:8`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CheckIns.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/CheckIns.md). HTTP 200 may contain decision.allowed=false and checkIn=null. Stable operation retry returns original actual entry. Scanner=0/Manual=1; Coach=2 rejected. Borrow requires explicit confirmation.
 ### Path/query inputs
@@ -70,7 +70,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-check-ins-evaluate"></a>
 ## POST /api/check-ins/evaluate
 Source: `CampionsSystem.API/Controllers/CheckInsController.cs:10`, action `Evaluate`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CheckIns.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/CheckIns.md). Read-only HTTP 200 decision denial; preview is neither reservation nor authorization token. Creation rechecks.
 ### Path/query inputs
@@ -125,7 +125,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-check-ins"></a>
 ## GET /api/check-ins
 Source: `CampionsSystem.API/Controllers/CheckInsController.cs:12`, action `History`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CheckIns.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/CheckIns.md). Trusted visited operational branch + sold City snapshot. Ordinary users cannot target another branch; global target allowed with workflow capability. Exactly one identity; authoritative re-evaluation and own branch closure/date rules. Check-in does not require own Shift.
 ### Path/query inputs
@@ -170,7 +170,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-check-ins-members"></a>
 ## GET /api/check-ins/members
 Source: `CampionsSystem.API/Controllers/CheckInsController.cs:14`, action `Lookup`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CheckIns.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/CheckIns.md). Trusted visited operational branch + sold City snapshot. Ordinary users cannot target another branch; global target allowed with workflow capability. Exactly one identity; authoritative re-evaluation and own branch closure/date rules. Check-in does not require own Shift.
 ### Path/query inputs
@@ -211,7 +211,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-members-memberid-guid-check-ins-current-business-day"></a>
 ## GET /api/members/{memberId:guid}/check-ins/current-business-day
 Source: `CampionsSystem.API/Controllers/CheckInsController.cs:16`, action `Today`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CheckIns.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/CheckIns.md). Trusted visited operational branch + sold City snapshot. Ordinary users cannot target another branch; global target allowed with workflow capability. Exactly one identity; authoritative re-evaluation and own branch closure/date rules. Check-in does not require own Shift.
 ### Path/query inputs
@@ -252,7 +252,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-members-memberid-guid-borrowed-gym-sessions"></a>
 ## GET /api/members/{memberId:guid}/borrowed-gym-sessions
 Source: `CampionsSystem.API/Controllers/CheckInsController.cs:19`, action `Debts`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CheckIns.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/CheckIns.md). Trusted visited operational branch + sold City snapshot. Ordinary users cannot target another branch; global target allowed with workflow capability. Exactly one identity; authoritative re-evaluation and own branch closure/date rules. Check-in does not require own Shift.
 ### Path/query inputs
@@ -294,7 +294,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-check-ins-trials"></a>
 ## POST /api/check-ins/trials
 Source: `CampionsSystem.API/Controllers/CheckInsController.cs:21`, action `Trial`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:CheckIns.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/CheckIns.md). HTTP 200 may be denied; existing issued invitation/phone/branch, one trial identity and exact GUEST benefit unit where linked. No invitation issuance API.
 ### Path/query inputs

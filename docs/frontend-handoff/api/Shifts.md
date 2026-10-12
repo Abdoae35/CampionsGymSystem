@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Shifts.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Manual actor-owned Shift. Open requires active linked Employee/assignment/configured drawer; close only original opener/current expectedVersion. Scoped history can view branch colleagues; summary also checks Vault.View.
 
 <a id="post-api-shifts"></a>
 ## POST /api/shifts
 Source: `CampionsSystem.API/Controllers/ShiftsController.cs:8`, action `Open`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Shifts.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Manual actor-owned Shift. Open requires active linked Employee/assignment/configured drawer; close only original opener/current expectedVersion. Scoped history can view branch colleagues; summary also checks Vault.View.
 ### Path/query inputs
@@ -63,7 +63,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-shifts-id-guid-close"></a>
 ## POST /api/shifts/{id:guid}/close
 Source: `CampionsSystem.API/Controllers/ShiftsController.cs:10`, action `Close`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Shifts.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Manual actor-owned Shift. Open requires active linked Employee/assignment/configured drawer; close only original opener/current expectedVersion. Scoped history can view branch colleagues; summary also checks Vault.View.
 ### Path/query inputs
@@ -118,7 +118,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-shifts-current"></a>
 ## GET /api/shifts/current
 Source: `CampionsSystem.API/Controllers/ShiftsController.cs:12`, action `Current`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Shifts.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Manual actor-owned Shift. Open requires active linked Employee/assignment/configured drawer; close only original opener/current expectedVersion. Scoped history can view branch colleagues; summary also checks Vault.View.
 ### Path/query inputs
@@ -150,7 +150,7 @@ null
 <a id="get-api-shifts"></a>
 ## GET /api/shifts
 Source: `CampionsSystem.API/Controllers/ShiftsController.cs:14`, action `History`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Shifts.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Manual actor-owned Shift. Open requires active linked Employee/assignment/configured drawer; close only original opener/current expectedVersion. Scoped history can view branch colleagues; summary also checks Vault.View.
 ### Path/query inputs
@@ -193,7 +193,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-shifts-id-guid"></a>
 ## GET /api/shifts/{id:guid}
 Source: `CampionsSystem.API/Controllers/ShiftsController.cs:16`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Shifts.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Manual actor-owned Shift. Open requires active linked Employee/assignment/configured drawer; close only original opener/current expectedVersion. Scoped history can view branch colleagues; summary also checks Vault.View.
 ### Path/query inputs
@@ -240,7 +240,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-shifts-id-guid-summary"></a>
 ## GET /api/shifts/{id:guid}/summary
 Source: `CampionsSystem.API/Controllers/ShiftsController.cs:18`, action `Summary`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Shifts.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). BLL requires Vault.View in addition to Shifts.View.
 ### Path/query inputs

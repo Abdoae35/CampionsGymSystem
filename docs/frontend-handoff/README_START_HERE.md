@@ -1,45 +1,34 @@
-# Campeones backend → frontend handoff
+# Campeones backend → React frontend handoff
 
-Latest source check: **191 controller actions / 36 Coaching**; one late Member attendance read fully documented in [source addendum](LATE_SOURCE_ADDENDUM.md). No DTO contract drift. Occurrence future-date concern is corrected in later source. Captured OpenAPI retains its exact earlier snapshot.
+Finalized 2026-10-12 against clean Git **`master` at `476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80`** (`FrontEndDoc`), containing the completed backend commit **a2a0c56**. The branch differs from the earlier implementation-session handoff; no branch was switched. This package replaces the earlier baseline/draft integration briefing.
 
+**191 documented controller API operations across 23 controllers, including all 36 completed Private Coaching, Classes and coach-finance routes.** The actual OpenAPI has **192 operations** including Development-only database health. The separate Development document-serving registration makes 193 exposed registrations. Four legacy routes return 410; route count includes these compatibility contracts.
 
-Latest branch update: frozen 2026-10-12T10:44:04.604445+00:00 at `bf733e2502a85603b80f8ad8a01747264a0f518b` plus uncommitted operational files adds **35 Coaching routes** (190 current actions total). The later isolated snapshot builds; initial CS8999 was superseded by concurrent domain publication. Stable contracts below remain at 0bc4476; new draft contracts/confirmed policies and three legacy Class 410 changes are in [branch-only status](BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md). **Use that update before interpreting any earlier pending/no-route statement below.**
+Read in order:
 
+1. [Authentication, permissions and branch context](AUTH_PERMISSIONS_BRANCH_CONTEXT.md).
+2. [React/API setup and examples](INTEGRATION_SETUP_AND_EXAMPLES.md).
+3. [Full endpoint catalog](API_ENDPOINT_CATALOG.md), [DTOs/enums](DTO_AND_ENUM_REFERENCE.md), and [raw OpenAPI](openapi.json), [source-derived frontend specification](openapi.integration.json), with their [provenance/limits](OPENAPI_STATUS.md).
+4. [All business workflows](FRONTEND_WORKFLOWS_AND_BUSINESS_RULES.md), [Private/Classes confirmed rules](PRIVATE_CLASSES.md), and [React Coaching integration](REACT_COACHING_INTEGRATION.md).
+5. [Operational rollout and unresolved limitations](OPEN_QUESTIONS_AND_GAPS.md), [verification](COMPLETENESS_AUDIT.md), and [Postman examples](postman/README.md).
+6. [Starter for a separate frontend conversation](HANDOFF_FOR_NEW_CHAT.txt).
 
-Reviewed 2026-10-12. Repository: `https://github.com/Abdoae35/CampionsGymSystem`.
-Current branch: `PrivateCoaching-Classes-Implementation`; committed baseline: `0bc4476ef184dd95a4f771624d4a8860c00f1332`.
-Working-tree audit snapshot: **2026-10-12T10:07:06.774981+00:00**. Other work continued during this audit; this is a versioned briefing, not a promise about later edits. Live remote `master`, `SalesCommissions&Targets`, and `PrivateCoaching&Classes` were read and all matched this commit. At initial inspection implementation branch had no upstream; concurrent domain publication later created one. No branch was switched.
-
-ASP.NET Core/.NET 10, API → BLL → EF Core/PostgreSQL, Guid Identity, Bearer JWT, capability permissions and branch scope. Source controllers, service contracts/guards, serializers, registrations, configurations, migrations and test assertions are the authority. Older docs contain superseded “future” statements.
-
-| Module | Verified availability at committed baseline |
+| Implemented area | Available contracts |
 |---|---|
-| Auth/permissions | Login and current-user APIs; permission evaluation implemented; administration UI APIs absent |
-| Branches/employees | Scoped profiles, assignment/transfer/status; account provisioning separate |
-| Members/CRM | Registration, ownership, leads, conversion, interactions and explicit follow-ups |
-| Plans/benefits | Branch plans, global catalogs, Freelance eligibility |
-| Subscriptions/check-in | Paid lifecycle through Sales; freezes/extensions/holidays, free employee entitlement, entrance/trials/borrowing |
-| Sales/payments/offers | Customer gym finance, deposits/installments/split tender, cancellation/refunds/Quick Cancel |
-| Shifts/vault/expenses/advances | Manual shifts, shared drawer, direct paid expenses/returns, advances and reports |
-| Sales commissions | Independent New/Renewal rules, periods, progress, source statements/finalization; payouts deferred |
-| Legacy Activities/Classes/Freelance | Narrow existing operations; **partial**, including one deliberately disabled 410 route |
-| New Private/Classes/coach earnings | **Domain committed, 35 operational routes uncommitted/in progress** in later snapshot; full branch contracts linked above |
-| Payroll, commission payouts, sync, messaging, member financial branch transfer | Planned/deferred; no integration contract supplied |
+| Auth, capabilities, branches, employees | Login/me, effective Allow/Deny, scoped administration and assignments |
+| Members and CRM | Registration, lookup, ownership, Leads/conversion/interactions/follow-ups |
+| Plans, benefits, subscriptions, reception | Catalogs, paid lifecycle, freezes/extensions/holidays, employee entitlement, gym/trial/borrowed entrance |
+| Member Sales and finance | Collections, split tender/installments, Offers, cancellation/refunds, shifts/drawer/expenses/advances/reports |
+| Independent Sales commissions | Explicit rules/periods, actual collections/refund allocations, statements and finalization; Sales commission payout remains deferred |
+| Private coaching | Catalog/purchase, search/history, reception-required session delivery, transfers, Owner expiry authorization |
+| Classes | Shared packages, type/occurrence management, individual attendance without reception, histories and completed-occurrence averages/targets |
+| Coach finance | Independent targets, net-funded Private earnings recognition, deferred funding, balances, arbitrary partial payouts/history |
+| Legacy operations | Narrow Activity/Freelance and historical class reports; four explicitly disabled compatibility writes |
 
-Evidence labels: **VERIFIED FROM CODE** = reviewed committed source; **TESTED** = fresh checks specifically listed in audit; **DOCUMENTED ONLY** = historical report not rerun; **PLANNED OR NOT IMPLEMENTED** = absent public contract or draft; **UNKNOWN** = cannot establish from this inspection. Source-verified does not mean runtime exercised against operational data.
+**Classes compensation remains unimplemented until the Owner defines its formula.** Attendance/statistics/configurable average targets are implemented. No frontend commission rate or payout calculation should be invented. Finalized-earnings refund adjustments and coach-payout corrections are also unavailable pending policy.
 
-Read in this order:
+Implementation does not prove deployment readiness. The two Coaching migrations were generated and tested in disposable schemas, but the implementation handoff reports they were **not applied to application/Production**. No new capability grants/default targets/seed cash were created. Deployment schema/grants/accounts and CORS/host must be verified by the authorized backend operator. This documentation task did not access any database or run operational requests.
 
-1. [Auth/permissions/branch context](AUTH_PERMISSIONS_BRANCH_CONTEXT.md), then [setup](INTEGRATION_SETUP_AND_EXAMPLES.md).
-2. [Endpoint master index](API_ENDPOINT_CATALOG.md) and its per-controller files; [DTOs/enums](DTO_AND_ENUM_REFERENCE.md).
-3. [Workflows/business rules](FRONTEND_WORKFLOWS_AND_BUSINESS_RULES.md).
-4. [Gaps/blockers](OPEN_QUESTIONS_AND_GAPS.md), [OpenAPI provenance](OPENAPI_STATUS.md), [completeness audit](COMPLETENESS_AUDIT.md).
-5. Paste [new-chat starter](HANDOFF_FOR_NEW_CHAT.txt) into a separate conversation with this whole folder attached.
+The existing substantial handoff was reused; accurate DTOs and workflows were retained, the late member-attendance route was integrated, and OpenAPI/metadata were recaptured from committed isolated source. The reported implementation suite is **822/822 passed**; it was not rerun for documentation. [Compiler supplement](endpoint-contracts.json) supplies IActionResult response types/policies missing from generated OpenAPI. Use openapi.integration.json for response/auth/property-converter supplements and review the catalog/BLL constraints when generating clients.
 
-Recommended implementation: auth → effective capabilities/current branch → employee own shift → members/CRM and product browsing → Sales/entitlements/check-in → operational finance → commission reports/admin → approved legacy narrow screens. Defer new Coaching screens until a verified published contract exists. Inspect the separate React/TS/Vite/Tailwind/shadcn-style/Router/TanStack Query/RHF/Zod repository first; no existing adapters are assumed.
-
-Blockers: initial working tree failed compilation; later frozen branch source builds, but feature release verification is pending. Live draft files changed during audit. CORS is not configured. Credentials, grants, branch/city catalogs, account/drawer initialization and commission configuration must be supplied by authorized backend administration. The historically missing three Sales grants are **not rechecked against a database**. The exported baseline OpenAPI omits many IActionResult response schemas and authorization metadata; use the supplemental catalog, not generated clients alone.
-
-Every file in this folder is portable. Source references are repo-relative provenance; all handoff cross-links stay inside the folder. All examples are fabricated and must be mapped to configured test fixtures. Do not execute them against production.
-
-[Current branch contract update](BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md) · [All current branch endpoints](branch-only/API_ENDPOINT_CATALOG.md) · [Every portable file](PORTABLE_FILE_INDEX.md). The root contracts are stable baseline; branch-only/ contains the complete later snapshot with explicit pending availability.
+All current integration links are portable within this folder. C# paths are provenance, not required external files. Examples are fabricated and require configured authorized fixtures. [branch-only/](branch-only/README_ARCHIVE.md) preserves historical captures, clearly superseded by the root contracts. [File index](PORTABLE_FILE_INDEX.md).

@@ -1,8 +1,9 @@
-# Every portable handoff file
+# Portable handoff file index
 
-Root contracts are stable baseline; branch-only/ is the full frozen pending snapshot; LATE_SOURCE_ADDENDUM.md supplies the final source-only route/update. All links stay within this folder. ZIP contains this folder only, with no settings/data/logs.
+Start with [README_START_HERE.md](README_START_HERE.md). Root contracts describe the completed backend; branch-only preserves superseded historical evidence. No settings, environments, secrets, operational data, binaries or logs are included.
 
 - [API_ENDPOINT_CATALOG.md](API_ENDPOINT_CATALOG.md)
+- [API_ERRORS.md](API_ERRORS.md)
 - [AUDIT_MANIFEST.json](AUDIT_MANIFEST.json)
 - [AUTH_PERMISSIONS_BRANCH_CONTEXT.md](AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 - [BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md](BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md)
@@ -15,11 +16,15 @@ Root contracts are stable baseline; branch-only/ is the full frozen pending snap
 - [OPENAPI_STATUS.md](OPENAPI_STATUS.md)
 - [OPEN_QUESTIONS_AND_GAPS.md](OPEN_QUESTIONS_AND_GAPS.md)
 - [PORTABLE_FILE_INDEX.md](PORTABLE_FILE_INDEX.md)
+- [PRIVATE_CLASSES.md](PRIVATE_CLASSES.md)
+- [REACT_COACHING_INTEGRATION.md](REACT_COACHING_INTEGRATION.md)
 - [README_START_HERE.md](README_START_HERE.md)
+- [VERIFICATION_REPORT.json](VERIFICATION_REPORT.json)
 - [api/Auth.md](api/Auth.md)
 - [api/Branches.md](api/Branches.md)
 - [api/BusinessDays.md](api/BusinessDays.md)
 - [api/CheckIns.md](api/CheckIns.md)
+- [api/Coaching.md](api/Coaching.md)
 - [api/Commissions.md](api/Commissions.md)
 - [api/Crm.md](api/Crm.md)
 - [api/DTO_DECLARATION_EVIDENCE.md](api/DTO_DECLARATION_EVIDENCE.md)
@@ -45,6 +50,7 @@ Root contracts are stable baseline; branch-only/ is the full frozen pending snap
 - [api/rules/Authentication.md](api/rules/Authentication.md)
 - [api/rules/Branches.md](api/rules/Branches.md)
 - [api/rules/CheckIns.md](api/rules/CheckIns.md)
+- [api/rules/Coaching.md](api/rules/Coaching.md)
 - [api/rules/Commissions.md](api/rules/Commissions.md)
 - [api/rules/Crm.md](api/rules/Crm.md)
 - [api/rules/Employees.md](api/rules/Employees.md)
@@ -56,7 +62,9 @@ Root contracts are stable baseline; branch-only/ is the full frozen pending snap
 - [api/rules/Subscriptions.md](api/rules/Subscriptions.md)
 - [branch-only/API_ENDPOINT_CATALOG.md](branch-only/API_ENDPOINT_CATALOG.md)
 - [branch-only/DTO_AND_ENUM_REFERENCE.md](branch-only/DTO_AND_ENUM_REFERENCE.md)
+- [branch-only/INITIAL_AUDIT_MANIFEST.json](branch-only/INITIAL_AUDIT_MANIFEST.json)
 - [branch-only/OPENAPI_STATUS.md](branch-only/OPENAPI_STATUS.md)
+- [branch-only/README_ARCHIVE.md](branch-only/README_ARCHIVE.md)
 - [branch-only/api/Auth.md](branch-only/api/Auth.md)
 - [branch-only/api/Branches.md](branch-only/api/Branches.md)
 - [branch-only/api/BusinessDays.md](branch-only/api/BusinessDays.md)
@@ -101,4 +109,7 @@ Root contracts are stable baseline; branch-only/ is the full frozen pending snap
 - [branch-only/openapi.json](branch-only/openapi.json)
 - [endpoint-contracts.json](endpoint-contracts.json)
 - [late-endpoint-contract.json](late-endpoint-contract.json)
+- [openapi.integration.json](openapi.integration.json)
 - [openapi.json](openapi.json)
+- [postman/Campions.Auth.postman_collection.json](postman/Campions.Auth.postman_collection.json)
+- [postman/README.md](postman/README.md)

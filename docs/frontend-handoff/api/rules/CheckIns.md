@@ -1,6 +1,6 @@
 # CheckIns rule/validation evidence
 
-Baseline source, not new Private drafts. Shared cross-cutting helpers: Authentication, Branches, Operations and Shifts.
+Completed source; deployment/configuration prerequisites are separate. Shared cross-cutting helpers: Authentication, Branches, Operations and Shifts.
 
 ## CampionsSystem.BLL/CheckIns/CheckInService.Queries.cs
 

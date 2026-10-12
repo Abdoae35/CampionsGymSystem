@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Commissions.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 
 <a id="post-api-commissions-rules"></a>
 ## POST /api/commissions/rules
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:8`, action `Configure`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.ManageRules`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs
@@ -59,7 +59,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-commissions-rules"></a>
 ## GET /api/commissions/rules
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:10`, action `Rules`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs
@@ -100,7 +100,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-commissions-periods"></a>
 ## POST /api/commissions/periods
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:13`, action `Open`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.ClosePeriod`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs
@@ -150,7 +150,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-commissions-periods"></a>
 ## GET /api/commissions/periods
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:15`, action `History`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs
@@ -190,7 +190,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-commissions-periods-id-guid-finalize"></a>
 ## POST /api/commissions/periods/{id:guid}/finalize
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:18`, action `Finalize`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.ClosePeriod`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs
@@ -237,7 +237,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-commissions-periods-id-guid"></a>
 ## GET /api/commissions/periods/{id:guid}
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:20`, action `Progress`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs
@@ -299,7 +299,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-commissions-periods-id-guid-employees-employeeid-guid"></a>
 ## GET /api/commissions/periods/{id:guid}/employees/{employeeId:guid}
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:23`, action `Employee`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs
@@ -370,7 +370,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-commissions-periods-id-guid-sources"></a>
 ## GET /api/commissions/periods/{id:guid}/sources
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:25`, action `Sources`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs
@@ -411,7 +411,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-commissions-periods-id-guid-refund-allocations"></a>
 ## GET /api/commissions/periods/{id:guid}/refund-allocations
 Source: `CampionsSystem.API/Controllers/CommissionsController.cs:28`, action `RefundAllocations`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Commissions.md). Selling/collection branch scope; permission lets read branch statements, not just own employee. Rules/open/finalize additionally require Branches.AccessAll. No own Shift requirement for commission read/config/admin.
 ### Path/query inputs

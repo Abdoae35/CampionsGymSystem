@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Plans.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Global shared catalog. Reads need View; writes additionally require Branches.AccessAll. Retained inactive template selections/history remain distinct from new active selections.
 
 <a id="get-api-membership-benefits"></a>
 ## GET /api/membership-benefits
 Source: `CampionsSystem.API/Controllers/MembershipBenefitsController.cs:8`, action `List`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; writes additionally require Branches.AccessAll. Retained inactive template selections/history remain distinct from new active selections.
 ### Path/query inputs
@@ -50,7 +50,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-membership-benefits-id-guid"></a>
 ## GET /api/membership-benefits/{id:guid}
 Source: `CampionsSystem.API/Controllers/MembershipBenefitsController.cs:10`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; writes additionally require Branches.AccessAll. Retained inactive template selections/history remain distinct from new active selections.
 ### Path/query inputs
@@ -89,7 +89,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-membership-benefits"></a>
 ## POST /api/membership-benefits
 Source: `CampionsSystem.API/Controllers/MembershipBenefitsController.cs:12`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; writes additionally require Branches.AccessAll. Retained inactive template selections/history remain distinct from new active selections.
 ### Path/query inputs
@@ -135,7 +135,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-membership-benefits-id-guid"></a>
 ## PUT /api/membership-benefits/{id:guid}
 Source: `CampionsSystem.API/Controllers/MembershipBenefitsController.cs:14`, action `Update`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; writes additionally require Branches.AccessAll. Retained inactive template selections/history remain distinct from new active selections.
 ### Path/query inputs
@@ -181,7 +181,7 @@ Schema-shaped response (not an executed response):
 <a id="patch-api-membership-benefits-id-guid-status"></a>
 ## PATCH /api/membership-benefits/{id:guid}/status
 Source: `CampionsSystem.API/Controllers/MembershipBenefitsController.cs:16`, action `Status`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; writes additionally require Branches.AccessAll. Retained inactive template selections/history remain distinct from new active selections.
 ### Path/query inputs

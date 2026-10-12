@@ -1,6 +1,6 @@
 # Operations rule/validation evidence
 
-Baseline source, not new Private drafts. Shared cross-cutting helpers: Authentication, Branches, Operations and Shifts.
+Completed source; deployment/configuration prerequisites are separate. Shared cross-cutting helpers: Authentication, Branches, Operations and Shifts.
 
 ## CampionsSystem.BLL/Operations/OperationAccess.cs
 
@@ -350,7 +350,7 @@ Lines 13–33
             && x.GroupClassId == group.Id, ct)) throw new BusinessRuleException("Schedule belongs to another class.");
         var session = id.HasValue ? await db.ClassSessions.SingleOrDefaultAsync(x => x.Id == id, ct)
             ?? throw new BusinessRuleException("Session not found.") : new ClassSession { GroupClassId = group.Id, BranchId = group.BranchId };
-        if (session.GroupClassId != group.Id || (id.HasValue && session.Status != ClassSessionStatus.Scheduled))
+        if (session.OperationId != null || session.GroupClassId != group.Id || (id.HasValue && session.Status != ClassSessionStatus.Scheduled))
             throw new BusinessRuleException("Executed/cancelled sessions cannot be rewritten; use an explicit correction workflow.");
         if (id.HasValue && await db.CheckIns.AnyAsync(x => x.ClassSessionId == id, ct)
             && (session.CoachEmployeeId != request.CoachEmployeeId || session.StartedAt != request.StartedAt))
@@ -360,20 +360,14 @@ Lines 13–33
 
 ```
 
-Lines 41–51
+Lines 39–43
 
 ```csharp
 
-    public async Task<Guid> AttendAsync(Guid sessionId, Guid memberId, CancellationToken ct = default)
-    {
-        var session = await db.ClassSessions.SingleOrDefaultAsync(x => x.Id == sessionId, ct)
-            ?? throw new BusinessRuleException("Session not found.");
-        var actor = await access.RequireAsync("Classes.Manage", session.BranchId, ct);
-        if (session.Status == ClassSessionStatus.Cancelled) throw new BusinessRuleException("Cancelled class cannot record attendance.");
-        if (!await db.Members.AnyAsync(x => x.Id == memberId && x.IsActive, ct)) throw new BusinessRuleException("Active member required.");
-        if (await db.CheckIns.AnyAsync(x => x.ClassSessionId == sessionId && x.MemberId == memberId, ct))
-            throw new BusinessRuleException("Member is already attending this session.");
-        var row = new CheckIn { ClassSessionId = session.Id, GroupClassId = session.GroupClassId, BranchId = session.BranchId,
-            CoachEmployeeId = session.CoachEmployeeId, MemberId = memberId, CheckInType = CheckInType.Class,
+    }
+
+    public Task<Guid> AttendAsync(Guid sessionId, Guid memberId, CancellationToken ct = default)
+        => throw new BusinessRuleException("Legacy package-free class attendance is disabled; use the Classes package attendance workflow.");
+}
 
 ```

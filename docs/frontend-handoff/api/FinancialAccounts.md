@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Sales.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Account list at resolved authorized operational branch; provisioning requires Branches.Manage AND Branches.AccessAll and creates zero-opening Cash/InstaPay account.
 
 <a id="get-api-financial-accounts"></a>
 ## GET /api/financial-accounts
 Source: `CampionsSystem.API/Controllers/FinancialAccountsController.cs:8`, action `Accounts`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Account list at resolved authorized operational branch; provisioning requires Branches.Manage AND Branches.AccessAll and creates zero-opening Cash/InstaPay account.
 ### Path/query inputs
@@ -41,7 +41,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-financial-accounts"></a>
 ## POST /api/financial-accounts
 Source: `CampionsSystem.API/Controllers/FinancialAccountsController.cs:10`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Branches.Manage`, `Permission:Branches.AccessAll`.
 Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Account list at resolved authorized operational branch; provisioning requires Branches.Manage AND Branches.AccessAll and creates zero-opening Cash/InstaPay account.
 ### Path/query inputs

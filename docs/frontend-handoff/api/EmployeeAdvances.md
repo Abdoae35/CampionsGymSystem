@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Shifts.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Branch/account history and active receiving Employee; recording Employee must have own operational Shift. Separate from payroll or expense settlement.
 
 <a id="post-api-employee-advances"></a>
 ## POST /api/employee-advances
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:28`, action `Paid`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Advances.Create`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account history and active receiving Employee; recording Employee must have own operational Shift. Separate from payroll or expense settlement.
 ### Path/query inputs
@@ -66,7 +66,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-employee-advances"></a>
 ## GET /api/employee-advances
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:30`, action `History`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Advances.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account history and active receiving Employee; recording Employee must have own operational Shift. Separate from payroll or expense settlement.
 ### Path/query inputs
@@ -109,7 +109,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-employee-advances-id-guid"></a>
 ## GET /api/employee-advances/{id:guid}
 Source: `CampionsSystem.API/Controllers/ExpensesController.cs:32`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Advances.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch/account history and active receiving Employee; recording Employee must have own operational Shift. Separate from payroll or expense settlement.
 ### Path/query inputs

@@ -1,8 +1,5 @@
 # Frontend workflows and authoritative rules
 
-Latest branch update: frozen 2026-10-12T10:44:04.604445+00:00 at `bf733e2502a85603b80f8ad8a01747264a0f518b` plus uncommitted operational files adds **35 Coaching routes** (190 current actions total). The later isolated snapshot builds; initial CS8999 was superseded by concurrent domain publication. Stable contracts below remain at 0bc4476; new draft contracts/confirmed policies and three legacy Class 410 changes are in [branch-only status](BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md). **Use that update before interpreting any earlier pending/no-route statement below.**
-
-
 All routes below are **VERIFIED FROM CODE** on the committed baseline. Request/response fields and exact filters: [catalog](API_ENDPOINT_CATALOG.md), [DTO reference](DTO_AND_ENUM_REFERENCE.md), and per-module rule evidence. Recommendations are explicitly marked. No sample operation was sent to operational data.
 
 ## Startup and operational readiness
@@ -61,16 +58,14 @@ Progress `/periods/{id}`, employee statements, `/sources`, `/refund-allocations`
 
 Target attainment changes rate on all eligible category money independently; aggregate once, round each category AwayFromZero to 2 decimals, then sum. Frontend may format progress but must use returned commission values. Refund allocates newest actual payments first; if any allocated source is finalized, the whole refund rejects without changing money/entitlement. Finalize needs global+ClosePeriod, original expectedVersion, configured categories, and effective BusinessDate later than EndDate. Frozen evidence/rates are read thereafter. It is not payout, payroll or monthly close.
 
-## Legacy narrow operations and pending Coaching
+## Completed Private, Classes and coach finance
 
-Existing `/api/activities/*` coach profiles/assignments and activity entitlement purchase/report/snapshot, `/api/classes/*` session/attendance/report, and Freelance definition/eligibility/report compatibility routes exist. Activity purchase creates amount-due entitlement history, **not** an integrated managed Sales payment flow. Legacy class attendance checks active member/session and duplicates, not the pending sale-linked Classes entitlement design. GroupClass/activity-package/schedule prerequisites have no full public CRUD catalog. Freelance compatibility purchase deliberately returns 410; use managed Sales for fixed gym-fee purchase. Do not extrapolate legacy reports into the new Coach earnings product.
+Use the [36 Coaching contracts](api/Coaching.md), [confirmed feature rules](PRIVATE_CLASSES.md) and [React workflow adapter guide](REACT_COACHING_INTEGRATION.md). Private delivery requires reception plus valid regular gym membership; Classes delivery requires neither. Transfers preserve delivered coach attribution and apply fixed 50% to incoming assignments on that package. Expiry authorization creates unused entitlement evidence only, not attendance. Earnings recognize only net-funded value; payouts reduce separate recognized outstanding balances through real existing Expense/debit operations. Normal 50/60 requires explicit independent targets; operational attendance continues without target settings. Classes compensation is disabled pending an Owner-defined formula.
 
-No baseline public Private batch purchase/attendance/transfer/expiry, new Classes-package subscription flow, coach target/earnings-recognition/payout endpoints. Uncommitted drafts are not frontend contracts. See [gaps](OPEN_QUESTIONS_AND_GAPS.md).
+Legacy Activities/Freelance definitions, eligibility and reports remain partial compatibility support. Activity purchases are amount-due entitlement records, not managed collections. Legacy Classes POST sessions, PUT sessions/{id}, and POST sessions/{id}/attendance/{memberId} now return 410; use Coaching occurrence and attendance APIs. Freelance compatibility purchase also remains 410; managed Sales sells its fixed gym fee. Legacy class reports remain readable and do not establish new dated target or earnings facts.
 
 ## UX and retry recommendations
 
 **RECOMMENDATIONS**: use loading/empty/denied/validation/conflict states separately; disable duplicate submit while pending; keep OperationId **and exact original payload** after network uncertainty; do not generate a new identity merely to retry. New real action needs new identity. Changed-payload operation reuse is a 400 business rule in several services, not uniformly 409. Profiles/catalog edits lack general idempotency keys; confirm outcome before blind retry. No ETag/If-Match contract exists. Stale expectedVersion → refresh authoritative data, show conflict and request deliberate resubmission.
 
 Guard cancellation/refund, Shift count/close, withdrawal, actual expense return and finalization with specific summaries/confirmation. Preserve zero/null meaning; null sessions are Unlimited/unknown, never zero. Input decimal strings using decimal-safe validation; display locale formatting only. Keep backend dates as YYYY-MM-DD and UTC instants separately. Invalidate related member/entitlement/access/Sale/financial/commission queries after successful operations; clear protected cache when user/context changes. Avoid optimistic money/session deduction. Never turn unknown legacy facts into invented state.
-
-The newer **branch-only** Private/Classes/recognition/payout sequences, exact actor/BusinessDate constraints and remaining disabled compensation are now fully specified in [branch-only workflows/status](BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md). These are code-present drafts; frontend rollout requires verified backend release.

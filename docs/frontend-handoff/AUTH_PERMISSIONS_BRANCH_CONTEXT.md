@@ -1,9 +1,6 @@
 # Authentication, capabilities and context
 
-Latest branch update: frozen 2026-10-12T10:44:04.604445+00:00 at `bf733e2502a85603b80f8ad8a01747264a0f518b` plus uncommitted operational files adds **35 Coaching routes** (190 current actions total). The later isolated snapshot builds; initial CS8999 was superseded by concurrent domain publication. Stable contracts below remain at 0bc4476; new draft contracts/confirmed policies and three legacy Class 410 changes are in [branch-only status](BRANCH_ONLY_PRIVATE_CLASSES_STATUS.md). **Use that update before interpreting any earlier pending/no-route statement below.**
-
-
-**VERIFIED FROM CODE at baseline**: `CampionsSystem.API/Authentication/*`, `Authorization/*`, `Controllers/AuthController.cs`, `BLL/Authentication/*`, `BLL/Branches/*`, `BLL/Operations/OperationAccess.cs`.
+**VERIFIED FROM CODE at completed backend**: `CampionsSystem.API/Authentication/*`, `Authorization/*`, `Controllers/AuthController.cs`, `BLL/Authentication/*`, `BLL/Branches/*`, `BLL/Operations/OperationAccess.cs`.
 
 `POST /api/auth/login` JSON `{userNameOrEmail,password}` returns `{accessToken,expiresAt,user:{id,userName,employeeId,fullName,roles}}`. Required inputs have maximum length 256. Username is tried first, then unambiguous normalized email. Invalid credentials, inactive/locked accounts, two-factor-enabled accounts (challenge not implemented) or invalid linked employment produce 401. Failed passwords may update Identity failure/lockout state, so the audit did not call login. Five failures lock out for 15 minutes; account creation password minimum 12. No registration, password reset, refresh, logout, token revocation or account/role/override administration endpoint exists.
 

@@ -1,6 +1,6 @@
 # Shifts rule/validation evidence
 
-Baseline source, not new Private drafts. Shared cross-cutting helpers: Authentication, Branches, Operations and Shifts.
+Completed source; deployment/configuration prerequisites are separate. Shared cross-cutting helpers: Authentication, Branches, Operations and Shifts.
 
 ## CampionsSystem.BLL/Shifts/ShiftPermissionSetup.cs
 
@@ -540,7 +540,7 @@ Lines 31–58
 
 ## CampionsSystem.BLL/Shifts/ExpenseService.cs
 
-Lines 15–57
+Lines 15–58
 
 ```csharp
 
@@ -578,6 +578,7 @@ Lines 15–57
         if(prior!=null){FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor);return new(prior.Id,prior.ExpenseId,prior.BranchId,prior.ShiftId,prior.Amount,prior.Reason,prior.ReturnReference,prior.OccurredAt,prior.BusinessDate);}
         var shift=await money.RequireShiftAsync(info.BranchId,actor,ct);
         if(info.OperationId==null||info.PaidAt==null)throw new BusinessRuleException("Legacy expense payment must be explicitly reconciled before managed reversal.");
+        if(await db.CoachPayouts.AnyAsync(p=>p.ExpenseId==id,ct))throw new BusinessRuleException("Coach payout returns require an explicit Owner earnings adjustment policy.");
         var returned=await db.ExpenseReversals.Where(x=>x.ExpenseId==id).SumAsync(x=>x.Amount,ct);
         if(r.ReturnedAmount>info.Amount-returned)throw new BusinessRuleException("Return exceeds the paid, not-yet-returned expense amount.");
         var account=await money.AccountAsync(info.BranchId,info.FinancialAccountId,ct);var(date,day)=await money.BusinessDateAsync(info.BranchId,ct);
@@ -590,7 +591,7 @@ Lines 15–57
 
 ```
 
-Lines 59–97
+Lines 60–98
 
 ```csharp
 

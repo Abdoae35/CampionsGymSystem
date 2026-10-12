@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Plans.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Global shared catalog. Reads need View; all writes require MembershipPlans.Manage plus Branches.AccessAll in BLL.
 
 <a id="get-api-membership-plan-categories"></a>
 ## GET /api/membership-plan-categories
 Source: `CampionsSystem.API/Controllers/MembershipPlanCategoriesController.cs:8`, action `List`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; all writes require MembershipPlans.Manage plus Branches.AccessAll in BLL.
 ### Path/query inputs
@@ -50,7 +50,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-membership-plan-categories"></a>
 ## POST /api/membership-plan-categories
 Source: `CampionsSystem.API/Controllers/MembershipPlanCategoriesController.cs:10`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; all writes require MembershipPlans.Manage plus Branches.AccessAll in BLL.
 ### Path/query inputs
@@ -95,7 +95,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-membership-plan-categories-id-guid"></a>
 ## PUT /api/membership-plan-categories/{id:guid}
 Source: `CampionsSystem.API/Controllers/MembershipPlanCategoriesController.cs:12`, action `Update`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; all writes require MembershipPlans.Manage plus Branches.AccessAll in BLL.
 ### Path/query inputs
@@ -140,7 +140,7 @@ Schema-shaped response (not an executed response):
 <a id="patch-api-membership-plan-categories-id-guid-status"></a>
 ## PATCH /api/membership-plan-categories/{id:guid}/status
 Source: `CampionsSystem.API/Controllers/MembershipPlanCategoriesController.cs:14`, action `Status`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:MembershipPlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Plans.md). Global shared catalog. Reads need View; all writes require MembershipPlans.Manage plus Branches.AccessAll in BLL.
 ### Path/query inputs

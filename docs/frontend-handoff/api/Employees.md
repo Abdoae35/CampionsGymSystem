@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Employees.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Scoped by reliably resolved Employee current working assignment; global capability includes unassigned/other-branch records. Profile requests cannot assign accounts/branches/status outside dedicated actions.
 
 <a id="get-api-employees"></a>
 ## GET /api/employees
 Source: `CampionsSystem.API/Controllers/EmployeesController.cs:11`, action `List`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Employees.md). Scoped by reliably resolved Employee current working assignment; global capability includes unassigned/other-branch records. Profile requests cannot assign accounts/branches/status outside dedicated actions.
 ### Path/query inputs
@@ -52,7 +52,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-employees"></a>
 ## POST /api/employees
 Source: `CampionsSystem.API/Controllers/EmployeesController.cs:14`, action `Create`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Employees.md). Scoped by reliably resolved Employee current working assignment; global capability includes unassigned/other-branch records. Profile requests cannot assign accounts/branches/status outside dedicated actions.
 ### Path/query inputs
@@ -105,7 +105,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-employees-id-guid"></a>
 ## GET /api/employees/{id:guid}
 Source: `CampionsSystem.API/Controllers/EmployeesController.cs:17`, action `Get`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Employees.md). Scoped by reliably resolved Employee current working assignment; global capability includes unassigned/other-branch records. Profile requests cannot assign accounts/branches/status outside dedicated actions.
 ### Path/query inputs
@@ -148,7 +148,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-employees-id-guid"></a>
 ## PUT /api/employees/{id:guid}
 Source: `CampionsSystem.API/Controllers/EmployeesController.cs:20`, action `Update`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Employees.md). Scoped by reliably resolved Employee current working assignment; global capability includes unassigned/other-branch records. Profile requests cannot assign accounts/branches/status outside dedicated actions.
 ### Path/query inputs
@@ -200,7 +200,7 @@ Schema-shaped response (not an executed response):
 <a id="patch-api-employees-id-guid-status"></a>
 ## PATCH /api/employees/{id:guid}/status
 Source: `CampionsSystem.API/Controllers/EmployeesController.cs:23`, action `Status`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Employees.md). Scoped by reliably resolved Employee current working assignment; global capability includes unassigned/other-branch records. Profile requests cannot assign accounts/branches/status outside dedicated actions.
 ### Path/query inputs
@@ -249,7 +249,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-branches-branchid-guid-employees"></a>
 ## GET /api/branches/{branchId:guid}/employees
 Source: `CampionsSystem.API/Controllers/EmployeesController.cs:26`, action `BranchEmployees`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Employees.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Employees.md). Scoped by reliably resolved Employee current working assignment; global capability includes unassigned/other-branch records. Profile requests cannot assign accounts/branches/status outside dedicated actions.
 ### Path/query inputs

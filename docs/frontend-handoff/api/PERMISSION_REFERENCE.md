@@ -1,5 +1,5 @@
 # Exact capability reference
-Policy inventory below is extracted from actual registered controller metadata; additional service-only keys appear separately. Capability presence in source/catalog does not mean activated/granted for any deployment. Role grants and user overrides were not queried. No proposed Coaching key is counted as a baseline route policy.
+Policy inventory below is extracted from actual registered controller metadata; additional service-only keys appear separately. Capability presence in source/catalog does not mean activated/granted for any deployment. Role grants and user overrides were not queried. Coaching keys below are implemented policies; catalog presence is not a grant.
 | Exact permission key | Registered actions using policy |
 |---|---|
 | `Activities.Manage` | OperationsController.PurchaseActivity |
@@ -15,8 +15,14 @@ Policy inventory below is extracted from actual registered controller metadata; 
 | `CRM.ViewMemberFollowUps` | CrmController.Mine |
 | `CheckIns.Create` | CheckInsController.Create, CheckInsController.Evaluate, CheckInsController.Lookup, CheckInsController.Trial |
 | `CheckIns.View` | CheckInsController.Debts, CheckInsController.History, CheckInsController.Today |
-| `Classes.Manage` | OperationsController.Attendance, OperationsController.CreateSession, OperationsController.UpdateSession |
-| `Classes.ViewAttendanceReport` | OperationsController.ClassReport |
+| `Classes.Manage` | CoachingController.CompleteOccurrence, CoachingController.CreateClassType, CoachingController.CreateClassesPackage, CoachingController.CreateOccurrence, CoachingController.PurchaseClasses, CoachingController.UpdateClassType, CoachingController.UpdateClassesPackage, OperationsController.Attendance, OperationsController.CreateSession, OperationsController.UpdateSession |
+| `Classes.RegisterAttendance` | CoachingController.RegisterClass |
+| `Classes.View` | CoachingController.ClassMemberAttendance, CoachingController.ClassAttendance, CoachingController.ClassMembers, CoachingController.ClassSubscriptions, CoachingController.ClassTypes, CoachingController.ClassesPackages, CoachingController.Occurrences |
+| `Classes.ViewAttendanceReport` | CoachingController.ClassStatistics, OperationsController.ClassReport |
+| `CoachEarnings.ManageTargets` | CoachingController.Targets |
+| `CoachEarnings.Pay` | CoachingController.Payout |
+| `CoachEarnings.Recognize` | CoachingController.Recognize |
+| `CoachEarnings.View` | CoachingController.Balance, CoachingController.EarningsHistory, CoachingController.PayoutHistory, CoachingController.Progress, CoachingController.TargetHistory |
 | `Commission.ClosePeriod` | CommissionsController.Finalize, CommissionsController.Open, OperationsController.FinalizeActivity |
 | `Commission.ManageRules` | CommissionsController.Configure |
 | `Commission.View` | CommissionsController.Employee, CommissionsController.History, CommissionsController.Progress, CommissionsController.RefundAllocations, CommissionsController.Rules, CommissionsController.Sources |
@@ -44,9 +50,14 @@ Policy inventory below is extracted from actual registered controller metadata; 
 | `MembershipPlans.Manage` | MembershipBenefitsController.Create, MembershipBenefitsController.Status, MembershipBenefitsController.Update, MembershipPlanCategoriesController.Create, MembershipPlanCategoriesController.Status, MembershipPlanCategoriesController.Update, MembershipPlansController.Create, MembershipPlansController.SetBenefits, MembershipPlansController.Status, MembershipPlansController.Update |
 | `MembershipPlans.View` | MembershipBenefitsController.Get, MembershipBenefitsController.List, MembershipPlanCategoriesController.List, MembershipPlansController.Benefits, MembershipPlansController.Get, MembershipPlansController.List |
 | `Offers.Manage` | OffersController.Create, OffersController.Details, OffersController.Grant, OffersController.Management, OffersController.Revoke, OffersController.Update |
-| `Payments.Create` | OffersController.Eligible, OffersController.Quote, SalesController.Create, SalesController.Pay |
+| `Payments.Create` | CoachingController.PurchaseClasses, CoachingController.PurchasePrivate, OffersController.Eligible, OffersController.Quote, SalesController.Create, SalesController.Pay |
 | `Payments.Refund` | SalesController.Refund |
 | `Payments.View` | FinancialAccountsController.Accounts, SalesController.Details, SalesController.History, SalesController.Installments, SalesController.Payments, SalesController.Refunds, SalesController.Totals |
+| `Private.Manage` | CoachingController.CreatePrivatePackage, CoachingController.PurchasePrivate, CoachingController.UpdatePrivatePackage |
+| `Private.RegisterSession` | CoachingController.RegisterPrivate |
+| `Private.SettleExpiry` | CoachingController.SettleExpiry |
+| `Private.Transfer` | CoachingController.Transfer |
+| `Private.View` | CoachingController.ExpiryHistory, CoachingController.PrivateMembers, CoachingController.PrivatePackages, CoachingController.PrivateSessions, CoachingController.PrivateSubscription, CoachingController.PrivateSubscriptions |
 | `Sales.QuickCancel` | SalesController.QuickCancel |
 | `Shifts.Manage` | BusinessDaysController.Close, BusinessDaysController.Open, ShiftsController.Close, ShiftsController.Open |
 | `Shifts.View` | BusinessDaysController.Current, ShiftsController.Current, ShiftsController.Get, ShiftsController.History, ShiftsController.Summary |

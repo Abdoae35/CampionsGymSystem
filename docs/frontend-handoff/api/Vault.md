@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Shifts.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. 
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task.
 
 **Scope/actor rules:** Branch scope. Setup/withdrawal additionally need Branches.AccessAll; counts/withdrawals need own Shift (setup does not). Current shared physical position differs from historical observations/book position.
 
 <a id="post-api-vault-setup"></a>
 ## POST /api/vault/setup
 Source: `CampionsSystem.API/Controllers/VaultController.cs:8`, action `Setup`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Vault.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). BLL additionally requires Branches.AccessAll; explicit immutable drawer mapping and actual initial count. No operational sale revenue.
 ### Path/query inputs
@@ -59,7 +59,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-vault-position"></a>
 ## GET /api/vault/position
 Source: `CampionsSystem.API/Controllers/VaultController.cs:10`, action `Position`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Vault.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch scope. Setup/withdrawal additionally need Branches.AccessAll; counts/withdrawals need own Shift (setup does not). Current shared physical position differs from historical observations/book position.
 ### Path/query inputs
@@ -100,7 +100,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-vault-counts"></a>
 ## POST /api/vault/counts
 Source: `CampionsSystem.API/Controllers/VaultController.cs:12`, action `Count`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Vault.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch scope. Setup/withdrawal additionally need Branches.AccessAll; counts/withdrawals need own Shift (setup does not). Current shared physical position differs from historical observations/book position.
 ### Path/query inputs
@@ -154,7 +154,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-vault-counts"></a>
 ## GET /api/vault/counts
 Source: `CampionsSystem.API/Controllers/VaultController.cs:14`, action `Counts`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Vault.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch scope. Setup/withdrawal additionally need Branches.AccessAll; counts/withdrawals need own Shift (setup does not). Current shared physical position differs from historical observations/book position.
 ### Path/query inputs
@@ -197,7 +197,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-vault-movements"></a>
 ## GET /api/vault/movements
 Source: `CampionsSystem.API/Controllers/VaultController.cs:16`, action `Movements`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Vault.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch scope. Setup/withdrawal additionally need Branches.AccessAll; counts/withdrawals need own Shift (setup does not). Current shared physical position differs from historical observations/book position.
 ### Path/query inputs
@@ -240,7 +240,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-vault-withdrawals"></a>
 ## POST /api/vault/withdrawals
 Source: `CampionsSystem.API/Controllers/VaultController.cs:18`, action `Withdraw`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Vault.Withdraw`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch scope. Setup/withdrawal additionally need Branches.AccessAll; counts/withdrawals need own Shift (setup does not). Current shared physical position differs from historical observations/book position.
 ### Path/query inputs
@@ -289,7 +289,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-vault-summary"></a>
 ## GET /api/vault/summary
 Source: `CampionsSystem.API/Controllers/VaultController.cs:20`, action `Summary`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Vault.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch scope. Setup/withdrawal additionally need Branches.AccessAll; counts/withdrawals need own Shift (setup does not). Current shared physical position differs from historical observations/book position.
 ### Path/query inputs
@@ -338,7 +338,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-vault-audit"></a>
 ## GET /api/vault/audit
 Source: `CampionsSystem.API/Controllers/VaultController.cs:22`, action `Audit`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Vault.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Shifts.md). Branch scope. Setup/withdrawal additionally need Branches.AccessAll; counts/withdrawals need own Shift (setup does not). Current shared physical position differs from historical observations/book position.
 ### Path/query inputs

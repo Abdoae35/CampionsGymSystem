@@ -2,14 +2,14 @@
 
 [Master catalog](../API_ENDPOINT_CATALOG.md) · [DTO reference](../DTO_AND_ENUM_REFERENCE.md) · [module guard evidence](rules/Operations.md) · [shared scope](../AUTH_PERMISSIONS_BRANCH_CONTEXT.md)
 
-**Status for every endpoint:** VERIFIED FROM CODE / available at committed baseline and matching local master/live remote master at audit. Runtime operations were not exercised here. Legacy partial module, not the new Private/Classes feature.
+**Status for every endpoint:** VERIFIED FROM CODE at completed backend a2a0c56, inspected at 476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80. Runtime business operations were not exercised by this documentation task. Legacy partial module, not the new Private/Classes feature.
 
 **Scope/actor rules:** Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 
 <a id="post-api-activities-coaches"></a>
 ## POST /api/activities/coaches
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:16`, action `CreateCoach`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Activities.ManageCoaches`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -54,7 +54,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-activities-coaches-id-guid-percentage"></a>
 ## PUT /api/activities/coaches/{id:guid}/percentage
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:21`, action `Percentage`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Activities.ManageCoaches`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -95,7 +95,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-activities-id-guid-coach-assignments"></a>
 ## POST /api/activities/{id:guid}/coach-assignments
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:26`, action `Assign`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Activities.ManageCoaches`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -136,7 +136,7 @@ Schema-shaped response (not an executed response):
 <a id="delete-api-activities-coach-assignments-id-guid"></a>
 ## DELETE /api/activities/coach-assignments/{id:guid}
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:31`, action `Unassign`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Activities.ManageCoaches`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -172,7 +172,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-activities-purchases"></a>
 ## POST /api/activities/purchases
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:36`, action `PurchaseActivity`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Activities.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy creates entitlement/purchase and amount due, not collection; activity/package/coach prerequisites lack full public CRUD.
 ### Path/query inputs
@@ -219,7 +219,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-activities-coach-revenue-periodid-guid"></a>
 ## GET /api/activities/coach-revenue/{periodId:guid}
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:41`, action `ActivityRevenue`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Activities.ViewCoachRevenue`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -252,7 +252,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-activities-coach-revenue-periodid-guid-finalize"></a>
 ## POST /api/activities/coach-revenue/{periodId:guid}/finalize
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:45`, action `FinalizeActivity`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Commission.ClosePeriod`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Requires closed period with final EndAt; explicit activity snapshot, no payout; cannot finalize twice.
 ### Path/query inputs
@@ -288,7 +288,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-classes-sessions"></a>
 ## POST /api/classes/sessions
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:50`, action `CreateSession`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / exposed but disabled (410)**.
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Classes.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -297,7 +297,7 @@ Scope/actor: apply module rules above and [guard evidence](rules/Operations.md).
 | none | — | — | — |
 ### JSON body and response
 Body: [Operations.SaveClassSessionRequest](../DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-operations-saveclasssessionrequest); exact required/nullability/limits/defaults and nested types in linked DTO and `openapi.json`.
-Success: **200**, body [<anonymous type: Guid Id>](../DTO_AND_ENUM_REFERENCE.md#anonymous-type-system-guid-id). No generic wrapper; arrays/primitives remain direct JSON.
+Success body: **none; intentionally 410 ProblemDetails**.
 Errors/envelope: 400 BusinessRuleException; 401/403 auth/scope; 404 BranchNotFoundException; 409 unique/serialization/deadlock mapped by controller; 500 unexpected. Missing legacy operation resources often deliberately use 400 business messages rather than 404.  See master error rules; check-in/trial can deny inside 200.
 Concurrency/idempotency: No general operation key in this action contract. No client version field on this action unless linked contract says otherwise. No ETag/If-Match. Backend locks/uniqueness may still return conflict.
 Actual action adapter:
@@ -305,9 +305,9 @@ Actual action adapter:
 [HttpPost("classes/sessions")]
     [Authorize(Policy = "Permission:Classes.Manage")]
     public Task<IActionResult> CreateSession(SaveClassSessionRequest request, CancellationToken ct) =>
-        Execute(async () => new { Id = await classes.SaveAsync(null, request, ct) });
+        Task.FromResult<IActionResult>(Problem(statusCode: 410, title: "Use /api/coaching/classes/occurrences with an operation identity."));
 ```
-Service entry points: `CampionsSystem.BLL.Operations.ClassSessionService.SaveAsync`. Required frontend behavior: show authoritative returned state, maintain scope, handle validation/denial/conflict; apply [workflow rules](../FRONTEND_WORKFLOWS_AND_BUSINESS_RULES.md). Unknown deployment/grants/fixture state remains **UNKNOWN**, not inferred from examples.
+Service entry points: direct auth/token/410 adapter. Required frontend behavior: show authoritative returned state, maintain scope, handle validation/denial/conflict; apply [workflow rules](../FRONTEND_WORKFLOWS_AND_BUSINESS_RULES.md). Unknown deployment/grants/fixture state remains **UNKNOWN**, not inferred from examples.
 ### FAKE request/response example
 Fixture prerequisites: active authorized user and referenced IDs, permitted lifecycle state, and operational setup/Shift where required. Every UUID here is a placeholder; replace different entity kinds with their own real test IDs.
 ```http
@@ -328,13 +328,15 @@ Content-Type: application/json
 Schema-shaped response (not an executed response):
 ```json
 {
-  "id": "11111111-1111-4111-8111-111111111111"
+  "type": "about:blank",
+  "title": "Use /api/coaching/classes/occurrences with an operation identity.",
+  "status": 410
 }
 ```
 <a id="put-api-classes-sessions-id-guid"></a>
 ## PUT /api/classes/sessions/{id:guid}
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:55`, action `UpdateSession`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / exposed but disabled (410)**.
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Classes.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -343,7 +345,7 @@ Scope/actor: apply module rules above and [guard evidence](rules/Operations.md).
 | `id` / path | true | `{"type":"string","format":"uuid"}` | See query DTO defaults / guard evidence |
 ### JSON body and response
 Body: [Operations.SaveClassSessionRequest](../DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-operations-saveclasssessionrequest); exact required/nullability/limits/defaults and nested types in linked DTO and `openapi.json`.
-Success: **200**, body [<anonymous type: Guid Id>](../DTO_AND_ENUM_REFERENCE.md#anonymous-type-system-guid-id). No generic wrapper; arrays/primitives remain direct JSON.
+Success body: **none; intentionally 410 ProblemDetails**.
 Errors/envelope: 400 BusinessRuleException; 401/403 auth/scope; 404 BranchNotFoundException; 409 unique/serialization/deadlock mapped by controller; 500 unexpected. Missing legacy operation resources often deliberately use 400 business messages rather than 404.  See master error rules; check-in/trial can deny inside 200.
 Concurrency/idempotency: No general operation key in this action contract. No client version field on this action unless linked contract says otherwise. No ETag/If-Match. Backend locks/uniqueness may still return conflict.
 Actual action adapter:
@@ -351,9 +353,9 @@ Actual action adapter:
 [HttpPut("classes/sessions/{id:guid}")]
     [Authorize(Policy = "Permission:Classes.Manage")]
     public Task<IActionResult> UpdateSession(Guid id, SaveClassSessionRequest request, CancellationToken ct) =>
-        Execute(async () => new { Id = await classes.SaveAsync(id, request, ct) });
+        Task.FromResult<IActionResult>(Problem(statusCode: 410, title: "Use /api/coaching/classes/occurrences/{id}/complete."));
 ```
-Service entry points: `CampionsSystem.BLL.Operations.ClassSessionService.SaveAsync`. Required frontend behavior: show authoritative returned state, maintain scope, handle validation/denial/conflict; apply [workflow rules](../FRONTEND_WORKFLOWS_AND_BUSINESS_RULES.md). Unknown deployment/grants/fixture state remains **UNKNOWN**, not inferred from examples.
+Service entry points: direct auth/token/410 adapter. Required frontend behavior: show authoritative returned state, maintain scope, handle validation/denial/conflict; apply [workflow rules](../FRONTEND_WORKFLOWS_AND_BUSINESS_RULES.md). Unknown deployment/grants/fixture state remains **UNKNOWN**, not inferred from examples.
 ### FAKE request/response example
 Fixture prerequisites: active authorized user and referenced IDs, permitted lifecycle state, and operational setup/Shift where required. Every UUID here is a placeholder; replace different entity kinds with their own real test IDs.
 ```http
@@ -374,13 +376,15 @@ Content-Type: application/json
 Schema-shaped response (not an executed response):
 ```json
 {
-  "id": "11111111-1111-4111-8111-111111111111"
+  "type": "about:blank",
+  "title": "Use /api/coaching/classes/occurrences/{id}/complete.",
+  "status": 410
 }
 ```
 <a id="post-api-classes-sessions-id-guid-attendance-memberid-guid"></a>
 ## POST /api/classes/sessions/{id:guid}/attendance/{memberId:guid}
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:60`, action `Attendance`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / exposed but disabled (410)**.
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Classes.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy attendance active Member/session + duplicate checks only. It does not implement new Classes subscription/earnings policies.
 ### Path/query inputs
@@ -390,7 +394,7 @@ Scope/actor: apply module rules above and [guard evidence](rules/Operations.md).
 | `memberId` / path | true | `{"type":"string","format":"uuid"}` | See query DTO defaults / guard evidence |
 ### JSON body and response
 Body: none; do not invent a payload.
-Success: **200**, body [<anonymous type: Guid Id>](../DTO_AND_ENUM_REFERENCE.md#anonymous-type-system-guid-id). No generic wrapper; arrays/primitives remain direct JSON.
+Success body: **none; intentionally 410 ProblemDetails**.
 Errors/envelope: 400 BusinessRuleException; 401/403 auth/scope; 404 BranchNotFoundException; 409 unique/serialization/deadlock mapped by controller; 500 unexpected. Missing legacy operation resources often deliberately use 400 business messages rather than 404.  See master error rules; check-in/trial can deny inside 200.
 Concurrency/idempotency: No general operation key in this action contract. No client version field on this action unless linked contract says otherwise. No ETag/If-Match. Backend locks/uniqueness may still return conflict.
 Actual action adapter:
@@ -398,9 +402,9 @@ Actual action adapter:
 [HttpPost("classes/sessions/{id:guid}/attendance/{memberId:guid}")]
     [Authorize(Policy = "Permission:Classes.Manage")]
     public Task<IActionResult> Attendance(Guid id, Guid memberId, CancellationToken ct) =>
-        Execute(async () => new { Id = await classes.AttendAsync(id, memberId, ct) });
+        Task.FromResult<IActionResult>(Problem(statusCode: 410, title: "Use /api/coaching/classes/occurrences/{id}/attendance with a Classes package and operation identity."));
 ```
-Service entry points: `CampionsSystem.BLL.Operations.ClassSessionService.AttendAsync`. Required frontend behavior: show authoritative returned state, maintain scope, handle validation/denial/conflict; apply [workflow rules](../FRONTEND_WORKFLOWS_AND_BUSINESS_RULES.md). Unknown deployment/grants/fixture state remains **UNKNOWN**, not inferred from examples.
+Service entry points: direct auth/token/410 adapter. Required frontend behavior: show authoritative returned state, maintain scope, handle validation/denial/conflict; apply [workflow rules](../FRONTEND_WORKFLOWS_AND_BUSINESS_RULES.md). Unknown deployment/grants/fixture state remains **UNKNOWN**, not inferred from examples.
 ### FAKE request/response example
 Fixture prerequisites: active authorized user and referenced IDs, permitted lifecycle state, and operational setup/Shift where required. Every UUID here is a placeholder; replace different entity kinds with their own real test IDs.
 ```http
@@ -411,13 +415,15 @@ Authorization: Bearer <TOKEN_PLACEHOLDER>
 Schema-shaped response (not an executed response):
 ```json
 {
-  "id": "11111111-1111-4111-8111-111111111111"
+  "type": "about:blank",
+  "title": "Use /api/coaching/classes/occurrences/{id}/attendance with a Classes package and operation identity.",
+  "status": 410
 }
 ```
 <a id="get-api-classes-attendance-report"></a>
 ## GET /api/classes/attendance-report
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:65`, action `ClassReport`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Classes.ViewAttendanceReport`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -453,7 +459,7 @@ Schema-shaped response (not an executed response):
 <a id="post-api-freelance-plans"></a>
 ## POST /api/freelance-plans
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:70`, action `CreatePlan`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -502,7 +508,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-freelance-plans-id-guid"></a>
 ## PUT /api/freelance-plans/{id:guid}
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:75`, action `UpdatePlan`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.Manage`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -551,7 +557,7 @@ Schema-shaped response (not an executed response):
 <a id="put-api-freelance-plans-id-guid-eligible-members-memberid-guid"></a>
 ## PUT /api/freelance-plans/{id:guid}/eligible-members/{memberId:guid}
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:80`, action `AddEligible`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.ManageEligibleMembers`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -588,7 +594,7 @@ Schema-shaped response (not an executed response):
 <a id="delete-api-freelance-plans-id-guid-eligible-members-memberid-guid"></a>
 ## DELETE /api/freelance-plans/{id:guid}/eligible-members/{memberId:guid}
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:85`, action `RemoveEligible`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.ManageEligibleMembers`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs
@@ -671,7 +677,7 @@ Schema-shaped response (not an executed response):
 <a id="get-api-freelance-plans-id-guid-report"></a>
 ## GET /api/freelance-plans/{id:guid}/report
 Source: `CampionsSystem.API/Controllers/OperationsController.cs:95`, action `FreelanceReport`.
-Status: **VERIFIED FROM CODE / implemented at baseline**, not branch-only new Coaching.
+Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:FreelancePlans.View`.
 Scope/actor: apply module rules above and [guard evidence](rules/Operations.md). Legacy narrow compatibility operations: activity assignment/purchase use activity branch; shared coach profile percentage management passes null branch; class session/attendance uses actual group/session branch; reports use explicit branch/period; Freelance definitions use plan scope. No new Coach owner-only mobile contract.
 ### Path/query inputs

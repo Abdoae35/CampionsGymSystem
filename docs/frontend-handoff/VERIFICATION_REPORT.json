@@ -1,0 +1,37 @@
+{
+  "validationDate": "2026-10-12",
+  "sourceCommit": "476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80",
+  "controllerOperations": 191,
+  "controllers": 23,
+  "coachingOperations": 36,
+  "openApi": {
+    "version": "3.1.1",
+    "paths": 153,
+    "operations": 192,
+    "schemas": 102
+  },
+  "jsonFilesParsed": 10,
+  "openApiReferencesResolved": 2159,
+  "integrationSpec": {
+    "operations": 192,
+    "responseSchemasAdded": 139,
+    "errorSchemasAdded": 2,
+    "totalSchemas": 243,
+    "propertySerializerOverrides": 11,
+    "origin": "source-derived supplement, not raw runtime export"
+  },
+  "requestExamplesStructurallyChecked": 90,
+  "responseExamplesJsonParsed": 191,
+  "coachingPostman": {
+    "examples": 37,
+    "operationsCovered": 36,
+    "jsonBodiesParsed": 18,
+    "executed": false
+  },
+  "portableLinksChecked": 2240,
+  "backendSourceChanges": 0,
+  "databaseOperations": 0,
+  "businessTestsRerun": false,
+  "validationLimit": "Structural/schema-pointer and source/catalog consistency checks; no full external OpenAPI/JSON-Schema validator or operational fixture execution.",
+  "errors": []
+}
