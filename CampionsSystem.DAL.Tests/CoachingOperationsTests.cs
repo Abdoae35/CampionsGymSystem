@@ -175,6 +175,33 @@ public sealed partial class SalesTests
         await FinalizeCoaching(period); Assert.Equal(450, await db.CoachEarnings.Where(e => e.CoachEmployeeId == incoming.Id).SumAsync(e => e.Amount));
         Assert.Single(await db.PrivateSessions.ToListAsync());
     }
+    [Theory][InlineData(1000, 60)][InlineData(1001, 50)]
+    public async Task CoachingOriginalExpiryUsesConfiguredNormalRateWithoutAttendance(decimal target, decimal rate)
+    {
+        var sale = await PrivatePurchase(3, 1000, 1); var coach = await db.Employees.SingleAsync(); clock.Now = clock.Now.AddDays(1);
+        var period = await CoachingPeriod(today, today.AddDays(1)); await Coaching().ConfigureTargetsAsync(new(Guid.NewGuid(), period, coach.Id, target, null));
+        var settlement = await Coaching().SettleExpiryAsync(sale.SubscriptionId, new(Guid.NewGuid(), period, "Owner entitlement recognition"));
+        Assert.Equal(1000, settlement.EligibleValue); Assert.Equal(3, settlement.UnusedSessions); Assert.False(settlement.TransferredPackage);
+        await FinalizeCoaching(period); var earning = await db.CoachEarnings.SingleAsync(); Assert.Equal(rate, earning.Rate); Assert.Equal(1000 * rate / 100, earning.Amount);
+        Assert.Empty(await db.PrivateSessions.ToListAsync()); Assert.Empty(await db.CheckIns.ToListAsync());
+        Assert.Equal(3, (await Coaching().PrivateDetailsAsync(sale.SubscriptionId)).RemainingSessions);
+    }
+    [Fact] public async Task CoachingNewPackageForTransferredCoachUsesNormalRulesIndependently()
+    {
+        var old = await PrivatePurchase(2, 200); var incoming = await IncomingCoach();
+        await Coaching().TransferAsync(old.SubscriptionId, new(Guid.NewGuid(), incoming.Id, 0, "Transfer"));
+        var package = await Coaching().SavePackageAsync(null, new(b.Id, "New independent purchase", 1, 30, 100), false);
+        var fresh = await Finance().PurchaseCoachingAsync(new(Guid.NewGuid(), member.Id, package.Id, [new((await Account()).Id, 100)], incoming.Id), false);
+        var period = await CoachingPeriod(to: today.AddDays(1)); await Coaching().ConfigureTargetsAsync(new(Guid.NewGuid(), period, incoming.Id, 200, null));
+        var firstReception = await CoachingReception(); user.Context = user.Context! with { UserId = incoming.UserId!.Value };
+        await Coaching().RegisterPrivateAsync(old.SubscriptionId, new(Guid.NewGuid(), firstReception));
+        clock.Now = clock.Now.AddDays(1); user.Context = user.Context! with { UserId = actor.Id }; var nextReception = await CoachingReception();
+        user.Context = user.Context! with { UserId = incoming.UserId!.Value }; await Coaching().RegisterPrivateAsync(fresh.SubscriptionId, new(Guid.NewGuid(), nextReception));
+        user.Context = user.Context! with { UserId = actor.Id }; await FinalizeCoaching(period);
+        Assert.Equal(50, (await db.CoachEarnings.SingleAsync(e => e.SaleTransactionId == old.SaleId)).Rate);
+        Assert.Equal(60, (await db.CoachEarnings.SingleAsync(e => e.SaleTransactionId == fresh.SaleId)).Rate);
+        Assert.Equal(110, (await Coaching().BalanceAsync(b.Id, incoming.Id)).Earned);
+    }
     [Fact] public async Task CoachingRefundBeforeRecognitionReducesEligibleCollectedValueAndRevokesUnusedGrant()
     {
         var sale = await PrivatePurchase(); await DeliverPrivate(sale.SubscriptionId); var period = await CoachingPeriod(); var coach = await db.Employees.SingleAsync();

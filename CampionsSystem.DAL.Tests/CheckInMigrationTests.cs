@@ -17,7 +17,8 @@ public sealed class CheckInMigrationTests
             """);
         var sql=db.GetService<IMigrator>().GenerateScript("PreventDuplicateFreezeHolidayCompensation","PrepareOperationalCheckIns")
             .Replace("START TRANSACTION;","").Replace("COMMIT;","");await db.Database.ExecuteSqlRawAsync(sql);db.ChangeTracker.Clear();
-        var row=await db.CheckIns.SingleAsync();Assert.Equal(id,row.Id);Assert.Equal(actual,row.CheckedInAt);Assert.Equal(branch.Id,row.BranchId);Assert.Equal(CheckInType.Trial,row.CheckInType);
+        // Select only columns present at this historical migration boundary.
+        var row=await db.CheckIns.Select(x => new { x.Id, x.CheckedInAt, x.BranchId, x.CheckInType, x.MemberId, x.OperationId, x.BusinessDate, x.BusinessDayId, x.SessionsBefore, x.SessionsAfter }).SingleAsync();Assert.Equal(id,row.Id);Assert.Equal(actual,row.CheckedInAt);Assert.Equal(branch.Id,row.BranchId);Assert.Equal(CheckInType.Trial,row.CheckInType);
         Assert.Null(row.MemberId);Assert.Null(row.OperationId);Assert.Null(row.BusinessDate);Assert.Null(row.BusinessDayId);Assert.Null(row.SessionsBefore);Assert.Null(row.SessionsAfter);
     }
 }

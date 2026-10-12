@@ -130,6 +130,11 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
             || ChangeTracker.Entries<PrivateSession>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(PrivateSession.OperationId)) != null && x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<PrivateExpirySettlement>().Any(x => x.State is EntityState.Modified or EntityState.Deleted))
             throw new InvalidOperationException("Coach earnings, payouts and Private evidence are append-only.");
+        foreach (var entry in ChangeTracker.Entries<ClassSession>().Where(x => x.OriginalValues.GetValue<Guid?>(nameof(ClassSession.OperationId)) != null))
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&
+                (entry.OriginalValues.GetValue<CampionsSystem.DAL.Enums.ClassSessionStatus>(nameof(ClassSession.Status)) != CampionsSystem.DAL.Enums.ClassSessionStatus.Scheduled
+                || entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(ClassSession.Status) or nameof(ClassSession.EndedAt) or nameof(ClassSession.Version)))))
+                throw new InvalidOperationException("Managed class occurrence attribution and completed history are immutable.");
         foreach (var entry in ChangeTracker.Entries<ClassesSubscription>())
             if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(ClassesSubscription.RemainingSessions) or nameof(ClassesSubscription.Version))))
                 throw new InvalidOperationException("Classes purchased terms are immutable.");

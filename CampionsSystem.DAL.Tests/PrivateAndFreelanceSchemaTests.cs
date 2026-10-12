@@ -228,11 +228,12 @@ public sealed class PrivateAndFreelanceSchemaTests : IAsyncLifetime
 
     [Fact] public async Task MigrationBackfillsUnusedLegacyBatchWithoutLosingAssignmentData()
     {
+        await db.Database.ExecuteSqlRawAsync(Script(db.GetService<IMigrationsAssembly>().Migrations.Last().Key, "SeparatePurchaseCategoryFromOwnership"));
         await db.Database.ExecuteSqlRawAsync("UPDATE \"PrivateCoachAssignments\" SET \"SessionsAllocated\" = 20, \"CommissionBasisAmount\" = 2000");
         await db.Database.ExecuteSqlRawAsync(Script("UpdatePrivateAndFreelanceBusinessRules", "InitialCreate"));
         await db.Database.ExecuteSqlRawAsync(Script("InitialCreate", "UpdatePrivateAndFreelanceBusinessRules"));
         db.ChangeTracker.Clear();
-        Assert.Equal(20, (await db.PrivateSubscriptionTransactions.SingleAsync()).RemainingSessions);
+        Assert.Equal(20, await db.PrivateSubscriptionTransactions.Select(x => x.RemainingSessions).SingleAsync());
         Assert.Equal(PlanCategory.Normal, (await db.MembershipPlans.SingleAsync()).PlanCategory);
         Assert.Equal(2000m, await db.PrivateCoachAssignments.Select(x => EF.Property<decimal>(x, "CommissionBasisAmount")).SingleAsync());
     }
@@ -245,6 +246,8 @@ public sealed class PrivateAndFreelanceSchemaTests : IAsyncLifetime
         if (hasLegacySession) db.Add(Session(coachA, oldPeriod));
         else subscription.RemainingSessions = 19;
         await db.SaveChangesAsync();
+        // Remove newer dependent tables in migration order before exercising the old boundary.
+        await db.Database.ExecuteSqlRawAsync(Script(db.GetService<IMigrationsAssembly>().Migrations.Last().Key, "SeparatePurchaseCategoryFromOwnership"));
         await db.Database.ExecuteSqlRawAsync("SAVEPOINT legacy_check");
         await db.Database.ExecuteSqlRawAsync(Script("UpdatePrivateAndFreelanceBusinessRules", "InitialCreate"));
         var error = await Assert.ThrowsAsync<PostgresException>(() =>
@@ -253,7 +256,7 @@ public sealed class PrivateAndFreelanceSchemaTests : IAsyncLifetime
         await db.Database.ExecuteSqlRawAsync("ROLLBACK TO SAVEPOINT legacy_check");
         db.ChangeTracker.Clear();
         Assert.Equal(hasLegacySession ? 1 : 0, await db.PrivateSessions.CountAsync());
-        Assert.Equal(hasLegacySession ? 20 : 19, (await db.PrivateSubscriptions.SingleAsync()).RemainingSessions);
+        Assert.Equal(hasLegacySession ? 20 : 19, await db.PrivateSubscriptions.Select(x => x.RemainingSessions).SingleAsync());
     }
 
     [Fact] public void BusinessHistoryHasRestrictedForeignKeysAndNoShadowProperties()

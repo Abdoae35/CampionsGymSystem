@@ -22,6 +22,8 @@ public sealed class PrivateClassesModelTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync()); db.ChangeTracker.Clear();
         var payout = new CoachPayout(); db.Attach(payout); db.Remove(payout);
         await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync()); db.ChangeTracker.Clear();
+        var occurrence = new ClassSession { OperationId = Guid.NewGuid() }; db.Attach(occurrence); occurrence.CoachEmployeeId = Guid.NewGuid();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync()); db.ChangeTracker.Clear();
         var sub = new ClassesSubscription(); db.Attach(sub); sub.Price = 100;
         await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync());
     }

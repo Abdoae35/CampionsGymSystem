@@ -41,9 +41,9 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Private/Classes operational implementation on PrivateCoaching-Classes-Implementation from verified baseline 0bc4476 (772/772 passed); domain bf733e2 committed and pushed.
+- Private/Classes operational implementation on PrivateCoaching-Classes-Implementation from verified baseline 0bc4476 (772/772 passed); domain bf733e2 and operational eb4b538 committed and pushed.
 - Private sale snapshots/reception-required attendance/transfers/Owner expiry; shared Classes purchases/direct attendance/history/averages; explicit independent coach targets, net funded earning slices and Owner partial Expense/ledger payouts implemented with effective branch permissions, retry/row locks and refund finalization guards.
 - Confirmed: expiry unused sessions belong to assigned coach; incoming transferred assignment fixed 50%; normal Private 50/60 on explicit period target; partial collections defer unfunded sources. Classes average targets configurable; compensation remains disabled pending formula. Finalized earnings refund/correction rejected pending adjustment policy.
 - Latest focused run 84/84 passed (47 new cases plus 37 existing); clean rebuild zero warnings/errors. Initial HTTP query translation failure corrected and rerun green. New forward completeness constraints close nullable evidence loopholes; no old migration edits.
 - Migrations 20261012101654_ImplementPrivateClassesAndCoachEarnings and 20261012104721_EnforceCoachingEvidenceCompleteness generated only, not applied to application/Production; eight catalog capabilities only, no role grants or default rules/money seeded.
-- Operational checkpoint prepared for requested commit/push. Full regression/drift and final docs checkpoint remain next; docs/PRIVATE_CLASSES.md and 37 Postman examples draft validated across 36 routes. Concurrent user docs/frontend-handoff/ preserved outside commits.
+- Additional expiry/new-package and corrected legacy migration cases passed 29/29; managed class immutability/completion cases passed 10/10. First full run has five historical-fixture failures now corrected; final full rerun remains required. docs/PRIVATE_CLASSES.md and 37 Postman examples draft validated across 36 routes. Concurrent user docs/frontend-handoff/ preserved outside commits.
