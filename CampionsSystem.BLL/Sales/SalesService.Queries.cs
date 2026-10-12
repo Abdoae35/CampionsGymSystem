@@ -73,11 +73,24 @@ public sealed partial class SalesService
         var status=sale.CancelledAt!=null?"Cancelled":grant!=null?await subscriptions.PaidGrantStatusAsync(grant.Id,ct)
             :facts.Collected>0 && (sale.PurchaseMode==PurchaseMode.Installment?facts.Collected>=sale.InitialPaymentRequired:facts.Collected>=sale.NetAmount)
                 && sale.ActivationMode==SubscriptionActivationMode.FirstCheckIn?"PendingFirstCheckIn":"PendingPayment";
+        var retainedEligible=false;
+        if(sale.CancelledAt!=null && sale.CommissionEligible==true && sale.TargetEligible==true)
+        {
+            var payments=await db.Payments.AsNoTracking().Where(p=>p.SaleTransactionId==id && p.Status==PaymentStatus.Completed).ToListAsync(ct);
+            var refunded=await new Commissions.CommissionSources(db,access).RefundedAsync(payments,ct);
+            var evidence=await db.CommissionCollections.Where(c=>payments.Select(p=>p.Id).Contains(c.PaymentId)).ToDictionaryAsync(c=>c.PaymentId,ct);
+            foreach(var p in payments.Where(p=>p.Amount>refunded.GetValueOrDefault(p.Id)))
+            {
+                var reason=evidence.TryGetValue(p.Id,out var fact)?fact.EligibilityReason:(await new Commissions.CommissionSources(db,access).AttributionAsync(sale,p.BusinessDate,p.PaidAt,ct)).Reason;
+                if(reason=="Eligible"){retainedEligible=true;break;}
+            }
+        }
         return new(Summary(facts),await db.Members.Where(m=>m.Id==sale.MemberId).Select(m=>m.FullName).SingleAsync(ct),snapshot?.PlanName,snapshot?.PlanCategory.ToString(),
             snapshot?.MembershipPlanId,snapshot?.CityId,sale.SalesEmployeeId,sale.SalesAttributionSnapshot?.ToString(),sale.CommissionEligible,sale.TargetEligible,
             grant?.MemberSubscriptionId,grant?.Id,status,sale.RequestedStartDate,sale.ReservationDueDate,sale.OfferNameSnapshot,sale.ExtraDaysSnapshot,
             sale.CancelledAt!=null?Math.Max(0,facts.Collected-facts.Refunded):0,(await GetPaymentsAsync(id,1,100,ct)).Items,(await GetRefundsAsync(id,1,100,ct)).Items,
-            await GetInstallmentsAsync(id,ct),sale.OfferId,sale.OfferTypeSnapshot?.ToString(),sale.OfferValueSnapshot,sale.OfferEligibilityModeSnapshot?.ToString(),sale.OfferAudienceCategoryIdSnapshot);
+            await GetInstallmentsAsync(id,ct),sale.OfferId,sale.OfferTypeSnapshot?.ToString(),sale.OfferValueSnapshot,sale.OfferEligibilityModeSnapshot?.ToString(),sale.OfferAudienceCategoryIdSnapshot,
+            RetainedCommissionEligible:retainedEligible,RetainedTargetEligible:retainedEligible);
     }
     public async Task<BranchFinancialTotals> GetBranchTotalsAsync(Guid? branchId=null,DateOnly? from=null,DateOnly? to=null,CancellationToken ct=default)
     {

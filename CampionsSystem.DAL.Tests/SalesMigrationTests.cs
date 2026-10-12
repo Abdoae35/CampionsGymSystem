@@ -40,6 +40,6 @@ public sealed class SalesMigrationTests
         Assert.Equal(id, sale.Id); Assert.Equal(1000, sale.NetAmount); Assert.Equal(200, sale.DiscountAmount); Assert.Equal(time, sale.CreatedAt);
         Assert.Null(sale.OperationId); Assert.Null(sale.BusinessDate); Assert.Null(sale.CommissionEligible);
         Assert.False(await db.SaleMembershipSnapshots.AnyAsync()); Assert.Empty(await db.Payments.ToListAsync());
-        Assert.Empty(await db.Shifts.Select(x => x.Id).ToListAsync()); Assert.Empty(await db.CommissionPeriods.ToListAsync());
+        Assert.Empty(await db.Shifts.Select(x => x.Id).ToListAsync()); Assert.Empty(await db.CommissionPeriods.Select(p=>p.Id).ToListAsync());
     }
 }

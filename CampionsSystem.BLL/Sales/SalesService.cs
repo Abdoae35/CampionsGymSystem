@@ -84,6 +84,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
         var (date, day) = await BusinessDateAsync(sale.BranchId, ct);
         var payment = new Payment { SaleTransaction = sale, BranchId = sale.BranchId, OperationId = operation, RequestHash = hash,
             ShiftId = activeShift.Id, Amount = amount, Status = PaymentStatus.Completed, PaidAt = access.Now, ReceivedByUserId = actor, BusinessDate = date, BusinessDayId = day };
+        await new Commissions.CommissionSources(db, access).RecordCollectionAsync(payment, sale, ct);
         db.Add(payment);
         foreach (var p in parts)
         {
@@ -144,7 +145,11 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             throw new BusinessRuleException("Payment must not exceed the Sale price; full-payment purchases require the exact final price.");
         var owner = await db.MemberSalesAssignments.AsNoTracking().SingleOrDefaultAsync(x => x.MemberId == member.Id && x.EndedAt == null && x.AssignedAt <= access.Now, ct);
         var owned = owner?.AssignmentType == AssignmentType.Sales;
-        var renewal = await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.EmployeeId == null && !x.IsStandaloneVisit, ct);
+        // The member row is already locked across branches. Pending/reserved and cancelled
+        // purchases remain history; activation timing and today's status cannot reset New.
+        var renewal = await db.SaleTransactions.AnyAsync(x => x.MemberId == member.Id && x.SaleType == SaleType.GymMembership
+            && x.PurchaseMode != PurchaseMode.StandaloneSingleSession, ct)
+            || await db.MemberSubscriptions.AnyAsync(x => x.MemberId == member.Id && x.EmployeeId == null && !x.IsStandaloneVisit, ct);
         var sale = new SaleTransaction { MemberId = member.Id, BranchId = branch, SaleType = SaleType.GymMembership,
             OperationId = r.OperationId, RequestHash = hash, CreatedShiftId = activeShift.Id, BusinessDate = date, BusinessDayId = day,
             PurchaseMode = r.PurchaseMode, ActivationMode = r.ActivationMode, RequestedStartDate = r.StartDate, ReservationDueDate = r.ReservationDueDate, InitialPaymentRequired = initialRequired,
@@ -152,7 +157,7 @@ public sealed partial class SalesService(ApplicationDbContext db, ICurrentUserSe
             OfferId = price.OfferId, OfferNameSnapshot = price.OfferName, OfferTypeSnapshot = price.OfferType, OfferValueSnapshot = price.OfferValue,
             OfferEligibilityModeSnapshot = price.EligibilityMode, OfferAudienceCategoryIdSnapshot = price.AudienceCategoryId, ExtraDaysSnapshot = price.ExtraDays,
             SalesAttributionSnapshot = owned ? AssignmentType.Sales : AssignmentType.House, SalesEmployeeId = owned ? owner!.SalesEmployeeId : null,
-            SaleCategory = owned && r.PurchaseMode != PurchaseMode.StandaloneSingleSession ? renewal ? SaleCategory.Renewal : SaleCategory.NewMembership : null,
+            SaleCategory = r.PurchaseMode != PurchaseMode.StandaloneSingleSession ? renewal ? SaleCategory.Renewal : SaleCategory.NewMembership : null,
             CommissionEligible = owned && plan.PlanCategory == PlanCategory.Normal && r.PurchaseMode != PurchaseMode.StandaloneSingleSession,
             TargetEligible = owned && plan.PlanCategory == PlanCategory.Normal && r.PurchaseMode != PurchaseMode.StandaloneSingleSession,
             CreatedByUserId = actor.UserId, CreatedAt = access.Now };

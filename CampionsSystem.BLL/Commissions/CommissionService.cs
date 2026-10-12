@@ -28,7 +28,7 @@ public sealed partial class CommissionService(ApplicationDbContext db, ICurrentU
     private static void Page(int page, int size)
     { if (page < 1 || page > 1000000 || size is < 1 or > 100) throw new BusinessRuleException("Page must be positive; pageSize must be 1..100."); }
     internal static CommissionPeriodDetails Details(CommissionPeriod p) => new(p.Id, p.BranchId, p.Name, p.StartBusinessDate, p.EndBusinessDate, p.Status.ToString(), p.Version, p.ClosedAt);
-    private static CommissionRuleDetails RuleDetails(CommissionRule r) => new(r.Id, r.EmployeeId!.Value, r.BranchId, r.CommissionType.ToString(), r.EffectiveFrom, r.TargetAmount, r.BelowTargetRate, r.ReachedTargetRate, r.Revision);
+    private static CommissionRuleDetails RuleDetails(CommissionRule r) => new(r.Id, r.EmployeeId, r.BranchId, r.CommissionType.ToString(), r.EffectiveFrom, r.TargetAmount, r.BelowTargetRate, r.ReachedTargetRate, r.Revision);
     private async Task<CommissionPeriod> ReadAsync(Guid id, CancellationToken ct)
     {
         var p = await db.CommissionPeriods.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BranchNotFoundException("Commission period not found.");
@@ -41,7 +41,7 @@ public sealed partial class CommissionService(ApplicationDbContext db, ICurrentU
         FinancialOperations.Operation(r.OperationId);
         var (branch, _) = await coordination.ResolveAsync(CommissionPermissions.Close, r.BranchId, ct);
         var actor = await AdminAsync(CommissionPermissions.Close, branch, ct); await LockAsync(branch, ct);
-        var hash = FinancialOperations.Hash(r with { BranchId = branch });
+        var hash = FinancialOperations.Hash(new { Request = r with { BranchId = branch }, Actor = actor });
         var retry = await db.CommissionPeriods.AsNoTracking().SingleOrDefaultAsync(p => p.OperationId == r.OperationId, ct);
         if (retry != null) { if (retry.RequestHash != hash || retry.BranchId != branch) throw new BusinessRuleException("Operation belongs to another period request."); return Details(retry); }
         if (string.IsNullOrWhiteSpace(r.Name) || r.Name.Length > 256 || r.StartDate == default || r.EndDate < r.StartDate || r.EndDate == DateOnly.MaxValue)
@@ -61,7 +61,7 @@ public sealed partial class CommissionService(ApplicationDbContext db, ICurrentU
         var hash = FinancialOperations.Hash(r with { BranchId = branch });
         var prior = await db.CommissionRules.AsNoTracking().Where(x => x.OperationId == r.OperationId).ToListAsync(ct);
         if (prior.Count > 0) { if (prior.Count != 2 || prior.Any(x => x.RequestHash != hash || x.CreatedByUserId != actor)) throw new BusinessRuleException("Operation belongs to another configuration request."); return (IReadOnlyList<CommissionRuleDetails>)prior.Select(RuleDetails).ToArray(); }
-        if (!await db.Employees.AnyAsync(e => e.Id == r.EmployeeId, ct)) throw new BranchNotFoundException("Employee not found.");
+        if (r.EmployeeId.HasValue && !await db.Employees.AnyAsync(e => e.Id == r.EmployeeId, ct)) throw new BranchNotFoundException("Employee not found.");
         if (r.NewClients == null || r.Renewals == null) throw new BusinessRuleException("Both independent category rules are required.");
         var period = await db.CommissionPeriods.AsNoTracking().Where(p => p.BranchId == branch).OrderByDescending(p => p.StartAt).FirstOrDefaultAsync(ct);
         if (period != null && (period.EndBusinessDate == null || r.EffectiveFrom != period.EndBusinessDate.Value.AddDays(1)))
@@ -88,7 +88,7 @@ public sealed partial class CommissionService(ApplicationDbContext db, ICurrentU
         var count = await q.CountAsync(ct); var rows = await q.OrderByDescending(x => x.StartAt).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return new(rows.Select(Details).ToArray(), count, page, pageSize);
     }
-    public async Task<CommissionPage<CommissionRuleDetails>> RulesAsync(Guid employeeId, Guid? branchId = null, int page = 1, int pageSize = 25, CancellationToken ct = default)
+    public async Task<CommissionPage<CommissionRuleDetails>> RulesAsync(Guid? employeeId, Guid? branchId = null, int page = 1, int pageSize = 25, CancellationToken ct = default)
     {
         Page(page, pageSize); var (branch, _) = await coordination.ResolveAsync(CommissionPermissions.View, branchId, ct);
         var q = db.CommissionRules.AsNoTracking().Where(x => x.BranchId == branch && x.EmployeeId == employeeId && (x.CommissionType == CommissionType.SalesNew || x.CommissionType == CommissionType.SalesRenewal));

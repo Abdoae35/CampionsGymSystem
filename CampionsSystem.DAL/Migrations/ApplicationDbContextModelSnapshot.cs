@@ -4878,7 +4878,7 @@ namespace CampionsSystem.DAL.Migrations
 
                             t.HasCheckConstraint("CK_SaleTransactions_Amounts", "\"DiscountAmount\" <= \"GrossAmount\" AND \"NetAmount\" = \"GrossAmount\" - \"DiscountAmount\"");
 
-                            t.HasCheckConstraint("CK_SaleTransactions_Attribution", "\"SalesAttributionSnapshot\" IS NULL OR (\"SalesAttributionSnapshot\" = 'House' AND \"SalesEmployeeId\" IS NULL AND \"SaleCategory\" IS NULL) OR (\"SalesAttributionSnapshot\" = 'Sales' AND \"SalesEmployeeId\" IS NOT NULL)");
+                            t.HasCheckConstraint("CK_SaleTransactions_Attribution", "\"SalesAttributionSnapshot\" IS NULL OR (\"SalesAttributionSnapshot\" = 'House' AND \"SalesEmployeeId\" IS NULL) OR (\"SalesAttributionSnapshot\" = 'Sales' AND \"SalesEmployeeId\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_SaleTransactions_Cancellation", "(\"CancelledAt\" IS NULL AND \"CancelledByUserId\" IS NULL AND \"CancellationReason\" IS NULL) OR (\"CancelledAt\" IS NOT NULL AND \"CancelledByUserId\" IS NOT NULL AND \"CancellationReason\" IS NOT NULL AND length(btrim(\"CancellationReason\")) > 0)");
 

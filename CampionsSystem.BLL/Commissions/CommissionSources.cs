@@ -22,22 +22,38 @@ internal sealed class CommissionSources(ApplicationDbContext db, OperationAccess
     }
     internal async Task<(Guid? Employee, string Reason)> AttributionAsync(SaleTransaction sale, DateOnly? date, DateTimeOffset paidAt, CancellationToken ct)
     {
+        if (sale.SaleType != SaleType.GymMembership) return (null, "ExcludedProduct");
         if (sale.PurchaseMode == PurchaseMode.StandaloneSingleSession) return (null, "StandaloneVisit");
         if (sale.MembershipSnapshot?.PlanCategory == PlanCategory.Freelance) return (null, "Freelance");
         if (sale.SalesAttributionSnapshot == AssignmentType.House || sale.SalesEmployeeId == null) return (null, "House");
         if (sale.CommissionEligible != true || sale.TargetEligible != true || sale.SaleCategory == null || date == null) return (null, "LegacyOrExcluded");
         var e = await db.Employees.AsNoTracking().SingleAsync(x => x.Id == sale.SalesEmployeeId, ct);
+        // Employment end is a gym-local calendar date in the existing Employee model.
+        // A stale operational BusinessDay must not revive a departed seller's rights.
+        var employmentDate = access.LocalDate(paidAt);
         // Historical source audit preserves ended contracts after rehire clears the current termination field.
-        var ended = await db.AuditLogs.AsNoTracking().Where(a => a.EntityId == e.Id && a.Action == "EmployeeStatusChanged"
-            && a.CreatedAt >= sale.CreatedAt && a.CreatedAt <= paidAt).Select(a => a.NewValues).ToListAsync(ct);
+        var changes = await db.AuditLogs.AsNoTracking().Where(a => a.EntityId == e.Id && a.Action == "EmployeeStatusChanged")
+            .OrderBy(a => a.CreatedAt).ThenBy(a => a.Id).Select(a => new { a.CreatedAt, a.OldValues, a.NewValues }).ToListAsync(ct);
+        var ended = changes.Where(a => a.CreatedAt >= sale.CreatedAt && a.CreatedAt <= paidAt).Select(a => a.NewValues);
         foreach (var json in ended.Where(x => x != null))
         {
             using var doc = JsonDocument.Parse(json!);
             if (doc.RootElement.TryGetProperty("TerminationDate", out var term) && term.ValueKind == JsonValueKind.String
-                && DateOnly.TryParse(term.GetString(), out var end) && date > end) return (null, "EmploymentEnded");
+                && DateOnly.TryParse(term.GetString(), out var end) && employmentDate > end) return (null, "EmploymentEnded");
         }
-        if (e.HireDate > date || e.TerminationDate < date || e.EmploymentStatus != EmploymentStatus.Active
-            && !(e.EmploymentStatus == EmploymentStatus.Resigned && e.TerminationDate >= date)) return (null, "EmploymentInactive");
+        var status = e.EmploymentStatus; var termination = e.TerminationDate;
+        var latest = changes.LastOrDefault(a => a.CreatedAt <= paidAt);
+        var historical = latest?.NewValues ?? changes.FirstOrDefault(a => a.CreatedAt > paidAt)?.OldValues;
+        if (historical != null)
+        {
+            using var doc = JsonDocument.Parse(historical);
+            if (doc.RootElement.TryGetProperty("EmploymentStatus", out var value))
+                status = value.ValueKind == JsonValueKind.Number ? (EmploymentStatus)value.GetInt32() : Enum.Parse<EmploymentStatus>(value.GetString()!);
+            if (doc.RootElement.TryGetProperty("TerminationDate", out var term))
+                termination = term.ValueKind == JsonValueKind.String ? DateOnly.Parse(term.GetString()!) : null;
+        }
+        if (e.HireDate > employmentDate || termination < employmentDate || status != EmploymentStatus.Active
+            && !(status == EmploymentStatus.Resigned && termination >= employmentDate)) return (null, "EmploymentInactive");
         return (e.Id, "Eligible");
     }
     internal static Dictionary<Guid, decimal> AllocateNewest(IReadOnlyList<Payment> payments, decimal amount,

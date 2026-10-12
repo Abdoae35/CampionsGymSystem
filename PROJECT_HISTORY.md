@@ -43,12 +43,13 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Sales Commissions implementation on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; initial tree clean and remote verified.
-- Owner confirmed newest-first refunds, deterministic PaidAt then Guid chronology; refunds touching finalized source periods reject atomically. No unresolved refund policy.
-- Domain prepared: reuse periods/rules/summaries; three append-only collection/allocation/statement evidence tables, nullable legacy-compatible date/operation/snapshot fields; new AddSalesCommissionEvidence migration reviewed.
-- Three domain tests passed; build zero warnings/errors before calculation draft. Prior fresh full baseline 733 passed; final complete feature validation pending.
-- BLL configuration/source/calculation work is in progress separately; no production or application data/permission mutations. Migration Development application pending.
-- Four configuration/lifecycle/scope tests passed. Next: verify actual collection/refund attribution and calculations, APIs/reporting/tests/docs. Existing unrelated Sales permission gap preserved.
+- Sales Commissions implementation on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; preserve published checkpoints 974f116 and 5bf9bd9.
+- Independent future-effective New/Renewal rules, branch periods, immutable collection evidence and finalized source/rate snapshots implemented; no payout/payroll.
+- Confirmed newest-first refunds, retained eligible cancellation cash, post-employment House attribution, atomic rejection of refunds touching finalized sources; no unresolved policy.
+- Collection/Sales integration and regression tests validated: latest targeted commission plus historical migration run 44 passed, zero failures/skips. API/Postman work awaits its own checkpoint.
+- Both new migrations applied only to guarded localhost Development: three evidence tables, seven indexes, 14 validated constraints, restrictive FKs and correct precision. EF drift clean; no application data or grants seeded.
+- First full run 769 passed / one historical migration assertion failed; narrowed old-schema assertion to Id and affected tests now pass. Final full rerun pending.
+- Next: publish reviewed integration, API/reporting checkpoint, then complete final build/full suite/drift/docs. Existing unrelated Sales permission gap remains unchanged.
 
 ## Work history
 
@@ -2075,3 +2076,15 @@ Continued clean verified f8530e9 on existing SalesCommissions&Targets; did not r
 ### 2026-10-12 — Commission rule history and branch period lifecycle
 
 Domain 974f116 published. Added concrete CommissionService contracts and future-effective independent per-employee SalesNew/SalesRenewal rules using existing CommissionRule. Updates append revisions and require next configured period boundary; initial setup is explicit, no automatic defaults or role grants. Branch periods use explicit inclusive BusinessDates with contiguous boundaries, existing Open/Closed lifecycle, actual audited finalization and immutable source/rate snapshots, without payout/payroll. Added shared timezone-aware BusinessDateBounds helper. Four PostgreSQL configuration/period/scope cases passed, zero failures/skips; build zero warnings/errors before Sales integration edits. BLL collection/calculation foundation included for subsequent integration tests; source integration drafts remain separate. No Development migration application or financial/Production writes yet. Preparing requested configuration checkpoint commit/push; next real Sale/payment/refund attribution tests and calculation verification.
+
+### 2026-10-12 — Commission collections, retained refunds and historical integrity
+
+Rule/period checkpoint 5bf9bd9 pushed. Integrated immutable collection-time commercial attribution into existing transactional Sales/Payment writes, global-member-lock first-ever purchase classification independent of House status, complete pending/cancelled purchase history, actual collected deposits/installments and original category across periods. Added deterministic newest-first append-only refund allocation before any money/grant changes; finalized source periods reject the entire refund atomically. Retained otherwise eligible cancellation cash counts once without ledger re-credit or rewriting CancellationFee history. Employee last working day uses actual gym-local PaidAt; stale BusinessDay cannot revive rights. Existing employment audits preserve terminated contract exclusion after rehire. Sources transparently include original-seller House/exclusion facts. Added repeatable-read reporting, independent totals, branch fallback rule setup, future employee overrides and finalized snapshots; no invented defaults or grants.
+
+Validation: latest targeted commissions plus historical Sales migration run 44/44 passed, zero failures/skips; previous feature-only run 40/40 and additional edge cases passed. First full suite 770 cases: 769 passed, one historical migration fixture loaded modern CommissionPeriod columns against an old schema. Narrowed assertion to historical Id; affected migration tests now pass. Final full rerun remains required. Latest finished build zero warnings/errors; all four committed-connection concurrency cases passed after the exact period retry refinement. Diff/whitespace reviewed. Migration-preservation test confirms legacy null Shift/period/date links and configured 40k target/4-6 rates are unchanged.
+
+Database: added constraint-only SeparatePurchaseCategoryFromOwnership migration, allowing New/Renewal on House Sales while retaining no-owner invariant; old rows not rewritten. AddSalesCommissionEvidence and this migration applied only to guarded localhost Development. Read-only catalog verification: three tables, seven indexes, 14 validated constraints, all new FKs restrictive, numeric(18,2) money/(5,2) rate snapshots, operation uniqueness. Zero operational evidence/rule/period/Sales data seeded. Commission catalog/grants unchanged; Offers.Manage, Installments.Manage and Sales.QuickCancel remain active with zero grants/overrides.
+
+Tooling correction: an empty uncommitted scaffold was generated from a stale assembly after a sandbox MSBuild failure. Stale EF remove temporarily removed the committed domain migration locally; detected before database application, restored its two files and model snapshot exactly from HEAD, removed only the empty uncommitted scaffold, rebuilt successfully and generated/reviewed the correct new migration. No old migration file diff, source history rewrite or database mutation occurred during cleanup. Development application subsequently succeeded. Production untouched.
+
+Commit state: 974f116 and 5bf9bd9 already published; reviewed source/retained-refund integration prepared for the next validated commit/push. API/Postman/documentation are valid separate in-progress work; complete final feature validation and publication remain next.

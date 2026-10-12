@@ -43,6 +43,8 @@ public sealed partial class CommissionService
     private async Task<List<EmployeeCommissionStatement>> StatementsAsync(CommissionPeriod period, List<CommissionSourceLine> lines, CancellationToken ct)
     {
         var result = new List<EmployeeCommissionStatement>();
+        decimal House(Guid employee) => lines.Where(l => l.OriginalSalesEmployeeId == employee && l.EligibilityReason is "House" or "EmploymentEnded" or "EmploymentInactive").Sum(l => l.RetainedCollection);
+        decimal Excluded(Guid employee) => lines.Where(l => l.OriginalSalesEmployeeId == employee && l.EligibilityReason is not ("Eligible" or "House" or "EmploymentEnded" or "EmploymentInactive")).Sum(l => l.RetainedCollection);
         if (period.Status == CommissionPeriodStatus.Closed)
         {
             var summaries = await db.EmployeeCommissionSummaries.AsNoTracking().Include(s => s.Employee).Where(s => s.CommissionPeriodId == period.Id
@@ -57,7 +59,7 @@ public sealed partial class CommissionService
                         s.BelowTargetRateSnapshot, s.ReachedTargetRateSnapshot, s.AppliedRate, s.CommissionAmount, s.CommissionRuleId);
                 }
                 var n = Closed(CommissionType.SalesNew); var r = Closed(CommissionType.SalesRenewal);
-                result.Add(new(g.Key, g.First().Employee.FullName, n, r, n.Commission + r.Commission));
+                result.Add(new(g.Key, g.First().Employee.FullName, n, r, n.Commission + r.Commission, period.Id, true, House(g.Key), Excluded(g.Key)));
             }
             return result.OrderBy(x => x.EmployeeId).ToList();
         }
@@ -72,40 +74,70 @@ public sealed partial class CommissionService
                 .OrderByDescending(r => r.EmployeeId != null).ThenByDescending(r => r.EffectiveFrom).ThenByDescending(r => r.Revision).ThenByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id).FirstOrDefault();
             var n = Calculate("NewMembership", lines.Where(x => x.EmployeeId == employee && x.Category == "NewMembership").ToArray(), Rule(CommissionType.SalesNew));
             var r = Calculate("Renewal", lines.Where(x => x.EmployeeId == employee && x.Category == "Renewal").ToArray(), Rule(CommissionType.SalesRenewal));
-            result.Add(new(employee, names[employee], n, r, n.Commission + r.Commission));
+            result.Add(new(employee, names[employee], n, r, n.Commission + r.Commission, period.Id, false, House(employee), Excluded(employee)));
         }
         return result;
     }
-    public async Task<CommissionProgress> ProgressAsync(Guid periodId, int page = 1, int pageSize = 25, CancellationToken ct = default)
+    // One snapshot across source, refund and configuration reads; no operational mutations.
+    private async Task<T> SnapshotAsync<T>(Func<Task<T>> read, CancellationToken ct)
+    {
+        if (db.Database.CurrentTransaction != null) return await read();
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
+        var result = await read(); await tx.CommitAsync(ct); return result;
+    }
+    public Task<CommissionProgress> ProgressAsync(Guid periodId, int page = 1, int pageSize = 25, CancellationToken ct = default)
+        => SnapshotAsync(() => ProgressCoreAsync(periodId, page, pageSize, ct), ct);
+    private async Task<CommissionProgress> ProgressCoreAsync(Guid periodId, int page, int pageSize, CancellationToken ct)
     {
         Page(page, pageSize); var p = await ReadAsync(periodId, ct); var lines = await LinesAsync(p, ct); var statements = await StatementsAsync(p, lines, ct);
         var house = lines.Where(l => l.EligibilityReason is "House" or "EmploymentEnded" or "EmploymentInactive").Sum(l => l.RetainedCollection);
         var eligible = lines.Sum(l => l.EligibleCollection); var retained = lines.Sum(l => l.RetainedCollection);
         return new(Details(p), p.Status == CommissionPeriodStatus.Closed, lines.Sum(l => l.GrossCollection), lines.Sum(l => l.Refunds), retained,
-            eligible, house, retained - eligible - house, lines.Where(l => l.Category == "NewMembership").Sum(l => l.EligibleCollection),
+            eligible, house, lines.Where(l => l.EmployeeId == null && l.Category == "NewMembership" && l.EligibilityReason is "House" or "EmploymentEnded" or "EmploymentInactive").Sum(l => l.RetainedCollection),
+            lines.Where(l => l.EmployeeId == null && l.Category == "Renewal" && l.EligibilityReason is "House" or "EmploymentEnded" or "EmploymentInactive").Sum(l => l.RetainedCollection),
+            retained - eligible - house, lines.Where(l => l.Category == "NewMembership").Sum(l => l.EligibleCollection),
             lines.Where(l => l.Category == "Renewal").Sum(l => l.EligibleCollection), statements.Sum(s => s.TotalCommission), statements.Count,
             statements.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), page, pageSize);
     }
-    public async Task<EmployeeCommissionStatement> EmployeeStatementAsync(Guid periodId, Guid employeeId, CancellationToken ct = default)
+    public Task<EmployeeCommissionStatement> EmployeeStatementAsync(Guid periodId, Guid employeeId, CancellationToken ct = default)
+        => SnapshotAsync(() => EmployeeStatementCoreAsync(periodId, employeeId, ct), ct);
+    private async Task<EmployeeCommissionStatement> EmployeeStatementCoreAsync(Guid periodId, Guid employeeId, CancellationToken ct)
     {
         var p = await ReadAsync(periodId, ct); var statements = await StatementsAsync(p, await LinesAsync(p, ct), ct);
         return statements.SingleOrDefault(s => s.EmployeeId == employeeId) ?? throw new Branches.BranchNotFoundException("Employee has no configuration or attributed collection in this period.");
     }
-    public async Task<CommissionPage<CommissionSourceLine>> SourcesAsync(Guid periodId, Guid? employeeId = null, int page = 1, int pageSize = 25, CancellationToken ct = default)
+    public Task<CommissionPage<CommissionSourceLine>> SourcesAsync(Guid periodId, Guid? employeeId = null, int page = 1, int pageSize = 25, CancellationToken ct = default)
+        => SnapshotAsync(() => SourcesCoreAsync(periodId, employeeId, page, pageSize, ct), ct);
+    private async Task<CommissionPage<CommissionSourceLine>> SourcesCoreAsync(Guid periodId, Guid? employeeId, int page, int pageSize, CancellationToken ct)
     {
         Page(page, pageSize); var p = await ReadAsync(periodId, ct); IEnumerable<CommissionSourceLine> lines = await LinesAsync(p, ct);
-        if (employeeId.HasValue) lines = lines.Where(l => l.EmployeeId == employeeId);
+        if (employeeId.HasValue) lines = lines.Where(l => l.EmployeeId == employeeId || l.OriginalSalesEmployeeId == employeeId);
         var rows = lines.OrderByDescending(l => l.PaidAt).ThenByDescending(l => l.PaymentId).ToArray();
         return new(rows.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), rows.Length, page, pageSize);
     }
+    public Task<CommissionPage<CommissionRefundSource>> RefundSourcesAsync(Guid periodId, int page = 1, int pageSize = 25, CancellationToken ct = default)
+        => SnapshotAsync(async () =>
+        {
+            Page(page, pageSize); var p = await ReadAsync(periodId, ct);
+            var q = db.CommissionRefundAllocations.AsNoTracking().Where(a => a.Payment.BranchId == p.BranchId
+                && a.Payment.BusinessDate >= p.StartBusinessDate && a.Payment.BusinessDate <= p.EndBusinessDate);
+            var total = await q.CountAsync(ct);
+            var rows = await q.OrderByDescending(a => a.Refund.CreatedAt).ThenBy(a => a.RefundId).ThenBy(a => a.PaymentId).Skip((page - 1) * pageSize).Take(pageSize)
+                .Select(a => new CommissionRefundSource(a.RefundId, a.PaymentId, a.Amount, a.Payment.BusinessDate, a.Refund.BusinessDate, a.Refund.CreatedAt)).ToListAsync(ct);
+            return new CommissionPage<CommissionRefundSource>(rows, total, page, pageSize);
+        }, ct);
     public Task<CommissionPeriodDetails> FinalizeAsync(Guid id, FinalizeCommissionPeriodRequest r, CancellationToken ct = default) => coordination.TransactionAsync(async () =>
     {
         FinancialOperations.Operation(r.OperationId);
-        var initial = await ReadAsync(id, ct); var actor = await AdminAsync(CommissionPermissions.Close, initial.BranchId, ct); await LockAsync(initial.BranchId, ct);
+        var initial = await db.CommissionPeriods.AsNoTracking().SingleOrDefaultAsync(p => p.Id == id, ct) ?? throw new Branches.BranchNotFoundException("Commission period not found.");
+        var actor = await AdminAsync(CommissionPermissions.Close, initial.BranchId, ct);
+        if (initial.StartBusinessDate == null || initial.EndBusinessDate == null) throw new BusinessRuleException("Legacy commission period needs explicit reconciliation.");
+        await LockAsync(initial.BranchId, ct);
         var p = await db.CommissionPeriods.SingleAsync(x => x.Id == id, ct); await db.Entry(p).ReloadAsync(ct);
         var hash = FinancialOperations.Hash(new { Id = id, Request = r, Actor = actor });
         if (p.CloseOperationId == r.OperationId) { if (p.CloseRequestHash != hash) throw new BusinessRuleException("Operation belongs to another finalization request."); return Details(p); }
-        if (p.Status != CommissionPeriodStatus.Open || p.Version != r.ExpectedVersion) throw new BusinessRuleException("Period is finalized or the version is stale.");
+        if (p.Version != r.ExpectedVersion) throw new DbUpdateConcurrencyException("Period version is stale.");
+        if (p.Status != CommissionPeriodStatus.Open) throw new BusinessRuleException("Period is already finalized.");
         var (date, _) = await coordination.BusinessDateAsync(p.BranchId, ct);
         if (date <= p.EndBusinessDate) throw new BusinessRuleException("Finalize only after the period's last effective BusinessDate has ended.");
         var lines = await LinesAsync(p, ct); var statements = await StatementsAsync(p, lines, ct);

@@ -41,9 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales Commissions implementation on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; initial tree clean and remote verified.
-- Owner confirmed newest-first refunds, deterministic PaidAt then Guid chronology; refunds touching finalized source periods reject atomically. No unresolved refund policy.
-- Domain prepared: reuse periods/rules/summaries; three append-only collection/allocation/statement evidence tables, nullable legacy-compatible date/operation/snapshot fields; new AddSalesCommissionEvidence migration reviewed.
-- Three domain tests passed; build zero warnings/errors before calculation draft. Prior fresh full baseline 733 passed; final complete feature validation pending.
-- BLL configuration/source/calculation work is in progress separately; no production or application data/permission mutations. Migration Development application pending.
-- Four configuration/lifecycle/scope tests passed. Next: verify actual collection/refund attribution and calculations, APIs/reporting/tests/docs. Existing unrelated Sales permission gap preserved.
+- Sales Commissions implementation on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; preserve published checkpoints 974f116 and 5bf9bd9.
+- Independent future-effective New/Renewal rules, branch periods, immutable collection evidence and finalized source/rate snapshots implemented; no payout/payroll.
+- Confirmed newest-first refunds, retained eligible cancellation cash, post-employment House attribution, atomic rejection of refunds touching finalized sources; no unresolved policy.
+- Collection/Sales integration and regression tests validated: latest targeted commission plus historical migration run 44 passed, zero failures/skips. API/Postman work awaits its own checkpoint.
+- Both new migrations applied only to guarded localhost Development: three evidence tables, seven indexes, 14 validated constraints, restrictive FKs and correct precision. EF drift clean; no application data or grants seeded.
+- First full run 769 passed / one historical migration assertion failed; narrowed old-schema assertion to Id and affected tests now pass. Final full rerun pending.
+- Next: publish reviewed integration, API/reporting checkpoint, then complete final build/full suite/drift/docs. Existing unrelated Sales permission gap remains unchanged.

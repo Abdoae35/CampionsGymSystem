@@ -14,7 +14,8 @@ public sealed class OperationAccess(ICurrentUserService current, ApplicationDbCo
     TimeProvider clock, IOptions<AuthContextOptions> options)
 {
     public DateTimeOffset Now => clock.GetUtcNow();
-    public DateOnly Today => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(Now,
+    public DateOnly Today => LocalDate(Now);
+    public DateOnly LocalDate(DateTimeOffset instant) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(instant,
         TimeZoneInfo.FindSystemTimeZoneById(options.Value.TimeZoneId)).DateTime);
 
     public (DateTimeOffset Start, DateTimeOffset End) DayBounds()
