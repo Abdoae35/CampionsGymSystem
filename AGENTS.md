@@ -41,10 +41,9 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales Commissions implementation on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; preserve published checkpoints 974f116 and 5bf9bd9.
-- Independent future-effective New/Renewal rules, branch periods, immutable collection evidence and finalized source/rate snapshots implemented; no payout/payroll.
-- Confirmed newest-first refunds, retained eligible cancellation cash, post-employment House attribution, atomic rejection of refunds touching finalized sources; no unresolved policy.
-- Collection/Sales integration and regression tests validated: latest targeted commission plus historical migration run 44 passed, zero failures/skips. API/Postman work awaits its own checkpoint.
-- Both new migrations applied only to guarded localhost Development: three evidence tables, seven indexes, 14 validated constraints, restrictive FKs and correct precision. EF drift clean; no application data or grants seeded.
-- First full run 769 passed / one historical migration assertion failed; narrowed old-schema assertion to Id and affected tests now pass. Final full rerun pending.
-- Next: publish reviewed integration, API/reporting checkpoint, then complete final build/full suite/drift/docs. Existing unrelated Sales permission gap remains unchanged.
+- Sales Commissions implemented on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; source integration 1ba9a14 pushed after domain 974f116 and rules/periods 5bf9bd9.
+- Independent future-effective New/Renewal rules, explicit branch periods, immutable collection attribution, newest-first refunds and finalized source/rate statements implemented; no payroll/payout.
+- Retained eligible cancellation cash remains eligible; post-employment collections become House. Refunds reaching finalized sources reject atomically. No unresolved policy.
+- Latest commission plus historical migration tests 44/44 passed; four concurrency cases rerun 4/4. Build zero warnings/errors. API authorization included four passing HTTP cases; Postman ten authenticated examples validated.
+- Two migrations applied only to guarded localhost Development: three tables, seven indexes, 14 validated constraints, restrictive FKs and exact precision. No app data or grants seeded; unrelated Sales permission gap preserved.
+- First full run 769 passed / one old-schema projection failed; corrected and targeted rerun passed. Fresh complete final suite running; final EF/build/HEAD/docs checks next.

@@ -43,13 +43,12 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Sales Commissions implementation on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; preserve published checkpoints 974f116 and 5bf9bd9.
-- Independent future-effective New/Renewal rules, branch periods, immutable collection evidence and finalized source/rate snapshots implemented; no payout/payroll.
-- Confirmed newest-first refunds, retained eligible cancellation cash, post-employment House attribution, atomic rejection of refunds touching finalized sources; no unresolved policy.
-- Collection/Sales integration and regression tests validated: latest targeted commission plus historical migration run 44 passed, zero failures/skips. API/Postman work awaits its own checkpoint.
-- Both new migrations applied only to guarded localhost Development: three evidence tables, seven indexes, 14 validated constraints, restrictive FKs and correct precision. EF drift clean; no application data or grants seeded.
-- First full run 769 passed / one historical migration assertion failed; narrowed old-schema assertion to Id and affected tests now pass. Final full rerun pending.
-- Next: publish reviewed integration, API/reporting checkpoint, then complete final build/full suite/drift/docs. Existing unrelated Sales permission gap remains unchanged.
+- Sales Commissions implemented on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; source integration 1ba9a14 pushed after domain 974f116 and rules/periods 5bf9bd9.
+- Independent future-effective New/Renewal rules, explicit branch periods, immutable collection attribution, newest-first refunds and finalized source/rate statements implemented; no payroll/payout.
+- Retained eligible cancellation cash remains eligible; post-employment collections become House. Refunds reaching finalized sources reject atomically. No unresolved policy.
+- Latest commission plus historical migration tests 44/44 passed; four concurrency cases rerun 4/4. Build zero warnings/errors. API authorization included four passing HTTP cases; Postman ten authenticated examples validated.
+- Two migrations applied only to guarded localhost Development: three tables, seven indexes, 14 validated constraints, restrictive FKs and exact precision. No app data or grants seeded; unrelated Sales permission gap preserved.
+- First full run 769 passed / one old-schema projection failed; corrected and targeted rerun passed. Fresh complete final suite running; final EF/build/HEAD/docs checks next.
 
 ## Work history
 
@@ -2088,3 +2087,11 @@ Database: added constraint-only SeparatePurchaseCategoryFromOwnership migration,
 Tooling correction: an empty uncommitted scaffold was generated from a stale assembly after a sandbox MSBuild failure. Stale EF remove temporarily removed the committed domain migration locally; detected before database application, restored its two files and model snapshot exactly from HEAD, removed only the empty uncommitted scaffold, rebuilt successfully and generated/reviewed the correct new migration. No old migration file diff, source history rewrite or database mutation occurred during cleanup. Development application subsequently succeeded. Production untouched.
 
 Commit state: 974f116 and 5bf9bd9 already published; reviewed source/retained-refund integration prepared for the next validated commit/push. API/Postman/documentation are valid separate in-progress work; complete final feature validation and publication remain next.
+
+### 2026-10-12 — Commission API, statement transparency and Postman checkpoint
+
+Collection/refund checkpoint 1ba9a14 pushed successfully. Added thin authenticated CommissionsController and DI registration for nine routes covering independent rule history, explicit branch period creation/history, live/finalized progress, employee statements, source reconciliation, refund allocations and narrow finalization. Existing Commission.View/ManageRules/ClosePeriod reused; rule/period administration additionally requires Branches.AccessAll. Capability Allow/Deny and trusted branch scope retained; no hardcoded role checks, shift requirement on read/configuration or client-calculated commission override. Statements distinguish gross/refund/retained, New/Renewal, original-seller House/exclusions, target/rate/earned and estimate/finalized.
+
+Verification: four actual HTTP authorization/contract cases passed within the latest 44-case targeted run; latest build zero warnings/errors. Four separate concurrent purchase/period retry/refund retry/refund-versus-finalization cases passed after final refinement. Postman folder 17 contains ten authenticated examples with stable OperationIds and captured period/version; JSON, request payloads and operation scripts validated without sending operations against application data. An initial local JSON validation incorrectly substituted the expected-version placeholder as text; corrected validator to use its actual variable name, all payloads valid. Diff/whitespace reviewed.
+
+Publication: API/Postman checkpoint prepared for its own requested commit/push. Fresh complete final regression suite started on final code, completion pending; previous first full failure is corrected, not concealed. Feature docs/index and final verification/history remain next. No production, default rules/periods, operational money or permission mutations.

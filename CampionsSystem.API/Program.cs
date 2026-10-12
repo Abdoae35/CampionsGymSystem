@@ -52,6 +52,7 @@ builder.Services.AddScoped<CampionsSystem.BLL.Subscriptions.SubscriptionPermissi
 builder.Services.AddScoped<CampionsSystem.BLL.CheckIns.CheckInService>();
 builder.Services.AddScoped<CampionsSystem.BLL.CheckIns.CheckInPermissionSetup>();
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.SalesService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Commissions.CommissionService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.OfferService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.SalesPermissionSetup>();
 builder.Services.AddScoped<CampionsSystem.BLL.Shifts.ShiftService>();

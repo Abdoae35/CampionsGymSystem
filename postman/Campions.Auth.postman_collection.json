@@ -376,6 +376,56 @@
       "key": "advanceRecipientEmployeeId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "commissionEmployeeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "commissionPeriodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "commissionExpectedVersion",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "commissionStartDate",
+      "value": "2026-10-12",
+      "type": "string"
+    },
+    {
+      "key": "commissionEndDate",
+      "value": "2026-11-11",
+      "type": "string"
+    },
+    {
+      "key": "commissionRuleEffectiveFrom",
+      "value": "2026-10-12",
+      "type": "string"
+    },
+    {
+      "key": "commissionDefaultOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "commissionRuleOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "commissionPeriodOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "commissionCloseOperationId",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -1739,7 +1789,7 @@
                 }
               ]
             },
-            "description": "Leads.Assign + Leads.Manage; 1\u2013100 rows. Created/AlreadyMember/AlreadyLead/Invalid per row. These examples include a phone-only prospect; choose distinct real test phones.",
+            "description": "Leads.Assign + Leads.Manage; 1–100 rows. Created/AlreadyMember/AlreadyLead/Invalid per row. These examples include a phone-only prospect; choose distinct real test phones.",
             "body": {
               "mode": "raw",
               "raw": "[\n  {\n    \"fullName\": \"{{leadFullName}}\",\n    \"primaryPhone\": \"{{leadPrimaryPhone}}\",\n    \"secondaryPhone\": null,\n    \"email\": null,\n    \"source\": \"WalkIn\",\n    \"notes\": null,\n    \"branchId\": \"{{crmOperationalBranchId}}\"\n  },\n  {\n    \"branchId\": \"{{crmOperationalBranchId}}\",\n    \"primaryPhone\": \"{{leadSecondPhone}}\"\n  }\n]",
@@ -4515,7 +4565,7 @@
           }
         },
         {
-          "name": "Full Cash \u2014 activate now",
+          "name": "Full Cash — activate now",
           "request": {
             "method": "POST",
             "header": [
@@ -4730,7 +4780,7 @@
           ]
         },
         {
-          "name": "Reservation deposit \u2014 no access",
+          "name": "Reservation deposit — no access",
           "request": {
             "method": "POST",
             "header": [
@@ -5027,7 +5077,7 @@
           }
         },
         {
-          "name": "Reservation cancellation \u2014 retain deposit",
+          "name": "Reservation cancellation — retain deposit",
           "request": {
             "method": "POST",
             "header": [
@@ -5059,7 +5109,7 @@
           }
         },
         {
-          "name": "Quick Cancel \u2014 unused and within 24 hours",
+          "name": "Quick Cancel — unused and within 24 hours",
           "request": {
             "method": "POST",
             "header": [
@@ -5727,6 +5777,356 @@
                 "type": "text/javascript",
                 "exec": [
                   "if (!pm.collectionVariables.get('shiftCloseOperationId')) pm.collectionVariables.set('shiftCloseOperationId', pm.variables.replaceIn('{$guid}')); "
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "17. Sales commissions and independent targets",
+      "item": [
+        {
+          "name": "Configure explicit branch fallback rules",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/rules",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{commissionDefaultOperationId}}\",\n  \"employeeId\": null,\n  \"effectiveFrom\": \"{{commissionRuleEffectiveFrom}}\",\n  \"newClients\": {\n    \"target\": 30000,\n    \"belowRate\": 5,\n    \"reachedRate\": 7\n  },\n  \"renewals\": {\n    \"target\": 30000,\n    \"belowRate\": 3,\n    \"reachedRate\": 5\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"commissionDefaultOperationId\")) pm.collectionVariables.set(\"commissionDefaultOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Configure independent employee rules for next period",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/rules",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{commissionRuleOperationId}}\",\n  \"employeeId\": \"{{commissionEmployeeId}}\",\n  \"effectiveFrom\": \"{{commissionRuleEffectiveFrom}}\",\n  \"newClients\": {\n    \"target\": 30000,\n    \"belowRate\": 5,\n    \"reachedRate\": 7\n  },\n  \"renewals\": {\n    \"target\": 30000,\n    \"belowRate\": 3,\n    \"reachedRate\": 5\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"commissionRuleOperationId\")) pm.collectionVariables.set(\"commissionRuleOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rule history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/rules?employeeId={{commissionEmployeeId}}&page=1&pageSize=25",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created."
+          },
+          "response": [],
+          "event": []
+        },
+        {
+          "name": "Open explicit branch period",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/periods",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{commissionPeriodOperationId}}\",\n  \"name\": \"Configured branch commission period\",\n  \"startDate\": \"{{commissionStartDate}}\",\n  \"endDate\": \"{{commissionEndDate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"commissionPeriodOperationId\")) pm.collectionVariables.set(\"commissionPeriodOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) { const p = pm.response.json(); pm.collectionVariables.set(\"commissionPeriodId\", p.id); pm.collectionVariables.set(\"commissionExpectedVersion\", String(p.version)); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Branch period history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/periods?page=1&pageSize=25",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created."
+          },
+          "response": [],
+          "event": []
+        },
+        {
+          "name": "Live or finalized branch progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/periods/{{commissionPeriodId}}?page=1&pageSize=25",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created."
+          },
+          "response": [],
+          "event": []
+        },
+        {
+          "name": "Employee statement",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/periods/{{commissionPeriodId}}/employees/{{commissionEmployeeId}}",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created."
+          },
+          "response": [],
+          "event": []
+        },
+        {
+          "name": "Payment source reconciliation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/periods/{{commissionPeriodId}}/sources?page=1&pageSize=25",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created."
+          },
+          "response": [],
+          "event": []
+        },
+        {
+          "name": "Newest-first refund allocations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/periods/{{commissionPeriodId}}/refund-allocations?page=1&pageSize=25",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created."
+          },
+          "response": [],
+          "event": []
+        },
+        {
+          "name": "Finalize after effective period end — no payout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/commissions/periods/{{commissionPeriodId}}/finalize",
+            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{commissionCloseOperationId}}\",\n  \"expectedVersion\": {{commissionExpectedVersion}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"commissionCloseOperationId\")) pm.collectionVariables.set(\"commissionCloseOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
                 ]
               }
             }
