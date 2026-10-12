@@ -1,5 +1,7 @@
 # Gym database schema
 
+Current Private/Classes implementation (2026-10-12): [Private, Classes and coach earnings](../PRIVATE_CLASSES.md) supersedes earlier financial/workflow assumptions below. Original coaches earn on their delivered funded sources; incoming transferred assignments earn fixed 50%; expiry unused quantity goes to the coach assigned at expiry without attendance or zeroing actual remaining counters. Earnings and actual partial payouts are separate.
+
 Current model: **77 application tables plus seven Identity tables (84 model tables)**.
 The database also has EF migration history (85 tables including that bookkeeping table).
 See [final schema-gap and rollout report](FINAL_SCHEMA_ALIGNMENT.md).
@@ -402,3 +404,21 @@ GymBranches.Id with Restrict. New BLL registrations require an active owning bra
 CityId retains access semantics and cannot determine administration scope. No data
 is backfilled from city. Existing plan type/audience/benefit/eligibility and historical
 snapshot models are reused. See [Membership Plans](../MEMBERSHIP_PLANS.md).
+
+## Private / Classes operational evidence (2026-10-12)
+
+| New table | Purpose and key links |
+|---|---|
+| ClassesPackages | Branch-specific shared-session catalog |
+| ClassesSubscriptions | Immutable purchase snapshot and versioned remaining balance; Member, branch, package and unique Sale |
+| CoachTargetRules | Immutable explicit Private/Classes thresholds per coach and branch CommissionPeriod |
+| CoachEarnings | Immutable net-funded delivered/expiry source slices, period target/rate snapshots; exactly one PrivateSession or PrivateExpirySettlement |
+| CoachPayouts | Immutable actual part-payment and balance snapshots; unique existing Expense, branch, coach and authorizer |
+| CoachPayoutAllocations | Positive allocations from each actual payout to earned source evidence |
+
+Existing Private batches snapshot original assignment, unit value/remainder and
+package/date facts. Private sessions retain actual delivery attribution and nullable
+legacy period links; expiry authorization retains unused quantity without attendance.
+Managed ClassSessions and CheckIns retain operational date, actor and operation
+identity, selected shared subscription and exact before/after consumption counters.
+Forward migrations and controlled rollout are documented in [Private / Classes](../PRIVATE_CLASSES.md).

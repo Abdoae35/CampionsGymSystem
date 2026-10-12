@@ -74,13 +74,17 @@ introduce distributed queues, caches or synchronization services.
 
 ## Implemented Scope and Foundations
 
-The six management areas in the [index](README.md) have API/BLL/test support. DAL also
+The implemented areas in the [index](README.md) have API/BLL/test support. DAL also
 contains foundations for subscriptions, financial records, CheckIns, guest invitations,
 commission and other operational areas; schema presence is not a complete workflow.
 Employee gym access has model/constraint support, not an automatic grant/revoke service.
 
-Existing OperationsController and services expose limited activity purchases,
-Freelance purchases, activity-coach configuration, class sessions and coach reports.
+CoachingController implements Private and shared Classes purchases/attendance, independent
+coach targets, finalized earnings and actual partial payouts using existing Sales and
+Expense financial paths. Classes compensation remains disabled pending an Owner formula.
+Legacy package-free class writes return 410; historical reports remain readable.
+See [Private / Classes](PRIVATE_CLASSES.md). Existing OperationsController and services
+retain limited activity purchases, activity-coach configuration and historical reports.
 Those specific paths must not be confused with a complete general subscription,
 payment-provider, renewal/freeze, attendance or commission/payroll feature. Member,
 CRM and plan management commands do not purchase subscriptions or take payments.

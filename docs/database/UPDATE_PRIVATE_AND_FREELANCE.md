@@ -1,5 +1,7 @@
 # Private and Freelance schema rollout
 
+Current Private/Classes implementation (2026-10-12): [Private, Classes and coach earnings](../PRIVATE_CLASSES.md) supersedes earlier financial/workflow assumptions below. Original coaches earn on their delivered funded sources; incoming transferred assignments earn fixed 50%; expiry unused quantity goes to the coach assigned at expiry without attendance or zeroing actual remaining counters. Earnings and actual partial payouts are separate.
+
 Latest clarification (2026-10-07): transferred-client Private work and expiry use the
 fixed 50% rule in future BLL. Earlier configurable-rate guidance below applies to
 ordinary non-transferred work; historical basis/coach/session facts stay unchanged.

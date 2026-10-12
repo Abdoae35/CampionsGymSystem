@@ -426,6 +426,166 @@
       "key": "commissionCloseOperationId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "privatePackageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privateSubscriptionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privateSaleId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privateVersion",
+      "value": 0,
+      "type": "string"
+    },
+    {
+      "key": "classesPackageId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classesSubscriptionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classesSaleId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classTypeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classOccurrenceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classVersion",
+      "value": 0,
+      "type": "string"
+    },
+    {
+      "key": "coachEmployeeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "incomingCoachEmployeeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "coachingPeriodId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classStartsAt",
+      "value": "2026-10-12T17:00:00+03:00",
+      "type": "string"
+    },
+    {
+      "key": "coachingFrom",
+      "value": "2026-10-01",
+      "type": "string"
+    },
+    {
+      "key": "coachingTo",
+      "value": "2026-10-31",
+      "type": "string"
+    },
+    {
+      "key": "coachPrivateTarget",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "coachClassesAverageTarget",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privateSessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "coachPayoutId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privatePurchaseOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classesPurchaseOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privateInstallmentOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privateAttendanceOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privateTransferOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "privateExpiryOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classCreateOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classAttendanceOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "classCompleteOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "coachTargetOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "coachRecognitionOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "coachPayoutOperationId",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -6131,6 +6291,1268 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "18. Private Classes coach earnings and partial payouts",
+      "description": "Choose individual workflows; do not run as a bulk collection. Explicit capabilities are ungranted by the migration. Set actual targets and dates. Classes compensation is disabled. See docs/PRIVATE_CLASSES.md.",
+      "item": [
+        {
+          "name": "List Private packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/packages?branchId={{branchId}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Private package",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/packages",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"Private 10 sessions\",\n  \"sessionCount\": 10,\n  \"durationDays\": 30,\n  \"price\": 1000,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"privatePackageId\", result.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Private catalogue",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/packages/{{privatePackageId}}",
+            "description": "Existing purchases retain original price/name/count snapshots. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"Private 10 sessions\",\n  \"sessionCount\": 10,\n  \"durationDays\": 30,\n  \"price\": 1000,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Purchase Private with actual full collection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/purchases",
+            "description": "Requires Sales.Create, Payments.Create and product Manage, active own shift and cash/account setup. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{privatePurchaseOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"packageId\": \"{{privatePackageId}}\",\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1000\n    }\n  ],\n  \"purchaseMode\": 0,\n  \"coachEmployeeId\": \"{{coachEmployeeId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"privatePurchaseOperationId\")) pm.collectionVariables.set(\"privatePurchaseOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"privateSubscriptionId\", result.subscriptionId);",
+                  " pm.collectionVariables.set(\"privateSaleId\", result.saleId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Private member by phone code or name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/members?branchId={{branchId}}&search={{memberSearch}}&page=1&pageSize=25",
+            "description": "URL-encode international + as %2B; scope follows purchased package branch. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Read Private member packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/subscriptions?branchId={{branchId}}&memberId={{memberId}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "List Classes packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/packages?branchId={{branchId}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Classes package",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/packages",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"Classes 10 sessions\",\n  \"sessionCount\": 10,\n  \"durationDays\": 30,\n  \"price\": 1000,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"classesPackageId\", result.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Classes catalogue",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/packages/{{classesPackageId}}",
+            "description": "Existing purchases retain original price/name/count snapshots. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"Classes 10 sessions\",\n  \"sessionCount\": 10,\n  \"durationDays\": 30,\n  \"price\": 1000,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Purchase Classes with actual full collection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/purchases",
+            "description": "Requires Sales.Create, Payments.Create and product Manage, active own shift and cash/account setup. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{classesPurchaseOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"packageId\": \"{{classesPackageId}}\",\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1000\n    }\n  ],\n  \"purchaseMode\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"classesPurchaseOperationId\")) pm.collectionVariables.set(\"classesPurchaseOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"classesSubscriptionId\", result.subscriptionId);",
+                  " pm.collectionVariables.set(\"classesSaleId\", result.saleId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Classes member by phone code or name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/members?branchId={{branchId}}&search={{memberSearch}}&page=1&pageSize=25",
+            "description": "URL-encode international + as %2B; scope follows purchased package branch. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Read Classes member packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/subscriptions?branchId={{branchId}}&memberId={{memberId}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Purchase Private with partial collection and explicit installment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/purchases",
+            "description": "Alternative to full purchase; needs Installments.Manage. Later collection uses folder 15 and actual installment ID allocations; earned value is funded only up to retained collections. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{privateInstallmentOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"packageId\": \"{{privatePackageId}}\",\n  \"coachEmployeeId\": \"{{coachEmployeeId}}\",\n  \"purchaseMode\": 2,\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 200\n    }\n  ],\n  \"installments\": [\n    {\n      \"amount\": 800,\n      \"dueDate\": \"{{installmentDueDate}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"privateInstallmentOperationId\")) pm.collectionVariables.set(\"privateInstallmentOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"privateSubscriptionId\", result.subscriptionId);",
+                  " pm.collectionVariables.set(\"privateSaleId\", result.saleId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read Private details and version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/subscriptions/{{privateSubscriptionId}}",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"privateVersion\", result.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Coach explicitly registers one Private session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/subscriptions/{{privateSubscriptionId}}/sessions",
+            "description": "Assigned coach must log in; first create reception Gym entry through folder 14 for this BusinessDate. Regular membership required; reception alone does not consume Private. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{privateAttendanceOperationId}}\",\n  \"gymCheckInId\": \"{{checkInId}}\",\n  \"notes\": \"Actual delivered coaching session\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"privateAttendanceOperationId\")) pm.collectionVariables.set(\"privateAttendanceOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"privateSessionId\", result.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read actual Private sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/subscriptions/{{privateSubscriptionId}}/sessions?page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer remaining Private balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/subscriptions/{{privateSubscriptionId}}/transfers",
+            "description": "Get fresh version first. Incoming assignment earns fixed 50% for this already purchased package. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{privateTransferOperationId}}\",\n  \"coachEmployeeId\": \"{{incomingCoachEmployeeId}}\",\n  \"expectedVersion\": {{privateVersion}},\n  \"reason\": \"Owner approved coach transfer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"privateTransferOperationId\")) pm.collectionVariables.set(\"privateTransferOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Owner authorizes unused expired Private entitlement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/subscriptions/{{privateSubscriptionId}}/expiry-settlements",
+            "description": "Requires Private.SettleExpiry and Branches.AccessAll. Package must have expired. Open period contains current BusinessDate; all unused quantity goes to coach assigned at expiry. Creates no attendance, cash or payout. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{privateExpiryOperationId}}\",\n  \"commissionPeriodId\": \"{{coachingPeriodId}}\",\n  \"reason\": \"Recognize eligible unused expired sessions\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"privateExpiryOperationId\")) pm.collectionVariables.set(\"privateExpiryOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read Private expiry authorization evidence",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/private/subscriptions/{{privateSubscriptionId}}/expiry-settlements?page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "List Classes types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/types?branchId={{branchId}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Create class type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/types",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"Yoga\",\n  \"coachEmployeeId\": \"{{coachEmployeeId}}\",\n  \"isActive\": true,\n  \"description\": \"Shared Classes package session\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"classTypeId\", result.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update class type",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/types/{{classTypeId}}",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"Yoga\",\n  \"coachEmployeeId\": \"{{coachEmployeeId}}\",\n  \"isActive\": true,\n  \"description\": \"Shared Classes package session\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List class occurrences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/occurrences?branchId={{branchId}}&from={{coachingFrom}}&to={{coachingTo}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Create current-day class occurrence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/occurrences",
+            "description": "Choose actual future start today. BusinessDate follows current branch operational day including overnight operation. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{classCreateOperationId}}\",\n  \"classTypeId\": \"{{classTypeId}}\",\n  \"coachEmployeeId\": \"{{coachEmployeeId}}\",\n  \"startsAt\": \"{{classStartsAt}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"classCreateOperationId\")) pm.collectionVariables.set(\"classCreateOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"classOccurrenceId\", result.id);",
+                  " pm.collectionVariables.set(\"classVersion\", result.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Coach registers individual class member without reception",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/occurrences/{{classOccurrenceId}}/attendance",
+            "description": "Assigned coach login before start. Omit classesSubscriptionId to use earliest-expiry eligible shared balance. New operation per member per occurrence; no gym membership or reception needed. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{classAttendanceOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"classesSubscriptionId\": \"{{classesSubscriptionId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"classAttendanceOperationId\")) pm.collectionVariables.set(\"classAttendanceOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read class occurrence attendees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/occurrences/{{classOccurrenceId}}/attendance?page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Read member Classes attendance history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/members/{{memberId}}/attendance?branchId={{branchId}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Coach completes occurrence after start",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/occurrences/{{classOccurrenceId}}/complete",
+            "description": "Assigned coach login and Classes.Manage required; cancelled=true only for unattended occurrences. Completed history stays preserved. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{classCompleteOperationId}}\",\n  \"expectedVersion\": {{classVersion}},\n  \"cancelled\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"classCompleteOperationId\")) pm.collectionVariables.set(\"classCompleteOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Class coach actual attendance statistics and target",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/classes/coaches/{{coachEmployeeId}}/statistics?branchId={{branchId}}&from={{coachingFrom}}&to={{coachingTo}}&periodId={{coachingPeriodId}}",
+            "description": "Target dates must match period exactly. Omit periodId for selected date report. CompensationStatus remains NotConfigured. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Owner configures explicit independent coach targets",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/earnings/targets",
+            "description": "Set numeric target variables to Owner-confirmed thresholds; use null for unused dimension. No defaults. Configuration immutable for coach/period; do not reuse Sales targets. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{coachTargetOperationId}}\",\n  \"commissionPeriodId\": \"{{coachingPeriodId}}\",\n  \"coachEmployeeId\": \"{{coachEmployeeId}}\",\n  \"privateTarget\": {{coachPrivateTarget}},\n  \"classesAverageTarget\": {{coachClassesAverageTarget}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"coachTargetOperationId\")) pm.collectionVariables.set(\"coachTargetOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read period coach targets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/earnings/periods/{{coachingPeriodId}}/targets",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Read funded coach target progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/earnings/periods/{{coachingPeriodId}}/progress",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Owner finalizes funded Private earnings after period",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/earnings/recognitions",
+            "description": "Requires CoachEarnings.Recognize and Branches.AccessAll. Period must have ended; recognize predecessors first including zero periods. This records earnings only, no money movement. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{coachRecognitionOperationId}}\",\n  \"commissionPeriodId\": \"{{coachingPeriodId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"coachRecognitionOperationId\")) pm.collectionVariables.set(\"coachRecognitionOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read coach earned paid outstanding balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/earnings/coaches/{{coachEmployeeId}}/balance?branchId={{branchId}}",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Read immutable coach earning slices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/earnings/coaches/{{coachEmployeeId}}/history?branchId={{branchId}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Owner pays arbitrary part of outstanding coach earnings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/earnings/payouts",
+            "description": "Requires CoachEarnings.Pay and Branches.AccessAll, own open employee shift, sufficient actual account/drawer funds and outstanding balance. Single Expense/debit; future payouts use a new operation without recalculating earnings. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{coachPayoutOperationId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"coachEmployeeId\": \"{{coachEmployeeId}}\",\n  \"amount\": 2000,\n  \"financialAccountId\": \"{{cashAccountId}}\",\n  \"expenseCategoryId\": \"{{expenseCategoryId}}\",\n  \"reason\": \"Partial payment of recognized coaching earnings\",\n  \"receiptReference\": \"{{receiptReference}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"coachPayoutOperationId\")) pm.collectionVariables.set(\"coachPayoutOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  " const result = pm.response.json();",
+                  " pm.collectionVariables.set(\"coachPayoutId\", result.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read coach payout history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/coaching/earnings/coaches/{{coachEmployeeId}}/payouts?branchId={{branchId}}&page=1&pageSize=25",
+            "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
         }
       ]
     },

@@ -1,5 +1,7 @@
 # Rules for the BLL
 
+Current Private/Classes implementation (2026-10-12): [Private, Classes and coach earnings](../PRIVATE_CLASSES.md) supersedes earlier financial/workflow assumptions below. Original coaches earn on their delivered funded sources; incoming transferred assignments earn fixed 50%; expiry unused quantity goes to the coach assigned at expiry without attendance or zeroing actual remaining counters. Earnings and actual partial payouts are separate.
+
 Enforce these rules in authorized BLL services and transactional operations,
 not controllers, entity methods, or database triggers.
 
@@ -69,10 +71,11 @@ not controllers, entity methods, or database triggers.
 - Lock the subscription consistently for attendance, transfer, renewal and expiry;
   use row locks or an equivalent concurrency strategy and one transaction per flow.
   Counter updates must not race, go negative or allow double consumption.
-- Expiry settles each remaining batch once (database unique batch FK), records
-  session count/unit value/eligible amount/current Coach/open period, zeros live
-  batch and subscription counters, and marks Expired atomically. Settlement counts
-  remain historical snapshots. A renewal before final expiry prevents settlement.
+- Current expiry authorization settles each eligible remaining batch once (unique
+  batch FK), recording unused count/unit/remainder/value/current coach/open period.
+  It marks Expired and preserves actual remaining counters, separately from actual
+  attendance. Recognized earnings and actual payouts are separate evidence; see the
+  current Private/Classes document. Earlier zero-counter guidance is superseded.
 - DateOnly EndDate is retained; BLL must define branch-local end-of-day expiry,
   convert to UTC and select the appropriate open period. If no current Coach/open
   period exists, fail/retry without partially expiring or inventing financial history.

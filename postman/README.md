@@ -264,3 +264,25 @@ interpret a closing shortage as employee liability. Cash returns require actual
 returned funds. Advances are separate from expenses/payroll. Discretionary withdrawals
 require both explicit Vault.Withdraw and Branches.AccessAll plus an own active shift.
 Do not run the full folder blindly. No examples were sent against application data.
+
+## Private, Classes and coach earnings
+
+Folder **18** has 37 requests covering all 36 coaching routes and the partial
+collection purchase alternative. Re-import the collection and use the saved
+accessToken. Select real package/member/coach/period/account/category IDs. Configure
+explicit numeric coachPrivateTarget and coachClassesAverageTarget variables (or
+null for an unused dimension); examples deliberately supply no target defaults.
+Choose actual classStartsAt on the current local calendar day and period dates.
+
+Private registration uses reception checkInId captured in folder 14 and the assigned
+coach login. Classes registration needs its assigned coach and shared package, with
+no reception/gym membership. Catalogue creates/purchases capture IDs; Private detail
+captures privateVersion. Completion uses classVersion. Generate a different
+operation for each real member/session/occurrence/payout, preserving the original
+operation/body on retries. Target setup, expiry recognition and payouts additionally
+need Branches.AccessAll; new capabilities are ungranted by the migration. Payouts
+need your own active employee shift and actual available funds.
+
+Later package collections/refunds use folder 15 and actual installment allocations.
+Classes compensation is disabled. These requests were validated without sending
+operations against application data. See [complete rules/routes](../docs/PRIVATE_CLASSES.md).

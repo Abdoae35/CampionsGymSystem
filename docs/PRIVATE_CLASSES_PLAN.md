@@ -25,8 +25,8 @@ Baseline: clean `PrivateCoaching&Classes` at
    configuration, with no business defaults. Original Private coach earns 50/60;
    any incoming assignment on an already purchased package earns fixed 50.
 6. Owner expiry recognition preserves quantity/value/coach/allocation/reason evidence;
-   never inserts PrivateSessions or CheckIns. Transfers with ambiguous expiry
-   beneficiaries require the Owner's confirmed allocation rule.
+   never inserts PrivateSessions or CheckIns. The Owner confirmed all unused
+   sessions belong to the coach assigned at expiry; transferred assignment is fixed 50%.
 7. Partial payouts consume recognized outstanding earnings, with immutable payout
    allocations and balance snapshots. Reuse Expense and FinancialTransaction debit,
    configured shared cash drawer and physical/account balance checks exactly once.
