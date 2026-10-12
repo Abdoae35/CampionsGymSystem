@@ -1,7 +1,8 @@
 # Sales commissions and independent targets — implementation plan
 
-Status: implementation in progress from planning checkpoint f8530e9. Owner confirmed
-newest-first refund allocation. Completed financial facts remain unchanged.
+Status: implemented and verified from planning checkpoint f8530e9; final complete
+regression passed 772/772, zero failures/skips. Owner confirmed newest-first refund allocation
+and atomic rejection at finalized source periods. Completed financial facts remain unchanged.
 
 ## Verified baseline and existing capabilities
 
@@ -122,3 +123,23 @@ Delivery: verified planning checkpoint; rules/domain; attribution; refund-aware
 eligibility; calculation/statements; API/tests/docs. Build/test/diff/commit/push each
 working checkpoint. Production, payroll/payouts, full monthly closing, private-coach
 finance, discretionary bonuses, frontend and offline sync remain untouched/deferred.
+
+## Implemented checkpoint alignment
+
+Published domain 974f116, configuration/periods 5bf9bd9, collection/refund integration
+1ba9a14 and authorized API/reporting 71e0331. Reused the existing commission entities
+and introduced only CommissionCollection, CommissionRefundAllocation and
+CommissionStatementLine evidence. Two new migrations applied only to verified local
+Development; no operational data, default rules or permission grants seeded.
+
+Nine routes and ten authenticated Postman examples provide explicit setup, histories,
+source reconciliation and live/frozen statements. Branch fallback rules remain optional
+explicit Owner inputs; employee overrides and both category histories are independent.
+Read-only reports use transaction snapshots. Exact actual API/configuration/rollout
+contracts and financial examples are in [SALES_COMMISSIONS.md](SALES_COMMISSIONS.md).
+
+Latest targeted commission/historical migration checks: 44 passed, zero failed/skipped;
+four concurrency checks rerun successfully. Build zero warnings/errors, EF no drift.
+Final complete regression: 772 passed, zero failed/skipped, 39 added cases over the
+verified 733 baseline. Final publication is recorded in PROJECT_HISTORY.md and delivery
+report. Payroll/payouts, monthly financial closing and sync remain deferred.

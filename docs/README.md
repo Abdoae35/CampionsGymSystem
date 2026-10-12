@@ -17,6 +17,7 @@ future operational system.
 - [Check-In / Access Management](CHECK_INS.md)
 - [Sales / Payments](SALES_PAYMENTS.md)
 - [Shifts / Shared Vault / Expenses / Advances](SHIFTS_VAULT_EXPENSES.md)
+- [Sales Commissions & Independent Targets](SALES_COMMISSIONS.md)
 
 ## Current Implementation Status
 
@@ -32,6 +33,7 @@ future operational system.
 | Check-In / Access Management | Complete within documented gym-entry scope |
 | Sales / Payments | Complete within documented customer gym-finance scope |
 | Shifts / Shared Vault / Expenses / Advances | Complete within documented manual operational scope |
+| Sales Commissions & Independent Targets | Complete within documented calculation / statement scope; payouts deferred |
 
 Complete refers to the management scope described in each document. Persistence
 models and some narrower operations exist outside these scopes; they do not imply
@@ -40,7 +42,7 @@ complete Finance or attendance lifecycles.
 ## Planned / Deferred Areas
 
 - Remaining Private Training and Classes / Activities workflows
-- Commission / Payroll
+- Payroll / actual commission payouts
 - Contracts / Messaging
 - Reports / Hardening
 - Frontend; optional Offline Sync

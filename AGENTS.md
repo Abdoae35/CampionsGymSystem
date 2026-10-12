@@ -41,9 +41,10 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Sales Commissions implemented on SalesCommissions&Targets from verified f8530e9 / completed backend 5244d48; source integration 1ba9a14 pushed after domain 974f116 and rules/periods 5bf9bd9.
-- Independent future-effective New/Renewal rules, explicit branch periods, immutable collection attribution, newest-first refunds and finalized source/rate statements implemented; no payroll/payout.
-- Retained eligible cancellation cash remains eligible; post-employment collections become House. Refunds reaching finalized sources reject atomically. No unresolved policy.
-- Latest commission plus historical migration tests 44/44 passed; four concurrency cases rerun 4/4. Build zero warnings/errors. API authorization included four passing HTTP cases; Postman ten authenticated examples validated.
-- Two migrations applied only to guarded localhost Development: three tables, seven indexes, 14 validated constraints, restrictive FKs and exact precision. No app data or grants seeded; unrelated Sales permission gap preserved.
-- First full run 769 passed / one old-schema projection failed; corrected and targeted rerun passed. Fresh complete final suite running; final EF/build/HEAD/docs checks next.
+- Sales Commissions & Independent Targets complete on SalesCommissions&Targets, continued from verified planning f8530e9 and completed backend 5244d48; no restart or discarded work.
+- Published implementation checkpoints: 974f116 domain, 5bf9bd9 rules/periods, 1ba9a14 collections/refunds, 71e0331 scoped API/statements/Postman. Final documentation checkpoint records verification below; verify actual Git HEAD/status before continuing.
+- Independent configurable New/Renewal targets/rates, first-ever purchase history, collection-time commercial employee/House facts, retained cancellation eligibility and newest-first refund allocations implemented. Finalized-source refunds reject atomically; no unresolved business-policy issue.
+- Final full suite 772/772 passed, zero failures/skips (39 new cases over verified 733). Targeted 44/44 and concurrency rerun 4/4 passed; build zero warnings/errors; EF drift none.
+- Two new migrations applied only to guarded localhost Development: three evidence tables, seven indexes, 14 validated constraints, restrictive FKs/exact precision. All 42 old migration files unchanged. No operational data/rules/periods/grants seeded; Production untouched.
+- Rollout: explicitly configure branch fallback/employee rules and branch periods. Legacy undated sources/periods need explicit historical reconciliation. Existing Offers.Manage/Installments.Manage/Sales.QuickCancel active-but-ungranted gap preserved.
+- docs/SALES_COMMISSIONS.md contains actual nine routes, capabilities, setup and examples. Payroll, actual commission payouts, full monthly closing, late-refund adjustments, Private/Classes finance, frontend and sync remain deferred. Stop after this feature.

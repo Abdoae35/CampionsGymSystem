@@ -29,7 +29,8 @@ Payment credits and refund debits are appended to `FinancialTransaction`. No fak
 Shift or CommissionPeriod is created. The subsequent [Shifts feature](SHIFTS_VAULT_EXPENSES.md)
 requires an actual own employee shift for new Sales, payments and refunds, preserves
 historical null links and enforces shared physical Cash payout availability.
-CommissionPeriod remains deferred.
+The [Commission feature](SALES_COMMISSIONS.md) now provides explicit branch periods
+and collection attribution without inventing historical period links.
 
 Actual timestamps, branch and effective BusinessDate/BusinessDay are preserved.
 An open branch BusinessDay determines operations after midnight; otherwise the
@@ -188,11 +189,13 @@ entitlement; a successor which already started is not rewritten. Grant purchase 
 benefits and CheckIns remain immutable. Cancelled benefits cannot redeem invitations or
 supply normal freeze allowance. A later additional refund cannot reverse the grant twice.
 
-Retained collected minus refunded money is actual branch CancellationFee revenue,
-including retained reservation deposits. It is commission/target ineligible. It is not
-credited a second time: original collection minus refund already records the retained
-money. Original commercial eligibility snapshots stay historical; future Commission
-must exclude cancelled Sales and use the explicit fee classification.
+Retained collected minus refunded money remains actual branch CancellationFee revenue.
+Original collections minus real refunds already record it; it is never credited again.
+The subsequent [Sales Commission feature](SALES_COMMISSIONS.md) overrides the earlier
+blanket fee exclusion: retained money remains eligible when its original collection
+was eligible, using the original New/Renewal and Sales employee/House attribution.
+Refunds reduce newest original collections first; refunds reaching a finalized
+commission source period reject atomically. Historical money and old audit facts remain.
 
 ## Quick Cancel
 
