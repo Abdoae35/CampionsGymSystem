@@ -45,6 +45,6 @@ read this file and `PROJECT_HISTORY.md` before working.
 - Clean initial checkout; existing local/remote feature, master and Shifts heads verified. Compact design in docs/SALES_COMMISSIONS_PLAN.md; no commission domain/financial mutations yet.
 - Reuse CommissionPeriod, CommissionRule, EmployeeCommissionSummary and immutable Sales/Payment/Refund facts. Separate targets, collected money only, retained otherwise-eligible cancellation cash counts without extra ledger credit.
 - Local Development read-only: no configured commission rules/periods/summaries or Sales/Payments; no conflicting defaults. Existing Commission capabilities granted; prior three Sales capabilities remain active but ungranted, unchanged.
-- Fresh baseline build zero warnings/errors; EF drift none. Fresh full regression run started and results pending at this checkpoint; prior verified baseline was 733 passing.
+- Fresh baseline build zero warnings/errors; EF drift none. Fresh full regression suite independently passed 733/733, zero failed/skipped. Planning commit 6e89bd4 pushed; source allocation question awaits Owner decision.
 - Blocking decision submitted: manual partial refund source allocation across payment periods/employees/House collections. Current API has no original-payment allocation; do not invent which target/employee decreases.
 - Next: confirmed allocation policy, then domain/settings, attribution, calculation/statements and APIs/tests/docs with incremental validated commits/pushes. No payroll/payouts, monthly closing, financial redesign or production changes.
