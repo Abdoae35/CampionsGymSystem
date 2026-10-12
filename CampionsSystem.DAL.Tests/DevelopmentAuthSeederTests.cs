@@ -51,8 +51,9 @@ public sealed class DevelopmentAuthSeederTests : IAsyncLifetime
         await Seed();
         Assert.Equal(5, await db.Users.CountAsync());
         Assert.Equal(6, await db.Roles.CountAsync());
-        Assert.Equal(DevelopmentAuthSeeder.PermissionCodes.Length + 8, await db.Permissions.CountAsync());
+        Assert.Equal(DevelopmentAuthSeeder.PermissionCodes.Length + 19, await db.Permissions.CountAsync());
         Assert.False(await db.RolePermissions.AnyAsync(g => g.Permission.Code == "CoachEarnings.Pay"));
+        Assert.False(await db.RolePermissions.AnyAsync(g => g.Permission.Code == "FinancialMonths.Close" || g.Permission.Code == "Payroll.RecordPayment"));
         Assert.Equal(2, await db.Employees.CountAsync());
         Assert.Equal(2, await db.EmployeeBranchAssignments.CountAsync());
         Assert.Single(await db.GymBranches.ToListAsync());

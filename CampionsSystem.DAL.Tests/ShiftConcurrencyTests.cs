@@ -54,6 +54,7 @@ public sealed partial class SalesConcurrencyTests
         await using(var db=Context()){var c=new ExpenseCategory{Name="Operations"};db.Add(c);await db.SaveChangesAsync();category=c.Id;receiver=(await db.Employees.SingleAsync(x=>x.UserId==actor)).Id;var row=await db.Shifts.SingleAsync();shift=row.Id;version=row.Version;}
         async Task<bool> Refund(){await using var db=Context();return await Attempt(async()=>await Services(db).Sales.RefundAsync(sale.SaleId,new(Guid.NewGuid(),400,[new(account,400)],"Decision")));}
         async Task<bool> Expense(){await using var db=Context();return await Attempt(async()=>await Operational(db).Expenses.RecordPaidAsync(new(Guid.NewGuid(),category,account,300,"Actual expense")));}
+        await using(var setup=Context())await AdvanceSalaryFixture.ConfigureAsync(setup,branch,actor,new(2026,10,10),receiver);
         async Task<bool> Advance(){await using var db=Context();return await Attempt(async()=>await Operational(db).Expenses.RecordAdvanceAsync(new(Guid.NewGuid(),receiver,account,200,"Actual advance")));}
         async Task Close(){await using var db=Context();await Operational(db).Shifts.CloseAsync(shift,new(Guid.NewGuid(),version,1200));}
         var refund=Refund();var expense=Expense();var advance=Advance();await Task.WhenAll(refund,expense,advance,Close());

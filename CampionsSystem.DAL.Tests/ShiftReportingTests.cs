@@ -16,6 +16,7 @@ public sealed partial class SalesTests
         var category=new ExpenseCategory{Name="Supplies"};db.Add(category);await db.SaveChangesAsync();
         var expenses=new ExpenseService(db,user,access);
         await expenses.RecordPaidAsync(new(Guid.NewGuid(),category.Id,cash.Id,200,"Operational supplies"));
+        await AdvanceSalaryFixture.ConfigureAsync(db,b.Id,actor.Id,today,own.EmployeeId!.Value);
         await expenses.RecordAdvanceAsync(new(Guid.NewGuid(),own.EmployeeId!.Value,insta.Id,100,"Advance"));
         await Finance().RefundAsync(sale.SaleId,new(Guid.NewGuid(),100,[new(cash.Id,100)],"Manual cancellation"));
         var colleague=new ApplicationUser{UserName="overlap-report"};db.Add(colleague);await db.SaveChangesAsync();

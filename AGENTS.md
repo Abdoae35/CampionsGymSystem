@@ -41,7 +41,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Monthly Closing implementation in progress on MonthlyClosing&FinancialReports from clean 1a9c811; existing frontend handoff preserved.
-- Persistence checkpoint: independent financial months/events/frozen revisions, employee payment records, occurrence evidence, informational maintenance revisions and extensions to existing salary/payroll/ledger/advance/coach evidence. Forward migration 20261012164313_ImplementMonthlyClosingAndEmployeePayments; historical migrations unchanged; capability catalog only, no grants.
-- Build zero warnings/errors; 11 focused domain/legacy migration tests passed in disposable localhost PostgreSQL schemas after sandbox socket retry. Historical test projection adjusted to its actual old columns. No application or Production database update.
-- docs/MONTHLY_CLOSING_PLAN.md defines checkpoint scope and accounting separation. Lifecycle/services/APIs/report/XLSX/regression/docs remain in progress; implementation authorization includes verified commits and pushes.
+- Monthly Closing operational implementation on MonthlyClosing&FinancialReports from clean 1a9c811; domain 9f5cedc pushed; frontend handoff preserved.
+- Independent branch months, serialized close/Shift-open, optional nonblocking counts, immutable revisions and six-sheet XLSX; late posts next Open month, finalized commissions untouched. Effective salary history/proration excludes suspension and pays approved leave; branch advance caps/deductions, external partial employee payment records and informational maintenance implemented.
+- 22 API operations with effective capabilities/branch scope; Sales/coach evidence reused, cashier versus commercial owner preserved, historical outstanding and ledger amounts counted once. Classes compensation NotConfigured. New capability catalog only, no grants.
+- Focused final suite 36/36 and follow-up 7/7 passed; earlier fixture/count-kind errors fixed and verified. Forward SQL matches EF output; 50 historical migration files unchanged; prior EF drift none. Clean rebuild/full regression/final documentation verification underway; initial full run cancelled when superseded by review fixes, not claimed passing.
+- Migration 20261012164313_ImplementMonthlyClosingAndEmployeePayments exercised only in disposable localhost schemas; application/Production untouched. docs/MONTHLY_CLOSING.md and 22 Postman examples drafted; operational checkpoint publishing, final validation/docs checkpoint remains.

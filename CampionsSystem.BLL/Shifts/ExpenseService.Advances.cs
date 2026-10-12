@@ -18,10 +18,14 @@ public sealed partial class ExpenseService
         if(prior!=null){FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor);if(prior.BranchId!=branch)throw new UnauthorizedAccessException();return await Details(prior,ct);}
         var shift=await money.RequireShiftAsync(branch,actor,ct);var account=await money.AccountAsync(branch,r.FinancialAccountId,ct);
         var(date,day)=await money.BusinessDateAsync(branch,ct);
-        var recipient=await db.Employees.FromSqlInterpolated($"SELECT * FROM \"Employees\" WHERE \"Id\"={r.ReceivingEmployeeId} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
+        var recipient=await db.Employees.FromSqlInterpolated($"SELECT * FROM \"Employees\" WHERE \"Id\"={r.ReceivingEmployeeId} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(ct);
         if(recipient==null||recipient.EmploymentStatus!=EmploymentStatus.Active||recipient.HireDate>date||recipient.TerminationDate<=date)
             throw new BusinessRuleException("Select an active receiving employee.");
-        var advance=new EmployeeAdvance{BranchId=branch,ShiftId=shift.Id,ReceivingEmployeeId=recipient.Id,RecordingEmployeeId=shift.EmployeeId!.Value,
+        var month=await CampionsSystem.BLL.MonthlyFinance.FinancialMonthPosting.ResolveAsync(db,branch,date,ct)
+            ??throw new BusinessRuleException("Configure the branch financial month and employee salary before paying advances.");
+        var entitlement=await CampionsSystem.BLL.MonthlyFinance.SalaryProjection.ForEmployeeAsync(db,recipient,month,ct,access:access);
+        if(r.Amount>entitlement.BasicSalary-entitlement.Advances)throw new BusinessRuleException("Advance exceeds remaining prorated BASIC salary entitlement for this branch/period; commission does not increase the limit.");
+        var advance=new EmployeeAdvance{FinancialMonthId=month.Id,BasicEntitlementSnapshot=entitlement.BasicSalary,BranchId=branch,ShiftId=shift.Id,ReceivingEmployeeId=recipient.Id,RecordingEmployeeId=shift.EmployeeId!.Value,
             FinancialAccountId=account.Id,OperationId=r.OperationId,RequestHash=hash,Amount=r.Amount,Reason=r.Reason,Reference=r.Reference,
             OccurredAt=access.Now,CreatedByUserId=actor,BusinessDate=date,BusinessDayId=day};db.Add(advance);
         await money.PostAsync(new FinancialTransaction{BranchId=branch,FinancialAccountId=account.Id,ShiftId=shift.Id,EmployeeAdvance=advance,

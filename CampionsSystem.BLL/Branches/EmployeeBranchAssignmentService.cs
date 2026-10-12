@@ -106,6 +106,12 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
             var target = await database.GymBranches.AsNoTracking().SingleOrDefaultAsync(x => x.Id == request.TargetBranchId, ct)
                 ?? throw new BranchNotFoundException("Branch not found.");
             if (!target.IsActive) throw new BusinessRuleException("Target branch is inactive.");
+            if (await database.Payrolls.AnyAsync(p => p.EmployeeId == employeeId && p.FinancialMonthId != null && p.CommissionSummaryId == null && p.FinancialMonth!.EndDate >= request.EffectiveDate, ct))
+                throw new BusinessRuleException("Transfer cannot rewrite recognized basic salary; choose a later effective date.");
+            var projected = await database.EmployeeBranchAssignments.AsNoTracking().Where(x => x.EmployeeId == employeeId).ToListAsync(ct);
+            projected.Single(x => x.Id == old.Id).EndDate = request.EffectiveDate.AddDays(-1);
+            projected.Add(new EmployeeBranchAssignment { EmployeeId = employeeId, BranchId = target.Id, StartDate = request.EffectiveDate });
+            await CampionsSystem.BLL.MonthlyFinance.SalaryProjection.ValidateHistoryChangeAsync(database, employee, ct, assignments: projected);
             var tracked = await database.EmployeeBranchAssignments.SingleAsync(x => x.Id == old.Id, ct);
             tracked.EndDate = request.EffectiveDate.AddDays(-1);
             // Release the existing partial unique slot before inserting the new primary assignment.

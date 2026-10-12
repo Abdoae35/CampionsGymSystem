@@ -14,7 +14,8 @@ tracked and preserved. No Production operations or historical migration edits.
    existing drawer lock; require all branch shifts closed; optional cash count;
    versioned close/reopen without commission mutation. Salary proration uses
    inclusive financial-period days, employment dates (termination exclusive), and
-   branch-assignment days. Missing/overlapping salary or assignment history fails
+   branch-assignment days; dated suspension/resignation gaps are excluded, and
+   approved leave is paid (Owner confirmed during implementation). Missing/overlapping salary or assignment history fails
    explicitly, rather than inventing amounts. Cap advances at prorated basic salary,
    preserve evidence and deduct each advance once. Owner records partial employee
    payments without a funding account or ledger post. Maintenance is forecast only.

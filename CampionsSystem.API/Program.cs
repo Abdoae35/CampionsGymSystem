@@ -54,6 +54,10 @@ builder.Services.AddScoped<CampionsSystem.BLL.CheckIns.CheckInPermissionSetup>()
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.SalesService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Commissions.CommissionService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Coaching.CoachingService>();
+builder.Services.AddScoped<CampionsSystem.BLL.MonthlyFinance.MonthlyFinanceService>();
+builder.Services.AddScoped<CampionsSystem.BLL.MonthlyFinance.SalaryService>();
+builder.Services.AddScoped<CampionsSystem.BLL.MonthlyFinance.PayrollService>();
+builder.Services.AddScoped<CampionsSystem.BLL.MonthlyFinance.MaintenanceService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.OfferService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Sales.SalesPermissionSetup>();
 builder.Services.AddScoped<CampionsSystem.BLL.Shifts.ShiftService>();

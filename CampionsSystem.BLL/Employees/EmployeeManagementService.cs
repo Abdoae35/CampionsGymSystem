@@ -151,7 +151,10 @@ public sealed partial class EmployeeManagementService(ApplicationDbContext datab
                 throw new BusinessRuleException("Hire date cannot follow an existing assignment or termination date.");
             var employee = await TrackedEmployeeAsync(id, ct);
             var before = new { employee.FullName, employee.Phone, employee.JobTitle, employee.EmploymentType, employee.HireDate };
+            if (employee.HireDate != request.HireDate && await database.Payrolls.AnyAsync(p => p.EmployeeId == id && p.FinancialMonthId != null && p.CommissionSummaryId == null, ct))
+                throw new BusinessRuleException("Hire date cannot rewrite recognized salary history.");
             SetProfile(employee, request);
+            await CampionsSystem.BLL.MonthlyFinance.SalaryProjection.ValidateHistoryChangeAsync(database, employee, ct);
             access.Audit(user.UserId, branch?.Id, "EmployeeUpdated", nameof(Employee), id, before,
                 new { employee.FullName, employee.Phone, employee.JobTitle, employee.EmploymentType, employee.HireDate });
             await database.SaveChangesAsync(ct);
@@ -177,6 +180,8 @@ public sealed partial class EmployeeManagementService(ApplicationDbContext datab
             var before = new { employee.EmploymentStatus, employee.TerminationDate };
             employee.EmploymentStatus = request.Status.Value;
             employee.TerminationDate = request.Status == DAL.Enums.EmploymentStatus.Resigned ? access.Today : null;
+            if (employee.TerminationDate != before.TerminationDate && employee.TerminationDate != null && await database.Payrolls.AnyAsync(p => p.EmployeeId == id && p.FinancialMonthId != null && p.CommissionSummaryId == null && p.FinancialMonth!.EndDate >= employee.TerminationDate, ct))
+                throw new BusinessRuleException("Termination cannot rewrite recognized basic salary; close employment after that period.");
             if (request.Status != DAL.Enums.EmploymentStatus.Active)
             {
                 await CloseSalesOwnershipAsync(id, user.UserId, request.Reason, ct);
@@ -184,6 +189,7 @@ public sealed partial class EmployeeManagementService(ApplicationDbContext datab
             }
             access.Audit(user.UserId, branch?.Id, "EmployeeStatusChanged", nameof(Employee), id, before,
                 new { employee.EmploymentStatus, employee.TerminationDate, Reason = request.Reason?.Trim() });
+            await CampionsSystem.BLL.MonthlyFinance.SalaryProjection.ValidateHistoryChangeAsync(database, employee, ct);
             await database.SaveChangesAsync(ct);
             return await DetailsAsync(employee, ct);
         }, ct);

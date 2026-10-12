@@ -126,12 +126,13 @@ public sealed partial class CoachingService
                 && !db.AuditLogs.Any(a => a.EntityId == x.Id && a.Action == "CoachEarnings.PeriodRecognized"), ct)) throw new BusinessRuleException("Recognize preceding branch coach periods first (including zero earnings).");
             var sources = await FundingAsync(p, ct); var progress = await ProgressCoreAsync(p, ct);
             if (progress.Coaches.Any(c => c.ProjectedEarnings == null)) throw new BusinessRuleException("Configure an independent Private target for every original coach with funded value.");
+            var financialMonth = await CampionsSystem.BLL.MonthlyFinance.FinancialMonthPosting.ResolveAsync(db, p.BranchId, date, ct);
             var rules = await db.CoachTargetRules.AsNoTracking().Where(t => t.CommissionPeriodId == p.Id).ToDictionaryAsync(t => t.CoachEmployeeId, ct);
             foreach (var source in sources.Where(s => s.FundedNow > 0))
             {
                 var coach = progress.Coaches.Single(c => c.CoachEmployeeId == source.Coach); var rule = rules.GetValueOrDefault(source.Coach);
                 var rate = source.Transferred ? 50m : coach.NormalRate!.Value;
-                var earning = new CoachEarning { BranchId = p.BranchId, CoachEmployeeId = source.Coach, CommissionPeriodId = p.Id,
+                var earning = new CoachEarning { FinancialMonthId = financialMonth?.Id, BranchId = p.BranchId, CoachEmployeeId = source.Coach, CommissionPeriodId = p.Id,
                     CoachTargetRuleId = rule?.Id, SaleTransactionId = source.Sale, PrivateSessionId = source.Session, PrivateExpirySettlementId = source.Expiry,
                     EligibleValue = source.FundedNow, Rate = rate, Amount = SliceCommission(source, rate),
                     TransferredPackage = source.Transferred, TargetProgress = coach.EligibleValue, Target = coach.Target,

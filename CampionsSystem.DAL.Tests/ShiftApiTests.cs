@@ -42,6 +42,7 @@ public sealed partial class AuthenticationApiTests
         Assert.Equal(HttpStatusCode.BadRequest,(await client.PostAsJsonAsync("/api/expenses",expense)).StatusCode);
         var shift=(await (await client.PostAsJsonAsync("/api/shifts",new OpenShiftRequest(Guid.NewGuid(),1000))).Content.ReadFromJsonAsync<ShiftDetails>())!;
         var paid=(await (await client.PostAsJsonAsync("/api/expenses",expense)).Content.ReadFromJsonAsync<ExpenseDetails>())!;
+        await using(var scope=factory.Services.CreateAsyncScope()){var context=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();await AdvanceSalaryFixture.ConfigureAsync(context,f.Branch,userId,DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow,TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo")).DateTime),f.Employee);}
         var advance=new AdvanceRequest(Guid.NewGuid(),f.Employee,f.Insta,50,"Advance via InstaPay");
         Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync("/api/employee-advances",advance)).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync("/api/expenses",expense with{OperationId=Guid.NewGuid(),BranchId=f.Other})).StatusCode);

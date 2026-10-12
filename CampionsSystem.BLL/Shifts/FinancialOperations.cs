@@ -123,6 +123,9 @@ public sealed class FinancialOperations(ApplicationDbContext db, ICurrentUserSer
             if (row.TransactionType == FinancialTransactionType.Debit) await CheckCashPayoutAsync(row.BranchId, row.Amount, ct);
             var drawer = await DrawerAsync(row.BranchId, ct); row.DrawerSequence = ++drawer.MovementSequence;
         }
+        var (postingDate, _) = await BusinessDateAsync(row.BranchId, ct);
+        row.FinancialMonthId = (await CampionsSystem.BLL.MonthlyFinance.FinancialMonthPosting.ResolveAsync(db, row.BranchId, postingDate, ct))?.Id;
+        row.PostedAt = access.Now;
         db.Add(row);
         // Flush each ordered post inside the surrounding transaction so later parts
         // observe the previous debit/credit and sequence; failure rolls everything back.

@@ -9,6 +9,7 @@ public sealed partial class EmployeeShiftTests
     [Theory][InlineData(FinancialAccountType.Cash)][InlineData(FinancialAccountType.InstaPay)]
     public async Task DirectAdvanceIsDistinctPayoutWithRecipientRecorderAndNoPayrollOrExpense(FinancialAccountType type)
     {
+        await AdvanceSalaryFixture.ConfigureAsync(db,branch.Id,a.Id,today,eb.Id);
         var shift=await Service().OpenAsync(new(Guid.NewGuid(),100000));var account=cash;
         if(type==FinancialAccountType.InstaPay){account=new(){BranchId=branch.Id,Name="InstaPay",AccountType=type};db.Add(account);await db.SaveChangesAsync();}
         user.Context=user.Context! with{Permissions=[ShiftPermissions.AdvanceCreate,ShiftPermissions.AdvanceView,ShiftPermissions.VaultView,ShiftPermissions.Manage,ShiftPermissions.View]};
@@ -23,6 +24,7 @@ public sealed partial class EmployeeShiftTests
     }
     [Fact] public async Task AdvanceRequiresOwnShiftPermissionActiveRecipientAndCashFunds()
     {
+        await AdvanceSalaryFixture.ConfigureAsync(db,branch.Id,a.Id,today,eb.Id);
         var r=new AdvanceRequest(Guid.NewGuid(),eb.Id,cash.Id,500,"Advance");
         await Assert.ThrowsAsync<BusinessRuleException>(()=>Expenses().RecordAdvanceAsync(r));await Service().OpenAsync(new(Guid.NewGuid(),200));
         await Assert.ThrowsAsync<BusinessRuleException>(()=>Expenses().RecordAdvanceAsync(r));
@@ -33,6 +35,7 @@ public sealed partial class EmployeeShiftTests
     }
     [Fact] public async Task AdvanceHistoryRejectsCrossBranchAndChangedOperationAndPreservesOriginal()
     {
+        await AdvanceSalaryFixture.ConfigureAsync(db,branch.Id,a.Id,today,eb.Id);
         await Service().OpenAsync(new(Guid.NewGuid(),100000));var r=new AdvanceRequest(Guid.NewGuid(),eb.Id,cash.Id,500,"Advance");
         var result=await Expenses().RecordAdvanceAsync(r);
         await Assert.ThrowsAsync<BusinessRuleException>(()=>Expenses().RecordAdvanceAsync(r with{Amount=501}));

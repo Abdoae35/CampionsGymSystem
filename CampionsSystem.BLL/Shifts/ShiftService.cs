@@ -30,7 +30,9 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
         await money.LockBranchAsync(branch, ct);
         var prior = await db.Shifts.AsNoTracking().SingleOrDefaultAsync(x => x.OperationId == r.OperationId, ct);
         if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.OpenedByUserId, actor); if (prior.BranchId != branch) throw new UnauthorizedAccessException(); return await Details(prior, ct); }
-        var (date, day) = await money.BusinessDateAsync(branch, ct); var employee = await money.EmployeeAsync(actor, branch, date, ct, true);
+        var (date, day) = await money.BusinessDateAsync(branch, ct);
+        await CampionsSystem.BLL.MonthlyFinance.FinancialMonthPosting.ResolveAsync(db, branch, date, ct);
+        var employee = await money.EmployeeAsync(actor, branch, date, ct, true);
         if (await db.EmployeeLeaveRequests.AnyAsync(x => x.EmployeeId == employee.Id && x.Status == EmployeeLeaveRequestStatus.Approved && x.FromDate <= date && x.ToDate >= date, ct))
             throw new BusinessRuleException("Employee has approved leave for this business date.");
         if (await db.Shifts.AnyAsync(x => x.EmployeeId == employee.Id && x.Status == ShiftStatus.Open, ct))

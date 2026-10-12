@@ -46,13 +46,13 @@ public sealed record FinancialTransactionReportRow(Guid LedgerId, Guid BranchId,
     string PaymentMethod, string SourceType, string Direction, decimal Amount, Guid ActorUserId, Guid? PerformingEmployeeId, string? PerformingEmployeeName,
     Guid? ShiftId, Guid? CustomerId, string? CustomerName, Guid? CommercialSalesOwnerId, string? CommercialSalesOwnerName, Guid? SaleId,
     Guid? PaymentId, Guid? RefundId, Guid? ExpenseId, Guid? AdvanceId, Guid? WithdrawalId, Guid? CoachPayoutId, Guid? PayrollId,
-    Guid? OperationId, string? Category, string? Notes, string? Receipt, Guid? ReversalId, Guid? OriginalPaymentId, string SourceEvidence, string AuditEvidence);
+    Guid? OperationId, Guid? ExpenseCategoryId, string? Category, string? Notes, string? Receipt, Guid? ReversalId, Guid? OriginalPaymentId, string SourceEvidence, string AuditEvidence);
 public sealed record ExpenseCategoryTotal(Guid CategoryId, string Category, decimal Paid, decimal Returned, decimal Net);
 public sealed record CoachMonthRow(Guid CoachEmployeeId, string CoachName, decimal OpeningOutstanding, decimal ActualSessionEarnings,
     decimal ExpirationEarnings, decimal Earned, decimal Paid, decimal ClosingOutstanding, int CompletedClasses, int ClassAttendances,
     decimal? AverageAttendees, string ClassesCompensationStatus = "NotConfigured");
 public sealed record CoachEarningReportRow(Guid Id, Guid CoachEmployeeId, Guid CommissionPeriodId, Guid? FinancialMonthId, Guid SaleId,
-    Guid? SessionId, Guid? ExpirySettlementId, decimal EligibleValue, decimal Rate, decimal Amount, bool TransferredPackage, DateOnly BusinessDate, DateTimeOffset RecognizedAt);
+    Guid? SessionId, Guid? ExpirySettlementId, decimal EligibleValue, decimal Rate, decimal Amount, bool TransferredPackage, DateOnly BusinessDate, DateTimeOffset RecognizedAt, string AttributionEvidence);
 public sealed record CoachPaymentReportRow(Guid Id, Guid CoachEmployeeId, Guid ExpenseId, decimal Amount, DateOnly BusinessDate, DateTimeOffset PaidAt);
 public sealed record ClassOccurrenceReportRow(Guid Id, Guid CoachEmployeeId, string ClassType, DateOnly? BusinessDate, DateTimeOffset StartedAt,
     DateTimeOffset? CompletedAt, string Status, int Attendance);
@@ -60,7 +60,7 @@ public sealed record MonthlySummary(decimal GrossCollections, decimal Refunds, d
     decimal BasicSalaryEarned, decimal SalesCommissionRecognized, decimal PrivateCoachEarningsRecognized, decimal EmployeePaymentRecords,
     decimal CoachCashPayouts, decimal AdvanceCashPayouts, decimal LedgerCredits, decimal LedgerDebits, decimal LedgerNetCashflow,
     decimal NetOperatingResult, decimal EmployeeOpeningOutstanding, decimal EmployeeClosingOutstanding,
-    decimal CoachOpeningOutstanding, decimal CoachClosingOutstanding, string OperatingResultBasis);
+    decimal CoachOpeningOutstanding, decimal CoachClosingOutstanding, decimal BookCash, decimal ExpectedPhysicalCash, decimal LastCountedCash, decimal PhysicalVsBook, decimal PeriodObservedDiscrepancies, string OperatingResultBasis);
 public sealed record MonthlyReport(FinancialMonthDetails Month, string BranchName, int Revision, DateTimeOffset SnapshotAt, MonthlySummary Summary,
     IReadOnlyList<FinancialTransactionReportRow> Transactions, IReadOnlyList<ExpenseCategoryTotal> ExpenseCategories,
     IReadOnlyList<CommissionProgress> SalesPerformance, IReadOnlyList<CommissionSourceLine> SalesSources,

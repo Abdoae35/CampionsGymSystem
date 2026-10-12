@@ -90,6 +90,10 @@ public sealed partial class CommissionService
     private async Task<CommissionProgress> ProgressCoreAsync(Guid periodId, int page, int pageSize, CancellationToken ct)
     {
         Page(page, pageSize); var p = await ReadAsync(periodId, ct); var lines = await LinesAsync(p, ct); var statements = await StatementsAsync(p, lines, ct);
+        return ReportProgress(p, lines, statements, page, pageSize);
+    }
+    private static CommissionProgress ReportProgress(CommissionPeriod p, List<CommissionSourceLine> lines, List<EmployeeCommissionStatement> statements, int page, int pageSize)
+    {
         var house = lines.Where(l => l.EligibilityReason is "House" or "EmploymentEnded" or "EmploymentInactive").Sum(l => l.RetainedCollection);
         var eligible = lines.Sum(l => l.EligibleCollection); var retained = lines.Sum(l => l.RetainedCollection);
         return new(Details(p), p.Status == CommissionPeriodStatus.Closed, lines.Sum(l => l.GrossCollection), lines.Sum(l => l.Refunds), retained,
@@ -98,6 +102,16 @@ public sealed partial class CommissionService
             retained - eligible - house, lines.Where(l => l.Category == "NewMembership").Sum(l => l.EligibleCollection),
             lines.Where(l => l.Category == "Renewal").Sum(l => l.EligibleCollection), statements.Sum(s => s.TotalCommission), statements.Count,
             statements.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), page, pageSize);
+    }
+    // Branch-authorized financial composition reuses this calculation unchanged.
+    internal async Task<(CommissionProgress Progress, IReadOnlyList<CommissionSourceLine> Sources, IReadOnlyList<CommissionRefundSource> Refunds)> FinancialReportAsync(CommissionPeriod period, CancellationToken ct)
+    {
+        var lines = await LinesAsync(period, ct); var statements = await StatementsAsync(period, lines, ct);
+        var refunds = await db.CommissionRefundAllocations.AsNoTracking().Where(a => a.Payment.BranchId == period.BranchId &&
+            a.Payment.BusinessDate >= period.StartBusinessDate && a.Payment.BusinessDate <= period.EndBusinessDate)
+            .OrderBy(a => a.Refund.CreatedAt).ThenBy(a => a.RefundId).ThenBy(a => a.PaymentId)
+            .Select(a => new CommissionRefundSource(a.RefundId,a.PaymentId,a.Amount,a.Payment.BusinessDate,a.Refund.BusinessDate,a.Refund.CreatedAt)).ToListAsync(ct);
+        return (ReportProgress(period,lines,statements,1,Math.Max(1,statements.Count)),lines.OrderBy(x=>x.PaidAt).ThenBy(x=>x.PaymentId).ToArray(),refunds);
     }
     public Task<EmployeeCommissionStatement> EmployeeStatementAsync(Guid periodId, Guid employeeId, CancellationToken ct = default)
         => SnapshotAsync(() => EmployeeStatementCoreAsync(periodId, employeeId, ct), ct);
