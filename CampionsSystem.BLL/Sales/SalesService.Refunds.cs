@@ -26,6 +26,7 @@ public sealed partial class SalesService
         var collected=await db.Payments.Where(p=>p.SaleTransactionId==sale.Id && p.Status==PaymentStatus.Completed).SumAsync(p=>p.Amount,ct);
         var refunded=await db.Refunds.Where(r=>r.SaleTransactionId==sale.Id).SumAsync(r=>r.Amount,ct);
         if(amount>collected-refunded)throw new BusinessRuleException("Refund exceeds the collected, unrefunded amount.");
+        await GuardCoachingRefundAsync(sale,collected-refunded-amount,ct);
         if(amount>0)await AccountsAsync(sale.BranchId,parts,amount,ct,type==RefundType.QuickRefund);
         else if(parts==null || parts.Count!=0)throw new BusinessRuleException("A zero refund/cancellation must have no financial parts.");
         var (date,day)=await BusinessDateAsync(sale.BranchId,ct);
@@ -39,6 +40,7 @@ public sealed partial class SalesService
         if(sale.CancelledAt==null)
         {
             await subscriptions.CancelSaleGrantAsync(sale,refund,actor,ct);
+            await CancelCoachingGrantAsync(sale,actor,ct);
             sale.CancelledAt=access.Now;sale.CancelledByUserId=actor;sale.CancellationReason=reason.Trim();
             access.Audit(actor,sale.BranchId,sale.PurchaseMode==PurchaseMode.Reservation?"Reservation.Cancelled":"Sale.Cancelled",nameof(SaleTransaction),sale.Id,after:new{sale.MemberId,RefundId=refund.Id});
         }

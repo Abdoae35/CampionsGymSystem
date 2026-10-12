@@ -27,7 +27,7 @@ public sealed partial class SalesService
         if(sale.Status==SaleStatus.Completed)access.Audit(actor.UserId,sale.BranchId,"Sale.Completed",nameof(SaleTransaction),sale.Id,
             after:new{sale.MemberId,Collected=collected+r.Amount,sale.NetAmount});
         await db.SaveChangesAsync(ct);
-        await subscriptions.ActivatePaidSaleAsync(sale.Id,actor.UserId,false,null,ct);
+        if(sale.SaleType==SaleType.GymMembership)await subscriptions.ActivatePaidSaleAsync(sale.Id,actor.UserId,false,null,ct);
         return await PaymentDetailsAsync(payment.Id,ct);
     },ct);
     private async Task<PaymentDetails> PaymentDetailsAsync(Guid id,CancellationToken ct)

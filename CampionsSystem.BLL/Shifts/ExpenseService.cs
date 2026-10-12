@@ -46,6 +46,7 @@ public sealed partial class ExpenseService(ApplicationDbContext db, ICurrentUser
         if(prior!=null){FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor);return new(prior.Id,prior.ExpenseId,prior.BranchId,prior.ShiftId,prior.Amount,prior.Reason,prior.ReturnReference,prior.OccurredAt,prior.BusinessDate);}
         var shift=await money.RequireShiftAsync(info.BranchId,actor,ct);
         if(info.OperationId==null||info.PaidAt==null)throw new BusinessRuleException("Legacy expense payment must be explicitly reconciled before managed reversal.");
+        if(await db.CoachPayouts.AnyAsync(p=>p.ExpenseId==id,ct))throw new BusinessRuleException("Coach payout returns require an explicit Owner earnings adjustment policy.");
         var returned=await db.ExpenseReversals.Where(x=>x.ExpenseId==id).SumAsync(x=>x.Amount,ct);
         if(r.ReturnedAmount>info.Amount-returned)throw new BusinessRuleException("Return exceeds the paid, not-yet-returned expense amount.");
         var account=await money.AccountAsync(info.BranchId,info.FinancialAccountId,ct);var(date,day)=await money.BusinessDateAsync(info.BranchId,ct);

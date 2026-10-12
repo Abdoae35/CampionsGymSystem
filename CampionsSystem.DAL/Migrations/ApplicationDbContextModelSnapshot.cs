@@ -1154,7 +1154,7 @@ namespace CampionsSystem.DAL.Migrations
 
                             t.HasCheckConstraint("CK_CheckIns_ClassSession", "\"ClassSessionId\" IS NULL OR \"CheckInType\" = 'Class'");
 
-                            t.HasCheckConstraint("CK_CheckIns_ClassesSubscription", "\"ClassesSubscriptionId\" IS NULL OR (\"CheckInType\" = 'Class' AND \"ClassSessionId\" IS NOT NULL AND \"SessionConsumed\")");
+                            t.HasCheckConstraint("CK_CheckIns_ClassesSubscription", "\"ClassesSubscriptionId\" IS NULL OR (\"CheckInType\" = 'Class' AND \"ClassSessionId\" IS NOT NULL AND \"SessionConsumed\" AND \"OperationId\" IS NOT NULL AND \"RequestHash\" IS NOT NULL AND \"CoachEmployeeId\" IS NOT NULL AND \"SessionsBefore\" IS NOT NULL AND \"SessionsAfter\" IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_CheckIns_Member", "\"CheckInType\" = 'Trial' OR \"MemberId\" IS NOT NULL");
 
@@ -1292,6 +1292,8 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.ToTable("ClassSessions", null, t =>
                         {
+                            t.HasCheckConstraint("CK_ClassSessions_Operational", "\"OperationId\" IS NULL OR (\"RequestHash\" IS NOT NULL AND \"BusinessDate\" IS NOT NULL AND \"CreatedByUserId\" IS NOT NULL)");
+
                             t.HasCheckConstraint("CK_ClassSessions_Status", "\"Status\" IN ('Scheduled', 'Completed', 'Cancelled')");
 
                             t.HasCheckConstraint("CK_ClassSessions_Times", "(\"EndedAt\" IS NULL OR \"EndedAt\" >= \"StartedAt\") AND (\"Status\" <> 'Completed' OR \"EndedAt\" IS NOT NULL)");
@@ -1506,7 +1508,7 @@ namespace CampionsSystem.DAL.Migrations
                         {
                             t.HasCheckConstraint("CK_CoachEarnings_Amounts", "\"EligibleValue\" > 0 AND \"Amount\" >= 0 AND \"Amount\" <= \"EligibleValue\" AND \"TargetProgress\" >= 0");
 
-                            t.HasCheckConstraint("CK_CoachEarnings_Rate", "(\"TransferredPackage\" AND \"Rate\" = 50) OR (NOT \"TransferredPackage\" AND \"CoachTargetRuleId\" IS NOT NULL AND \"Target\" > 0 AND ((\"TargetProgress\" >= \"Target\" AND \"Rate\" = 60) OR (\"TargetProgress\" < \"Target\" AND \"Rate\" = 50)))");
+                            t.HasCheckConstraint("CK_CoachEarnings_Rate", "(\"TransferredPackage\" AND \"Rate\" = 50) OR (NOT \"TransferredPackage\" AND \"CoachTargetRuleId\" IS NOT NULL AND \"Target\" IS NOT NULL AND \"Target\" > 0 AND ((\"TargetProgress\" >= \"Target\" AND \"Rate\" = 60) OR (\"TargetProgress\" < \"Target\" AND \"Rate\" = 50)))");
 
                             t.HasCheckConstraint("CK_CoachEarnings_Source", "(\"PrivateSessionId\" IS NOT NULL) <> (\"PrivateExpirySettlementId\" IS NOT NULL)");
                         });
@@ -4690,6 +4692,8 @@ namespace CampionsSystem.DAL.Migrations
                         {
                             t.HasCheckConstraint("CK_PrivateExpirySettlements_EligibleAmount", "\"EligibleAmount\" = \"RemainingSessions\" * \"UnitSessionValue\" + \"RemainderValue\"");
 
+                            t.HasCheckConstraint("CK_PrivateExpirySettlements_Operational", "\"OperationId\" IS NULL OR (\"RequestHash\" IS NOT NULL AND \"BusinessDate\" IS NOT NULL AND \"CreatedByUserId\" IS NOT NULL AND \"PrivateCoachAssignmentId\" IS NOT NULL AND \"TransferredPackage\" IS NOT NULL AND \"Reason\" IS NOT NULL AND \"RemainderValue\" >= 0)");
+
                             t.HasCheckConstraint("CK_PrivateExpirySettlements_RemainingSessions", "\"RemainingSessions\" > 0");
 
                             t.HasCheckConstraint("CK_PrivateExpirySettlements_UnitSessionValue", "\"UnitSessionValue\" >= 0");
@@ -4818,7 +4822,7 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.ToTable("PrivateSessions", null, t =>
                         {
-                            t.HasCheckConstraint("CK_PrivateSessions_Operational", "\"OperationId\" IS NULL OR (\"BusinessDate\" IS NOT NULL AND \"RequestHash\" IS NOT NULL AND \"PrivateCoachAssignmentId\" IS NOT NULL AND \"SessionValue\" >= 0 AND \"SessionNumber\" > 0 AND \"TransferredPackage\" IS NOT NULL)");
+                            t.HasCheckConstraint("CK_PrivateSessions_Operational", "\"OperationId\" IS NULL OR (\"BusinessDate\" IS NOT NULL AND \"RequestHash\" IS NOT NULL AND \"PrivateCoachAssignmentId\" IS NOT NULL AND \"SessionValue\" IS NOT NULL AND \"SessionValue\" >= 0 AND \"SessionNumber\" IS NOT NULL AND \"SessionNumber\" > 0 AND \"TransferredPackage\" IS NOT NULL)");
                         });
                 });
 

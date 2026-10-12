@@ -8,7 +8,7 @@ namespace CampionsSystem.API.Controllers;
 [ApiController]
 [Route("api")]
 public sealed class OperationsController(ActivityManagementService activities, FreelancePlanService freelance,
-    SubscriptionPurchaseService purchases, ClassSessionService classes, CoachReportService reports) : ControllerBase
+    SubscriptionPurchaseService purchases, CoachReportService reports) : ControllerBase
 {
     public sealed record PercentageRequest(decimal Percentage);
     public sealed record AssignmentRequest(Guid ActivityCoachId);
@@ -50,17 +50,17 @@ public sealed class OperationsController(ActivityManagementService activities, F
     [HttpPost("classes/sessions")]
     [Authorize(Policy = "Permission:Classes.Manage")]
     public Task<IActionResult> CreateSession(SaveClassSessionRequest request, CancellationToken ct) =>
-        Execute(async () => new { Id = await classes.SaveAsync(null, request, ct) });
+        Task.FromResult<IActionResult>(Problem(statusCode: 410, title: "Use /api/coaching/classes/occurrences with an operation identity."));
 
     [HttpPut("classes/sessions/{id:guid}")]
     [Authorize(Policy = "Permission:Classes.Manage")]
     public Task<IActionResult> UpdateSession(Guid id, SaveClassSessionRequest request, CancellationToken ct) =>
-        Execute(async () => new { Id = await classes.SaveAsync(id, request, ct) });
+        Task.FromResult<IActionResult>(Problem(statusCode: 410, title: "Use /api/coaching/classes/occurrences/{id}/complete."));
 
     [HttpPost("classes/sessions/{id:guid}/attendance/{memberId:guid}")]
     [Authorize(Policy = "Permission:Classes.Manage")]
     public Task<IActionResult> Attendance(Guid id, Guid memberId, CancellationToken ct) =>
-        Execute(async () => new { Id = await classes.AttendAsync(id, memberId, ct) });
+        Task.FromResult<IActionResult>(Problem(statusCode: 410, title: "Use /api/coaching/classes/occurrences/{id}/attendance with a Classes package and operation identity."));
 
     [HttpGet("classes/attendance-report")]
     [Authorize(Policy = "Permission:Classes.ViewAttendanceReport")]

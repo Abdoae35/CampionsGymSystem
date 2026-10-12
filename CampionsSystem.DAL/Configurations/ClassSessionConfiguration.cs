@@ -14,6 +14,7 @@ public sealed class ClassSessionConfiguration : IEntityTypeConfiguration<ClassSe
         b.HasKey(x => x.Id);
         b.ToTable("ClassSessions", t =>
         {
+            t.HasCheckConstraint("CK_ClassSessions_Operational", "\"OperationId\" IS NULL OR (\"RequestHash\" IS NOT NULL AND \"BusinessDate\" IS NOT NULL AND \"CreatedByUserId\" IS NOT NULL)");
             t.HasCheckConstraint("CK_ClassSessions_Status", "\"Status\" IN ('Scheduled', 'Completed', 'Cancelled')");
             t.HasCheckConstraint("CK_ClassSessions_Times", "(\"EndedAt\" IS NULL OR \"EndedAt\" >= \"StartedAt\") AND (\"Status\" <> 'Completed' OR \"EndedAt\" IS NOT NULL)");
         });

@@ -10,6 +10,7 @@ public sealed class PrivateExpirySettlementConfiguration : IEntityTypeConfigurat
     {
         builder.ToTable("PrivateExpirySettlements", table =>
         {
+            table.HasCheckConstraint("CK_PrivateExpirySettlements_Operational", "\"OperationId\" IS NULL OR (\"RequestHash\" IS NOT NULL AND \"BusinessDate\" IS NOT NULL AND \"CreatedByUserId\" IS NOT NULL AND \"PrivateCoachAssignmentId\" IS NOT NULL AND \"TransferredPackage\" IS NOT NULL AND \"Reason\" IS NOT NULL AND \"RemainderValue\" >= 0)");
             table.HasCheckConstraint("CK_PrivateExpirySettlements_RemainingSessions", "\"RemainingSessions\" > 0");
             table.HasCheckConstraint("CK_PrivateExpirySettlements_UnitSessionValue", "\"UnitSessionValue\" >= 0");
             table.HasCheckConstraint("CK_PrivateExpirySettlements_EligibleAmount", "\"EligibleAmount\" = \"RemainingSessions\" * \"UnitSessionValue\" + \"RemainderValue\"");

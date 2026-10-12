@@ -46,7 +46,7 @@ public sealed class CoachEarningConfiguration : IEntityTypeConfiguration<CoachEa
         {
             t.HasCheckConstraint("CK_CoachEarnings_Source", "(\"PrivateSessionId\" IS NOT NULL) <> (\"PrivateExpirySettlementId\" IS NOT NULL)");
             t.HasCheckConstraint("CK_CoachEarnings_Amounts", "\"EligibleValue\" > 0 AND \"Amount\" >= 0 AND \"Amount\" <= \"EligibleValue\" AND \"TargetProgress\" >= 0");
-            t.HasCheckConstraint("CK_CoachEarnings_Rate", "(\"TransferredPackage\" AND \"Rate\" = 50) OR (NOT \"TransferredPackage\" AND \"CoachTargetRuleId\" IS NOT NULL AND \"Target\" > 0 AND ((\"TargetProgress\" >= \"Target\" AND \"Rate\" = 60) OR (\"TargetProgress\" < \"Target\" AND \"Rate\" = 50)))");
+            t.HasCheckConstraint("CK_CoachEarnings_Rate", "(\"TransferredPackage\" AND \"Rate\" = 50) OR (NOT \"TransferredPackage\" AND \"CoachTargetRuleId\" IS NOT NULL AND \"Target\" IS NOT NULL AND \"Target\" > 0 AND ((\"TargetProgress\" >= \"Target\" AND \"Rate\" = 60) OR (\"TargetProgress\" < \"Target\" AND \"Rate\" = 50)))");
         });
     }
 }

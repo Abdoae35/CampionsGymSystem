@@ -21,7 +21,7 @@ public sealed partial class SubscriptionService
         var subscription=await db.MembershipSubscriptionTransactions.Where(g=>g.Id==grantId).Select(g=>g.MemberSubscriptionId).SingleAsync(ct);
         return (await Evaluated().SingleAsync(e=>e.Subscription.Id==subscription,ct)).Status.ToString();
     }
-    private IQueryable<SaleTransaction> QualifiedSales() => db.SaleTransactions.Where(s => s.OperationId != null && s.CancelledAt == null
+    private IQueryable<SaleTransaction> QualifiedSales() => db.SaleTransactions.Where(s => s.SaleType == SaleType.GymMembership && s.OperationId != null && s.CancelledAt == null
         && db.Payments.Where(p => p.SaleTransactionId == s.Id && p.Status == PaymentStatus.Completed).Sum(p => p.Amount) > 0
         && (s.PurchaseMode == PurchaseMode.Installment
             ? s.InitialPaymentRequired != null && s.InitialPaymentRequired > 0 && db.Payments.Where(p => p.SaleTransactionId == s.Id && p.Status == PaymentStatus.Completed).Sum(p => p.Amount) >= s.InitialPaymentRequired

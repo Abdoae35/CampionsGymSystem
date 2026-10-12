@@ -20,7 +20,7 @@ public sealed class PrivateSessionConfiguration : IEntityTypeConfiguration<Priva
         builder.HasIndex(x => new { x.PrivateSubscriptionTransactionId, x.SessionNumber }).IsUnique().HasFilter("\"OperationId\" IS NOT NULL");
         builder.Property(x => x.RequestHash).HasMaxLength(64);
         builder.Property(x => x.SessionValue).HasPrecision(18, 2);
-        builder.ToTable("PrivateSessions", t => t.HasCheckConstraint("CK_PrivateSessions_Operational", "\"OperationId\" IS NULL OR (\"BusinessDate\" IS NOT NULL AND \"RequestHash\" IS NOT NULL AND \"PrivateCoachAssignmentId\" IS NOT NULL AND \"SessionValue\" >= 0 AND \"SessionNumber\" > 0 AND \"TransferredPackage\" IS NOT NULL)"));
+        builder.ToTable("PrivateSessions", t => t.HasCheckConstraint("CK_PrivateSessions_Operational", "\"OperationId\" IS NULL OR (\"BusinessDate\" IS NOT NULL AND \"RequestHash\" IS NOT NULL AND \"PrivateCoachAssignmentId\" IS NOT NULL AND \"SessionValue\" IS NOT NULL AND \"SessionValue\" >= 0 AND \"SessionNumber\" IS NOT NULL AND \"SessionNumber\" > 0 AND \"TransferredPackage\" IS NOT NULL)"));
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.PrivateSubscription).WithMany(x => x.Sessions).HasForeignKey(x => x.PrivateSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.CoachEmployee).WithMany().HasForeignKey(x => x.CoachEmployeeId).OnDelete(DeleteBehavior.Restrict);

@@ -17,7 +17,7 @@ public sealed class CheckInConfiguration : IEntityTypeConfiguration<CheckIn>
         });
         builder.HasOne(x => x.ClassesSubscription).WithMany().HasForeignKey(x => x.ClassesSubscriptionId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.RequestHash).HasMaxLength(64);
-        builder.ToTable("CheckIns", t => t.HasCheckConstraint("CK_CheckIns_ClassesSubscription", "\"ClassesSubscriptionId\" IS NULL OR (\"CheckInType\" = 'Class' AND \"ClassSessionId\" IS NOT NULL AND \"SessionConsumed\")"));
+        builder.ToTable("CheckIns", t => t.HasCheckConstraint("CK_CheckIns_ClassesSubscription", "\"ClassesSubscriptionId\" IS NULL OR (\"CheckInType\" = 'Class' AND \"ClassSessionId\" IS NOT NULL AND \"SessionConsumed\" AND \"OperationId\" IS NOT NULL AND \"RequestHash\" IS NOT NULL AND \"CoachEmployeeId\" IS NOT NULL AND \"SessionsBefore\" IS NOT NULL AND \"SessionsAfter\" IS NOT NULL)"));
         builder.HasKey(x => x.Id);
         builder.HasIndex(x => x.OperationId).IsUnique();
         builder.HasIndex(x => new { x.BranchId, x.BusinessDate, x.MemberId });

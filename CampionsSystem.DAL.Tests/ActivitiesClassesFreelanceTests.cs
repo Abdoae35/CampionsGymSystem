@@ -91,6 +91,15 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
             status == ClassSessionStatus.Completed ? clock.GetUtcNow().AddHours(-1) : null, status));
     private Task<IReadOnlyList<ClassCoachReport>> Stats() => reports.ClassesAsync(branch.Id, period.StartAt, clock.GetUtcNow());
 
+    // Preserve historical report coverage after disabling the unsafe legacy write route.
+    private async Task HistoricalClassAttendance(Guid id, Guid memberId)
+    {
+        var session = await db.ClassSessions.SingleAsync(s => s.Id == id);
+        db.Add(new CheckIn { ClassSessionId = id, GroupClassId = session.GroupClassId, BranchId = session.BranchId,
+            CoachEmployeeId = session.CoachEmployeeId, MemberId = memberId, CheckInType = CheckInType.Class,
+            CheckedInAt = access.Now, CreatedByUserId = actor.Id, CheckInMethod = CheckInMethod.Coach });
+        await db.SaveChangesAsync();
+    }
     [Fact] public async Task InternalCoachLinksToEmployee()
     {
         var id = await Coach(); var row = await db.ActivityCoaches.FindAsync(id);
@@ -168,16 +177,16 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     [Fact] public async Task CompletedClassCounts()
     { await Session(); Assert.Equal(1, Assert.Single(await Stats()).CompletedClassesCount); }
     [Fact] public async Task ZeroAttendanceIncludedInDenominator()
-    { var id = await Session(); await classes.AttendAsync(id, member.Id); await Session(); Assert.Equal(0.5m, Assert.Single(await Stats()).AverageAttendance); }
+    { var id = await Session(); await HistoricalClassAttendance(id, member.Id); await Session(); Assert.Equal(0.5m, Assert.Single(await Stats()).AverageAttendance); }
     [Fact] public async Task CancelledAndScheduledClassesExcluded()
     { await Session(ClassSessionStatus.Cancelled); await Session(ClassSessionStatus.Scheduled); Assert.Empty(await Stats()); }
     [Fact] public async Task ActualSubstituteReceivesStatistics()
     { await Session(coach: substitute.Id); Assert.Equal(substitute.Id, Assert.Single(await Stats()).CoachEmployeeId); }
     [Fact] public async Task AttendanceAverageUsesActualUniqueCheckIns()
     {
-        var first = await Session(); var second = await Session(); await classes.AttendAsync(first, member.Id); await classes.AttendAsync(second, member.Id);
+        var first = await Session(); var second = await Session(); await HistoricalClassAttendance(first, member.Id); await HistoricalClassAttendance(second, member.Id);
         var another = new Member { ClientCode = 2, MemberCode = "M-2", FullName = "Second", PrimaryPhone = "second", HomeBranch = branch, CreatedByUser = actor };
-        db.Add(another); await db.SaveChangesAsync(); await classes.AttendAsync(second, another.Id);
+        db.Add(another); await db.SaveChangesAsync(); await HistoricalClassAttendance(second, another.Id);
         var row = Assert.Single(await Stats()); Assert.Equal(3, row.TotalAttendances); Assert.Equal(1.5m, row.AverageAttendance);
         await Assert.ThrowsAsync<BusinessRuleException>(() => classes.AttendAsync(first, member.Id));
     }
@@ -289,7 +298,7 @@ public sealed class ActivitiesClassesFreelanceTests : IAsyncLifetime
     }
     [Fact] public async Task DuplicateActualSessionAttendanceIsRejectedByDatabase()
     {
-        var session = await Session(); await classes.AttendAsync(session, member.Id);
+        var session = await Session(); await HistoricalClassAttendance(session, member.Id);
         db.Add(new CheckIn { ClassSessionId = session, GroupClassId = group.Id, MemberId = member.Id, BranchId = branch.Id,
             CoachEmployeeId = employee.Id, CheckInType = CheckInType.Class, CreatedByUserId = actor.Id, CheckedInAt = clock.GetUtcNow() });
         await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
