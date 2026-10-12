@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class PayrollDeduction
 {
+    public Guid? EmployeeAdvanceId { get; set; }
+    public EmployeeAdvance? EmployeeAdvance { get; set; }
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid PayrollId { get; set; }
     public Payroll Payroll { get; set; } = null!;

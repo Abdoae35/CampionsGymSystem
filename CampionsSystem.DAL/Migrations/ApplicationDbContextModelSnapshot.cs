@@ -1446,6 +1446,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<Guid?>("FinancialMonthId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("PrivateExpirySettlementId")
                         .HasColumnType("uuid");
 
@@ -1485,6 +1488,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasIndex("CoachTargetRuleId");
 
                     b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("FinancialMonthId");
 
                     b.HasIndex("PrivateExpirySettlementId");
 
@@ -2063,6 +2068,10 @@ namespace CampionsSystem.DAL.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<decimal?>("BasicEntitlementSnapshot")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
@@ -2076,6 +2085,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("FinancialAccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FinancialMonthId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("OccurredAt")
@@ -2125,9 +2137,13 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("BranchId", "OccurredAt");
 
+                    b.HasIndex("FinancialMonthId", "ReceivingEmployeeId");
+
                     b.ToTable("EmployeeAdvances", null, t =>
                         {
                             t.HasCheckConstraint("CK_EmployeeAdvances_Amount", "\"Amount\" > 0");
+
+                            t.HasCheckConstraint("CK_EmployeeAdvances_Entitlement", "\"FinancialMonthId\" IS NULL AND \"BasicEntitlementSnapshot\" IS NULL OR \"FinancialMonthId\" IS NOT NULL AND \"BasicEntitlementSnapshot\" IS NOT NULL AND \"BasicEntitlementSnapshot\" >= \"Amount\"");
                         });
                 });
 
@@ -2346,11 +2362,23 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.HasIndex("EmployeeId");
+                    b.HasIndex("OperationId")
+                        .IsUnique()
+                        .HasFilter("\"OperationId\" IS NOT NULL");
+
+                    b.HasIndex("EmployeeId", "EffectiveFrom")
+                        .IsUnique();
 
                     b.ToTable("EmployeeSalarySettings", null, t =>
                         {
@@ -2584,6 +2612,219 @@ namespace CampionsSystem.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialClosingRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FinancialMonthId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("ReportJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("SnapshotAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("Workbook")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("WorkbookSha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("FinancialMonthId", "Revision")
+                        .IsUnique();
+
+                    b.ToTable("FinancialClosingRevisions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FinancialClosingRevisions_Version", "\"Revision\" > 0 AND \"SchemaVersion\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialMonth", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset?>("FirstClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("LastRevision")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 'Open'");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("BranchId", "StartDate")
+                        .IsUnique();
+
+                    b.ToTable("FinancialMonths", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FinancialMonths_Bounds", "\"EndDate\" >= \"StartDate\" AND \"EndDate\" - \"StartDate\" < 62");
+
+                            t.HasCheckConstraint("CK_FinancialMonths_Status", "\"Status\" IN ('Open','Closed','Reopened') AND \"Version\" >= 0 AND \"LastRevision\" >= 0 AND (\"Status\" = 'Open' AND \"FirstClosedAt\" IS NULL OR \"Status\" <> 'Open' AND \"FirstClosedAt\" IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialMonthEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FinancialMonthId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("ResultVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Revision")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("FinancialMonthId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
+                    b.ToTable("FinancialMonthEvents", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FinancialMonthEvents_Kind", "\"Kind\" IN ('Opened','Closed','Reopened') AND \"ResultVersion\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialOccurrenceEvidence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FinancialTransactionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("OriginalOccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("FinancialTransactionId")
+                        .IsUnique();
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
+                    b.ToTable("FinancialOccurrenceEvidence", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_FinancialOccurrenceEvidence_Date", "\"OriginalOccurredAt\" <= \"RecordedAt\"");
+                        });
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2621,6 +2862,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("FinancialAccountId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("FinancialMonthId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
@@ -2632,6 +2876,9 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.Property<Guid?>("PayrollId")
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("PostedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("RefundId")
                         .HasColumnType("uuid");
@@ -2674,6 +2921,8 @@ namespace CampionsSystem.DAL.Migrations
                         .HasFilter("\"DrawerSequence\" IS NOT NULL");
 
                     b.HasIndex("FinancialAccountId", "OccurredAt");
+
+                    b.HasIndex("FinancialMonthId", "OccurredAt", "Id");
 
                     b.ToTable("FinancialTransactions", null, t =>
                         {
@@ -3226,6 +3475,71 @@ namespace CampionsSystem.DAL.Migrations
                     b.ToTable("LeadInteractions", null, t =>
                         {
                             t.HasCheckConstraint("CK_LeadInteractions_InteractionType", "\"InteractionType\" IN ('Call', 'WhatsApp', 'Visit', 'Other')");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MaintenancePlanRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ExpectedCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateOnly>("FirstDueDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("FrequencyMonths")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PlanId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("PlanId", "Revision")
+                        .IsUnique();
+
+                    b.ToTable("MaintenancePlanRevisions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MaintenancePlanRevisions_Values", "\"ExpectedCost\" > 0 AND \"FrequencyMonths\" BETWEEN 1 AND 120 AND \"Revision\" > 0");
                         });
                 });
 
@@ -4397,7 +4711,10 @@ namespace CampionsSystem.DAL.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<Guid>("CommissionPeriodId")
+                    b.Property<Guid?>("CommissionPeriodId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CommissionSummaryId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -4408,6 +4725,9 @@ namespace CampionsSystem.DAL.Migrations
                         .HasColumnType("numeric(18,2)");
 
                     b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FinancialMonthId")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("NetAmount")
@@ -4423,6 +4743,12 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("PaidFromFinancialAccountId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("RecognizedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SalaryEvidenceJson")
+                        .HasColumnType("jsonb");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -4434,11 +4760,21 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("CommissionPeriodId");
 
+                    b.HasIndex("CommissionSummaryId")
+                        .IsUnique()
+                        .HasFilter("\"CommissionSummaryId\" IS NOT NULL");
+
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("PaidByUserId");
 
                     b.HasIndex("PaidFromFinancialAccountId");
+
+                    b.HasIndex("RecognizedByUserId");
+
+                    b.HasIndex("FinancialMonthId", "EmployeeId")
+                        .IsUnique()
+                        .HasFilter("\"FinancialMonthId\" IS NOT NULL AND \"CommissionSummaryId\" IS NULL");
 
                     b.ToTable("Payrolls", null, t =>
                         {
@@ -4451,6 +4787,8 @@ namespace CampionsSystem.DAL.Migrations
                             t.HasCheckConstraint("CK_Payrolls_DeductionAmount", "\"DeductionAmount\" >= 0");
 
                             t.HasCheckConstraint("CK_Payrolls_NetAmount", "\"NetAmount\" >= 0");
+
+                            t.HasCheckConstraint("CK_Payrolls_Recognized", "\"FinancialMonthId\" IS NULL OR (\"RecognizedByUserId\" IS NOT NULL AND \"BonusAmount\" = 0 AND \"NetAmount\" = \"BasicSalary\" + \"CommissionAmount\" - \"DeductionAmount\" AND (\"CommissionSummaryId\" IS NULL AND \"CommissionAmount\" = 0 AND \"SalaryEvidenceJson\" IS NOT NULL OR \"CommissionSummaryId\" IS NOT NULL AND \"CommissionPeriodId\" IS NOT NULL AND \"BasicSalary\" = 0 AND \"DeductionAmount\" = 0))");
 
                             t.HasCheckConstraint("CK_Payrolls_Status", "\"Status\" IN ('Pending', 'Paid')");
                         });
@@ -4472,6 +4810,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("EmployeeAdvanceId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("PayrollId")
                         .HasColumnType("uuid");
 
@@ -4483,11 +4824,85 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
+                    b.HasIndex("EmployeeAdvanceId")
+                        .IsUnique()
+                        .HasFilter("\"EmployeeAdvanceId\" IS NOT NULL");
+
                     b.HasIndex("PayrollId");
 
                     b.ToTable("PayrollDeductions", null, t =>
                         {
                             t.HasCheckConstraint("CK_PayrollDeductions_Amount", "\"Amount\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.PayrollPaymentRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("BalanceAfter")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("BalanceBefore")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateOnly>("BusinessDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("FinancialMonthId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PayrollId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reference")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("FinancialMonthId");
+
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
+                    b.HasIndex("PayrollId", "RecordedAt");
+
+                    b.ToTable("PayrollPaymentRecords", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PayrollPaymentRecords_Balance", "\"Amount\" > 0 AND \"BalanceBefore\" >= \"Amount\" AND \"BalanceAfter\" = \"BalanceBefore\" - \"Amount\" AND \"PaidAt\" <= \"RecordedAt\"");
                         });
                 });
 
@@ -6589,6 +7004,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.FinancialMonth", "FinancialMonth")
+                        .WithMany()
+                        .HasForeignKey("FinancialMonthId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.PrivateExpirySettlement", "PrivateExpirySettlement")
                         .WithMany()
                         .HasForeignKey("PrivateExpirySettlementId")
@@ -6614,6 +7034,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("CommissionPeriod");
 
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("FinancialMonth");
 
                     b.Navigation("PrivateExpirySettlement");
 
@@ -6884,6 +7306,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.FinancialMonth", "FinancialMonth")
+                        .WithMany()
+                        .HasForeignKey("FinancialMonthId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Employee", "ReceivingEmployee")
                         .WithMany()
                         .HasForeignKey("ReceivingEmployeeId")
@@ -6909,6 +7336,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("CreatedByUser");
 
                     b.Navigation("FinancialAccount");
+
+                    b.Navigation("FinancialMonth");
 
                     b.Navigation("ReceivingEmployee");
 
@@ -7145,6 +7574,82 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Branch");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialClosingRevision", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.FinancialMonth", "FinancialMonth")
+                        .WithMany()
+                        .HasForeignKey("FinancialMonthId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("FinancialMonth");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialMonth", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialMonthEvent", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.FinancialMonth", "FinancialMonth")
+                        .WithMany()
+                        .HasForeignKey("FinancialMonthId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("FinancialMonth");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialOccurrenceEvidence", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.FinancialTransaction", "FinancialTransaction")
+                        .WithMany()
+                        .HasForeignKey("FinancialTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("FinancialTransaction");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.FinancialTransaction", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
@@ -7185,6 +7690,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.FinancialMonth", "FinancialMonth")
+                        .WithMany()
+                        .HasForeignKey("FinancialMonthId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Payment", "Payment")
                         .WithMany()
                         .HasForeignKey("PaymentId")
@@ -7218,6 +7728,8 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Expense");
 
                     b.Navigation("FinancialAccount");
+
+                    b.Navigation("FinancialMonth");
 
                     b.Navigation("Payment");
 
@@ -7457,6 +7969,25 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Employee");
 
                     b.Navigation("Lead");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.MaintenancePlanRevision", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.GymBranch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("Branch");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.Member", b =>
@@ -8030,14 +8561,23 @@ namespace CampionsSystem.DAL.Migrations
                     b.HasOne("CampionsSystem.DAL.Entities.CommissionPeriod", "CommissionPeriod")
                         .WithMany()
                         .HasForeignKey("CommissionPeriodId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CampionsSystem.DAL.Entities.EmployeeCommissionSummary", "CommissionSummary")
+                        .WithMany()
+                        .HasForeignKey("CommissionSummaryId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.FinancialMonth", "FinancialMonth")
+                        .WithMany()
+                        .HasForeignKey("FinancialMonthId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "PaidByUser")
                         .WithMany()
@@ -8049,15 +8589,26 @@ namespace CampionsSystem.DAL.Migrations
                         .HasForeignKey("PaidFromFinancialAccountId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "RecognizedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecognizedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Branch");
 
                     b.Navigation("CommissionPeriod");
 
+                    b.Navigation("CommissionSummary");
+
                     b.Navigation("Employee");
+
+                    b.Navigation("FinancialMonth");
 
                     b.Navigation("PaidByUser");
 
                     b.Navigation("PaidFromFinancialAccount");
+
+                    b.Navigation("RecognizedByUser");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.PayrollDeduction", b =>
@@ -8068,6 +8619,11 @@ namespace CampionsSystem.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("CampionsSystem.DAL.Entities.EmployeeAdvance", "EmployeeAdvance")
+                        .WithMany()
+                        .HasForeignKey("EmployeeAdvanceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("CampionsSystem.DAL.Entities.Payroll", "Payroll")
                         .WithMany()
                         .HasForeignKey("PayrollId")
@@ -8075,6 +8631,35 @@ namespace CampionsSystem.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("EmployeeAdvance");
+
+                    b.Navigation("Payroll");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.PayrollPaymentRecord", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ActorUser")
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.FinancialMonth", "FinancialMonth")
+                        .WithMany()
+                        .HasForeignKey("FinancialMonthId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampionsSystem.DAL.Entities.Payroll", "Payroll")
+                        .WithMany()
+                        .HasForeignKey("PayrollId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ActorUser");
+
+                    b.Navigation("FinancialMonth");
 
                     b.Navigation("Payroll");
                 });

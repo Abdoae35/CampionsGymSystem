@@ -2,6 +2,10 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class EmployeeAdvance
 {
+    public Guid? FinancialMonthId { get; set; }
+    public FinancialMonth? FinancialMonth { get; set; }
+    public decimal? BasicEntitlementSnapshot { get; set; }
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;

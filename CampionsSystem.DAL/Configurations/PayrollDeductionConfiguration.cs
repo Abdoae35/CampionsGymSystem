@@ -13,6 +13,8 @@ public sealed class PayrollDeductionConfiguration : IEntityTypeConfiguration<Pay
             table.HasCheckConstraint("CK_PayrollDeductions_Amount", "\"Amount\" >= 0");
         });
         builder.HasKey(x => x.Id);
+        builder.HasOne(x => x.EmployeeAdvance).WithMany().HasForeignKey(x => x.EmployeeAdvanceId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => x.EmployeeAdvanceId).IsUnique().HasFilter("\"EmployeeAdvanceId\" IS NOT NULL");
         builder.HasOne(x => x.Payroll).WithMany().HasForeignKey(x => x.PayrollId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Amount).HasPrecision(18, 2);
         builder.Property(x => x.Reason).HasColumnType("text").IsRequired();

@@ -5,6 +5,9 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class EmployeeSalarySetting
 {
+    public Guid? OperationId { get; set; }
+    public string? RequestHash { get; set; }
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid EmployeeId { get; set; }
     public Employee Employee { get; set; } = null!;

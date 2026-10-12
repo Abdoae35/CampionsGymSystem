@@ -5,6 +5,10 @@ namespace CampionsSystem.DAL.Entities;
 
 public sealed class FinancialTransaction
 {
+    public Guid? FinancialMonthId { get; set; }
+    public FinancialMonth? FinancialMonth { get; set; }
+    public DateTimeOffset? PostedAt { get; set; }
+
     // Nullable for legacy reconciliation; preserve operational date independently of real timestamps.
     public Guid? BusinessDayId { get; set; }
     public BusinessDay? BusinessDay { get; set; }

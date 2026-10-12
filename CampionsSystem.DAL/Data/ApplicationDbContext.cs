@@ -115,6 +115,14 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<CoachPayout> CoachPayouts => Set<CoachPayout>();
     public DbSet<CoachPayoutAllocation> CoachPayoutAllocations => Set<CoachPayoutAllocation>();
 
+    public DbSet<FinancialMonth> FinancialMonths => Set<FinancialMonth>();
+    public DbSet<FinancialMonthEvent> FinancialMonthEvents => Set<FinancialMonthEvent>();
+    public DbSet<FinancialClosingRevision> FinancialClosingRevisions => Set<FinancialClosingRevision>();
+    public DbSet<PayrollPaymentRecord> PayrollPaymentRecords => Set<PayrollPaymentRecord>();
+    public DbSet<MaintenancePlanRevision> MaintenancePlanRevisions => Set<MaintenancePlanRevision>();
+    public DbSet<FinancialOccurrenceEvidence> FinancialOccurrenceEvidence => Set<FinancialOccurrenceEvidence>();
+
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -123,6 +131,23 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        if (ChangeTracker.Entries<FinancialClosingRevision>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<FinancialMonthEvent>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<PayrollPaymentRecord>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<MaintenancePlanRevision>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<FinancialOccurrenceEvidence>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<Payroll>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(Payroll.FinancialMonthId)) != null && x.State is EntityState.Modified or EntityState.Deleted)
+            || ChangeTracker.Entries<PayrollDeduction>().Any(x => x.OriginalValues.GetValue<Guid?>(nameof(PayrollDeduction.EmployeeAdvanceId)) != null && x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Monthly reports, payroll evidence and maintenance revisions are append-only.");
+        foreach (var entry in ChangeTracker.Entries<FinancialMonth>())
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not
+                (nameof(FinancialMonth.Status) or nameof(FinancialMonth.Version) or nameof(FinancialMonth.LastRevision) or nameof(FinancialMonth.FirstClosedAt))))
+                throw new InvalidOperationException("Financial month boundaries and creation facts are immutable.");
+        foreach (var entry in ChangeTracker.Entries<EmployeeSalarySetting>())
+            if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified &&
+                (entry.OriginalValues.GetValue<DateOnly?>(nameof(EmployeeSalarySetting.EffectiveTo)) != null || entry.Properties.Any(p => p.IsModified && p.Metadata.Name != nameof(EmployeeSalarySetting.EffectiveTo))))
+                throw new InvalidOperationException("Salary history preserves original values; close once and append a new setting.");
+
         if (ChangeTracker.Entries<CoachTargetRule>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<CoachEarning>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<CoachPayout>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)

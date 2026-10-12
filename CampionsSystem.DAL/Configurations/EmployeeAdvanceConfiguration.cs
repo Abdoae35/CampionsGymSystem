@@ -13,6 +13,10 @@ public sealed class EmployeeAdvanceConfiguration : IEntityTypeConfiguration<Empl
             t.HasCheckConstraint("CK_EmployeeAdvances_Amount", "\"Amount\" > 0");
         });
         b.HasKey(x => x.Id);
+        b.HasOne(x => x.FinancialMonth).WithMany().HasForeignKey(x => x.FinancialMonthId).OnDelete(DeleteBehavior.Restrict);
+        b.Property(x => x.BasicEntitlementSnapshot).HasPrecision(18, 2);
+        b.HasIndex(x => new { x.FinancialMonthId, x.ReceivingEmployeeId });
+        b.ToTable("EmployeeAdvances", t => t.HasCheckConstraint("CK_EmployeeAdvances_Entitlement", "\"FinancialMonthId\" IS NULL AND \"BasicEntitlementSnapshot\" IS NULL OR \"FinancialMonthId\" IS NOT NULL AND \"BasicEntitlementSnapshot\" IS NOT NULL AND \"BasicEntitlementSnapshot\" >= \"Amount\""));
         b.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.FinancialAccount).WithMany().HasForeignKey(x => x.FinancialAccountId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Shift).WithMany().HasForeignKey(x => x.ShiftId).OnDelete(DeleteBehavior.Restrict);

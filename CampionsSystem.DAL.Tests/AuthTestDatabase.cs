@@ -18,6 +18,8 @@ internal sealed class AuthTestDatabase : IAsyncDisposable
         {
             var connection = Environment.GetEnvironmentVariable("GYM_SCHEMA_TEST_CONNECTION")
                 ?? $"Host=localhost;Database=postgres;Username={Environment.UserName};Timeout=5";
+            if (new NpgsqlConnectionStringBuilder(connection).Host is not ("localhost" or "127.0.0.1" or "::1"))
+                throw new InvalidOperationException("Schema tests require a verified localhost database.");
             fixture.Connection = new NpgsqlConnection(connection);
             await fixture.Connection.OpenAsync();
             fixture.Transaction = await fixture.Connection.BeginTransactionAsync();

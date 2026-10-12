@@ -28,6 +28,7 @@ public sealed class CoachEarningConfiguration : IEntityTypeConfiguration<CoachEa
     {
         b.HasKey(x => x.Id);
         b.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.FinancialMonth).WithMany().HasForeignKey(x => x.FinancialMonthId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.CoachEmployee).WithMany().HasForeignKey(x => x.CoachEmployeeId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.CommissionPeriod).WithMany().HasForeignKey(x => x.CommissionPeriodId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.CoachTargetRule).WithMany().HasForeignKey(x => x.CoachTargetRuleId).OnDelete(DeleteBehavior.Restrict);

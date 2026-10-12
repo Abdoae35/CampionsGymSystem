@@ -20,6 +20,9 @@ public sealed class CoachTargetRule
 // One actual funding slice of a delivered session or explicit unused-session settlement.
 public sealed class CoachEarning
 {
+    public Guid? FinancialMonthId { get; set; }
+    public FinancialMonth? FinancialMonth { get; set; }
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;

@@ -18,6 +18,13 @@ public sealed class PayrollConfiguration : IEntityTypeConfiguration<Payroll>
             table.HasCheckConstraint("CK_Payrolls_Status", "\"Status\" IN ('Pending', 'Paid')");
         });
         builder.HasKey(x => x.Id);
+        builder.HasOne(x => x.FinancialMonth).WithMany().HasForeignKey(x => x.FinancialMonthId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.CommissionSummary).WithMany().HasForeignKey(x => x.CommissionSummaryId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.RecognizedByUser).WithMany().HasForeignKey(x => x.RecognizedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.SalaryEvidenceJson).HasColumnType("jsonb");
+        builder.HasIndex(x => x.CommissionSummaryId).IsUnique().HasFilter("\"CommissionSummaryId\" IS NOT NULL");
+        builder.HasIndex(x => new { x.FinancialMonthId, x.EmployeeId }).IsUnique().HasFilter("\"FinancialMonthId\" IS NOT NULL AND \"CommissionSummaryId\" IS NULL");
+        builder.ToTable("Payrolls", t => t.HasCheckConstraint("CK_Payrolls_Recognized", "\"FinancialMonthId\" IS NULL OR (\"RecognizedByUserId\" IS NOT NULL AND \"BonusAmount\" = 0 AND \"NetAmount\" = \"BasicSalary\" + \"CommissionAmount\" - \"DeductionAmount\" AND (\"CommissionSummaryId\" IS NULL AND \"CommissionAmount\" = 0 AND \"SalaryEvidenceJson\" IS NOT NULL OR \"CommissionSummaryId\" IS NOT NULL AND \"CommissionPeriodId\" IS NOT NULL AND \"BasicSalary\" = 0 AND \"DeductionAmount\" = 0))"));
         builder.HasOne(x => x.Employee).WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.CommissionPeriod).WithMany().HasForeignKey(x => x.CommissionPeriodId).OnDelete(DeleteBehavior.Restrict);

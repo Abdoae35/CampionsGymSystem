@@ -21,6 +21,8 @@ public sealed class FinancialTransactionConfiguration : IEntityTypeConfiguration
         builder.HasOne(x => x.CashMovement).WithMany().HasForeignKey(x => x.CashMovementId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => new { x.BranchId, x.DrawerSequence }).IsUnique().HasFilter("\"DrawerSequence\" IS NOT NULL");
         builder.HasKey(x => x.Id);
+        builder.HasOne(x => x.FinancialMonth).WithMany().HasForeignKey(x => x.FinancialMonthId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => new { x.FinancialMonthId, x.OccurredAt, x.Id });
         builder.HasOne(x => x.FinancialAccount).WithMany().HasForeignKey(x => x.FinancialAccountId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.TransactionType).HasConversion<string>().HasMaxLength(40);
