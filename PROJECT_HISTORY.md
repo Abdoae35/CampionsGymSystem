@@ -43,16 +43,17 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Shifts / Vault / Expenses on Shifts-Vault&Expenses-; operational integration cdb9d94 pushed. Reporting/API and Postman stage verified with targeted tests; final full rerun underway.
-- Own manual overlapping employee shifts; one shared branch drawer; counts carry actual physical cash forward with unresolved discrepancies and no ledger correction/blame.
-- Cash payouts enforce physical availability; InstaPay has no inferred bank-balance check. Expenses/advances are direct paid facts; returns require actual received funds.
-- New Member creation, Sales/collections/refunds/payouts require actor's own open shift; financial retries survive closure. Legacy null associations are preserved.
-- Employee transfer requires own manual closure; explicit BusinessDay rollover may leave shifts open; later operations use new effective date.
-- Targeted policy/concurrency 32, HTTP regressions 92, reporting 32, API 12/13 and failure-fix 18 test runs passed. Initial full run: 724 passed / 9 fixture-resource failures; corrected and clean full rerun pending.
-- Build zero warnings/errors; EF drift none. Two migrations applied only localhost Development: five support tables, 36 indexes, 38 validated constraints, restrictive FKs and 18,2 money verified.
-- Development catalog adds seven missing capabilities only; no existing role grants/user overrides changed. Offers.Manage/Installments.Manage/Sales.QuickCancel remain unprovisioned.
-- Next: finish full-suite rerun, final checkpoint/doc commit/push and local/remote HEAD verification.
-- Payroll/advance settlement, discrepancy resolution, forced/automatic closing, commissions, monthly closing, Private/Classes, frontend and sync deferred. See PROJECT_HISTORY.md.
+- Shifts / Vault / Expenses complete within confirmed manual scope on Shifts-Vault&Expenses-; implementation through 0ac425c pushed; final documentation/results recorded in this checkpoint.
+- Own manual overlapping employee shifts; one shared branch drawer. Actual counts carry forward with unresolved discrepancies, no ledger adjustments/blame.
+- Cash payouts reject above physical availability; InstaPay has no inferred bank balance. Expenses/advances are direct paid facts; returns require real returned funds.
+- New operational registration, Sales/payments/refunds and payouts require own active shift; committed financial retries survive closure; historical null links remain unchanged.
+- Employee transfer requires own manual closure; explicit BusinessDay rollover may leave shifts open and later transactions use the new date.
+- Final full suite 733 passed / zero failures/skips (55 added over baseline). Build zero warnings/errors; EF drift none. Earlier nine fixture/resource failures corrected and rerun green.
+- Two new migrations verified only localhost Development: five support tables, 36 indexes, 38 validated constraints, restrictive FKs and exact 18,2 money.
+- Seven missing capability catalog entries added only; existing grants/overrides preserved. Prior Offers.Manage/Installments.Manage/Sales.QuickCancel provisioning gap remains.
+- Rollout needs explicit existing-user grants and account/drawer/category initialization; Development still has no application operational/financial setup data.
+- docs/SHIFTS_VAULT_EXPENSES.md documents actual routes and policies; Postman adds 28 examples. No unresolved business-policy blocker.
+- Payroll/advance settlement, discrepancy resolution, forced/automatic closing, commission/monthly closing, Private/Classes finance, frontend and sync deferred. Stop after this feature.
 
 ## Work history
 
@@ -2047,3 +2048,15 @@ Verification: reporting/lifecycle 32 tests passed, API/catalog 12 tests passed, 
 Guarded localhost Development verification: both new migrations applied, five new tables, 36 indexes and 38 validated constraints; no nonrestrictive new FKs or invalid numeric precision. No operational drawer/count/money/advance/expense data was seeded. Explicit CLI adds seven missing capability catalog entries only, with GlobalRoleId explicitly empty; no existing role grants/user overrides or unrelated Sales capabilities changed. Prior Offers.Manage/Installments.Manage/Sales.QuickCancel provisioning gap remains unresolved and documented. Production untouched.
 
 Commit/push: cdb9d94 operational integration published after preceding five implementation commits. Reporting/API checkpoint prepared for validated commit/push; final full results and docs checkpoint remain next.
+
+### 2026-10-12 — Final Shifts / Vault / Expenses verification and delivery
+
+Completed the Owner-confirmed manual operational feature. The clean complete rerun passed **733/733 tests, zero failures/skips**, 55 added cases over the independently verified 678 baseline; runtime 7m45s. Earlier nine fixture/resource failures were fixed and the affected 18-test rerun passed before full verification. Final build zero warnings/errors, EF no pending model changes. Both migrations verified in guarded localhost Development only; five support tables, 36 indexes, 38 validated constraints, all new FKs restrictive, exact numeric(18,2), one-open-employee and drawer sequence indexes confirmed. Production untouched.
+
+Documentation: created docs/SHIFTS_VAULT_EXPENSES.md with actual rules/routes/contracts, financial formulas, permission/setup integration, verified results and deferred scope; corrected plan and concise documentation index, added only relevant Sales shift-integration note. Postman JSON valid, 28 new examples, no API operations sent against application data. AGENTS and history refreshed without altering permanent rules.
+
+Development catalog-only setup adds seven missing Shift/Vault/Expense/Advance capabilities and an audit event, explicitly no role target. Rechecked existing role grants and user overrides unchanged; Offers.Manage, Installments.Manage and Sales.QuickCancel remain active but ungranted, as required without unconfirmed provisioning. No drawer/count/account/expense/category/advance application data was created. Existing-user capability assignment and physical drawer initialization remain explicit rollout prerequisites, not invented financial policy.
+
+Confirmed final boundaries: transfer requires own manual shift closure; authorized explicit BusinessDay rollover leaves employee shifts open. Cash funds use actual physical carry-forward; unresolved discrepancies do not mutate ledger or payroll. Expenses and advances are direct paid histories, discretionary withdrawals are global-capability only, no manager default or routine Cash-In. No known unresolved business-policy blocker within implemented manual scope. Forced/automatic closure, discrepancy resolution, payroll/advance settlement, monthly closing, commissions, Private/Classes finance, frontend and sync remain deferred.
+
+Published implementation commits: 7f30455 domain/migrations; 039fb6c lifecycle; cebab5c reconciliation/withdrawals; d3453a3 expenses/returns; a6d871c advances; cdb9d94 operational integration; 0ac425c reporting/API. All pushed to existing Shifts-Vault&Expenses-. Final documentation checkpoint will be committed/pushed, then local/remote HEAD and clean tree verified; its hash is intentionally not embedded in its own contents.

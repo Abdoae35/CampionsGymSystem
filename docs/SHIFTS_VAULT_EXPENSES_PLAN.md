@@ -1,7 +1,8 @@
 # Shifts, Vault / Cash Drawer and Expenses — implementation plan
 
-Inspection checkpoint: 2026-10-11. This is a design/decision record, not a claim
-that operational Shifts, Vault or Expenses have been implemented.
+Inspection checkpoint: 2026-10-11; implementation continuation 2026-10-12.
+This preserves the initial inventory and confirmed design decisions. Actual workflows
+and routes are documented in [the feature document](SHIFTS_VAULT_EXPENSES.md).
 
 ## Verified starting point
 
@@ -145,14 +146,14 @@ orders locks/sequences; no repository or scheduling framework.
 | POST /api/shifts | OperationId, OpeningCash, optional authorized BranchId; server employee/date/expected | Shifts.Manage |
 | POST /api/shifts/{id}/close | OperationId, ExpectedVersion, CountedCash, reason | Shifts.Manage, own Shift |
 | GET /api/shifts/current, /api/shifts, /api/shifts/{id} | Own current or bounded branch history/details | Shifts.View |
-| POST/GET /api/business-days | Explicit day lifecycle, no seasonal automation | Shifts.Manage and trusted scope |
+| POST /api/business-days; POST /{id}/close; GET /current | Explicit day lifecycle, no seasonal automation | Shifts.Manage / Shifts.View and trusted scope |
 | POST /api/vault/setup | Cash account, initial physical count, operation/reason | Vault.Manage + AccessAll |
 | POST /api/vault/counts | CountedCash, operation/reason; own open shift | Vault.Manage |
 | GET /api/vault/position, /movements, /counts | Physical/book/discrepancies, bounded branch facts | Vault.View |
 | POST /api/vault/withdrawals | Positive amount, operation/reason; own Shift | Vault.Withdraw + AccessAll |
 | POST/GET /api/expenses | Category/account/amount/reason/reference, immutable paid result/history | Expenses.Create/View |
-| POST /api/expenses/{id}/reverse | Actual returned amount, operation/reason; own Shift | Expenses.Reverse |
-| GET/POST /api/expense-categories | Existing dynamic catalog, no default categories | Expenses.View / Expenses.Manage |
+| POST /api/expenses/{id}/returns | Actual returned amount, operation/reason; own Shift | Expenses.Reverse |
+| GET/POST /api/expenses/categories | Existing dynamic catalog, no default categories | Expenses.View / Expenses.Manage |
 | POST/GET /api/employee-advances | Receiving employee/account/amount/reason/reference | Advances.Create/View |
 
 Reuse existing Sales branch totals rather than duplicate their endpoint. Employee shift
@@ -191,7 +192,10 @@ Installments.Manage and Sales.QuickCancel exist and are active, each with **zero
 grants** and **zero direct Allow/Deny overrides**. Their prior existing-role
 provisioning gap is **not resolved**. The Sales
 CLI only assigns an explicitly configured globally capable role; new-role demo
-templates do not update existing roles. No permission/grant/override was mutated.
+templates do not update existing roles. Inspection mutated no permissions/grants/overrides.
+The implementation later added seven missing Shift/Vault/Expense/Advance catalog
+entries explicitly in Development; existing flags/grants/overrides and these three
+Sales capabilities remain unchanged.
 Do not silently repair unrelated Sales grants as part of Shift/Expense setup.
 
 ## Deferred scope
@@ -199,3 +203,16 @@ Do not silently repair unrelated Sales grants as part of Shift/Expense setup.
 Payroll/advance settlement, commissions, monthly closing, automatic/seasonal shift
 schedules, exceptional forced closure, routine external cash funding, Private/Classes
 finance, frontend and offline synchronization remain separate future features.
+
+## Delivery checkpoint — 2026-10-12
+
+Manual employee shifts, shared drawer observations/funds enforcement, direct expenses/
+actual returns, distinct advances, global withdrawals, operational Sales/registration
+gates, reporting and APIs are implemented. Documentation lists actual routes and
+contracts; Postman contains 28 examples. Full suite 733/733 passed, zero failed/skipped;
+55 additional cases over verified Sales baseline. Build zero warnings/errors and
+EF drift clean. Both new migrations applied only guarded localhost Development.
+No application money, accounts, shifts, expense categories or fake historical links
+were seeded. Existing user/role grants require deliberate deployment configuration.
+All confirmed financial policies are resolved; deferred discrepancy resolution and
+forced/automatic closing workflows are not silently implemented.

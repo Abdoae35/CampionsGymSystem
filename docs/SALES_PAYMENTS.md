@@ -26,7 +26,10 @@ or arbitrary client price override is accepted. New global-managed Cash/InstaPay
 accounts have zero opening money. Account method, branch and opening facts are
 immutable; account balances can be derived from the opening fact and ledger.
 Payment credits and refund debits are appended to `FinancialTransaction`. No fake
-Shift or CommissionPeriod is created; those links remain null until later workflows.
+Shift or CommissionPeriod is created. The subsequent [Shifts feature](SHIFTS_VAULT_EXPENSES.md)
+requires an actual own employee shift for new Sales, payments and refunds, preserves
+historical null links and enforces shared physical Cash payout availability.
+CommissionPeriod remains deferred.
 
 Actual timestamps, branch and effective BusinessDate/BusinessDay are preserved.
 An open branch BusinessDay determines operations after midnight; otherwise the
