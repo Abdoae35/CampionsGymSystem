@@ -85,6 +85,11 @@ Expense financial paths. Classes compensation remains disabled pending an Owner 
 Legacy package-free class writes return 410; historical reports remain readable.
 See [Private / Classes](PRIVATE_CLASSES.md). Existing OperationsController and services
 retain limited activity purchases, activity-coach configuration and historical reports.
+MonthlyFinanceController, EmployeeSalariesController, PayrollController and
+MaintenancePlansController implement independent branch financial months, frozen
+JSON/XLSX revisions, effective salary history, advance ceilings and external partial
+employee payment records. They compose the existing ledger and commission services;
+maintenance is informational only. See [Monthly Closing](MONTHLY_CLOSING.md).
 Those specific paths must not be confused with a complete general subscription,
 payment-provider, renewal/freeze, attendance or commission/payroll feature. Member,
 CRM and plan management commands do not purchase subscriptions or take payments.

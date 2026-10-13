@@ -586,6 +586,121 @@
       "key": "coachPayoutOperationId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "financialMonthId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "financialMonthName",
+      "value": "October Tanta",
+      "type": "string"
+    },
+    {
+      "key": "financialMonthStart",
+      "value": "2026-10-01",
+      "type": "string"
+    },
+    {
+      "key": "financialMonthEnd",
+      "value": "2026-10-23",
+      "type": "string"
+    },
+    {
+      "key": "financialMonthVersion",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "financialMonthRevision",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "payrollId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salaryBasicAmount",
+      "value": "6000",
+      "type": "string"
+    },
+    {
+      "key": "salaryEffectiveFrom",
+      "value": "2026-10-01",
+      "type": "string"
+    },
+    {
+      "key": "payrollPaidAt",
+      "value": "2026-10-24T10:00:00Z",
+      "type": "string"
+    },
+    {
+      "key": "maintenancePlanId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "maintenancePlanRevision",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "maintenanceFirstDueDate",
+      "value": "2027-01-01",
+      "type": "string"
+    },
+    {
+      "key": "financialLedgerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "financialOriginalOccurredAt",
+      "value": "2026-10-01T10:00:00Z",
+      "type": "string"
+    },
+    {
+      "key": "financialMonthOpenOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "financialMonthCloseOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "financialMonthReopenOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "financialOccurrenceOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salaryConfigureOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payrollRecognitionOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payrollPaymentOperationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "maintenanceConfigureOperationId",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -7551,6 +7666,699 @@
             },
             "url": "{{baseUrl}}/api/coaching/earnings/coaches/{{coachEmployeeId}}/payouts?branchId={{branchId}}&page=1&pageSize=25",
             "description": " Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "19. Monthly closing, payroll and maintenance",
+      "description": "22 implemented operations. Configure capabilities and salaries explicitly. Send deliberate Development operations only. Closing requires every branch Shift closed. Reopening preserves statements and revisions. Employee payments have no funding account/ledger; maintenance is informational. See docs/MONTHLY_CLOSING.md.",
+      "item": [
+        {
+          "name": "Open branch financial month",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months",
+            "description": "Requires FinancialMonths.Manage. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{financialMonthOpenOperationId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"{{financialMonthName}}\",\n  \"startDate\": \"{{financialMonthStart}}\",\n  \"endDate\": \"{{financialMonthEnd}}\",\n  \"reason\": \"Configured branch financial boundaries\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"financialMonthOpenOperationId\")) pm.collectionVariables.set(\"financialMonthOpenOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) { const r = pm.response.json();",
+                  " pm.collectionVariables.set(\"financialMonthId\", r.id);",
+                  " pm.collectionVariables.set(\"financialMonthVersion\", r.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Financial month history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months?branchId={{branchId}}&page=1&pageSize=25",
+            "description": "Requires FinancialMonths.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Financial month state",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}",
+            "description": "Requires FinancialMonths.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Close month (optional count)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/close",
+            "description": "Requires FinancialMonths.Close. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{financialMonthCloseOperationId}}\",\n  \"expectedVersion\": {{financialMonthVersion}},\n  \"reason\": \"All branch shifts reviewed and closed\",\n  \"countedCash\": 12500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"financialMonthCloseOperationId\")) pm.collectionVariables.set(\"financialMonthCloseOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) { const r = pm.response.json();",
+                  " pm.collectionVariables.set(\"financialMonthVersion\", r.version);",
+                  " pm.collectionVariables.set(\"financialMonthRevision\", r.lastRevision);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reopen for investigation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/reopen",
+            "description": "Requires FinancialMonths.Reopen. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{financialMonthReopenOperationId}}\",\n  \"expectedVersion\": {{financialMonthVersion}},\n  \"reason\": \"Owner or authorized Manager investigates evidence\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"financialMonthReopenOperationId\")) pm.collectionVariables.set(\"financialMonthReopenOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) { const r = pm.response.json();",
+                  " pm.collectionVariables.set(\"financialMonthVersion\", r.version);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Monthly report (preview or latest frozen)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/report",
+            "description": "Requires FinancialMonths.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Frozen transaction page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/transactions?revision={{financialMonthRevision}}&page=1&pageSize=25",
+            "description": "Requires FinancialMonths.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Immutable report revisions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/revisions",
+            "description": "Requires FinancialMonths.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Lifecycle audit events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/events?page=1&pageSize=25",
+            "description": "Requires FinancialMonths.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Download six-sheet XLSX (Send and Download)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/export?revision={{financialMonthRevision}}",
+            "description": "Requires FinancialMonths.Export. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Prorated basic salary preview or frozen entitlement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/employees/{{employeeId}}/salary",
+            "description": "Requires Salaries.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Owner consolidated separate-branch totals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/consolidated?monthIds={{financialMonthId}}",
+            "description": "Requires FinancialMonths.ViewConsolidated + Branches.AccessAll + FinancialMonths.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Append known original occurrence evidence",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/financial-months/transactions/{{financialLedgerId}}/original-occurrence",
+            "description": "Requires FinancialMonths.Manage. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{financialOccurrenceOperationId}}\",\n  \"originalOccurredAt\": \"{{financialOriginalOccurredAt}}\",\n  \"reason\": \"Known original occurrence discovered later\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"financialOccurrenceOperationId\")) pm.collectionVariables.set(\"financialOccurrenceOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Owner append salary setting",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/employee-salaries/{{employeeId}}/settings",
+            "description": "Requires Salaries.Manage + Branches.AccessAll. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{salaryConfigureOperationId}}\",\n  \"basicSalary\": {{salaryBasicAmount}},\n  \"effectiveFrom\": \"{{salaryEffectiveFrom}}\",\n  \"reason\": \"Explicit effective monthly basic salary\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"salaryConfigureOperationId\")) pm.collectionVariables.set(\"salaryConfigureOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Effective salary history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/employee-salaries/{{employeeId}}/settings?branchId={{branchId}}",
+            "description": "Requires Salaries.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Payroll payable paid and outstanding",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/payroll?branchId={{branchId}}&employeeId={{employeeId}}&page=1&pageSize=25",
+            "description": "Requires Payroll.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Owner recognize existing finalized Sales summaries",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/payroll/commission-recognitions",
+            "description": "Requires Payroll.Manage + Branches.AccessAll. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{payrollRecognitionOperationId}}\",\n  \"commissionPeriodId\": \"{{commissionPeriodId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"payrollRecognitionOperationId\")) pm.collectionVariables.set(\"payrollRecognitionOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Owner record actual external partial employee payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/payroll/{{payrollId}}/payments",
+            "description": "Requires Payroll.RecordPayment + Branches.AccessAll. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{payrollPaymentOperationId}}\",\n  \"amount\": 2000,\n  \"paidAt\": \"{{payrollPaidAt}}\",\n  \"reason\": \"Actual first portion paid by Owner\",\n  \"reference\": \"Optional payment evidence\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"payrollPaymentOperationId\")) pm.collectionVariables.set(\"payrollPaymentOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Employee partial payment history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/payroll/{{payrollId}}/payments?page=1&pageSize=25",
+            "description": "Requires Payroll.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Owner configure informational maintenance (create)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/maintenance-plans",
+            "description": "Requires Maintenance.Manage + Branches.AccessAll. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{maintenanceConfigureOperationId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"Quarterly equipment maintenance\",\n  \"expectedCost\": 15000,\n  \"frequencyMonths\": 3,\n  \"firstDueDate\": \"{{maintenanceFirstDueDate}}\",\n  \"reason\": \"Informational forecast only\",\n  \"expectedRevision\": 0,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"maintenanceConfigureOperationId\")) pm.collectionVariables.set(\"maintenanceConfigureOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) { const r = pm.response.json();",
+                  " pm.collectionVariables.set(\"maintenancePlanId\", r.planId);",
+                  " pm.collectionVariables.set(\"maintenancePlanRevision\", r.revision);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Branch maintenance forecasts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/maintenance-plans?branchId={{branchId}}&page=1&pageSize=25",
+            "description": "Requires Maintenance.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
+          },
+          "response": []
+        },
+        {
+          "name": "Maintenance immutable plan history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/maintenance-plans/{{maintenancePlanId}}/history?page=1&pageSize=25",
+            "description": "Requires Maintenance.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
           },
           "response": []
         }

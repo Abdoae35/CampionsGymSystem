@@ -277,6 +277,10 @@ indexes and 14 validated constraints; all new FKs restrictive and precision corr
 All 42 historical migration files match the completed backend baseline byte-for-byte.
 No production database is accessed.
 
-Deferred: payroll, actual commission payout, salary deductions, late-refund adjustment
-workflow, full branch/monthly closing, private/coach/class/activity commission expansion,
-bonuses, transfer of old contract earnings, frontend and offline synchronization.
+The [Monthly Closing](MONTHLY_CLOSING.md) extension recognizes finalized summaries
+once as payable entitlements, handles branch basic salary/advance deductions and
+records Owner-declared partial employee payments without imaginary ledger funding.
+It does not change this commission engine or reopen finalized statements. Private
+earnings and coach payouts are documented in [Private / Classes](PRIVATE_CLASSES.md).
+Deferred: late-refund/finalized-earnings adjustments, payout corrections, Classes
+compensation, bonuses, transfer of old contract earnings, frontend and offline sync.

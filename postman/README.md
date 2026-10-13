@@ -18,6 +18,29 @@ Private local environment is ignored by Git. Regenerate it with `python3 scripts
 
 Automated API permission/isolation tests remain in the .NET test suite; no debug endpoints were added.
 
+## Monthly closing, payroll and maintenance
+
+Folder **19. Monthly closing, payroll and maintenance** adds all 22 implemented
+operations. See [Monthly Closing](../docs/MONTHLY_CLOSING.md) for exact capabilities,
+DTOs, accounting definitions and rollout. New capabilities are catalog entries,
+not automatic grants. Set financial dates/branch deliberately, configure salary
+history (including explicit zero), and close every employee Shift before closing.
+`countedCash` is optional: remove the property to close without a recount.
+
+Requests retain separate operation UUID variables for safe retries. Clear the
+appropriate variable for a new operation, and use the returned month version for
+close/reopen. Returned IDs/versions are captured where available. Select an actual
+payroll ID from history before recording payment. Employee payments have no funding
+account and do not post ledger money. Maintenance expected cost/frequency creates
+information only; actual paid maintenance uses existing Expenses once.
+
+Export uses **Send and Download** to save the six-sheet immutable XLSX. Select an
+earlier `financialMonthRevision` to retrieve its original bytes. Reopening does not
+change finalized commissions or make the historic month a new posting destination.
+Owner payments and new financial operations need the next Open month. Postman examples
+are examples, not an automatic production workflow; no requests were sent against
+application data during documentation verification.
+
 ## Branch feature requests
 
 Re-import the updated collection file: existing Postman copies do not update automatically.

@@ -281,5 +281,8 @@ permissions, branch scope, historical snapshots and committed PostgreSQL races.
 
 The only undefined compensation decision is the Classes earnings formula; it remains
 disabled. Refunds reaching finalized earnings and payout correction remain rejected
-until the Owner defines an adjustment policy. Frontend, payroll, automatic expiry
-recognition and booking/capacity/waitlists are outside this implementation.
+until the Owner defines an adjustment policy. Automatic expiry recognition and
+booking/capacity/waitlists remain outside scope. The later
+[Monthly Closing](MONTHLY_CLOSING.md) feature adds salary/payment records and frozen
+branch-month reports, reusing these immutable coach earnings and actual payouts.
+Classes compensation remains disabled; the frontend handoff is preserved separately.

@@ -12,6 +12,12 @@ employment type, hire/termination dates and employment status. Responses include
 current branch and HasSystemAccount without exposing authentication secrets. The
 model has no dedicated employee email or employee code.
 
+Effective salary administration, branch proration, advance ceilings and Owner partial
+employee payment records are implemented through separate
+[Monthly Closing](MONTHLY_CLOSING.md) APIs. Normal profile responses still do not
+include a salary/payroll graph. Employment/status/transfer changes cannot strand
+existing branch advances or rewrite recognized basic salary.
+
 ## Employee Status
 
 | Status | Current behavior |

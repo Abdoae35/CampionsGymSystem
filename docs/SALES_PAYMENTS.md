@@ -282,11 +282,12 @@ activation remain in the same CheckIn transaction. No distributed locks are intr
 
 Guid IDs, append-only money/parts/history, explicit branch/time/business date and
 operation identity support later synchronization. No outbox, replication, cloud/local
-routing or conflict engine is implemented. No commission/target calculation, payroll,
-Coach commission, Shift/Vault closing, Expenses/monthly closing, Private/Classes/Activity
-finance, Member branch financial settlement or frontend is added. Future Commission
-must use immutable Sale branch/owner/product classification; future Shift/Vault uses
-the real ledger and exact accounts. Stop here; those workflows remain separate features.
+routing or conflict engine is implemented. Later features now reuse these immutable
+Sale/collection facts and actual ledger/account evidence: [Sales Commissions](SALES_COMMISSIONS.md),
+[Shifts / Vault](SHIFTS_VAULT_EXPENSES.md), [Private / Classes](PRIVATE_CLASSES.md)
+and [Monthly Closing / Salaries / Employee Payments](MONTHLY_CLOSING.md).
+They remain separate services and do not replace this payment/refund system.
+Member branch financial settlement and frontend remain outside this feature.
 
 Database changes are new migrations only: PrepareSalesPayments,
 AddOfferEligibilityAndAudience and AddSaleGrantCancellationHistory. SQL review artifacts

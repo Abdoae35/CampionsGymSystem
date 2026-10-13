@@ -101,7 +101,10 @@ The schema and returned-money history do not implement vendor refunds/reimbursem
 EmployeeAdvance is distinct from Expense and Payroll. It records active receiving
 employee, recording employee, branch, own shift, source account/method, amount,
 UTC/business date, reason/reference and audit. Each actual advance writes one debit.
-No payroll deduction, settlement, interest or repayment schedule is implemented.
+The [Monthly Closing](MONTHLY_CLOSING.md) extension now requires explicit branch
+financial month/salary settings, caps cumulative advances at prorated branch BASIC
+salary, and deducts each advance once at salary recognition. No interest or repayment
+schedule is implemented.
 
 Discretionary withdrawals require Vault.Withdraw **and** Branches.AccessAll, plus
 the actor's own shift at that branch. Managers receive no default withdrawal grant.
@@ -278,8 +281,10 @@ capabilities before operational rollout; no fake initialization data is seeded.
 
 ## Deferred scope
 
-No payroll/advance settlement, discrepancy resolution/ledger-adjustment approval,
-forced shift recovery, automatic/seasonal closing, routine external Cash-In, monthly
-closing, commissions, Shift/Vault transfer/closing approvals, Private/Classes finance,
-frontend or offline synchronization. Durable Guid facts, explicit branches/dates,
+Monthly closing, salary entitlements and employee payment records are implemented
+in [Monthly Closing](MONTHLY_CLOSING.md); Private/Classes finance is implemented in
+[Private / Classes](PRIVATE_CLASSES.md). Remaining deferred scope: discrepancy
+resolution/ledger-adjustment approval, forced shift recovery, automatic/seasonal
+closing, routine external Cash-In, Shift/Vault transfer approvals, frontend and
+offline synchronization. Durable Guid facts, explicit branches/dates,
 UTC instants and operation identities support a later sync design without building it.

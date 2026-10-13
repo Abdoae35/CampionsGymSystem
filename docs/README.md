@@ -19,6 +19,7 @@ future operational system.
 - [Shifts / Shared Vault / Expenses / Advances](SHIFTS_VAULT_EXPENSES.md)
 - [Sales Commissions & Independent Targets](SALES_COMMISSIONS.md)
 - [Private Coaching / Classes / Coach Earnings / Partial Payouts](PRIVATE_CLASSES.md)
+- [Monthly Closing / Financial Reports / Salaries / Employee Payments / Maintenance](MONTHLY_CLOSING.md)
 
 ## Current Implementation Status
 
@@ -34,8 +35,9 @@ future operational system.
 | Check-In / Access Management | Complete within documented gym-entry scope |
 | Sales / Payments | Complete within documented customer gym-finance scope |
 | Shifts / Shared Vault / Expenses / Advances | Complete within documented manual operational scope |
-| Sales Commissions & Independent Targets | Complete within documented calculation / statement scope; Sales payouts deferred |
+| Sales Commissions & Independent Targets | Complete; finalized statements reused by monthly payroll payment records |
 | Private / Classes / Coach Earnings / Partial Payouts | Implemented within documented operational scope; Classes compensation awaits Owner formula |
+| Monthly Closing / Financial Reports / Salaries / Employee Payments / Maintenance | Implemented; explicit deployment, salary history and capability configuration required |
 
 Complete refers to the management scope described in each document. Persistence
 models and some narrower operations exist outside these scopes; they do not imply
@@ -44,7 +46,7 @@ complete Finance or attendance lifecycles.
 ## Planned / Deferred Areas
 
 - Classes compensation formula; remaining Activities workflows
-- Payroll / Sales commission payouts; finalized earnings adjustment policy
+- Finalized earnings adjustments and employee/coach payout corrections
 - Contracts / Messaging
 - Reports / Hardening
 - Frontend; optional Offline Sync
@@ -55,5 +57,5 @@ in [Architecture](ARCHITECTURE.md); the broader areas above remain incomplete.
 These documents represent the implemented system state at the time of the latest
 documentation refresh. Documentation is refreshed explicitly when requested.
 
-Latest refresh: 2026-10-12. Earlier technical notes remain available in the existing
+Latest refresh: 2026-10-13. Earlier technical notes remain available in the existing
 feature and database subdirectories; this index is the main entry point.
