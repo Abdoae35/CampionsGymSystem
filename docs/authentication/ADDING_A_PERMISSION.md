@@ -3,8 +3,9 @@
 1. Choose a stable exact code, such as Members.View. Through trusted configuration,
    add Permission with human Name, Module, optional Description and IsActive=true.
    Code must be unique/case-sensitive. No enum/JWT change or data-only migration.
-2. Add it to controlled bootstrap/configuration input where appropriate. No automatic
-   seeder/admin endpoint exists; preserve deliberate revocations/inactive codes.
+2. Add it to controlled bootstrap/configuration input where appropriate. The Owner
+   can grant/revoke existing canonical permissions through [access administration](../PERMISSIONS_ADMINISTRATION.md),
+   but cannot create new catalog codes there. Preserve deliberate revocations/inactive codes.
 3. Add RolePermission mappings to reviewed Identity roles. Users receive their role
    union. Owner needs explicit grants too. Use RoleManager/UserManager for roles.
 4. Protect the future endpoint:

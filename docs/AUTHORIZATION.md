@@ -39,9 +39,12 @@ prevents simultaneous conflicting override rows. Role names are not runtime feat
 bypasses; a role named Owner still needs the actual action/scope permissions.
 
 API policies use `Permission:<code>` with the dynamic policy provider and handler.
-BLL checks permissions and record scope independently. The current repository has
-permission/role/override persistence and evaluation; it does not expose general role
-or permission administration controllers.
+BLL checks permissions and record scope independently. Owner-only role/grant/override
+administration is available through `/api/access-administration`; it requires
+current database Owner membership **and** the existing action capabilities.
+Generic management capabilities never delegate access administration to Managers.
+See [permissions administration](PERMISSIONS_ADMINISTRATION.md) for versioned
+writes, audit history, recovery safeguards and setup.
 
 ## Branch Scope
 

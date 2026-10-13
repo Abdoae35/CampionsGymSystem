@@ -701,6 +701,42 @@
       "key": "maintenanceConfigureOperationId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "accessAdminUserId",
+      "value": ""
+    },
+    {
+      "key": "accessAdminRoleId",
+      "value": ""
+    },
+    {
+      "key": "accessAdminPermissionId",
+      "value": ""
+    },
+    {
+      "key": "accessAdminUserVersion",
+      "value": ""
+    },
+    {
+      "key": "accessAdminRoleVersion",
+      "value": ""
+    },
+    {
+      "key": "accessMembershipOperationId",
+      "value": ""
+    },
+    {
+      "key": "accessRoleGrantOperationId",
+      "value": ""
+    },
+    {
+      "key": "accessOverrideOperationId",
+      "value": ""
+    },
+    {
+      "key": "accessClearOverrideOperationId",
+      "value": ""
     }
   ],
   "item": [
@@ -8361,6 +8397,224 @@
             "description": "Requires Maintenance.View. Effective overrides and trusted branch scope apply. See docs/MONTHLY_CLOSING.md; preserve body and operation identity for retries."
           },
           "response": []
+        }
+      ]
+    },
+    {
+      "name": "20. Owner access administration",
+      "description": "Nine routes; Owner-only even if another role receives management capabilities. Pick existing IDs; GET a current version before each PUT. Keep UUID and exact body for retries; clear that operation variable for a new decision. Owner provisioning is unavailable. See docs/PERMISSIONS_ADMINISTRATION.md.",
+      "item": [
+        {
+          "name": "1. Canonical permission catalog",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/access-administration/permissions",
+            "description": "Requires authenticated current Owner and effective Roles.View. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation."
+          }
+        },
+        {
+          "name": "2. Existing roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/access-administration/roles",
+            "description": "Requires authenticated current Owner and effective Roles.View. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation."
+          }
+        },
+        {
+          "name": "3. Role grants and version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/access-administration/roles/{{accessAdminRoleId}}",
+            "description": "Requires authenticated current Owner and effective Roles.View. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"accessAdminRoleVersion\", pm.response.json().version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. User inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/access-administration/users?page=1&pageSize=25",
+            "description": "Requires authenticated current Owner and effective Users.View. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation."
+          }
+        },
+        {
+          "name": "5. User effective permissions and branch context",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/access-administration/users/{{accessAdminUserId}}",
+            "description": "Requires authenticated current Owner and effective Users.View. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"accessAdminUserVersion\", pm.response.json().version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "6. Access audit history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/access-administration/history?page=1&pageSize=25",
+            "description": "Requires authenticated current Owner and effective Users.View AND Roles.View. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation."
+          }
+        },
+        {
+          "name": "7. Assign or remove existing role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/access-administration/users/{{accessAdminUserId}}/roles/{{accessAdminRoleId}}",
+            "description": "Requires authenticated current Owner and effective Users.Manage. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{accessMembershipOperationId}}\",\n  \"expectedVersion\": \"{{accessAdminUserVersion}}\",\n  \"reason\": \"Owner-approved access configuration\",\n  \"assigned\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"accessMembershipOperationId\")) pm.collectionVariables.set(\"accessMembershipOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "8. Add or remove role grant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/access-administration/roles/{{accessAdminRoleId}}/permissions/{{accessAdminPermissionId}}",
+            "description": "Requires authenticated current Owner and effective Roles.Manage. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{accessRoleGrantOperationId}}\",\n  \"expectedVersion\": \"{{accessAdminRoleVersion}}\",\n  \"reason\": \"Owner-approved access configuration\",\n  \"granted\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"accessRoleGrantOperationId\")) pm.collectionVariables.set(\"accessRoleGrantOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "9. Set or replace user Allow or Deny",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/access-administration/users/{{accessAdminUserId}}/permissions/{{accessAdminPermissionId}}",
+            "description": "Requires authenticated current Owner and effective Users.Manage. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{accessOverrideOperationId}}\",\n  \"expectedVersion\": \"{{accessAdminUserVersion}}\",\n  \"reason\": \"Owner-approved access configuration\",\n  \"effect\": \"Deny\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"accessOverrideOperationId\")) pm.collectionVariables.set(\"accessOverrideOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10. Clear user override",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/access-administration/users/{{accessAdminUserId}}/permissions/{{accessAdminPermissionId}}",
+            "description": "Requires authenticated current Owner and effective Users.Manage. GET the matching resource version before PUT. No Owner provisioning; no Manager delegation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{accessClearOverrideOperationId}}\",\n  \"expectedVersion\": \"{{accessAdminUserVersion}}\",\n  \"reason\": \"Owner-approved access configuration\",\n  \"effect\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"accessClearOverrideOperationId\")) pm.collectionVariables.set(\"accessClearOverrideOperationId\", pm.variables.replaceIn(\"{{$guid}}\"));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

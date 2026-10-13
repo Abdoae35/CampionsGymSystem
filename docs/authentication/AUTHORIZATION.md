@@ -1,5 +1,11 @@
 # Roles and permission authorization
 
+Current administration: [Owner-only access APIs](../PERMISSIONS_ADMINISTRATION.md)
+now manage existing role memberships, grants and user overrides with audit/version
+checks. The baseline catalog and suggested grants below are historical proposals,
+not rollout defaults. Owner membership is additionally required for privileged
+access administration; business endpoints continue to use capabilities and scope.
+
 Roles are dynamic Identity records, not an enum. Roles collect permissions;
 authorize business actions by permission rather than a hardcoded job title.
 Owner has no magic bypass: configure all intended role grants explicitly.
@@ -98,4 +104,4 @@ roles/users/grants exist now. All test accounts/grants roll back.
 See [branch isolation](../branches/BRANCH_ISOLATION.md) for explicit global permission
 setup and reusable branch-scope checks. Branches.AccessAll controls WHERE, not action
 authority. Effective direct Denies are now resolved at runtime from the existing
-UserPermissionOverrides table; its management API is still a separate future feature.
+UserPermissionOverrides table; its Owner-only management API is documented above.

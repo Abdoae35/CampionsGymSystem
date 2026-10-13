@@ -18,6 +18,19 @@ Private local environment is ignored by Git. Regenerate it with `python3 scripts
 
 Automated API permission/isolation tests remain in the .NET test suite; no debug endpoints were added.
 
+## Owner access administration
+
+Folder **20. Owner access administration** covers nine Owner-only API routes plus
+an explicit clear-override example. See [Permissions Administration](../docs/PERMISSIONS_ADMINISTRATION.md).
+Log in as an established usable Owner with Users.View/Manage and Roles.View/Manage.
+Set existing accessAdminUserId, accessAdminRoleId and accessAdminPermissionId from
+inventory/catalog results. User/role detail requests capture their separate versions.
+GET the relevant detail before each new PUT; preserve the operation variable and
+exact body when retrying, then clear that variable for a new decision. A null
+effect clears an override; false assigned/granted removes membership/grant.
+Managers are forbidden regardless of generic capabilities. Owner provisioning
+and employee/account lifecycle are outside these routes. No grants are automatic.
+
 ## Monthly closing, payroll and maintenance
 
 Folder **19. Monthly closing, payroll and maintenance** adds all 22 implemented
