@@ -54,7 +54,11 @@ public static class AuthenticationRegistration
                     RoleClaimType = "role"
                 };
             });
-        services.AddAuthorization();
+        services.AddScoped<OwnerAdministrationAccess>();
+        services.AddScoped<AccessAdministrationService>();
+        services.AddAuthorization(options => options.AddPolicy(OwnerAdministrationAccess.Policy,
+            policy => policy.RequireAuthenticatedUser().AddRequirements(new OwnerAdministrationRequirement())));
+        services.AddScoped<IAuthorizationHandler, OwnerAdministrationHandler>();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         return services;

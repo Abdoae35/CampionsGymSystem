@@ -131,6 +131,9 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
 
     private void EnforceAppendOnlyAudit()
     {
+        if (ChangeTracker.Entries<AuditLog>().Any(x => x.OriginalValues.GetValue<string>(nameof(AuditLog.Action)) == "AccessAdministration.Changed"
+            && x.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Access administration audit evidence is append-only.");
         if (ChangeTracker.Entries<FinancialClosingRevision>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<FinancialMonthEvent>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)
             || ChangeTracker.Entries<PayrollPaymentRecord>().Any(x => x.State is EntityState.Modified or EntityState.Deleted)

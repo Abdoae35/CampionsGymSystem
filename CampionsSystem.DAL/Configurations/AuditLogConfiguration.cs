@@ -24,5 +24,7 @@ public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(x => x.CreatedAt).HasColumnType("timestamp with time zone");
         builder.HasIndex(x => new { x.BranchId, x.CreatedAt });
         builder.HasIndex(x => new { x.UserId, x.CreatedAt });
+        builder.HasIndex(x => x.EntityId).IsUnique().HasDatabaseName("UX_AccessAdministration_Operation")
+            .HasFilter("\"Action\" = 'AccessAdministration.Changed'");
     }
 }

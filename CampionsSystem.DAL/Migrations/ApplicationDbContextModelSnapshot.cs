@@ -549,6 +549,11 @@ namespace CampionsSystem.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("EntityId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_AccessAdministration_Operation")
+                        .HasFilter("\"Action\" = 'AccessAdministration.Changed'");
+
                     b.HasIndex("BranchId", "CreatedAt");
 
                     b.HasIndex("UserId", "CreatedAt");
