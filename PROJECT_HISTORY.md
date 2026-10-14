@@ -43,12 +43,11 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Owner-only Permissions & Administration V1 complete on Permissions&Administration from clean da601e0; implementation 8474820 committed/pushed; final documentation checkpoint records verification below. Frontend handoff and 52 historical migration files unchanged.
-- Nine access-administration routes reuse Identity memberships, canonical catalog, role grants, user Allow/Deny overrides and PermissionService. API/BLL require normalized OWNER store membership plus effective Users/Roles View/Manage capabilities; no seeder/grant/financial/branch/ownership changes.
-- Versioned/idempotent desired-state writes, consistent detail reads, actor revalidation after serialized lock, self/last-Owner recovery safeguards and immutable audit evidence. Manager + Sales union preserved; broad capabilities cannot delegate access administration. Owner provisioning/account/role/catalog creation remain outside V1.
-- Full suite 887/887 passed, zero failures/skips, 33m35s (32 new cases); authentication 125/125, final focused 29/29 and final follow-up 4/4 passed. Clean rebuild zero warnings/errors; EF drift none; regenerated forward SQL matches review. Corrected fixture/runner failures recorded in history.
-- Migration 20261013125623_ImplementOwnerAccessAdministration adds only a unique filtered audit operation index, exercised in disposable localhost schemas. Application/Production migrations and data untouched. docs/PERMISSIONS_ADMINISTRATION.md and ten Postman examples cover all nine routes, with validated contracts/links and original Postman content preserved.
-- Rollout: established usable Owner, active Users.View/Manage and Roles.View/Manage with no Deny, reviewed prerequisite/index migrations and deliberate access configuration. Trusted offline recovery if no usable Owner; no public recovery/Owner provisioning endpoint. No unresolved V1 business blocker. Verify actual Git HEAD/upstream before continuing; stop after this feature.
+- Owner employee-lifecycle protection complete on Permissions&Administration; source checkpoint 15c6588 committed and pushed. Only backend audit finding #1 addressed; the other five findings remain unchanged pending Owner direction.
+- Status and hire-date changes affecting Owner-linked authentication now use authoritative stored Owner membership and the existing usable-Owner/recovery-capability checks. Non-Owners cannot administer protected lifecycle changes; self-lockout and loss of the last usable Owner are rejected. Branch scope and effective Allow/Deny behavior remain authoritative.
+- Access Administration and lifecycle changes share ReadCommitted advisory coordination before sorted row locks and recheck authorization after waiting. Account locks serialize eligibility changes while allowing foreign-key evidence writes; failed changes roll back lifecycle, ownership/entitlement side effects and audit evidence.
+- Added 17 regression cases. Final complete suite 904/904 passed, zero failures/skips; expanded targeted run 132/132 plus deterministic foreign-key locking regression 1/1 passed. Final clean rebuild: zero warnings/errors; EF model drift none. No application migrations, application data changes or Production operations.
+- Existing local migration deployment checkpoint, frontend-handoff documentation and untracked docs/database-guide.zip preserved outside this task's staging. Documentation checkpoint records verified results for the authorized publication workflow. Stop after this fix; await the next Owner-approved task.
 
 ## Work history
 
@@ -2225,3 +2224,51 @@ Completed Owner-only V1 on Permissions&Administration. Implementation checkpoint
 Finished docs/PERMISSIONS_ADMINISTRATION.md with all nine routes, DTO source/response/error details, actual normalized OWNER plus effective capability enforcement, Allow/Deny/clear behavior, branch/runtime versus stored grant distinctions, versions/retries/audit, recovery and rollout limits. Updated existing authorization notices and Postman README; ten examples cover nine routes including explicit clear, correct UUID scripts, current resource versions and declared variables. Validated JSON/contracts/document references, exact preservation of existing Postman requests/variables, all 52 historical migration files and frontend handoff. No grants/defaults, employee/branch/commercial/financial histories, application database, migrations or Production operations changed.
 
 Preparing authorized final documentation/history commit/push. Operational rollout still needs an established eligible/unlocked Owner with the four existing active administration capabilities, reviewed prerequisite and forward index migrations, and deliberate role/override choices. No Owner/account/role/catalog provisioning API or unprotected recovery endpoint; controlled offline recovery remains for legacy lockout. Classes compensation and all financial formulas remain unchanged. No genuine V1 blocker or required implementation work remains; stop here and verify final Git HEAD/status after publication.
+
+### 2026-10-14 — Fix Owner protection bypass through employee lifecycle
+
+Request: fix only the first confirmed High-priority audit finding, preserve normal
+employee behavior and existing authorization, verify regression/build/EF drift,
+and commit/push. Inspected the actual branch/HEAD/tree, history, Owner-only access
+administration, EmployeeManagementService and UserContextService eligibility.
+Used ASP.NET Core and required project-history-update skills.
+
+Extracted existing Owner lifecycle locks and usable-Owner protection into
+CampionsSystem.BLL/Authentication/OwnerAccountProtection.cs; AccessAdministrationService now reuses
+that same guard and canonical OwnerAdministrationAccess membership query. Both
+EmployeeManagementService.ChangeStatusAsync and hire-date edits in UpdateAsync
+coordinate before the employee row lock, reauthorize after waiting, enforce
+stored Owner membership for protected targets, reject self-lockout, and validate
+the remaining usable Owners atomically. The established active/unlocked employee
+eligibility and effective recovery permissions remain unchanged; Deny still wins.
+No competing evaluator, role grants or financial/commission behavior changed.
+BranchControllerBase returns safe conflict responses for protected rejections;
+DI and existing test construction wiring updated. No schema/model changes.
+
+Added 17 service, HTTP and independent-connection concurrency cases covering
+non-Owner denial despite broad capabilities/role claims, suspension/resignation
+self-lockout, effective recovery Deny and rollback, authorized suspension and
+reactivation, future-hire-date bypass, branch scope, normal employee status changes,
+mutual Owner suspension, lifecycle versus recovery override, authorization
+revocation while waiting, stale ambient snapshots and concurrent user evidence.
+
+Verification: initial nine service cases failed in fixture setup because the new
+Identity account was not explicitly inserted; corrected the fixture, then 47/47
+targeted cases passed. The first full launch was blocked before discovery by
+sandbox socket permissions; restarted with local execution permissions. That
+superseded run exposed a CRM conversion/termination deadlock caused by the new
+user-row FOR UPDATE lock. Stopped the run, changed shared account locks to
+FOR NO KEY UPDATE (still serializes eligibility edits, permits FK KEY SHARE),
+and added a deterministic regression. Expanded Owner/access/employee/CRM/commission
+checks passed 132/132; the added deterministic regression passed 1/1. Final clean
+rebuild passed with zero warnings/errors; final full suite passed 904/904 with zero
+failures/skips; EF has-pending-model-changes reports no drift. Staged diff/whitespace
+reviewed. Tests used isolated local PostgreSQL schemas; no application migration,
+seed, operational data mutation or Production operation performed.
+
+Source checkpoint 15c6588 committed and pushed on Permissions&Administration.
+This documentation checkpoint records the verified operation for the same
+authorized workflow; final publication is verified before responding. Pre-existing
+uncommitted migration history/handoff text and the database-guide ZIP are retained
+and excluded from this task's commits. Other five audit findings remain unfixed;
+no next feature or audit fix started.
