@@ -49,6 +49,14 @@ it does not replace checking the actual repository.
 - Added 17 regression cases. Final complete suite 904/904 passed, zero failures/skips; expanded targeted run 132/132 plus deterministic foreign-key locking regression 1/1 passed. Final clean rebuild: zero warnings/errors; EF model drift none. No application migrations, application data changes or Production operations.
 - Existing local migration deployment checkpoint, frontend-handoff documentation and untracked docs/database-guide.zip preserved outside this task's staging. Documentation checkpoint records verified results for the authorized publication workflow. Stop after this fix; await the next Owner-approved task.
 
+### Retained prior local deployment checkpoint (pre-existing, uncommitted)
+
+- Authorized local Development migration deployment complete on Permissions&Administration at c74c122: verified localhost:5432/campions_gym, Homebrew PostgreSQL 14.20, no other database clients; 23 applied migrations/100 tables before deployment.
+- Private/Classes, coaching evidence completeness, Monthly Closing/payments and Owner administration migrations applied individually in chronological order through EF Core. All 27 migrations now applied, zero pending; 112 tables including 7 Identity and EF history. Production/shared live databases untouched; no seeder, reset, truncation, source/migration edit, commit or push.
+- Timestamped custom-format backup: /Users/macbookpro/Backups/Campeones/20261013T165740Z/campions_gym_20261013T165740Z.dump (471,042 bytes); pg_dump succeeded, archive lists 100 tables/100 data entries, full archive read/decompression and SHA-256 verified. No restore was performed.
+- Build passed with zero warnings/errors; EF pending-model check passed with local execution permissions after sandboxed design-time check timed out. Live column/type/nullability/PK and 355 FK comparison passed; CHECK names and index columns/uniqueness match. Pre-existing values/counts preserved across all 100 original tables. Existing commission-summary index naming truncation remains nonblocking.
+- All source, historical migrations, frontend-handoff files and untracked docs/database-guide.zip preserved. Only this history/handoff checkpoint changed in the repository; uncommitted/unpushed. No role grants, coach targets or financial months configured by this deployment. Prior feature regression result remains 887 tests; no full test suite rerun for this schema-only deployment.
+
 ## Work history
 
 ### 2026-10-04 — Git ignore setup
@@ -2224,6 +2232,30 @@ Completed Owner-only V1 on Permissions&Administration. Implementation checkpoint
 Finished docs/PERMISSIONS_ADMINISTRATION.md with all nine routes, DTO source/response/error details, actual normalized OWNER plus effective capability enforcement, Allow/Deny/clear behavior, branch/runtime versus stored grant distinctions, versions/retries/audit, recovery and rollout limits. Updated existing authorization notices and Postman README; ten examples cover nine routes including explicit clear, correct UUID scripts, current resource versions and declared variables. Validated JSON/contracts/document references, exact preservation of existing Postman requests/variables, all 52 historical migration files and frontend handoff. No grants/defaults, employee/branch/commercial/financial histories, application database, migrations or Production operations changed.
 
 Preparing authorized final documentation/history commit/push. Operational rollout still needs an established eligible/unlocked Owner with the four existing active administration capabilities, reviewed prerequisite and forward index migrations, and deliberate role/override choices. No Owner/account/role/catalog provisioning API or unprotected recovery endpoint; controlled offline recovery remains for legacy lockout. Classes compensation and all financial formulas remain unchanged. No genuine V1 blocker or required implementation work remains; stop here and verify final Git HEAD/status after publication.
+
+## 2026-10-13 — Approved local Development migration deployment
+
+Request: apply exactly the four audited pending migrations to localhost:5432/campions_gym only, after revalidating database/environment/history and verifying a timestamped backup. No Production, deployment, seeding, destructive recovery, source/historical-migration edits, commits or pushes authorized.
+
+Started on Permissions&Administration at c74c122eabad94e980c43db32e667158aa32a357; only untracked docs/database-guide.zip existed. Re-read AGENTS/history, inspected startup/configuration and confirmed pinned ASPNETCORE_ENVIRONMENT and DOTNET_ENVIRONMENT Development, localhost server/database/schema, PostgreSQL 14.20 Homebrew server process, 23 contiguous applied migrations, 100 tables, and no other database clients. Connection credentials stayed private. No application server or permission/demo seeder was started.
+
+Created private custom-format backup outside Git:
+/Users/macbookpro/Backups/Campeones/20261013T165740Z/campions_gym_20261013T165740Z.dump
+pg_dump exit 0; 471,042 bytes; pg_restore archive listing exit 0 with 100 TABLE and 100 TABLE DATA entries, including EF history; full archive read/decompression to /dev/null exit 0 (no database restore). SHA-256: 8497fab1b2a9cac0b140e392075f2f2e07ce5ceb606a110722b0bb3c5914c067. Archive list/checksum and EF execution logs are alongside the backup. Backup is local-only, not an off-machine copy or restore drill.
+
+Applied through established dotnet ef database update workflow, with explicit individual targets, DAL project/API startup/ApplicationDbContext, Development environment and pinned verified connection. Rechecked database/history/backup/source fingerprints before each operation and stopped neither database nor server. Each migration succeeded with Done and history verified:
+- 20261012101654_ImplementPrivateClassesAndCoachEarnings: 106 tables.
+- 20261012104721_EnforceCoachingEvidenceCompleteness: 106 tables.
+- 20261012164313_ImplementMonthlyClosingAndEmployeePayments: 112 tables.
+- 20261013125623_ImplementOwnerAccessAdministration: 112 tables.
+
+Only writes defined by those four migrations were executed, including their permission-catalog INSERTs; no additional seeder, grant setup, role/account change, target/period configuration, reset/drop/recreate/truncate, or operational-data manipulation. The final verification used read-only transactions: 27 applied/zero pending; 111 mapped tables plus EF history; exact current-model table/column/type/nullability/PK comparison; 355 matching FK definitions; expected CHECK names present; all constraints validated/indexes valid; index columns/uniqueness match. One pre-existing index name differs because PostgreSQL truncated InitialCreate's overlong EmployeeCommissionSummaries index name; the pending migrations do not reference it and its definition matches.
+
+Pre-existing row counts and deterministic value fingerprints matched across every original table (100); original Permissions and migration-history rows were filtered by their original keys to exclude intentional migration additions. All tracked files and untracked database-guide.zip matched pre-operation fingerprints before the history checkpoint; frontend-handoff and historical migrations unchanged.
+
+Verification: dotnet build CampionsGymSystem.slnx --no-restore -m:1 -nr:false passed, zero warnings/errors. Initial sandboxed has-pending-model-changes timed out after five minutes building the design-time host; same command with local execution permissions passed: No changes have been made to the model since the last migration. No migration failed and no destructive recovery was attempted. No full test suite or application smoke test rerun; prior feature validation is unchanged.
+
+Repository changes: AGENTS.md current handoff and PROJECT_HISTORY.md current state/this dated checkpoint only. HEAD/branch unchanged; uncommitted/unpushed; untracked ZIP preserved. Production untouched. Operational capability grants, coach thresholds and branch financial-month setup remain explicit separate tasks. Stop after the authorized local migration deployment.
 
 ### 2026-10-14 — Fix Owner protection bypass through employee lifecycle
 
