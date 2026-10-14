@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.BLL.Employees;
 
 public sealed partial class EmployeeManagementService(ApplicationDbContext database, ICurrentUserService current,
-    OperationAccess access, EmployeeBranchResolver resolver, EmployeeBranchAssignmentService assignments, CampionsSystem.BLL.Subscriptions.SubscriptionService subscriptions)
+    OperationAccess access, EmployeeBranchResolver resolver, EmployeeBranchAssignmentService assignments, CampionsSystem.BLL.Subscriptions.SubscriptionService subscriptions,
+    OwnerAccountProtection protection)
 {
     private async Task<CurrentUserContext> RequireAsync(string permission, CancellationToken ct)
     {
@@ -144,6 +145,7 @@ public sealed partial class EmployeeManagementService(ApplicationDbContext datab
         ValidateProfile(request);
         return await EmployeeAssignmentTransaction.RunAsync(database, id, async locked =>
         {
+            user = await RequireAsync("Employees.Manage", ct);
             var branch = await resolver.ResolveAsync(id, access.Today, ct);
             BranchAccessService.EnsureScope(user, branch?.Id);
             if (locked.TerminationDate < request.HireDate
@@ -151,6 +153,8 @@ public sealed partial class EmployeeManagementService(ApplicationDbContext datab
                 throw new BusinessRuleException("Hire date cannot follow an existing assignment or termination date.");
             var employee = await TrackedEmployeeAsync(id, ct);
             var before = new { employee.FullName, employee.Phone, employee.JobTitle, employee.EmploymentType, employee.HireDate };
+            var protectsOwner = employee.HireDate != request.HireDate
+                && await protection.RequireEmployeeChangeAsync(employee, user.UserId, request.HireDate > access.Today, ct);
             if (employee.HireDate != request.HireDate && await database.Payrolls.AnyAsync(p => p.EmployeeId == id && p.FinancialMonthId != null && p.CommissionSummaryId == null, ct))
                 throw new BusinessRuleException("Hire date cannot rewrite recognized salary history.");
             SetProfile(employee, request);
@@ -158,8 +162,9 @@ public sealed partial class EmployeeManagementService(ApplicationDbContext datab
             access.Audit(user.UserId, branch?.Id, "EmployeeUpdated", nameof(Employee), id, before,
                 new { employee.FullName, employee.Phone, employee.JobTitle, employee.EmploymentType, employee.HireDate });
             await database.SaveChangesAsync(ct);
+            if (protectsOwner) await protection.ProtectOwnersAsync(user.UserId, ct);
             return await DetailsAsync(employee, ct);
-        }, ct);
+        }, ct, () => protection.LockEmployeeAsync(id, ct));
     }
 
     public async Task<EmployeeDetails> ChangeStatusAsync(Guid id, ChangeEmployeeStatusRequest request, CancellationToken ct = default)
@@ -169,8 +174,11 @@ public sealed partial class EmployeeManagementService(ApplicationDbContext datab
             throw new BusinessRuleException("A valid employment status and optional reason up to 2048 characters are required.");
         return await EmployeeAssignmentTransaction.RunAsync(database, id, async locked =>
         {
+            user = await RequireAsync("Employees.Manage", ct);
             var branch = await resolver.ResolveAsync(id, access.Today, ct);
             BranchAccessService.EnsureScope(user, branch?.Id);
+            var protectsOwner = await protection.RequireEmployeeChangeAsync(locked, user.UserId,
+                request.Status != DAL.Enums.EmploymentStatus.Active, ct);
             if (locked.EmploymentStatus == request.Status) throw new BusinessRuleException("Employee already has this status.");
             if (locked.EmploymentStatus == DAL.Enums.EmploymentStatus.Resigned && request.Status != DAL.Enums.EmploymentStatus.Active)
                 throw new BusinessRuleException("Reactivate ended employment before suspending it.");
@@ -191,8 +199,9 @@ public sealed partial class EmployeeManagementService(ApplicationDbContext datab
                 new { employee.EmploymentStatus, employee.TerminationDate, Reason = request.Reason?.Trim() });
             await CampionsSystem.BLL.MonthlyFinance.SalaryProjection.ValidateHistoryChangeAsync(database, employee, ct);
             await database.SaveChangesAsync(ct);
+            if (protectsOwner) await protection.ProtectOwnersAsync(user.UserId, ct);
             return await DetailsAsync(employee, ct);
-        }, ct);
+        }, ct, () => protection.LockEmployeeAsync(id, ct));
     }
 
     private async Task<EmployeeDetails> DetailsAsync(Employee employee, CancellationToken ct) => new(employee.Id,

@@ -8,7 +8,7 @@ namespace CampionsSystem.BLL.Branches;
 internal static class EmployeeAssignmentTransaction
 {
     public static async Task<T> RunAsync<T>(ApplicationDbContext database, Guid employeeId,
-        Func<Employee, Task<T>> change, CancellationToken ct)
+        Func<Employee, Task<T>> change, CancellationToken ct, Func<Task>? beforeLock = null)
     {
         var owned = database.Database.CurrentTransaction is null
             ? await database.Database.BeginTransactionAsync(ct) : null;
@@ -17,6 +17,7 @@ internal static class EmployeeAssignmentTransaction
         try
         {
             await transaction.CreateSavepointAsync(savepoint, ct);
+            if (beforeLock is not null) await beforeLock();
             var employees = await database.Employees.FromSqlInterpolated(
                 $"SELECT * FROM \"Employees\" WHERE \"Id\" = {employeeId} FOR UPDATE").AsNoTracking().ToListAsync(ct);
             var employee = employees.SingleOrDefault() ?? throw new BranchNotFoundException("Employee not found.");

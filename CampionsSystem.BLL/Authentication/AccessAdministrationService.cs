@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace CampionsSystem.BLL.Authentication;
 
 public sealed class AccessAdministrationService(ApplicationDbContext db, OwnerAdministrationAccess owner,
-    IPermissionService permissions, UserContextService contexts, OperationAccess access)
+    IPermissionService permissions, UserContextService contexts, OperationAccess access, OwnerAccountProtection protection)
 {
     public const string AuditAction = "AccessAdministration.Changed";
     private sealed record ChangeEvidence(string Hash, string Kind, Guid? TargetUserId, Guid? RoleId,
@@ -141,8 +141,7 @@ public sealed class AccessAdministrationService(ApplicationDbContext db, OwnerAd
         {
             await tx.CreateSavepointAsync(point, ct);
             // Separate from financial locks. Serializes all access mutations and last-Owner decisions.
-            await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(173528701, 1)", ct);
-            await LockLifecycleAsync(userId, ct);
+            await protection.LockAsync(userId, ct);
             var actor = await owner.RequireAsync(capability, ct);
             var existing = await db.AuditLogs.AsNoTracking().SingleOrDefaultAsync(x => x.Action == AuditAction && x.EntityId == r.OperationId, ct);
             if (existing is not null)
@@ -192,7 +191,7 @@ public sealed class AccessAdministrationService(ApplicationDbContext db, OwnerAd
                 }
             }
             await db.SaveChangesAsync(ct);
-            await ProtectOwnersAsync(actor, ct);
+            await protection.ProtectOwnersAsync(actor, ct);
             var after = userId.HasValue ? JsonSerializer.Serialize(await UserSnapshotAsync(userId.Value, ct))
                 : JsonSerializer.Serialize(await RoleSnapshotAsync(roleId!.Value, ct));
             var nextVersion = userId.HasValue ? JsonSerializer.Deserialize<UserAccessDetails>(after)!.Version
@@ -211,33 +210,6 @@ public sealed class AccessAdministrationService(ApplicationDbContext db, OwnerAd
             db.ChangeTracker.Clear(); throw;
         }
         finally { if (owned is not null) await owned.DisposeAsync(); }
-    }
-    private async Task LockLifecycleAsync(Guid? target, CancellationToken ct)
-    {
-        // Employee lifecycle/transfer flows coordinate on Employee rows. Lock in ID order.
-        await db.Employees.FromSqlInterpolated($"""
-            SELECT e.* FROM "Employees" e WHERE e."UserId"={target}
-            OR e."UserId" IN (SELECT m."UserId" FROM "AspNetUserRoles" m JOIN "AspNetRoles" r ON r."Id"=m."RoleId" WHERE r."NormalizedName"='OWNER')
-            ORDER BY e."Id" FOR SHARE
-            """).AsNoTracking().ToListAsync(ct);
-        await db.Users.FromSqlInterpolated($"""
-            SELECT u.* FROM "AspNetUsers" u WHERE u."Id"={target}
-            OR u."Id" IN (SELECT m."UserId" FROM "AspNetUserRoles" m JOIN "AspNetRoles" r ON r."Id"=m."RoleId" WHERE r."NormalizedName"='OWNER')
-            ORDER BY u."Id" FOR UPDATE
-            """).AsNoTracking().ToListAsync(ct);
-    }
-    private async Task ProtectOwnersAsync(Guid actor, CancellationToken ct)
-    {
-        var ids = await (from m in db.UserRoles.AsNoTracking() join r in db.Roles.AsNoTracking() on m.RoleId equals r.Id
-                         where r.NormalizedName == "OWNER" select m.UserId).Distinct().ToListAsync(ct);
-        var usable = new List<Guid>();
-        foreach (var id in ids)
-        {
-            var context = await contexts.ResolveAsync(id, ct);
-            if (context is not null && OwnerAdministrationAccess.RecoveryPermissions.All(context.Permissions.Contains)) usable.Add(id);
-        }
-        if (usable.Count == 0) throw Conflict("At least one active, unlocked eligible Owner must retain all administration capabilities.");
-        if (!usable.Contains(actor)) throw Conflict("The administering Owner must retain Owner membership and all administration capabilities.");
     }
     public async Task<AccessPage<AccessAuditDetails>> HistoryAsync(AccessAuditQuery q, CancellationToken ct = default)
     {

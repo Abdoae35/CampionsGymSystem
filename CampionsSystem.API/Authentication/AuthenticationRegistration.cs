@@ -55,6 +55,7 @@ public static class AuthenticationRegistration
                 };
             });
         services.AddScoped<OwnerAdministrationAccess>();
+        services.AddScoped<OwnerAccountProtection>();
         services.AddScoped<AccessAdministrationService>();
         services.AddAuthorization(options => options.AddPolicy(OwnerAdministrationAccess.Policy,
             policy => policy.RequireAuthenticatedUser().AddRequirements(new OwnerAdministrationRequirement())));

@@ -19,8 +19,12 @@ public sealed class OwnerAdministrationAccess(ApplicationDbContext db, ICurrentU
         return user.UserId;
     }
     public Task<bool> IsOwnerAsync(Guid user, CancellationToken ct = default) =>
+        OwnerMemberships().AnyAsync(x => x == user, ct);
+    public Task<List<Guid>> OwnerIdsAsync(CancellationToken ct = default) =>
+        OwnerMemberships().Distinct().ToListAsync(ct);
+    private IQueryable<Guid> OwnerMemberships() =>
         (from membership in db.UserRoles.AsNoTracking()
          join role in db.Roles.AsNoTracking() on membership.RoleId equals role.Id
-         where membership.UserId == user && role.NormalizedName == "OWNER"
-         select membership).AnyAsync(ct);
+         where role.NormalizedName == "OWNER"
+         select membership.UserId);
 }

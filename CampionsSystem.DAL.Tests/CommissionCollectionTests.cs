@@ -93,7 +93,7 @@ public sealed partial class SalesTests
     {
         var owner=await CommercialOwner();var period=await Commissions().OpenAsync(new(Guid.NewGuid(),"Period",today,today.AddDays(20)));var sale=await Collected(12000,4000);
         user.Context=user.Context! with{Permissions=[..user.Context!.Permissions,"Employees.Manage"]};
-        var manager=new EmployeeManagementService(db,user,access,new(db),new(db,user,access),subscriptions);
+        var manager=new EmployeeManagementService(db,user,access,new(db),new(db,user,access),subscriptions,OwnerLifecycleTestServices.Protection(db,user,clock));
         await manager.ChangeStatusAsync(owner.Id,new(){Status=EmploymentStatus.Resigned});clock.Now=clock.Now.AddHours(1);
         var cash=await Account();await Finance().RecordPaymentAsync(sale.SaleId,new(Guid.NewGuid(),1000,[new(cash.Id,1000)])); // last working day remains earned
         clock.Now=clock.Now.AddDays(1);await Finance().RecordPaymentAsync(sale.SaleId,new(Guid.NewGuid(),1000,[new(cash.Id,1000)]));
@@ -169,7 +169,7 @@ public sealed partial class SalesTests
     [Fact] public async Task CommissionStaleBusinessDayCannotRestoreDepartedEmployeesRights()
     {
         var owner=await CommercialOwner();var period=await Commissions().OpenAsync(new(Guid.NewGuid(),"Period",today,today.AddDays(20)));var sale=await Collected(12000,4000);
-        user.Context=user.Context! with{Permissions=[..user.Context!.Permissions,"Employees.Manage"]};var manager=new EmployeeManagementService(db,user,access,new(db),new(db,user,access),subscriptions);
+        user.Context=user.Context! with{Permissions=[..user.Context!.Permissions,"Employees.Manage"]};var manager=new EmployeeManagementService(db,user,access,new(db),new(db,user,access),subscriptions,OwnerLifecycleTestServices.Protection(db,user,clock));
         await manager.ChangeStatusAsync(owner.Id,new(){Status=EmploymentStatus.Resigned});
         db.Add(new BusinessDay{BranchId=b.Id,BusinessDate=today,OpenedAt=clock.Now.AddHours(-1)});await db.SaveChangesAsync();clock.Now=clock.Now.AddDays(2);
         var cash=await Account();await Finance().RecordPaymentAsync(sale.SaleId,new(Guid.NewGuid(),1000,[new(cash.Id,1000)]));

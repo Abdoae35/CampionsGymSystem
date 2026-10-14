@@ -14,6 +14,8 @@ public abstract class BranchControllerBase : ControllerBase
         catch (UnauthorizedAccessException) { return Forbid(); }
         catch (BranchNotFoundException error) { return Problem(statusCode: 404, title: error.Message); }
         catch (BusinessRuleException error) { return Problem(statusCode: 400, title: error.Message); }
+        catch (CampionsSystem.BLL.Authentication.AccessAdministrationException error)
+        { return Problem(statusCode: error.Status, title: error.Message); }
         catch (DbUpdateConcurrencyException)
         { return Problem(statusCode: 409, title: "Record changed; reload and retry with its current version."); }
         catch (DbUpdateException error) when (error.InnerException is PostgresException

@@ -13,7 +13,7 @@ using Npgsql;
 
 namespace CampionsSystem.DAL.Tests;
 
-public sealed class AccessAdministrationConcurrencyTests : IAsyncLifetime
+public sealed partial class AccessAdministrationConcurrencyTests : IAsyncLifetime
 {
     private readonly string schema = "gym_access_test_" + Guid.NewGuid().ToString("N");
     private string? connection;
@@ -26,7 +26,7 @@ public sealed class AccessAdministrationConcurrencyTests : IAsyncLifetime
         var permissions = new PermissionService(db);
         var contexts = new UserContextService(db, permissions, TimeProvider.System, Options.Create(new AuthContextOptions()), new EmployeeBranchResolver(db));
         var current = new CurrentUserService(new Identity(actor), contexts);
-        return new(db, new(db, current), permissions, contexts, new(current, db, TimeProvider.System, Options.Create(new AuthContextOptions())));
+        return new(db, new(db, current), permissions, contexts, new(current, db, TimeProvider.System, Options.Create(new AuthContextOptions())), new(db, new(db, current), contexts));
     }
     public async Task InitializeAsync()
     {

@@ -15,7 +15,7 @@ public sealed partial class SubscriptionLifecycleTests
         var e=new Employee{FullName="Staff",Phone="employee-sub",HireDate=today.AddYears(-1)};
         db.Add(new EmployeeBranchAssignment{Employee=e,BranchId=b.Id,StartDate=today.AddMonths(-1),IsPrimary=true,AssignedByUserId=actor.Id});await db.SaveChangesAsync();return e;
     }
-    private EmployeeManagementService EmployeeService()=>new(db,user,access,new(db),new(db,user,access),service);
+    private EmployeeManagementService EmployeeService()=>new(db,user,access,new(db),new(db,user,access),service,OwnerLifecycleTestServices.Protection(db,user,clock));
     [Fact] public async Task EmployeeGrantIsLinkedFreeUnlimitedAndProtected()
     {
         var e=await Staff();var op=Guid.NewGuid();var first=await service.StartEmployeeEntitlementAsync(e.Id,new(member.Id,plan.Id,op));
