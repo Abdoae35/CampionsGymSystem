@@ -43,10 +43,10 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Backend audit Fix #2 source, tests, prepared migration and Shift documentation are committed and pushed as `7f30273` on `Shifts-Vault&Expenses-`. Fix #1 Owner lifecycle protection remains intact and its source files were unchanged; findings #3–#6 were not touched.
+- Backend audit Fix #2 source, tests, migration and Shift documentation are committed and pushed as `7f30273` on `Shifts-Vault&Expenses-` (current HEAD `d36a269`). Fix #1 Owner lifecycle protection remains intact; findings #3–#6 were not touched.
 - Manual self-opening, reception financial Shift guards, scoped Owner/Manager override closure, Unverified closure without cash count, separate employee/branch-period reports, and actual Owner expense attribution are implemented. The shared Cash/InstaPay closure snapshot is immutable; no closing ledger movement is fabricated.
-- Final verification: targeted Shift suite 88/88, complete suite 915/915 with zero failures/skips (3h23m), clean rebuild zero warnings/errors, EF model drift none and staged diff check clean. The final source diff was scoped to 24 Fix #2 files. See final publication entry below.
-- Additive migration `20261014135958_AddShiftOverrideClosureAccountSnapshot` remains unapplied to Development/Production; the new capability has no automatic grant. Controlled Development migration and explicit Owner grant remain activation steps. Expense reversal without a Shift, general recurring expense scheduling and audit findings #3–#6 remain outside scope.
+- Final publication verification: targeted Shift suite 88/88, complete suite 915/915 with zero failures/skips (3h23m), clean rebuild zero warnings/errors, EF model drift none and staged diff check clean. Development activation verification: focused Shift suite 55/55, EF drift none, Reception close-override HTTP 403.
+- On 2026-10-15, the approved additive migration `20261014135958_AddShiftOverrideClosureAccountSnapshot` was applied to localhost Development after a verified archive backup. Development has 28 applied migrations, zero pending and 112 tables; Owner-only administration granted `Shifts.CloseOthers` to Owner and BranchManager only, with two audit records and no Reception grant or override change. Production was untouched. This history/handoff checkpoint is uncommitted by instruction. Expense reversal without a Shift, general recurring expense scheduling and audit findings #3–#6 remain outside scope.
 
 ### Retained prior local deployment checkpoint (historical)
 
@@ -2506,3 +2506,46 @@ Owner-approved Development migration application and explicit
 legacy closed Shift evidence/posting-time ties may limit historical
 reconstruction; paid-expense returns still require an own Shift; recurring
 expense scheduling and audit findings #3–#6 remain out of scope.
+
+### 2026-10-15 — Fix #2 local Development activation
+
+Request: activate only the published Fix #2 migration and intended override
+closure role grants in the local Development database, with a verified backup;
+leave Production, application code and other permissions unchanged. The Git tree
+was clean on `Shifts-Vault&Expenses-` at `d36a269` before activation. Confirmed
+Development configuration and live PostgreSQL identity as
+`localhost:5432/campions_gym` (Homebrew PostgreSQL 14.20), with one pgAdmin
+connection; 27 applied migrations, 112 tables and only
+`20261014135958_AddShiftOverrideClosureAccountSnapshot` pending. Reviewed its
+Up operation: only an idempotent permission-catalog insert and nullable Shift
+JSONB column, with no destructive operation. The existing Shifts table had
+zero rows; Owner, BranchManager and Reception role identities were unique.
+
+Created `/private/tmp/CampeonesBackups/campions_gym_before_Fix2_20261015T143625Z.dump`
+(547,276 bytes, SHA-256
+`9018cb75a03b59bdbf58ba984a44c6e97dd0c7d1fa3ddc695c1c6d4ee61df640`).
+`pg_dump` completed successfully; `pg_restore --list` showed all 112 table
+definitions and the complete archive stream was read without error. Applied
+the named migration using `dotnet ef database update` in Development only.
+Post-check found 28 applied migrations, no pending migrations, unchanged
+112-table count, nullable JSONB Shift column, active catalog entry and zero
+existing Shifts. The migration performs no update/delete of prior data.
+
+Used the existing authenticated Owner-only access-administration API and its
+versioned/audited grant operation to grant `Shifts.CloseOthers` to Owner and
+BranchManager only. Audit operation IDs were
+`befaa0cc-d9ee-472f-8659-4cb935b78ee8` and
+`e75028ed-14aa-4f9c-adba-e9db2d832b45`; two matching AuditLogs persisted.
+Role-grant count increased 86 to 88, while user overrides stayed at zero.
+Reception has no grant; its actual local API request to close another Shift
+returned HTTP 403 without a Shift mutation. Existing Deny precedence and
+branch-scope enforcement were not altered.
+
+Focused Shift regression tests passed 55/55, zero failures/skips. EF reported
+no pending model changes. The published 915/915 full-suite result predates
+this database-only activation and was not rerun here. The local API was stopped
+after verification. No seeding, customer-data import, Production operation,
+application-source edit, or commit/push occurred. Only this required history
+and `AGENTS.md` handoff were edited locally, per project instructions. Future
+Production activation remains separately authorized; Fix #2 functional limits
+recorded above remain unchanged.
