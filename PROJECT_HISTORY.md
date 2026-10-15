@@ -43,19 +43,18 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Owner employee-lifecycle protection complete on Permissions&Administration; source checkpoint 15c6588 committed and pushed. Only backend audit finding #1 addressed; the other five findings remain unchanged pending Owner direction.
-- Status and hire-date changes affecting Owner-linked authentication now use authoritative stored Owner membership and the existing usable-Owner/recovery-capability checks. Non-Owners cannot administer protected lifecycle changes; self-lockout and loss of the last usable Owner are rejected. Branch scope and effective Allow/Deny behavior remain authoritative.
-- Access Administration and lifecycle changes share ReadCommitted advisory coordination before sorted row locks and recheck authorization after waiting. Account locks serialize eligibility changes while allowing foreign-key evidence writes; failed changes roll back lifecycle, ownership/entitlement side effects and audit evidence.
-- Added 17 regression cases. Final complete suite 904/904 passed, zero failures/skips; expanded targeted run 132/132 plus deterministic foreign-key locking regression 1/1 passed. Final clean rebuild: zero warnings/errors; EF model drift none. No application migrations, application data changes or Production operations.
-- Existing local migration deployment checkpoint, frontend-handoff documentation and untracked docs/database-guide.zip preserved outside this task's staging. Documentation checkpoint records verified results for the authorized publication workflow. Stop after this fix; await the next Owner-approved task.
+- Backend audit Fix #2 source, tests, prepared migration and Shift documentation are committed and pushed as `7f30273` on `Shifts-Vault&Expenses-`. Fix #1 Owner lifecycle protection remains intact and its source files were unchanged; findings #3–#6 were not touched.
+- Manual self-opening, reception financial Shift guards, scoped Owner/Manager override closure, Unverified closure without cash count, separate employee/branch-period reports, and actual Owner expense attribution are implemented. The shared Cash/InstaPay closure snapshot is immutable; no closing ledger movement is fabricated.
+- Final verification: targeted Shift suite 88/88, complete suite 915/915 with zero failures/skips (3h23m), clean rebuild zero warnings/errors, EF model drift none and staged diff check clean. The final source diff was scoped to 24 Fix #2 files. See final publication entry below.
+- Additive migration `20261014135958_AddShiftOverrideClosureAccountSnapshot` remains unapplied to Development/Production; the new capability has no automatic grant. Controlled Development migration and explicit Owner grant remain activation steps. Expense reversal without a Shift, general recurring expense scheduling and audit findings #3–#6 remain outside scope.
 
-### Retained prior local deployment checkpoint (pre-existing, uncommitted)
+### Retained prior local deployment checkpoint (historical)
 
 - Authorized local Development migration deployment complete on Permissions&Administration at c74c122: verified localhost:5432/campions_gym, Homebrew PostgreSQL 14.20, no other database clients; 23 applied migrations/100 tables before deployment.
 - Private/Classes, coaching evidence completeness, Monthly Closing/payments and Owner administration migrations applied individually in chronological order through EF Core. All 27 migrations now applied, zero pending; 112 tables including 7 Identity and EF history. Production/shared live databases untouched; no seeder, reset, truncation, source/migration edit, commit or push.
 - Timestamped custom-format backup: /Users/macbookpro/Backups/Campeones/20261013T165740Z/campions_gym_20261013T165740Z.dump (471,042 bytes); pg_dump succeeded, archive lists 100 tables/100 data entries, full archive read/decompression and SHA-256 verified. No restore was performed.
 - Build passed with zero warnings/errors; EF pending-model check passed with local execution permissions after sandboxed design-time check timed out. Live column/type/nullability/PK and 355 FK comparison passed; CHECK names and index columns/uniqueness match. Pre-existing values/counts preserved across all 100 original tables. Existing commission-summary index naming truncation remains nonblocking.
-- All source, historical migrations, frontend-handoff files and untracked docs/database-guide.zip preserved. Only this history/handoff checkpoint changed in the repository; uncommitted/unpushed. No role grants, coach targets or financial months configured by this deployment. Prior feature regression result remains 887 tests; no full test suite rerun for this schema-only deployment.
+- At that earlier deployment checkpoint, source, historical migrations, frontend-handoff files and the database-guide ZIP were preserved; only its history/handoff text changed then. No role grants, coach targets or financial months were configured by that deployment. Its prior regression result was 887 tests; no full suite was rerun for that schema-only operation.
 
 ## Work history
 
@@ -2304,3 +2303,206 @@ authorized workflow; final publication is verified before responding. Pre-existi
 uncommitted migration history/handoff text and the database-guide ZIP are retained
 and excluded from this task's commits. Other five audit findings remain unfixed;
 no next feature or audit fix started.
+
+### 2026-10-14 — Fix #2: employee shift override closure and financial guard review
+
+Request: implement only backend audit finding #2, preserving Fix #1, existing
+manual employee shifts, reception financial guards, shared branch drawer, Owner
+protections and monthly closing. Initial branch `Shifts-Vault&Expenses-`, HEAD
+`2afefd8`, tree clean. Read repository instructions/history, database guide,
+shift/vault, monthly closing and employee lifecycle docs/source/tests; used
+ASP.NET Core and project-history-update skills. No branch switch or reset.
+
+Confirmed existing explicit self-open, unique active employee-shift index,
+drawer-row serialization, shift-guarded Sale/renewal/installment/private/classes
+collections and refunds/expenses/advances/withdrawals, shift-attributed reports,
+and month-close rejection of any open branch shift. The opener-only close path
+stranded inactive employees' shifts. Added `Shifts.CloseOthers` and
+`POST /api/shifts/{id}/close-override`, guarded by effective capability/branch
+scope plus stored BranchManager or Owner membership. No default role grant; the
+development seeder and explicit shift setup both catalog but exclude this new
+capability from automatic grants. Existing self-close hash/retry compatibility
+is preserved, and its JSON contract now rejects an omitted physical count.
+
+Override closure requires a reason, another employee's open shift, operation ID
+and expected version. It rechecks access after acquiring the branch drawer lock,
+uses the same serialized closure boundary as financial posting, and supports
+optional counting. Without a count it creates no CashCount or ledger movement,
+stores null actual cash/difference, and reports `Unverified`. Every managed close
+stores the shared expected physical drawer and immutable per-account book
+balances (including InstaPay) at closure. Shift DTO/history/summary and monthly
+report/workbook projection expose closer, reason, type, verification status and
+cash/account snapshots; employee-attributed activity remains distinct. Legacy
+closed shifts without sufficient evidence report Unknown. Existing employee
+status/Owner-protection code was not changed; authorized override can close an
+open shift after actual suspension or resignation.
+
+Prepared additive migration
+`20261014135958_AddShiftOverrideClosureAccountSnapshot`: nullable JSONB Shift
+snapshot column and idempotent permission-catalog insert, no grants or data
+backfill. Historical migrations unchanged. The migration was **not** applied to
+the local Development database or Production. An initial targeted test run
+automatically applied it in disposable test schemas before that fixture behavior
+was recognized; work stopped, the Owner was informed, and the Owner then
+explicitly approved further use of isolated test schemas only. No operational
+records were changed. This was a process mistake, not an authorized local DB
+deployment.
+
+Targeted testing first exposed the Shift append-only whitelist integration;
+corrected it. A concurrent test initially used two DbContexts sharing one
+fixture connection; moved that case to the existing independent-connection
+concurrency fixture. The first full run exposed an old-migration test that
+materialized the new Shift model against an intentionally older schema and a
+seeder test that assumed all catalog capabilities are granted to Owner; updated
+those expectations without changing production rules. Final focused tests 9/9
+passed; complete suite 911/911 passed, no failures/skips (36m52s). Final clean
+build passed with zero warnings/errors, EF has-pending-model-changes found no
+drift, and `git diff --check` was clean. Docs/SHIFTS_VAULT_EXPENSES.md updated.
+
+Remaining: Owner approval and controlled application of the prepared migration
+to local Development before runtime use there; explicit Owner administration
+grant of `Shifts.CloseOthers` to intended Owner/BranchManager accounts or roles;
+frontend integration separately. No commit, push, deployment, Production work,
+or audit findings #3–#6. Working tree contains this implementation and required
+history/handoff changes, all uncommitted on the same branch/HEAD.
+
+### 2026-10-14 — Fix #2 final verification (read-only source review)
+
+Request: verify Fix #1 ancestry and integrity, pre-closure Shift API information,
+override authorization/isolation/concurrency, migration scope, and commit/push
+readiness without implementing or deploying. On `Shifts-Vault&Expenses-` at
+`2afefd8`, `15c6588` is an ancestor; the Owner-protection source files have no
+working-tree diff. The already-modified/untracked Fix #2 files remain preserved.
+
+Source and focused test inspection confirmed effective `Shifts.CloseOthers` plus
+stored Owner/BranchManager membership and branch scope, no automatic grant,
+audited Unverified closure without a count or money movement, serialized branch
+drawer/Shift locking and duplicate-close protection, and monthly closing's
+requirement that all branch Shifts be closed regardless of verification state.
+The migration Up is limited to a nullable Shift JSONB snapshot and idempotent
+permission catalog insert, with no role grant or data backfill; Down drops that
+column but leaves the catalog row. No migration was applied.
+
+Contract gap: `GET /api/shifts/{id}/summary` exposes Cash/InstaPay Shift totals
+and current shared Cash position, but no individual transactions or current
+InstaPay book balance while open. `GET /api/vault/movements` has branch-wide
+paginated transaction data with ShiftId but no ShiftId filter or method field;
+`GET /api/financial-accounts` provides active account methods only. Closing
+account snapshots exist only after closure. Recommended smallest follow-up,
+subject to Owner approval: a paginated ShiftId-filtered movement endpoint with
+method and transaction details, and current per-account book balances on Shift
+summary using existing ledger queries. No application code, tests, schema,
+permissions, data, commits, or pushes changed during this review. Previous
+911/911 tests, clean build and EF no-drift are prior-turn results, not rerun.
+
+### 2026-10-14 — Fix #2 pre-closure financial review completed
+
+Request: complete only the identified Shift pre-closure review contract before
+finalizing Fix #2. Preserved the uncommitted Fix #2 implementation and Fix #1
+Owner protection on `Shifts-Vault&Expenses-` at HEAD `2afefd8`; no branch switch,
+database migration, permission grant, commit or push.
+
+Added `GET /api/shifts/{id}/transactions?page=&pageSize=` with effective
+`Shifts.View` plus `Vault.View` and branch scope at API/service layers. Its
+bounded, stably ordered DTO reads only persisted FinancialTransaction rows with
+that BranchId/ShiftId, returning ledger ID, source/direction, actual timestamp,
+amount, actor, BusinessDate, source references, account ID and method joined
+from the historical FinancialAccount even when inactive. `GET /api/shifts/{id}/summary`
+now includes live per-account branch book balances alongside existing
+Shift-attributed Cash/InstaPay activity and shared drawer expected physical
+position; closing snapshots and counted cash remain distinct. Existing drawer
+lock serializes each review with financial posting and closure. No financial
+posting, domain, schema or migration was changed for this addition.
+
+Extended Shift API/reporting and override-closure tests for pagination, split
+Cash/InstaPay payments, refunds/expenses/advances, inactive account method,
+shared balances across overlapping Shifts, Manager pre-closure visibility,
+effective Deny, missing capability and cross-branch rejection. Updated
+`docs/SHIFTS_VAULT_EXPENSES.md` with route, fields, numeric enums and balance
+semantics. One preliminary build and one test compile exposed small typing/test
+syntax errors, corrected before passing tests. A preliminary full-suite run was
+cancelled after a page-offset guard changed the code; the final run used the
+clean rebuilt binary. Final targeted set passed 5/5; complete suite passed
+912/912, zero failures/skips (42m25s); solution rebuild passed with zero
+warnings/errors; `dotnet ef migrations has-pending-model-changes` reported none;
+`git diff --check` clean. The existing Fix #2 additive migration remains
+prepared/unapplied to Development or Production. Working tree is dirty only
+with preserved Fix #2 work and this extension; no commit/push authorized.
+
+### 2026-10-15 — Fix #2 shared-branch Shift report and Owner expense attribution
+
+Request: complete the shared-drawer explanation for overlapping Shifts, verify
+actual expense actor attribution, and audit recurring-expense readiness without
+building scheduling. Continued on `Shifts-Vault&Expenses-` at `2afefd8` with
+existing uncommitted Fix #2 work preserved and Fix #1 ancestry verified.
+
+Added `GET /api/shifts/{id}/branch-transactions` as a bounded, paginated,
+branch-scoped ledger view and `branchPeriod` to the Shift summary. The existing
+Shift-linked activity remains separate. The branch interval uses ledger posting
+time from opening through the request instant or frozen closing timestamp;
+closed reports use the existing immutable closing account snapshot. Summary
+totals cover the full interval, group inflow/outflow by actual operator and
+Cash/InstaPay method, and reconcile account opening book values with period
+movements and expected closing balances. Both views require effective
+`Shifts.View` and `Vault.View` plus branch scope. Historical limitations for
+legacy missing posting times/snapshots and exact cutoff ties are explicit.
+Existing live shared balances remain labeled as live, including on closed Shifts.
+
+Confirmed that `ExpenseService.RecordPaidAsync` previously required an own open
+Shift for everyone, blocking Owner administrative Cash/InstaPay expenses.
+Restricted the exception to authoritative stored Owner membership after the
+existing expense permission and branch checks; such expenses keep the actual
+`CreatedByUserId`, optional linked employee, and null ShiftId. Non-Owner
+employees retain the own-shift guard. The ledger is still posted exactly once
+through the existing account/physical-balance checks. Expense responses now
+surface `RecordedByUserId`. Paid-expense reversal still requires an own Shift;
+that was not changed. Existing maintenance plan revisions are informational
+forecasts only. General recurring paid-expense schedules/reminders are missing;
+no new recurring functionality or maintenance ledger movement was added.
+
+Added focused branch-period, Owner API, authorization/pagination and concurrent
+independent-closure tests. The first two targeted runs exposed and corrected
+test fixture/assertion mistakes, not production rule failures. Final expanded
+targeted set passed 8/8; clean solution rebuild passed with zero warnings and
+errors; EF pending-model check found no drift; diff check clean. Complete suite
+passed 915/915 with no failures or skips (39m49s). No new schema or migration
+for this addition. Existing prepared Fix #2 migration
+is not applied to Development or Production; no database/customer-data change,
+role grant, commit or push. Operational next steps remain
+Owner-approved Development migration, explicit `Shifts.CloseOthers` grant,
+then commit/push only on authorization.
+
+### 2026-10-15 — Fix #2 final review and publication
+
+Request: perform the final Git review, repeat validation, commit and push only
+the approved Shift Management Fix #2. Read instructions and history, inspected
+every modified/staged/untracked path and the migration, and verified commit
+`15c6588` is an ancestor with no working-tree changes to the Fix #1 Owner
+protection source. The database-guide ZIP and frontend handoff were unchanged.
+The migration Up only inserts the ungranted `Shifts.CloseOthers` catalog row and
+adds a nullable Shift JSONB snapshot column; no destructive Up operation or
+historical migration edit was found. The 24-file feature staging list contained
+only Shift/expense source, focused tests, the prepared migration/model snapshot,
+and Shift documentation; staged diff check was clean.
+
+Final clean solution rebuild passed with zero warnings/errors; `dotnet ef
+migrations has-pending-model-changes` found no drift; targeted Shift tests
+passed 88/88. The final full-suite run passed 915/915 with zero failures/skips
+and exit code 0. It took 3h23m, substantially longer than the prior 39m49s
+run. The long-running test process was inspected read-only and returned its
+complete passing result; no test or product files were changed for diagnosis.
+`git diff --check` and the staged diff check passed. An initial staging attempt
+could not write the sandboxed Git index; staging succeeded with the authorized
+escalated Git operation.
+
+Created and pushed feature commit `7f30273` (`Complete shift override closure
+and shared drawer reporting`) to `Shifts-Vault&Expenses-`. This separate
+documentation checkpoint refreshes `AGENTS.md` and `PROJECT_HISTORY.md` with
+the final verification and activation state. No migration was applied to
+Development or Production, no role grant or operational seed was performed,
+and no customer data or frontend files were changed. Remaining activation:
+Owner-approved Development migration application and explicit
+`Shifts.CloseOthers` grant to intended accounts/roles. Known limitations:
+legacy closed Shift evidence/posting-time ties may limit historical
+reconstruction; paid-expense returns still require an own Shift; recurring
+expense scheduling and audit findings #3–#6 remain out of scope.
