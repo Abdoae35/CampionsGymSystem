@@ -4,18 +4,24 @@ namespace CampionsSystem.BLL.Shifts;
 
 public static class ShiftPermissions
 {
-    public const string View = "Shifts.View", Manage = "Shifts.Manage", VaultView = "Vault.View", VaultManage = "Vault.Manage", Withdraw = "Vault.Withdraw",
+    public const string View = "Shifts.View", Manage = "Shifts.Manage", CloseOthers = "Shifts.CloseOthers", VaultView = "Vault.View", VaultManage = "Vault.Manage", Withdraw = "Vault.Withdraw",
         ExpenseView = "Expenses.View", ExpenseCreate = "Expenses.Create", ExpenseManage = "Expenses.Manage", ExpenseReverse = "Expenses.Reverse",
         AdvanceView = "Advances.View", AdvanceCreate = "Advances.Create";
-    public static readonly string[] Codes = [View, Manage, VaultView, VaultManage, Withdraw, ExpenseView, ExpenseCreate, ExpenseManage, ExpenseReverse, AdvanceView, AdvanceCreate];
+    public static readonly string[] Codes = [View, Manage, CloseOthers, VaultView, VaultManage, Withdraw, ExpenseView, ExpenseCreate, ExpenseManage, ExpenseReverse, AdvanceView, AdvanceCreate];
 }
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record OpenShiftRequest(Guid OperationId, decimal OpeningCash, Guid? BranchId = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record CloseShiftRequest(Guid OperationId, long ExpectedVersion, decimal CountedCash, string? Reason = null);
+public sealed record CloseShiftRequest(Guid OperationId, long ExpectedVersion, [property: JsonRequired] decimal CountedCash, string? Reason = null);
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record OverrideCloseShiftRequest(Guid OperationId, long ExpectedVersion, string Reason, decimal? CountedCash = null);
+public sealed record ShiftAccountBalance(Guid AccountId, FinancialAccountType Method, decimal BookBalance);
 public sealed record ShiftDetails(Guid Id, Guid BranchId, Guid? EmployeeId, string? EmployeeName, ShiftStatus Status, long Version,
     DateTimeOffset OpenedAt, DateTimeOffset? ClosedAt, DateOnly? OpeningBusinessDate, DateOnly? ClosingBusinessDate,
-    decimal OpeningCash, decimal? ExpectedClosingCash, decimal? ActualClosingCash, decimal? Difference);
+    decimal OpeningCash, decimal? ExpectedClosingCash, decimal? ActualClosingCash, decimal? Difference,
+    Guid? ClosedByUserId = null, string? ClosingReason = null, string? ClosureType = null, string? VerificationStatus = null,
+    IReadOnlyList<ShiftAccountBalance>? ClosingAccountBalances = null,
+    decimal? ClosingCashBookBalance = null, decimal? ClosingInstaPayBookBalance = null);
 public sealed record DrawerPosition(Guid BranchId, Guid AccountId, decimal BookCash, decimal ExpectedPhysicalCash, decimal LastCountedCash,
     long MovementSequence, Guid? LastCountId, decimal ObservedDiscrepancies);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -40,9 +46,27 @@ public sealed record CashMovementDetails(Guid Id, Guid BranchId, Guid? ShiftId, 
 public sealed record VaultHistoryRequest(Guid? BranchId = null, Guid? AccountId = null, DateOnly? From = null, DateOnly? To = null, int Page = 1, int PageSize = 25);
 public sealed record FinancialMovementDetails(Guid Id, Guid AccountId, Guid BranchId, Guid? ShiftId, FinancialSourceType SourceType,
     FinancialTransactionType Direction, decimal Amount, DateTimeOffset OccurredAt, DateOnly? BusinessDate, Guid ActorId);
+public sealed record ShiftFinancialTransactionDetails(Guid Id, Guid ShiftId, Guid AccountId, FinancialAccountType Method,
+    FinancialSourceType SourceType, FinancialTransactionType Direction, decimal Amount, DateTimeOffset OccurredAt,
+    DateOnly? BusinessDate, Guid ActorId, Guid? PaymentId, Guid? RefundId, Guid? ExpenseId,
+    Guid? EmployeeAdvanceId, Guid? CashMovementId, Guid? PayrollId, string ActorName);
+public sealed record ShiftBranchTransactionDetails(Guid Id, Guid? ShiftId, Guid AccountId, FinancialAccountType Method,
+    FinancialSourceType SourceType, FinancialTransactionType Direction, decimal Amount, DateTimeOffset OccurredAt,
+    DateTimeOffset? PostedAt, DateOnly? BusinessDate, Guid ActorId, string ActorName,
+    Guid? PaymentId, Guid? RefundId, Guid? ExpenseId, Guid? EmployeeAdvanceId, Guid? CashMovementId, Guid? PayrollId);
+public sealed record ShiftBranchAccountReconciliation(Guid AccountId, FinancialAccountType Method,
+    decimal OpeningBookBalance, decimal Inflows, decimal Outflows, decimal CalculatedClosingBookBalance,
+    decimal? ExpectedClosingBookBalance, bool? MatchesExpectedClosingBalance);
+public sealed record ShiftBranchOperatorTotals(Guid ActorId, string ActorName, FinancialAccountType Method,
+    int TransactionCount, decimal Inflows, decimal Outflows, decimal NetMovement);
+public sealed record ShiftBranchPeriodSummary(DateTimeOffset From, DateTimeOffset CutoffAt, bool IsHistorical,
+    int TransactionCount, IReadOnlyList<MethodFinancialTotals> Activity,
+    IReadOnlyList<ShiftBranchOperatorTotals> Operators, IReadOnlyList<ShiftBranchAccountReconciliation> Accounts,
+    decimal? ExpectedPhysicalCashAtCutoff, decimal? CountedCashAtClosure, IReadOnlyList<string> Limitations);
 public sealed record ExpenseDetails(Guid Id, Guid BranchId, Guid? ShiftId, Guid? RecordingEmployeeId, Guid CategoryId, string CategoryName,
     Guid AccountId, FinancialAccountType Method, decimal Amount, decimal ReturnedAmount, string Description, string? ReceiptReference,
-    DateTimeOffset OccurredAt, DateOnly? BusinessDate, DateTimeOffset? PaidAt, ExpenseStatus OriginalStatus);
+    DateTimeOffset OccurredAt, DateOnly? BusinessDate, DateTimeOffset? PaidAt, ExpenseStatus OriginalStatus,
+    Guid? RecordedByUserId = null);
 public sealed record ExpenseReversalDetails(Guid Id, Guid ExpenseId, Guid BranchId, Guid ShiftId, decimal Amount, string Reason,
     string? ReturnReference, DateTimeOffset OccurredAt, DateOnly BusinessDate);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -57,7 +81,8 @@ public sealed record MethodFinancialTotals(FinancialAccountType Method, decimal 
     decimal ExpenseReturns, decimal AdvancesPaid, decimal Withdrawals, decimal InitialPosition, decimal OtherCredits,
     decimal OtherDebits, decimal NetMovement, decimal LegacyUnshiftedNetMovement);
 public sealed record ShiftFinancialSummary(ShiftDetails Shift, IReadOnlyList<MethodFinancialTotals> Activity,
-    DrawerPosition CurrentSharedDrawer);
+    DrawerPosition CurrentSharedDrawer, IReadOnlyList<ShiftAccountBalance> CurrentSharedAccountBalances,
+    ShiftBranchPeriodSummary? BranchPeriod = null);
 public sealed record BranchFinancialSummary(Guid BranchId, DateOnly? From, DateOnly? To,
     IReadOnlyList<MethodFinancialTotals> Activity, DrawerPosition CurrentSharedDrawer);
 public sealed record FinancialAuditDetails(Guid Id, string Event, string? EntityType, Guid? EntityId,

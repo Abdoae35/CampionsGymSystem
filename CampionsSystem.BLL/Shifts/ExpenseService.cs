@@ -15,7 +15,7 @@ public sealed partial class ExpenseService(ApplicationDbContext db, ICurrentUser
         var category=await db.ExpenseCategories.Where(x=>x.Id==e.ExpenseCategoryId).Select(x=>x.Name).SingleAsync(ct);
         var method=await db.FinancialAccounts.Where(x=>x.Id==e.FinancialAccountId).Select(x=>x.AccountType).SingleAsync(ct);
         var returned=await db.ExpenseReversals.Where(x=>x.ExpenseId==e.Id).SumAsync(x=>x.Amount,ct);
-        return new(e.Id,e.BranchId,e.ShiftId,e.RecordingEmployeeId,e.ExpenseCategoryId,category,e.FinancialAccountId,method,e.Amount,returned,e.Description,e.ReceiptReference,e.ExpenseDate,e.BusinessDate,e.PaidAt,e.Status);
+        return new(e.Id,e.BranchId,e.ShiftId,e.RecordingEmployeeId,e.ExpenseCategoryId,category,e.FinancialAccountId,method,e.Amount,returned,e.Description,e.ReceiptReference,e.ExpenseDate,e.BusinessDate,e.PaidAt,e.Status,e.CreatedByUserId);
     }
     public Task<ExpenseDetails> RecordPaidAsync(PaidExpenseRequest r,CancellationToken ct=default)=>money.TransactionAsync(async()=>
     {
@@ -24,16 +24,23 @@ public sealed partial class ExpenseService(ApplicationDbContext db, ICurrentUser
         var(branch,actor)=await money.ResolveAsync(ShiftPermissions.ExpenseCreate,r.BranchId,ct);await money.LockBranchAsync(branch,ct);
         var hash=FinancialOperations.Hash(r with{BranchId=branch});var prior=await db.Expenses.AsNoTracking().SingleOrDefaultAsync(x=>x.OperationId==r.OperationId,ct);
         if(prior!=null){FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor);if(prior.BranchId!=branch)throw new UnauthorizedAccessException();return await Details(prior,ct);}
-        var shift=await money.RequireShiftAsync(branch,actor,ct);var account=await money.AccountAsync(branch,r.FinancialAccountId,ct);
+        var owner=await new OwnerAdministrationAccess(db,current).IsOwnerAsync(actor,ct);
+        // Owner administrative expenses carry the real actor, never a fabricated
+        // employee Shift. Everyone else retains the existing own-shift guard.
+        var shift=owner?null:await money.RequireShiftAsync(branch,actor,ct);
+        var recordingEmployee=owner
+            ?await db.Employees.AsNoTracking().Where(x=>x.UserId==actor).Select(x=>(Guid?)x.Id).SingleOrDefaultAsync(ct)
+            :shift!.EmployeeId;
+        var account=await money.AccountAsync(branch,r.FinancialAccountId,ct);
         var category=await db.ExpenseCategories.FromSqlInterpolated($"SELECT * FROM \"ExpenseCategories\" WHERE \"Id\"={r.ExpenseCategoryId} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
         if(category==null||!category.IsActive)throw new BusinessRuleException("Select an active expense category.");
         var(date,day)=await money.BusinessDateAsync(branch,ct);
-        var expense=new Expense{BranchId=branch,ShiftId=shift.Id,RecordingEmployeeId=shift.EmployeeId,FinancialAccountId=account.Id,ExpenseCategoryId=category.Id,
+        var expense=new Expense{BranchId=branch,ShiftId=shift?.Id,RecordingEmployeeId=recordingEmployee,FinancialAccountId=account.Id,ExpenseCategoryId=category.Id,
             OperationId=r.OperationId,RequestHash=hash,Amount=r.Amount,Description=r.Description,ReceiptReference=r.ReceiptReference,ExpenseDate=access.Now,PaidAt=access.Now,
             CreatedAt=access.Now,CreatedByUserId=actor,BusinessDate=date,BusinessDayId=day,Status=ExpenseStatus.Recorded};db.Add(expense);
-        await money.PostAsync(new FinancialTransaction{BranchId=branch,FinancialAccountId=account.Id,ShiftId=shift.Id,Expense=expense,SourceType=FinancialSourceType.Expense,
+        await money.PostAsync(new FinancialTransaction{BranchId=branch,FinancialAccountId=account.Id,ShiftId=shift?.Id,Expense=expense,SourceType=FinancialSourceType.Expense,
             TransactionType=FinancialTransactionType.Debit,Amount=r.Amount,OccurredAt=access.Now,CreatedByUserId=actor,BusinessDate=date,BusinessDayId=day,Notes=r.Description},ct);
-        access.Audit(actor,branch,"Expense.Paid",nameof(Expense),expense.Id,after:new{r.Amount,AccountId=account.Id,account.AccountType,ShiftId=shift.Id,date,r.Description});
+        access.Audit(actor,branch,"Expense.Paid",nameof(Expense),expense.Id,after:new{r.Amount,AccountId=account.Id,account.AccountType,ShiftId=shift?.Id,RecordingEmployeeId=recordingEmployee,date,r.Description});
         return await Details(expense,ct);
     },ct);
     public Task<ExpenseReversalDetails> ReverseAsync(Guid id,ReverseExpenseRequest r,CancellationToken ct=default)=>money.TransactionAsync<ExpenseReversalDetails>(async()=>

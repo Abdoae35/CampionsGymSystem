@@ -194,7 +194,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
                 (entry.OriginalValues.GetValue<CampionsSystem.DAL.Enums.ShiftStatus>(nameof(Shift.Status)) == CampionsSystem.DAL.Enums.ShiftStatus.Closed
                 || entry.Properties.Any(p => p.IsModified && p.Metadata.Name is not (nameof(Shift.Status) or nameof(Shift.ClosedAt) or nameof(Shift.ClosedByUserId)
                     or nameof(Shift.CloseOperationId) or nameof(Shift.CloseRequestHash) or nameof(Shift.ExpectedClosingCash) or nameof(Shift.ActualClosingCash)
-                    or nameof(Shift.Difference) or nameof(Shift.ClosingBusinessDate) or nameof(Shift.ClosingReason) or nameof(Shift.Version)))))
+                    or nameof(Shift.Difference) or nameof(Shift.ClosingBusinessDate) or nameof(Shift.ClosingReason)
+                    or nameof(Shift.ClosingAccountBalancesJson) or nameof(Shift.Version)))))
                 throw new InvalidOperationException("Shift opening facts and closed shifts are immutable.");
         foreach (var entry in ChangeTracker.Entries<CashDrawer>())
             if (entry.State == EntityState.Deleted || entry.State == EntityState.Modified && entry.Properties.Any(p => p.IsModified && p.Metadata.Name != nameof(CashDrawer.MovementSequence)))

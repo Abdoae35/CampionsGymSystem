@@ -19,7 +19,8 @@ public sealed class ShiftPermissionSetup(ApplicationDbContext db)
         if(globalRoleId.HasValue)
         {
             var assigned=await db.RolePermissions.Where(x=>x.RoleId==globalRoleId).Select(x=>x.PermissionId).ToListAsync(ct);
-            foreach(var row in rows.Where(x=>x.IsActive&&!assigned.Contains(x.Id)))db.Add(new RolePermission{RoleId=globalRoleId.Value,PermissionId=row.Id});
+            foreach(var row in rows.Where(x=>x.IsActive&&x.Code!=ShiftPermissions.CloseOthers&&!assigned.Contains(x.Id)))
+                db.Add(new RolePermission{RoleId=globalRoleId.Value,PermissionId=row.Id});
         }
         db.Add(new AuditLog{Action="Permission.ShiftsVaultExpensesConfigured",EntityType=nameof(Permission),Description="Explicit capability setup; existing activation, role grants and user overrides preserved."});
         await db.SaveChangesAsync(ct);if(tx!=null)await tx.CommitAsync(ct);

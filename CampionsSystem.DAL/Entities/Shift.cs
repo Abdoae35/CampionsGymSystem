@@ -20,6 +20,7 @@ public sealed class Shift
     public DateOnly? ClosingBusinessDate { get; set; }
     public long Version { get; set; }
     public string? ClosingReason { get; set; }
+    public string? ClosingAccountBalancesJson { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid BranchId { get; set; }
     public GymBranch Branch { get; set; } = null!;

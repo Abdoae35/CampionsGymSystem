@@ -84,6 +84,18 @@ public sealed class FinancialOperations(ApplicationDbContext db, ICurrentUserSer
         return opening + await db.FinancialTransactions.Where(x => x.FinancialAccountId == account)
             .SumAsync(x => x.TransactionType == FinancialTransactionType.Credit ? x.Amount : -x.Amount, ct);
     }
+    public async Task<IReadOnlyList<ShiftAccountBalance>> AccountBalancesAsync(Guid branch, CancellationToken ct)
+    {
+        var accounts = await db.FinancialAccounts.AsNoTracking().Where(x => x.BranchId == branch)
+            .Select(x => new { x.Id, x.AccountType, x.OpeningBalance }).ToListAsync(ct);
+        var movements = await db.FinancialTransactions.AsNoTracking().Where(x => x.BranchId == branch)
+            .GroupBy(x => x.FinancialAccountId)
+            .Select(g => new { AccountId = g.Key, Net = g.Sum(x => x.TransactionType == FinancialTransactionType.Credit ? x.Amount : -x.Amount) })
+            .ToDictionaryAsync(x => x.AccountId, x => x.Net, ct);
+        return accounts.OrderBy(x => x.AccountType).ThenBy(x => x.Id)
+            .Select(x => new ShiftAccountBalance(x.Id, x.AccountType, x.OpeningBalance + movements.GetValueOrDefault(x.Id)))
+            .ToArray();
+    }
     public async Task<DrawerPosition> PositionAsync(Guid branch, CancellationToken ct)
     {
         var drawer = await DrawerAsync(branch, ct);

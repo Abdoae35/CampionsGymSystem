@@ -61,7 +61,10 @@ public sealed class ShiftDomainTests
             VALUES ({id},{branch.Id},{now},100,'Open',{actor.Id});
             """);
         var script = db.GetService<IMigrator>().GenerateScript("AddSaleGrantCancellationHistory", "PrepareEmployeeShiftsAndSharedDrawer").Replace("START TRANSACTION;", "").Replace("COMMIT;", "");
-        await db.Database.ExecuteSqlRawAsync(script); var legacy = await db.Shifts.SingleAsync();
+        await db.Database.ExecuteSqlRawAsync(script);
+        // This deliberately stops at an old migration, so project only columns
+        // available there instead of materializing today's entire Shift model.
+        var legacy = await db.Shifts.Select(x => new { x.OpeningCash, x.EmployeeId, x.OperationId, x.FinancialAccountId }).SingleAsync();
         Assert.Equal(100, legacy.OpeningCash); Assert.Null(legacy.EmployeeId); Assert.Null(legacy.OperationId); Assert.Null(legacy.FinancialAccountId);
         Assert.Empty(await db.CashDrawers.ToListAsync()); Assert.Empty(await db.CashCounts.Select(x => x.Id).ToListAsync()); Assert.Empty(await db.EmployeeAdvances.Select(x => x.Id).ToListAsync());
     }

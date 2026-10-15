@@ -20,6 +20,7 @@ public sealed class ShiftConfiguration : IEntityTypeConfiguration<Shift>
         builder.HasOne(x => x.FinancialAccount).WithMany().HasForeignKey(x => x.FinancialAccountId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.RequestHash).HasMaxLength(64);
         builder.Property(x => x.CloseRequestHash).HasMaxLength(64);
+        builder.Property(x => x.ClosingAccountBalancesJson).HasColumnType("jsonb");
         builder.Property(x => x.Version).IsConcurrencyToken();
         builder.HasIndex(x => x.OperationId).IsUnique();
         builder.HasIndex(x => x.CloseOperationId).IsUnique();

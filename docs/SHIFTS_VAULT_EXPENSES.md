@@ -7,19 +7,88 @@ and Owner decisions. Sales, subscriptions and check-in remain their existing ser
 
 ## Employee shifts and the shared drawer
 
-Each active linked employee manually opens and closes their own Shift. One employee
+Each active linked employee manually opens their own Shift. One employee
 may have at most one open shift across all branches. Different employees may overlap
 in one branch. A returning employee retrieves their existing open shift; no shift
 is automatically opened, closed, replaced or backdated. Normal closure is final and
 requires the opener, capability, current version and an actual cash count. There is
 no approval or pending state. Legacy ShiftEmployee/ShiftEmployeeChange history remains
 intact; new owned shifts have one owning participant with actual JoinedAt/LeftAt.
+An authorized Branch Manager or Owner can close another employee's open shift with
+a reason, even after suspension or resignation. This override can omit a physical
+count; it then records `Unverified`, null counted cash and null discrepancy while
+preserving the expected drawer and each financial account's book balance at the
+serialized closure point. It creates no CashCount or ledger movement. Closed shift
+details expose closer, reason, closure type and verification status. Legacy closed
+shifts with unknown evidence are marked `Unknown`.
 
 Each branch has one explicitly configured physical drawer, bound to one existing
 Cash FinancialAccount. There are no employee cash accounts. Opening and closing
 cash counts observe that shared branch drawer. An employee's collections/payouts are
 reported by explicit ShiftId, separately from all branch cash movements and counts.
 A count shortage is never automatically blamed on that employee or deducted from salary.
+
+Before closure, `GET /api/shifts/{id}/summary` reports `activity` by Cash/InstaPay
+for ledger rows explicitly linked to that Shift. `currentSharedDrawer` is the
+branch's live book/expected physical Cash position, and
+`currentSharedAccountBalances` contains live book balances per branch financial
+account (`accountId`, `method`, `bookBalance`), including the drawer Cash account
+and every InstaPay account. These branch positions
+are repeated when viewing overlapping employee Shifts; they must never be summed
+across Shifts. An open Shift has no `actualClosingCash` or closing discrepancy.
+The drawer's `lastCountedCash` is the last recorded physical observation, not a
+new count at the time of review. Closure-time balances in `shift` are separate,
+immutable snapshots captured only when that Shift closes.
+
+The same summary now includes `branchPeriod`: all branch ledger activity whose
+posting timestamp falls from the Shift's `openedAt` through an explicit `cutoffAt` (the current request
+instant while open, or frozen `closedAt` after closure). Its `activity` totals
+cover the entire interval, not a page; `operators` groups transaction count,
+inflows, outflows and net movement by actual actor ID/name and account method.
+Each `accounts` row shows opening book balance, period inflows/outflows,
+calculated closing book balance and expected closing book balance. For a closed
+Shift, the expected amount comes from its immutable closure account snapshot;
+for an open Shift, it is the current branch book balance. A mismatch is flagged
+on the row and in `limitations`. `expectedPhysicalCashAtCutoff` is the shared
+drawer expectation at that cutoff; `countedCashAtClosure` is null unless an
+actual closing count occurred. Physical discrepancies are separate from book
+account reconciliation. These branch totals include other employees and Owner
+operations even if those operators have no Shift or their Shifts remain open.
+They never become this employee's `activity`.
+
+`GET /api/shifts/{id}/branch-transactions?page=1&pageSize=25` pages the same
+branch-period ledger rows with `total` for the whole interval. Each row includes
+nullable `shiftId`, actual `actorId`/`actorName`, account ID/method, source,
+direction, amount, `occurredAt`, `postedAt`, BusinessDate and source references.
+It is ordered by posting time descending, then ledger ID. A later posting of
+an older occurrence is excluded from a closed Shift's branch period by
+`postedAt`, while `occurredAt` remains visible as the original event timestamp.
+Legacy rows without `postedAt` use `occurredAt` as a fallback. Such rows and transactions tied to
+the exact closure timestamp have explicit `limitations`; they cannot be proven
+to precede closure from timestamps alone. The frozen closure account snapshot
+remains authoritative when a historical reconstruction cannot reconcile.
+`currentSharedDrawer` and `currentSharedAccountBalances` on a closed Shift are
+still **live** branch values, not historical closing values; use `branchPeriod`
+or the Shift's closing fields for historical review.
+
+`GET /api/shifts/{id}/transactions?page=1&pageSize=25` returns `{items,total,
+page,pageSize}` with at most 100 persisted ledger rows per page, ordered by
+`occurredAt` descending then ledger `id`. Each item has `id`, `shiftId`,
+`accountId`, `method` (Cash/InstaPay from historical FinancialAccount),
+`sourceType`, `direction` (`Credit` = inflow, `Debit` = outflow), `amount`,
+`occurredAt`, `businessDate`, `actorId`, and nullable payment/refund/expense/
+advance/cash-movement/payroll source IDs. An inactive account retains its
+original method. Split payments appear as their actual distinct ledger rows;
+PaymentParts are not counted again. Both review routes require effective
+`Shifts.View` and `Vault.View` within the Shift's branch. A Manager or Owner
+performing override closure must have these review capabilities in addition to
+`Shifts.CloseOthers`.
+The Shift-only transaction rows also expose `actorName`.
+
+These enum fields use the API's existing numeric JSON convention: `method`
+Cash=0, InstaPay=1 (legacy Bank=2, Card=3, Wallet=4 may also appear);
+`sourceType` Payment=0, Refund=1, Expense=2, Payroll=3, Adjustment=4,
+EmployeeAdvance=5, CashMovement=6; `direction` Credit=0, Debit=1.
 
 New Member registration, Sale/paid renewal, Cash/InstaPay collection, reservation or
 installment payment, refunds/cancellation and operational payouts require the acting
@@ -28,9 +97,9 @@ shift is insufficient. Global capability does not replace an own shift for payou
 Reading reports, authentication, explicit day management and initial setup remain
 available without a shift. Existing null Shift associations remain unchanged.
 
-Employee branch transfer requires closing that employee's own shift first. Transfer
+Employee branch transfer requires closing that employee's shift first. Transfer
 and shift opening coordinate on the employee row; they cannot strand an open shift
-in the old branch. There is no forced recovery endpoint. Forgotten shifts do not
+in the old branch. Authorized override closure is the recovery endpoint. Forgotten shifts do not
 block colleagues or explicit BusinessDay rollover.
 
 ## Cash positions and reconciliation
@@ -87,6 +156,15 @@ an actual paid expense directly: branch, recording employee/shift, account, Cash
 InstaPay, amount, description, optional receipt, UTC time, effective day and audit.
 One ledger debit is written atomically with the expense. New managed expenses are
 immutable; their original Recorded status is a historical fact, not an approval state.
+An authorized stored Owner may record a direct paid Cash or InstaPay expense
+without opening an employee Shift. The expense and ledger use the authenticated
+Owner's user ID (`recordedByUserId` in `ExpenseDetails`); `shiftId` is null.
+`recordingEmployeeId` identifies the Owner's linked employee only if one exists.
+Other employees still require their own active Shift. The Owner must retain
+effective `Expenses.Create` and branch scope. One actual ledger debit, Cash
+availability checks and the normal audit record still apply. Managed expense
+returns remain under their existing own-Shift workflow; this change covers
+direct paid expense recording only.
 
 An expense return requires Expenses.Reverse, an own open shift, a positive amount,
 reason and explicit FundsActuallyReturned=true. It cannot exceed the paid amount less
@@ -141,14 +219,18 @@ extra financial scope. Direct Allow/Deny overrides retain existing semantics; De
 Clients cannot submit authoritative employee, expected balance or BusinessDate fields
 to new mutation contracts; unknown JSON fields are rejected.
 
-Capabilities: Shifts.View/Manage; Vault.View/Manage/Withdraw; Expenses.View/Create/
+Capabilities: Shifts.View/Manage/CloseOthers; Vault.View/Manage/Withdraw; Expenses.View/Create/
 Manage/Reverse; Advances.View/Create. Existing Expenses.Approve remains catalog-compatible
-but is not used by this direct-paid workflow. No role-name authorization is used.
+but is not used by this direct-paid workflow. `Shifts.CloseOthers` additionally
+requires stored Owner or BranchManager membership and branch scope; neither
+`Shifts.Manage` nor a role title alone authorizes it. Deny overrides still win.
 
 Fresh Development role templates give Sales/Reception own-shift, expense/advance
 and operational viewing capabilities. Fresh BranchManager adds branch vault/category/
 return management, with global scope still required for the shared category catalog.
-Fresh Owner receives all capabilities. Existing role grants, inactive permissions and
+Fresh Owner receives the original capabilities; `Shifts.CloseOthers` has no automatic
+role grant. The Owner explicitly grants it through access administration to the
+appropriate Owner/BranchManager account or role. Existing role grants, inactive permissions and
 custom user overrides are never replaced by seeding or catalog setup.
 
 Explicit local catalog setup:
@@ -159,7 +241,7 @@ dotnet run --project CampionsSystem.API -- --configure-shift-permissions
 
 It refuses non-Development or non-localhost targets. With no Shifts:GlobalRoleId it
 only adds missing catalog entries; with an explicitly configured existing globally
-capable role it adds missing active grants to that role. Other staff grants are explicit
+capable role it adds missing active grants except `Shifts.CloseOthers` to that role. Other staff grants are explicit
 administration. It does not provision users, shifts, accounts, money or expense categories.
 
 The earlier Sales permission provisioning gap remains: local Development
@@ -178,10 +260,13 @@ effective BusinessDate filters; unknown legacy dates are excluded by date bounds
 |---|---|---|
 | POST | /api/shifts | Shifts.Manage, own active employee |
 | POST | /api/shifts/{id}/close | Shifts.Manage, original opener, ExpectedVersion |
+| POST | /api/shifts/{id}/close-override | Shifts.CloseOthers, stored Owner/BranchManager role, branch scope, another employee's shift, ExpectedVersion, required reason; CountedCash optional |
 | GET | /api/shifts/current | Shifts.View; own open shift |
 | GET | /api/shifts | Shifts.View; BranchId/EmployeeId/From/To, pagination |
 | GET | /api/shifts/{id} | Shifts.View, branch scope |
-| GET | /api/shifts/{id}/summary | Shifts.View + Vault.View; explicit shift activity |
+| GET | /api/shifts/{id}/summary | Shifts.View + Vault.View; own activity plus full branch-period reconciliation |
+| GET | /api/shifts/{id}/transactions | Shifts.View + Vault.View; Shift-linked ledger rows, page/pageSize |
+| GET | /api/shifts/{id}/branch-transactions | Shifts.View + Vault.View; all branch ledger rows in the Shift interval, page/pageSize |
 | GET | /api/business-days/current | Shifts.View, optional authorized BranchId |
 | POST | /api/business-days | Shifts.Manage; explicit date advance |
 | POST | /api/business-days/{id}/close | Shifts.Manage; open shifts may remain |
@@ -193,7 +278,7 @@ effective BusinessDate filters; unknown legacy dates are excluded by date bounds
 | POST | /api/vault/withdrawals | Vault.Withdraw + Branches.AccessAll, own open shift |
 | GET | /api/vault/summary | Vault.View; branch/date totals and current drawer |
 | GET | /api/vault/audit | Vault.View; branch, optional EntityId, pagination |
-| POST | /api/expenses | Expenses.Create; actual paid expense, own shift |
+| POST | /api/expenses | Expenses.Create; actual paid expense, own shift for employees; stored Owner may record without a Shift |
 | GET | /api/expenses | Expenses.View; bounded branch/account/date history |
 | GET | /api/expenses/{id} | Expenses.View |
 | POST | /api/expenses/{id}/returns | Expenses.Reverse; actual returned funds, own shift |
@@ -210,7 +295,7 @@ routes remain their established endpoints. New reports add operational source to
 collected/refunded, expenses/returns, advances, withdrawals, initial positions, other
 ledger movements and net movement, separated by Cash/InstaPay. They do not equate net
 cash movement to Sales revenue or calculate commission. CurrentSharedDrawer is always
-the current position, while a closed Shift's cash snapshot remains historical.
+the current position, while a closed Shift's cash and account snapshots remain historical.
 Financial audit history covers Shift/Vault/Expense/Advance/BusinessDay events;
 existing Sales/Payment/Refund audit and history remain in their original services.
 
@@ -234,6 +319,21 @@ Example close, preserving request body on retry:
 { "operationId": "db420e27-89f2-444e-9149-f48ee0a764a0",
   "expectedVersion": 1, "countedCash": 107800, "reason": "Physical drawer count" }
 ```
+
+Example authorized override close without a physical count:
+
+```json
+{ "operationId": "bf39cc84-c145-4600-b071-a2e7b4a22864",
+  "expectedVersion": 1, "reason": "Opener resigned before closing" }
+```
+
+The response has `closureType: "Override"`, `verificationStatus: "Unverified"`,
+`closedByUserId`, `closingReason`, `expectedClosingCash`, null
+`actualClosingCash`/`difference`, and `closingAccountBalances` entries with
+`accountId`, `method` and `bookBalance`. `closingCashBookBalance` and
+`closingInstaPayBookBalance` summarize the configured drawer account and all
+branch InstaPay accounts at closure. Existing `activity` on the shift summary
+counts only transactions linked to that shift; `currentSharedDrawer` is live.
 
 Example paid expense (source account determines Cash/InstaPay):
 

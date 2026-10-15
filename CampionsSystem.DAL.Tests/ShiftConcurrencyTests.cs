@@ -7,9 +7,65 @@ using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class SalesConcurrencyTests
 {
+    [Fact] public async Task ConcurrentIndependentShiftClosuresKeepOneSharedDrawerAndSeparateSnapshots()
+    {
+        Guid first,second,colleague;
+        await using(var setup=Context())
+        {
+            first=(await setup.Shifts.SingleAsync()).Id;
+            var person=new ApplicationUser{UserName="concurrent-colleague"};colleague=person.Id;setup.Add(person);await setup.SaveChangesAsync();
+            second=(await OperationalShiftFixture.OpenAsync(setup,colleague,branch,new Clock(),account)).Id;
+        }
+        async Task Close(Guid shiftId,Guid operatorId)
+        {
+            await using var db=Context();var shift=await db.Shifts.SingleAsync(x=>x.Id==shiftId);
+            await Operational(db,operatorId).Shifts.CloseAsync(shiftId,new(Guid.NewGuid(),shift.Version,0));
+        }
+        await Task.WhenAll(Close(first,actor),Close(second,colleague));
+        await using var verify=Context();
+        var closed=await verify.Shifts.Where(x=>x.Status==ShiftStatus.Closed).ToListAsync();Assert.Equal(2,closed.Count);
+        Assert.All(closed,x=>{Assert.Equal(0,x.ExpectedClosingCash);Assert.Equal(0,x.ActualClosingCash);});
+        Assert.Empty(await verify.FinancialTransactions.ToListAsync());
+        Assert.Equal(5,await verify.CashCounts.CountAsync()); // setup, two openings, two closings
+        var context=new TestBranchUser(new(actor,"reviewer",null,null,[],[..ShiftPermissions.Codes,"Branches.AccessAll"],new(branch,"Branch")));
+        var access=new OperationAccess(context,verify,new Clock(),Options.Create(new AuthContextOptions()));
+        var reports=new ShiftReportService(verify,context,access);
+        Assert.Equal(0,(await reports.ShiftAsync(first)).BranchPeriod!.ExpectedPhysicalCashAtCutoff);
+        Assert.Equal(0,(await reports.ShiftAsync(second)).BranchPeriod!.ExpectedPhysicalCashAtCutoff);
+    }
+    [Fact] public async Task ConcurrentOverrideClosuresCommitExactlyOneUnverifiedResult()
+    {
+        Guid shift; long version; Guid manager; int counts;
+        await using (var db = Context())
+        {
+            var row = await db.Shifts.SingleAsync(); shift = row.Id; version = row.Version;
+            counts = await db.CashCounts.CountAsync();
+            var closer = new ApplicationUser { UserName = "override-manager" }; manager = closer.Id;
+            var role = new IdentityRole<Guid>("BranchManager") { Id = Guid.NewGuid(), NormalizedName = "BRANCHMANAGER" };
+            db.AddRange(closer, role, new IdentityUserRole<Guid> { UserId = manager, RoleId = role.Id });
+            await db.SaveChangesAsync();
+        }
+        async Task<bool> Close()
+        {
+            await using var db = Context();
+            try
+            {
+                await Operational(db, manager).Shifts.CloseOverrideAsync(shift,
+                    new(Guid.NewGuid(), version, "Absent employee"));
+                return true;
+            }
+            catch (BusinessRuleException) { return false; }
+        }
+        Assert.Single(await Task.WhenAll(Close(), Close()), x => x);
+        await using var verify = Context();
+        Assert.Single(await verify.AuditLogs.Where(x => x.Action == "Shift.OverrideClosed" && x.EntityId == shift).ToListAsync());
+        Assert.Equal(counts, await verify.CashCounts.CountAsync());
+        Assert.Empty(await verify.FinancialTransactions.ToListAsync());
+    }
     private (ShiftService Shifts,ExpenseService Expenses,VaultService Vault) Operational(ApplicationDbContext db,Guid? actorId=null)
     {
         var user=new TestBranchUser(new(actorId??actor,"operator",null,null,[],[..SalesPermissions.Codes,..ShiftPermissions.Codes,"Branches.AccessAll"],new(branch,"Branch")));

@@ -5840,6 +5840,9 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid?>("ClosedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ClosingAccountBalancesJson")
+                        .HasColumnType("jsonb");
+
                     b.Property<DateOnly?>("ClosingBusinessDate")
                         .HasColumnType("date");
 

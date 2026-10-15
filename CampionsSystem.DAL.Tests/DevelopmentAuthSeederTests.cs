@@ -1,5 +1,6 @@
 using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Branches;
+using CampionsSystem.BLL.Shifts;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -66,7 +67,8 @@ public sealed class DevelopmentAuthSeederTests : IAsyncLifetime
         Assert.Null(owner.CurrentBranch);
         Assert.Contains("Employees.View", owner.Permissions);
         Assert.Contains("Branches.AccessAll", owner.Permissions);
-        Assert.Equal(DevelopmentAuthSeeder.PermissionCodes.Length, owner.Permissions.Count);
+        Assert.Equal(DevelopmentAuthSeeder.PermissionCodes.Length - 1, owner.Permissions.Count);
+        Assert.DoesNotContain(ShiftPermissions.CloseOthers, owner.Permissions);
         var reception = Assert.IsType<CurrentUserContext>(await Login("dev.reception"));
         Assert.NotNull(reception.EmployeeId);
         Assert.Equal("Auth Demo Branch", reception.CurrentBranch?.Name);

@@ -5,12 +5,22 @@ using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace CampionsSystem.BLL.Shifts;
 
 public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService current, OperationAccess access)
 {
     private readonly FinancialOperations money = new(db, current, access);
+    private async Task EnsureOverrideRoleAsync(Guid actor, CancellationToken ct)
+    {
+        if (await new OwnerAdministrationAccess(db, current).IsOwnerAsync(actor, ct)) return;
+        if (!await (from membership in db.UserRoles.AsNoTracking()
+                    join role in db.Roles.AsNoTracking() on membership.RoleId equals role.Id
+                    where membership.UserId == actor && role.NormalizedName == "BRANCHMANAGER"
+                    select membership.UserId).AnyAsync(ct))
+            throw new UnauthorizedAccessException();
+    }
     public async Task<BusinessDayDetails?> CurrentBusinessDayAsync(Guid? branchId=null,CancellationToken ct=default)
     {
         var(branch,_)=await money.ResolveAsync(ShiftPermissions.View,branchId,ct);
@@ -18,10 +28,19 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
         return row==null?null:DayDetails(row);
     }
     public static BusinessDayDetails DayDetails(BusinessDay day)=>new(day.Id,day.BranchId,day.BusinessDate,day.Status,day.OpenedAt,day.ClosedAt,day.OpenedByUserId,day.ClosedByUserId);
-    private async Task<ShiftDetails> Details(Shift row, CancellationToken ct) => new(row.Id, row.BranchId, row.EmployeeId,
-        row.EmployeeId == null ? null : await db.Employees.Where(x => x.Id == row.EmployeeId).Select(x => x.FullName).SingleAsync(ct),
+    private async Task<ShiftDetails> Details(Shift row, CancellationToken ct) => DetailsOf(row,
+        row.EmployeeId == null ? null : await db.Employees.Where(x => x.Id == row.EmployeeId).Select(x => x.FullName).SingleAsync(ct));
+    internal static ShiftDetails DetailsOf(Shift row, string? employeeName)
+    {
+        var balances = row.ClosingAccountBalancesJson == null ? null : JsonSerializer.Deserialize<ShiftAccountBalance[]>(row.ClosingAccountBalancesJson);
+        return new(row.Id, row.BranchId, row.EmployeeId, employeeName,
         row.Status, row.Version, row.OpenedAt, row.ClosedAt, row.OpeningBusinessDate, row.ClosingBusinessDate, row.OpeningCash,
-        row.ExpectedClosingCash, row.ActualClosingCash, row.Difference);
+        row.ExpectedClosingCash, row.ActualClosingCash, row.Difference, row.ClosedByUserId, row.ClosingReason,
+        row.ClosedAt == null ? null : row.CloseOperationId == null ? "LegacyUnknown" : row.ClosedByUserId == row.OpenedByUserId ? "Self" : "Override",
+        row.ClosedAt == null ? null : row.CloseOperationId == null ? "Unknown" : row.ActualClosingCash.HasValue ? "Verified" : "Unverified",
+        balances, balances?.FirstOrDefault(x => x.AccountId == row.FinancialAccountId)?.BookBalance,
+        balances == null ? null : balances.Where(x => x.Method == FinancialAccountType.InstaPay).Sum(x => x.BookBalance));
+    }
 
     public Task<ShiftDetails> OpenAsync(OpenShiftRequest r, CancellationToken ct = default) => money.TransactionAsync(async () =>
     {
@@ -47,27 +66,49 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
         await db.SaveChangesAsync(ct); return await Details(shift, ct);
     }, ct);
 
-    public Task<ShiftDetails> CloseAsync(Guid id, CloseShiftRequest r, CancellationToken ct = default) => money.TransactionAsync(async () =>
+    public Task<ShiftDetails> CloseAsync(Guid id, CloseShiftRequest r, CancellationToken ct = default) =>
+        CloseCoreAsync(id, r.OperationId, r.ExpectedVersion, r.CountedCash, r.Reason, false, FinancialOperations.Hash(new { id, r }), ct);
+
+    public Task<ShiftDetails> CloseOverrideAsync(Guid id, OverrideCloseShiftRequest r, CancellationToken ct = default) =>
+        CloseCoreAsync(id, r.OperationId, r.ExpectedVersion, r.CountedCash, r.Reason, true, FinancialOperations.Hash(new { id, r, mode = "Override" }), ct);
+
+    private Task<ShiftDetails> CloseCoreAsync(Guid id, Guid operationId, long expectedVersion, decimal? countedCash,
+        string? reason, bool isOverride, string hash, CancellationToken ct) => money.TransactionAsync(async () =>
     {
-        FinancialOperations.Operation(r.OperationId); FinancialOperations.Money(r.CountedCash);
-        if(r.Reason?.Length>2000)throw new BusinessRuleException("Closing reason must be at most 2000 characters.");
+        FinancialOperations.Operation(operationId);
+        if (countedCash.HasValue) FinancialOperations.Money(countedCash.Value);
+        if (isOverride) FinancialOperations.Reason(reason);
+        else if (reason?.Length > 2000) throw new BusinessRuleException("Closing reason must be at most 2000 characters.");
         var info = await db.Shifts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BranchNotFoundException("Shift not found.");
-        var actor = await access.RequireAsync(ShiftPermissions.Manage, info.BranchId, ct);
-        if (info.OpenedByUserId != actor || info.EmployeeId == null || info.OperationId == null) throw new UnauthorizedAccessException();
+        var actor = await access.RequireAsync(isOverride ? ShiftPermissions.CloseOthers : ShiftPermissions.Manage, info.BranchId, ct);
+        if (isOverride) await EnsureOverrideRoleAsync(actor, ct);
+        if ((isOverride ? info.OpenedByUserId == actor : info.OpenedByUserId != actor) || info.EmployeeId == null || info.OperationId == null)
+            throw new UnauthorizedAccessException();
         await money.LockBranchAsync(info.BranchId, ct);
+        // Access may have changed while waiting for another drawer operation.
+        await access.RequireAsync(isOverride ? ShiftPermissions.CloseOthers : ShiftPermissions.Manage, info.BranchId, ct);
+        if (isOverride) await EnsureOverrideRoleAsync(actor, ct);
         var shift = await db.Shifts.FromSqlInterpolated($"SELECT * FROM \"Shifts\" WHERE \"Id\"={id} FOR UPDATE").SingleAsync(ct); await db.Entry(shift).ReloadAsync(ct);
-        var hash = FinancialOperations.Hash(new { id, r });
-        var prior = await db.Shifts.AsNoTracking().SingleOrDefaultAsync(x => x.CloseOperationId == r.OperationId, ct);
+        var prior = await db.Shifts.AsNoTracking().SingleOrDefaultAsync(x => x.CloseOperationId == operationId, ct);
         if (prior != null) { FinancialOperations.Retry(prior.CloseRequestHash, hash, prior.ClosedByUserId!.Value, actor); return await Details(prior, ct); }
         if (shift.Status != ShiftStatus.Open) throw new BusinessRuleException("Shift already closed.");
-        if (shift.Version != r.ExpectedVersion) throw new DbUpdateConcurrencyException();
+        if (shift.Version != expectedVersion) throw new DbUpdateConcurrencyException();
         if (access.Now < shift.OpenedAt) throw new BusinessRuleException("Cannot backdate shift closure.");
-        var count = await money.CountAsync(shift.BranchId, actor, r.OperationId, hash, r.CountedCash, "Closing", id, r.Reason, ct);
-        shift.CloseOperationId = r.OperationId; shift.CloseRequestHash = hash; shift.ClosedAt = access.Now; shift.ClosedByUserId = actor;
-        shift.ExpectedClosingCash = count.ExpectedCash; shift.ActualClosingCash = count.CountedCash; shift.Difference = count.Difference;
-        shift.ClosingBusinessDate = count.BusinessDate; shift.ClosingReason = r.Reason; shift.Status = ShiftStatus.Closed; shift.Version++;
+        var position = await money.PositionAsync(shift.BranchId, ct);
+        var accounts = await money.AccountBalancesAsync(shift.BranchId, ct);
+        var (date, _) = await money.BusinessDateAsync(shift.BranchId, ct);
+        CashCount? count = countedCash.HasValue
+            ? await money.CountAsync(shift.BranchId, actor, operationId, hash, countedCash.Value, "Closing", id, reason, ct)
+            : null;
+        shift.CloseOperationId = operationId; shift.CloseRequestHash = hash; shift.ClosedAt = access.Now; shift.ClosedByUserId = actor;
+        shift.ExpectedClosingCash = position.ExpectedPhysicalCash; shift.ActualClosingCash = count?.CountedCash; shift.Difference = count?.Difference;
+        shift.ClosingBusinessDate = date; shift.ClosingReason = reason; shift.ClosingAccountBalancesJson = JsonSerializer.Serialize(accounts);
+        shift.Status = ShiftStatus.Closed; shift.Version++;
         var participant = await db.ShiftEmployees.SingleAsync(x => x.ShiftId == id && x.EmployeeId == shift.EmployeeId, ct); participant.LeftAt = access.Now;
-        access.Audit(actor, shift.BranchId, "Shift.Closed", nameof(Shift), id, after: new { count.ExpectedCash, count.CountedCash, count.Difference, count.BusinessDate });
+        access.Audit(actor, shift.BranchId, isOverride ? "Shift.OverrideClosed" : "Shift.Closed", nameof(Shift), id,
+            after: new { shift.EmployeeId, shift.OpenedByUserId, shift.ClosedByUserId, ClosureType = isOverride ? "Override" : "Self",
+                VerificationStatus = count == null ? "Unverified" : "Verified", shift.ExpectedClosingCash, shift.ActualClosingCash,
+                shift.Difference, shift.ClosingBusinessDate, reason, AccountBalances = accounts });
         await db.SaveChangesAsync(ct); return await Details(shift, ct);
     }, ct);
 

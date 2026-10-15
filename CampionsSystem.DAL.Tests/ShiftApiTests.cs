@@ -32,6 +32,8 @@ public sealed partial class AuthenticationApiTests
             Assert.Equal(HttpStatusCode.Unauthorized,(await client.GetAsync(route)).StatusCode);
         await Authenticate();
         Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync("/api/shifts",new OpenShiftRequest(Guid.NewGuid(),0))).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync($"/api/shifts/{Guid.NewGuid()}/close-override",
+            new OverrideCloseShiftRequest(Guid.NewGuid(),1,"Unprivileged request"))).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync("/api/vault/audit")).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync("/api/expenses",new PaidExpenseRequest(Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),1,"Supplies"))).StatusCode);
     }
@@ -51,12 +53,95 @@ public sealed partial class AuthenticationApiTests
         var summary=(await client.GetFromJsonAsync<ShiftFinancialSummary>($"/api/shifts/{shift.Id}/summary"))!;
         Assert.Equal(100,summary.Activity.Single(x=>x.Method==FinancialAccountType.Cash).ExpensesPaid);
         Assert.Equal(50,summary.Activity.Single(x=>x.Method==FinancialAccountType.InstaPay).AdvancesPaid);
+        Assert.Equal(900,summary.CurrentSharedDrawer.ExpectedPhysicalCash);
+        Assert.Equal(900,summary.CurrentSharedAccountBalances.Single(x=>x.AccountId==f.Cash).BookBalance);
+        Assert.Equal(-50,summary.CurrentSharedAccountBalances.Single(x=>x.AccountId==f.Insta).BookBalance);
+        Assert.Null(summary.Shift.ActualClosingCash);
+        Assert.Equal(2,summary.BranchPeriod!.TransactionCount);
+        Assert.Equal(900,summary.BranchPeriod.Accounts.Single(x=>x.AccountId==f.Cash).ExpectedClosingBookBalance);
+        Assert.Equal(-50,summary.BranchPeriod.Accounts.Single(x=>x.AccountId==f.Insta).ExpectedClosingBookBalance);
+        var page=(await client.GetFromJsonAsync<ShiftPage<ShiftFinancialTransactionDetails>>($"/api/shifts/{shift.Id}/transactions?pageSize=1"))!;
+        Assert.Equal(2,page.Total);Assert.Single(page.Items);
+        var secondPage=(await client.GetFromJsonAsync<ShiftPage<ShiftFinancialTransactionDetails>>($"/api/shifts/{shift.Id}/transactions?page=2&pageSize=1"))!;
+        Assert.Equal(2,page.Items.Concat(secondPage.Items).Select(x=>x.Id).Distinct().Count());
+        Assert.All(page.Items.Concat(secondPage.Items),x=>{Assert.Equal(userId,x.ActorId);Assert.False(string.IsNullOrWhiteSpace(x.ActorName));});
+        Assert.Contains(page.Items.Concat(secondPage.Items),x=>x.Method==FinancialAccountType.Cash&&x.SourceType==FinancialSourceType.Expense&&x.Direction==FinancialTransactionType.Debit&&x.Amount==100);
+        Assert.Contains(page.Items.Concat(secondPage.Items),x=>x.Method==FinancialAccountType.InstaPay&&x.SourceType==FinancialSourceType.EmployeeAdvance&&x.Direction==FinancialTransactionType.Debit&&x.Amount==50);
+        Assert.Equal(HttpStatusCode.BadRequest,(await client.GetAsync($"/api/shifts/{shift.Id}/transactions?pageSize=101")).StatusCode);
+        var branchPage=(await client.GetFromJsonAsync<ShiftPage<ShiftBranchTransactionDetails>>($"/api/shifts/{shift.Id}/branch-transactions?pageSize=1"))!;
+        Assert.Equal(2,branchPage.Total);Assert.Single(branchPage.Items);
+        Assert.Equal(HttpStatusCode.BadRequest,(await client.GetAsync($"/api/shifts/{shift.Id}/branch-transactions?pageSize=101")).StatusCode);
         var close=new CloseShiftRequest(Guid.NewGuid(),shift.Version,900);
+        Assert.Equal(HttpStatusCode.BadRequest,(await client.PostAsJsonAsync($"/api/shifts/{shift.Id}/close",
+            new { operationId=Guid.NewGuid(), expectedVersion=shift.Version })).StatusCode);
         Assert.Equal(HttpStatusCode.Conflict,(await client.PostAsJsonAsync($"/api/shifts/{shift.Id}/close",close with{ExpectedVersion=0})).StatusCode);
         Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync($"/api/shifts/{shift.Id}/close",close)).StatusCode);
         Assert.Equal(paid.Id,(await (await client.PostAsJsonAsync("/api/expenses",expense)).Content.ReadFromJsonAsync<ExpenseDetails>())!.Id);
         Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync("/api/employee-advances",advance)).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest,(await client.PostAsJsonAsync("/api/expenses",expense with{OperationId=Guid.NewGuid()})).StatusCode);
+    }
+    [Fact] public async Task ShiftFinancialReviewRequiresBothCapabilitiesAndBranchScope()
+    {
+        var f=await DrawerHttpFixture();await GrantShifts(ShiftPermissions.View,ShiftPermissions.Manage);await Authenticate();
+        var shift=(await (await client.PostAsJsonAsync("/api/shifts",new OpenShiftRequest(Guid.NewGuid(),1000))).Content.ReadFromJsonAsync<ShiftDetails>())!;
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/shifts/{shift.Id}/transactions")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/shifts/{shift.Id}/branch-transactions")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/shifts/{shift.Id}/summary")).StatusCode);
+        await GrantShifts(ShiftPermissions.VaultView);
+        Assert.Equal(HttpStatusCode.OK,(await client.GetAsync($"/api/shifts/{shift.Id}/transactions")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK,(await client.GetAsync($"/api/shifts/{shift.Id}/branch-transactions")).StatusCode);
+        Guid otherShift;
+        await using(var scope=factory.Services.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var row=new Shift{BranchId=f.Other,OpenedByUserId=userId,OpenedAt=DateTimeOffset.UtcNow,Status=ShiftStatus.Closed};
+            db.Add(row);await db.SaveChangesAsync();otherShift=row.Id;
+        }
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/shifts/{otherShift}/transactions")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/shifts/{otherShift}/branch-transactions")).StatusCode);
+        await using(var scope=factory.Services.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var permission=await db.Permissions.SingleAsync(x=>x.Code==ShiftPermissions.VaultView);
+            db.Add(new UserPermissionOverride{UserId=userId,PermissionId=permission.Id,Effect=PermissionOverrideEffect.Deny});await db.SaveChangesAsync();
+        }
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/shifts/{shift.Id}/transactions")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/shifts/{shift.Id}/branch-transactions")).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/shifts/{shift.Id}/summary")).StatusCode);
+    }
+    [Fact] public async Task OwnerRecordsCashAndInstaPayExpensesWithoutAnEmployeeShift()
+    {
+        var f=await DrawerHttpFixture();
+        await GrantShifts(ShiftPermissions.ExpenseCreate,ShiftPermissions.ExpenseView);
+        await using(var scope=factory.Services.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var role=await db.Roles.SingleOrDefaultAsync(x=>x.NormalizedName=="OWNER");
+            if(role==null){role=new Microsoft.AspNetCore.Identity.IdentityRole<Guid>("Owner"){Id=Guid.NewGuid(),NormalizedName="OWNER"};db.Add(role);}
+            db.Add(new Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>{UserId=userId,RoleId=role.Id});
+            await db.SaveChangesAsync();
+        }
+        await Authenticate();
+        var cash=new PaidExpenseRequest(Guid.NewGuid(),f.Category,f.Cash,100,"Owner Cash expense");
+        var insta=new PaidExpenseRequest(Guid.NewGuid(),f.Category,f.Insta,50,"Owner InstaPay expense");
+        var first=(await (await client.PostAsJsonAsync("/api/expenses",cash)).Content.ReadFromJsonAsync<ExpenseDetails>())!;
+        var second=(await (await client.PostAsJsonAsync("/api/expenses",insta)).Content.ReadFromJsonAsync<ExpenseDetails>())!;
+        Assert.Null(first.ShiftId);Assert.Null(second.ShiftId);
+        Assert.Equal(userId,first.RecordedByUserId);Assert.Equal(userId,second.RecordedByUserId);
+        Assert.Equal(f.Employee,first.RecordingEmployeeId);
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync("/api/expenses",cash with{OperationId=Guid.NewGuid(),BranchId=f.Other})).StatusCode);
+        await using var verifyScope=factory.Services.CreateAsyncScope();
+        var verify=verifyScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Empty(await verify.Shifts.ToListAsync());
+        var ledger=await verify.FinancialTransactions.Where(x=>x.SourceType==FinancialSourceType.Expense).OrderBy(x=>x.Amount).ToListAsync();
+        Assert.Equal(2,ledger.Count);
+        Assert.All(ledger,x=>{Assert.Equal(userId,x.CreatedByUserId);Assert.Null(x.ShiftId);Assert.Equal(FinancialSourceType.Expense,x.SourceType);});
+        Assert.Contains(ledger,x=>x.FinancialAccountId==f.Cash&&x.Amount==100&&x.TransactionType==FinancialTransactionType.Debit);
+        Assert.Contains(ledger,x=>x.FinancialAccountId==f.Insta&&x.Amount==50&&x.TransactionType==FinancialTransactionType.Debit);
+        var permission=await verify.Permissions.SingleAsync(x=>x.Code==ShiftPermissions.ExpenseCreate);
+        verify.Add(new UserPermissionOverride{UserId=userId,PermissionId=permission.Id,Effect=PermissionOverrideEffect.Deny});
+        await verify.SaveChangesAsync();
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync("/api/expenses",cash with{OperationId=Guid.NewGuid()})).StatusCode);
     }
     [Fact] public async Task DirectDenyOverrideBlocksExpenseDespiteRoleGrantAndOpenShift()
     {
