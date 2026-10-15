@@ -82,6 +82,13 @@ first-close recognition includes the branch's previously unrecognized finalized
 Sales summaries; an Owner may recognize a later finalized period into the current
 open financial month. Commission periods crossing financial months keep their full
 original formula/boundaries; no proration or competing commission formula is used.
+`POST /api/payroll/commission-recognitions` treats `operationId` as global across
+branches. Concurrent requests with the same ID wait for one transaction to finish;
+an exact retry by the same actor returns its recorded result, while a different
+period or actor receives a request-identity error. Rolled-back attempts leave no
+recognition marker and may be retried. A filtered unique audit index protects the
+marker independently of branch drawer locks and the existing unique Payroll
+commission-summary link.
 
 A Manager can retain administrative capabilities and personal Sales ownership on
 the same employee account. The unchanged commission engine follows personally

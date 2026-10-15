@@ -26,5 +26,7 @@ public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.HasIndex(x => new { x.UserId, x.CreatedAt });
         builder.HasIndex(x => x.EntityId).IsUnique().HasDatabaseName("UX_AccessAdministration_Operation")
             .HasFilter("\"Action\" = 'AccessAdministration.Changed'");
+        builder.HasIndex(x => new { x.Action, x.EntityId }).IsUnique().HasDatabaseName("UX_PayrollRecognition_Operation")
+            .HasFilter("\"Action\" = 'Payroll.RecognitionOperation'");
     }
 }

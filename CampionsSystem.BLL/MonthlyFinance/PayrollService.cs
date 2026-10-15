@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Buffers.Binary;
 using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Branches;
 using CampionsSystem.BLL.Operations;
@@ -58,6 +59,11 @@ public sealed class PayrollService(ApplicationDbContext db, ICurrentUserService 
         FinancialOperations.Operation(r.OperationId);
         var period = await db.CommissionPeriods.AsNoTracking().SingleOrDefaultAsync(x => x.Id == r.CommissionPeriodId, ct) ?? throw new BranchNotFoundException("Commission period not found.");
         var actor = await access.RequireAsync("Payroll.Manage", period.BranchId, ct); await access.RequireAsync("Branches.AccessAll", period.BranchId, ct);
+        // The marker's OperationId is global, while the drawer lock is branch-local.
+        // A transaction-scoped advisory lock serializes retries before either branch
+        // checks the marker. A key collision only delays an unrelated operation.
+        var operationKey = BinaryPrimitives.ReadInt64LittleEndian(r.OperationId.ToByteArray());
+        await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock({operationKey})", ct);
         await coordination.LockBranchAsync(period.BranchId, ct);
         var hash = FinancialOperations.Hash(r);
         var operation = await db.AuditLogs.AsNoTracking().SingleOrDefaultAsync(x => x.Action == "Payroll.RecognitionOperation" && x.EntityId == r.OperationId, ct);
