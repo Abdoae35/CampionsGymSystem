@@ -43,10 +43,9 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Backend audit Fix #3 Quick Cancel/refunds is implemented and pushed as `3a7574e` on `Fix3-QuickCancel-Refunds`. Fix #1 Owner protection and Fix #2 Shift safeguards remain ancestors; findings #4–#6 remain outside scope.
-- Reception's existing Quick Cancel route now requires an explicit zero/partial/full amount within 24 actual hours of Sale creation, effective `Sales.QuickCancel`, stored Reception role, branch access and own Shift. Gym, Private and Classes usage never determines the refund. The existing elevated refund route requires effective `Payments.Refund` and stored BranchManager/Owner membership; Owner administrative refunds may have null ShiftId. Collection caps, finalized Sales/Private earnings protection, account/ledger posting, idempotency and Deny precedence remain.
-- Fix #3 validation: targeted refund/API/concurrency selection 31/31, focused Quick Cancel/Owner tests 17/17, final full isolated suite 928/928 with zero failures/skips (47m26s), clean build zero warnings/errors, EF model drift none, diff/JSON checks clean. One earlier full run was stopped after a new Owner test lacked setup permissions; the fixture was corrected before the passing rerun. No migration, role grant, Development or Production data change.
-- Sales/Payments documentation and frontend-handoff contracts/OpenAPI/Postman were updated. Operational review of the intended Reception `Sales.QuickCancel` and Manager/Owner `Payments.Refund` grants remains before frontend contract freeze; no grants were changed. Prior Fix #2 Development activation and its limits remain recorded in the chronological entries below.
+- Backend audit Fix #4 Payroll recognition idempotency is implemented and pushed as `9f4fb00` on `Fix4-Payroll-Recognition-Idempotency`. Fixes #1–#3 remain ancestors; findings #5–#6 were not changed.
+- Payroll commission recognition now takes a transaction-scoped lock on the global OperationId before its existing branch lock and audit lookup; a filtered unique AuditLog index prevents duplicate recognition markers. Exact retries return the stored result, mismatched period/actor requests are rejected, and rollback leaves the ID reusable. Payroll calculation and API contracts are unchanged.
+- Fix #4 validation: five targeted tests and the complete isolated suite 933/933 passed, zero failures/skips (43m34s); clean build zero warnings/errors, EF model drift none, migration SQL and diff checks clean. Migration `20261015164806_AddPayrollRecognitionOperationUniqueness` is prepared and validated in isolated test schemas only. Local Development preflight found zero existing payroll markers/duplicates; no Development or Production schema/data was changed. Separate approval and fresh duplicate preflight are needed before Development activation. Prior Fix #2/#3 details and operational grants remain in entries below.
 
 ### Retained prior local deployment checkpoint (historical)
 
@@ -2595,3 +2594,41 @@ contract freeze: review intended effective `Sales.QuickCancel` grant for
 Reception and `Payments.Refund` grants for Owner/BranchManager in each target
 environment; no grant was silently activated. Audit findings #4–#6, Production
 deployment and unrelated frontend changes remain untouched.
+
+### 2026-10-15 — Backend audit Fix #4 payroll recognition idempotency
+
+Request: fix only concurrent duplicate `Payroll.RecognitionOperation` markers
+when the same operation ID reaches different branches, preserving payroll and
+commission formulas. Started from clean Fix #3 handoff `ff59923` and created
+`Fix4-Payroll-Recognition-Idempotency`; Fixes #1–#3 remain in ancestry.
+
+Root cause: recognition's existing drawer lock was branch-local, while its
+AuditLog marker lookup was global and lacked a uniqueness constraint. Two
+branches could both miss the marker and insert it, causing a later
+`SingleOrDefaultAsync` retry to throw. Local Development read-only preflight
+found no existing payroll recognition markers or duplicates, and no existing
+payroll marker index. The fix adds a transaction-scoped PostgreSQL advisory
+lock derived from the operation ID before the branch lock/lookup, plus a
+filtered unique AuditLog index for payroll recognition markers. Existing
+request hash and actor checks handle exact retries versus changed requests;
+transaction rollback permits retry. The separate unique payroll
+commission-summary safeguard and calculation rules remain unchanged.
+
+Changed `PayrollService`, `AuditLogConfiguration`, generated EF model snapshot,
+additive migration `20261015164806_AddPayrollRecognitionOperationUniqueness`,
+five focused PostgreSQL concurrency/rollback/index tests, and
+`docs/MONTHLY_CLOSING.md`. No API route, DTO, permission, grant or business
+formula changed. The migration creates only the filtered unique index; its
+generated SQL was inspected. It was exercised only in isolated test schemas,
+not applied to Development or Production. Before a later target deployment,
+repeat the duplicate-marker preflight on that target; existing duplicates
+would make index creation fail safely and require explicit reconciliation.
+
+An initial targeted compile failed because a test asserted the wrong existing
+DTO property; corrected to `PayrollDetails.Commission`. Focused tests then
+passed 5/5. Full isolated suite passed 933/933, zero failures/skips, in
+43m34s. Clean solution build passed with zero warnings/errors, EF reported no
+pending model changes, and staged Git diff checks passed. Feature commit
+`9f4fb00` was pushed to `origin/Fix4-Payroll-Recognition-Idempotency`. This
+separate history/handoff checkpoint records the result. No Production or
+Development data/schema, frontend code, finding #5 or finding #6 was changed.
