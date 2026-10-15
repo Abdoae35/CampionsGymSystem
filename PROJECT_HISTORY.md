@@ -43,10 +43,10 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Backend audit Fix #2 source, tests, migration and Shift documentation are committed and pushed as `7f30273` on `Shifts-Vault&Expenses-` (current HEAD `d36a269`). Fix #1 Owner lifecycle protection remains intact; findings #3–#6 were not touched.
-- Manual self-opening, reception financial Shift guards, scoped Owner/Manager override closure, Unverified closure without cash count, separate employee/branch-period reports, and actual Owner expense attribution are implemented. The shared Cash/InstaPay closure snapshot is immutable; no closing ledger movement is fabricated.
-- Final publication verification: targeted Shift suite 88/88, complete suite 915/915 with zero failures/skips (3h23m), clean rebuild zero warnings/errors, EF model drift none and staged diff check clean. Development activation verification: focused Shift suite 55/55, EF drift none, Reception close-override HTTP 403.
-- On 2026-10-15, the approved additive migration `20261014135958_AddShiftOverrideClosureAccountSnapshot` was applied to localhost Development after a verified archive backup. Development has 28 applied migrations, zero pending and 112 tables; Owner-only administration granted `Shifts.CloseOthers` to Owner and BranchManager only, with two audit records and no Reception grant or override change. Production was untouched. This history/handoff checkpoint is uncommitted by instruction. Expense reversal without a Shift, general recurring expense scheduling and audit findings #3–#6 remain outside scope.
+- Backend audit Fix #3 Quick Cancel/refunds is implemented and pushed as `3a7574e` on `Fix3-QuickCancel-Refunds`. Fix #1 Owner protection and Fix #2 Shift safeguards remain ancestors; findings #4–#6 remain outside scope.
+- Reception's existing Quick Cancel route now requires an explicit zero/partial/full amount within 24 actual hours of Sale creation, effective `Sales.QuickCancel`, stored Reception role, branch access and own Shift. Gym, Private and Classes usage never determines the refund. The existing elevated refund route requires effective `Payments.Refund` and stored BranchManager/Owner membership; Owner administrative refunds may have null ShiftId. Collection caps, finalized Sales/Private earnings protection, account/ledger posting, idempotency and Deny precedence remain.
+- Fix #3 validation: targeted refund/API/concurrency selection 31/31, focused Quick Cancel/Owner tests 17/17, final full isolated suite 928/928 with zero failures/skips (47m26s), clean build zero warnings/errors, EF model drift none, diff/JSON checks clean. One earlier full run was stopped after a new Owner test lacked setup permissions; the fixture was corrected before the passing rerun. No migration, role grant, Development or Production data change.
+- Sales/Payments documentation and frontend-handoff contracts/OpenAPI/Postman were updated. Operational review of the intended Reception `Sales.QuickCancel` and Manager/Owner `Payments.Refund` grants remains before frontend contract freeze; no grants were changed. Prior Fix #2 Development activation and its limits remain recorded in the chronological entries below.
 
 ### Retained prior local deployment checkpoint (historical)
 
@@ -2549,3 +2549,49 @@ application-source edit, or commit/push occurred. Only this required history
 and `AGENTS.md` handoff were edited locally, per project instructions. Future
 Production activation remains separately authorized; Fix #2 functional limits
 recorded above remain unchanged.
+
+### 2026-10-15 — Backend audit Fix #3 Quick Cancel and refunds
+
+Request: implement only finding #3 so Reception can choose a full, partial or
+zero refund within 24 hours, regardless of Gym, Private or Classes attendance;
+Managers and Owners retain the elevated refund route with correct role, branch,
+permission and Shift safeguards. Preserve financial/commission integrity, update
+the frontend contract, run all validation, then commit and push. Started from a
+clean `d5f8f55` and created `Fix3-QuickCancel-Refunds`; confirmed Fix #1 commit
+`15c6588` remains in its ancestry.
+
+Changed `SalesService.QuickCancelAsync`, the shared refund core and
+`QuickCancelRequest`: a required explicit amount and optional parts replace
+automatic full reversal; the inclusive window uses persisted Sale `CreatedAt`
+and the server clock. Removed usage-based rejection for Gym grants, Private
+sessions and Classes attendance while preserving historical activity and
+existing entitlement reversal. The common refund path still caps money at
+unrefunded completed collections, checks finalized Sales/Private earnings,
+posts positive Cash/InstaPay debits atomically and posts no debit for zero.
+An inactive account can receive a Quick reversal only if it was a completed
+payment account on that Sale. Quick refunds record the real Reception operator
+without fabricated Owner approval. Elevated refunds require stored Owner or
+BranchManager membership plus effective `Payments.Refund` and branch scope;
+Manager requires an own open Shift, while Owner administrative refund evidence
+has null ShiftId. No role grants or permission overrides were changed.
+
+Added focused Sales, coaching-use, Shift, concurrent-refund and HTTP permission
+regressions, including full/partial/zero, exact 24-hour boundary, split tender,
+partial collection, inactive source, Deny, finalized commissions, Owner without
+Shift and retention/audit evidence. Updated `docs/SALES_PAYMENTS.md`, the
+frontend-handoff DTO/workflow/API/OpenAPI JSON files and Postman Quick example.
+No endpoint route, entity, EF model or migration was added. An initial full
+run was stopped after the new Owner test lacked Vault-view/Shift-close fixture
+permissions; the fixture was corrected. Targeted selections passed 31/31 and
+17/17. The complete isolated suite then passed 928/928, zero failures/skips,
+in 47m26s. A clean build had zero warnings/errors, EF reported no pending model
+changes, and staged diff/JSON checks passed. No Development/Production schema
+or data was touched.
+
+The reviewed 17-file feature commit `3a7574e` was pushed to
+`origin/Fix3-QuickCancel-Refunds`. This separate required history/handoff
+checkpoint documents the result. Remaining operational work before frontend
+contract freeze: review intended effective `Sales.QuickCancel` grant for
+Reception and `Payments.Refund` grants for Owner/BranchManager in each target
+environment; no grant was silently activated. Audit findings #4–#6, Production
+deployment and unrelated frontend changes remain untouched.
