@@ -5420,7 +5420,7 @@
           }
         },
         {
-          "name": "Quick Cancel — unused and within 24 hours",
+          "name": "Quick Cancel — Reception chooses refund within 24 hours",
           "request": {
             "method": "POST",
             "header": [
@@ -5435,14 +5435,14 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{ownerToken}}",
+                  "value": "{{receptionToken}}",
                   "type": "string"
                 }
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"operationId\": \"{{quickCancelOperationId}}\",\n  \"reason\": \"Recent mistaken unused purchase\"\n}",
+              "raw": "{\n  \"operationId\": \"{{quickCancelOperationId}}\",\n  \"reason\": \"Customer cancellation decision\",\n  \"amount\": 300,\n  \"parts\": [{\"financialAccountId\":\"{{cashAccountId}}\",\"amount\":300}]\n}",
               "options": {
                 "raw": {
                   "language": "json"

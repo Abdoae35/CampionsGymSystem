@@ -9961,7 +9961,8 @@
       "QuickCancelRequest": {
         "required": [
           "operationId",
-          "reason"
+          "reason",
+          "amount"
         ],
         "type": "object",
         "properties": {
@@ -9971,6 +9972,15 @@
           },
           "reason": {
             "type": "string"
+          },
+          "amount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": ["null", "number", "string"],
+            "format": "double"
+          },
+          "parts": {
+            "type": ["null", "array"],
+            "items": {"$ref": "#/components/schemas/PaymentPartInput"}
           }
         },
         "additionalProperties": false

@@ -48,12 +48,37 @@ public sealed partial class AuthenticationApiTests
         var payment=new RecordPaymentRequest(Guid.NewGuid(),1000,[new(f.Account,1000)]);Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/payments",payment)).StatusCode);
         var refund=new RefundRequest(Guid.NewGuid(),100,[new(f.Account,100)],"Manual decision");Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/refunds",refund)).StatusCode);
         Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/quick-cancel",new QuickCancelRequest(Guid.NewGuid(),"Mistake"))).StatusCode);
-        await GrantPermission("Finance",SalesPermissions.Refund);Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/refunds",refund)).StatusCode);
+        await GrantPermission("Finance",SalesPermissions.Refund);
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/refunds",refund)).StatusCode);
+        await GrantPermission("BranchManager",SalesPermissions.Refund);
+        Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/refunds",refund)).StatusCode);
         await GrantPermission("Finance",SalesPermissions.View);
         Assert.Equal(2,(await client.GetFromJsonAsync<PaymentHistory>($"/api/sales/{sale.SaleId}/payments"))!.TotalCount);
         Assert.Single((await client.GetFromJsonAsync<RefundHistory>($"/api/sales/{sale.SaleId}/refunds"))!.Items);
         Assert.Equal(HttpStatusCode.OK,(await client.GetAsync($"/api/sales/{sale.SaleId}/installments")).StatusCode);
         Assert.Equal(1100,(await client.GetFromJsonAsync<BranchFinancialTotals>("/api/sales/branch-totals"))!.NetCollected);
+    }
+    [Fact] public async Task ReceptionQuickCancelHonorsDenyAndExplicitRefundAmountOverHttp()
+    {
+        var f=await SalesHttpFixture();await GrantPermission("Finance",SalesPermissions.Create);
+        await GrantPermission("Reception",SalesPermissions.QuickCancel);await Authenticate();
+        var purchase=new CreateSaleRequest(Guid.NewGuid(),f.Member,f.Plan,PurchaseMode.FullPayment,SubscriptionActivationMode.Now,[new(f.Account,1200)]);
+        var sale=(await (await client.PostAsJsonAsync("/api/sales",purchase)).Content.ReadFromJsonAsync<SaleReceipt>())!;
+        var request=new QuickCancelRequest(Guid.NewGuid(),"Reception decision",0,[]);
+        await using(var scope=factory.Services.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();var permission=await db.Permissions.SingleAsync(p=>p.Code==SalesPermissions.QuickCancel);
+            db.Add(new UserPermissionOverride{UserId=userId,PermissionId=permission.Id,Effect=PermissionOverrideEffect.Deny});await db.SaveChangesAsync();
+        }
+        Assert.Equal(HttpStatusCode.Forbidden,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/quick-cancel",request)).StatusCode);
+        await using(var scope=factory.Services.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();db.UserPermissionOverrides.Remove(await db.UserPermissionOverrides.SingleAsync());await db.SaveChangesAsync();
+        }
+        Assert.Equal(HttpStatusCode.BadRequest,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/quick-cancel",new {operationId=Guid.NewGuid(),reason="Missing amount"})).StatusCode);
+        Assert.Equal(HttpStatusCode.OK,(await client.PostAsJsonAsync($"/api/sales/{sale.SaleId}/quick-cancel",request)).StatusCode);
+        await using var verify=factory.Services.CreateAsyncScope();var dbCheck=verify.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Assert.Equal(0,(await dbCheck.Refunds.SingleAsync()).Amount);Assert.Empty(await dbCheck.FinancialTransactions.Where(x=>x.RefundId!=null).ToListAsync());
     }
     [Fact] public async Task OfferHttpConfigurationAndApplicationRequireExplicitEligibility()
     {

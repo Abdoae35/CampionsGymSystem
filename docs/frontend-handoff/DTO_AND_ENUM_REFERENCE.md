@@ -2132,6 +2132,8 @@ Type attributes: `System.Text.Json.Serialization.JsonUnmappedMemberHandlingAttri
 |---|---|---|---|---|
 | `operationId` | `Guid` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
 | `reason` | `string` | No | No attribute; see BLL guard evidence | No declared optional default; CLR initialization and BLL checks apply |
+| `amount` | `decimal?` | Yes in CLR; required by BLL | Explicit 0 or positive, at most net collected; two decimal places | null causes HTTP 400 |
+| `parts` | `IReadOnlyList<Sales.PaymentPartInput>?` | Yes in CLR | Empty for zero; otherwise positive branch Cash/InstaPay account parts summing exactly to amount; an inactive original payment account on this Sale is allowed | null treated as empty; positive amount rejects |
 <a id="campionssystem-bll-sales-recordpaymentrequest"></a>
 ## Sales.RecordPaymentRequest
 C# type: `CampionsSystem.BLL.Sales.RecordPaymentRequest`; source: `CampionsSystem.BLL/Sales/SalesContracts.cs:26`.

@@ -7,6 +7,7 @@ using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class SalesTests : IAsyncLifetime
 {
@@ -24,11 +25,21 @@ public sealed partial class SalesTests : IAsyncLifetime
         member = new() { MemberCode = "M-SALES", FullName = "Member", PrimaryPhone = "sales-member", HomeBranch = a, CreatedByUser = actor };
         plan = new() { Name = "Monthly", Branch = b, City = a.City, DurationDays = 30, Price = 1200 };
         women = new() { Name = "Women" }; kids = new() { Name = "Kids" }; db.AddRange(member, plan, c, women, kids); await db.SaveChangesAsync();
+        var managerRole = new IdentityRole<Guid>("BranchManager") { Id = Guid.NewGuid(), NormalizedName = "BRANCHMANAGER" };
+        db.Add(managerRole); db.Add(new IdentityUserRole<Guid> { UserId = actor.Id, RoleId = managerRole.Id }); await db.SaveChangesAsync();
         user = new(new(actor.Id, "staff", null, null, [], [..SalesPermissions.Codes, ..SubscriptionPermissions.Codes, "Members.Manage", "Branches.AccessAll"], new(b.Id, b.Name)));
         clock = new(); access = new(user, db, clock, Options.Create(new AuthContextOptions())); subscriptions = new(db, user, access); offers = new(db, user, access, subscriptions);
         await OperationalShiftFixture.OpenAsync(db,actor.Id,b.Id,clock);
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await fixture.DisposeAsync(); }
+    private async Task AddRefundRoleAsync(string name)
+    {
+        var normalized = name.ToUpperInvariant();
+        var role = await db.Roles.SingleOrDefaultAsync(x => x.NormalizedName == normalized);
+        if (role == null) { role = new IdentityRole<Guid>(name) { Id = Guid.NewGuid(), NormalizedName = normalized }; db.Add(role); await db.SaveChangesAsync(); }
+        if (!await db.UserRoles.AnyAsync(x => x.UserId == actor.Id && x.RoleId == role.Id))
+        { db.Add(new IdentityUserRole<Guid> { UserId = actor.Id, RoleId = role.Id }); await db.SaveChangesAsync(); }
+    }
     private OfferRequest OfferInput(OfferEligibilityMode mode = OfferEligibilityMode.General, Guid? audience = null,
         OfferType type = OfferType.FixedDiscount, decimal value = 200) => new("Summer", type, value, [plan.Id], mode, audience, today.AddDays(-1), today.AddDays(1));
     private Task<PricingResult> Quote(Guid offer) => offers.QuoteAsync(member.Id, plan.Id, offer);

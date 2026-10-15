@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity;
 using Npgsql;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class SalesConcurrencyTests : IAsyncLifetime
@@ -40,6 +41,12 @@ public sealed partial class SalesConcurrencyTests : IAsyncLifetime
             var p=new MembershipPlan{Name="Monthly",Branch=b,City=b.City,DurationDays=30,Price=1200};plan=p.Id;
             var cash=new FinancialAccount{Branch=b,Name="Cash",AccountType=FinancialAccountType.Cash};account=cash.Id;
             db.AddRange(m,p,cash);await db.SaveChangesAsync();
+            foreach(var name in new[]{"BranchManager","Reception"})
+            {
+                var role=new IdentityRole<Guid>(name){Id=Guid.NewGuid(),NormalizedName=name.ToUpperInvariant()};
+                db.Add(role);db.Add(new IdentityUserRole<Guid>{UserId=actor,RoleId=role.Id});
+            }
+            await db.SaveChangesAsync();
             await OperationalShiftFixture.OpenAsync(db,actor,branch,new Clock(),cash.Id);
         }
         catch{await DisposeAsync();throw;}
@@ -88,12 +95,14 @@ public sealed partial class SalesConcurrencyTests : IAsyncLifetime
         async Task<RefundDetails> Refund(){await using var db=Context();return await Services(db).Sales.RefundAsync(sale.SaleId,new(op,1200,[new(account,1200)],"Decision"));}
         var result=await Task.WhenAll(Refund(),Refund());Assert.Equal(result[0].Id,result[1].Id);await using var verify=Context();Assert.Single(await verify.Refunds.ToListAsync());Assert.Single(await verify.SubscriptionGrantCancellations.ToListAsync());
     }
-    [Fact] public async Task QuickCancelAndCheckInSerializeUseWithCancellation()
+    [Fact] public async Task QuickCancelAndCheckInSerializeWithoutLosingHistoricalUse()
     {
         var sale=await Buy(Guid.NewGuid());
-        async Task<bool> Cancel(){await using var db=Context();try{await Services(db).Sales.QuickCancelAsync(sale.SaleId,new(Guid.NewGuid(),"Mistake"));return true;}catch(BusinessRuleException){return false;}}
+        async Task<bool> Cancel(){await using var db=Context();try{await Services(db).Sales.QuickCancelAsync(sale.SaleId,new(Guid.NewGuid(),"Mistake",1200,[new(account,1200)]));return true;}catch(BusinessRuleException){return false;}}
         var cancel=Cancel();var entry=Entry(Guid.NewGuid());await Task.WhenAll(cancel,entry);
-        Assert.NotEqual(await cancel,(await entry).Decision.Allowed);await using var verify=Context();
-        Assert.Equal(await cancel?1:0,await verify.Refunds.CountAsync());Assert.Equal(await cancel?0:1,await verify.CheckIns.CountAsync());
+        Assert.True(await cancel);await using var verify=Context();
+        Assert.Single(await verify.Refunds.ToListAsync());Assert.Equal(1200,await verify.Refunds.SumAsync(r=>r.Amount));
+        Assert.Equal((await entry).Decision.Allowed?1:0,await verify.CheckIns.CountAsync());
+        Assert.NotNull((await verify.SaleTransactions.SingleAsync()).CancelledAt);
     }
 }

@@ -27,8 +27,10 @@ accounts have zero opening money. Account method, branch and opening facts are
 immutable; account balances can be derived from the opening fact and ledger.
 Payment credits and refund debits are appended to `FinancialTransaction`. No fake
 Shift or CommissionPeriod is created. The subsequent [Shifts feature](SHIFTS_VAULT_EXPENSES.md)
-requires an actual own employee shift for new Sales, payments and refunds, preserves
+requires an actual own employee shift for new Sales, payments and Reception/Manager refunds, preserves
 historical null links and enforces shared physical Cash payout availability.
+An Owner using the elevated refund workflow may act without an employee Shift;
+the Refund and ledger retain the actual Owner user ID with null ShiftId.
 The [Commission feature](SALES_COMMISSIONS.md) now provides explicit branch periods
 and collection attribution without inventing historical period links.
 
@@ -168,11 +170,15 @@ debt → settled by Sale X → X normally cancelled → outstanding again → la
 Effective debt uses the latest event, falling back to original state for legacy rows.
 Normal cancellation reopens only debt most recently settled by that cancelled grant;
 it never deletes a settlement or reopens another Sale's settlement. Debt history exposes
-this sequence. A debt-settling grant is materially effective and cannot Quick Cancel.
+this sequence. Cancelling a debt-settling grant, including through Quick Cancel
+within its 24-hour window, appends the same debt-reversal evidence.
 
 ## Manual cancellation, refunds and retained revenue
 
-`Payments.Refund` plus Sale branch scope controls management's manually chosen refund.
+`Payments.Refund` plus stored Owner or BranchManager membership and Sale branch scope
+controls management's manually chosen refund. Reception cannot use this elevated
+route even if mistakenly given its capability. Managers require their own open
+eligible Shift; Owners can perform administrative refunds without a Shift.
 The system does not calculate per-day or per-entry refund formulas. Zero, partial or
 full amounts are accepted when financially possible; refund cannot exceed real collected
 money minus earlier refunds. Positive refund parts must exactly identify outbound
@@ -199,18 +205,27 @@ commission source period reject atomically. Historical money and old audit facts
 
 ## Quick Cancel
 
-`Sales.QuickCancel` is independent of refund permission and role names. It requires an
-uncancelled Sale within exactly 24 actual hours of creation and an unused grant. CheckIns
-on that period since grant creation, exact benefit usage, freeze/extension use and any
-borrowed-debt settlement reject Quick Cancel. Pooled grant use checks deliberately fail
-closed when an entry after the grant cannot be isolated; normal authorized cancellation
-remains available. Earlier entries before a new grant do not block its cancellation.
+`Sales.QuickCancel` plus stored Reception membership, an active linked employee,
+own open branch Shift and branch scope authorize cancellation within **24 actual
+hours inclusive** of the persisted Sale `createdAt`. The backend uses its server
+clock, never a client timestamp. The request must explicitly provide `amount`
+(including zero) and `parts` for any positive refund. Refund amount is a manual
+decision, capped by completed collections less earlier refunds; it is never
+derived from attendance, session usage or elapsed subscription time. Cash and
+InstaPay parts must sum exactly. Selected accounts must belong to the Sale branch
+and be active, except an inactive account used by a completed payment on this
+Sale may receive its historical Quick Cancel reversal.
 
-Quick Cancel fully reverses collected money to the exact original source accounts,
-including historical inactive accounts, with immutable Refund/parts/debit records.
-It cancels current/future/undated purchased entitlement and preserves other paid grants.
-It never deletes money/history. After 24 hours or material use, normal cancellation
-with a manually chosen refund is required.
+Quick Cancel uses the same atomic refund/entitlement/commission/ledger guards as
+management refunds. It cancels the sold Gym, Private or Classes entitlement while
+preserving real historical CheckIns, sessions, class attendance, benefits, payments
+and subscription facts. Existing Gym debt-settlement reversal remains part of
+entitlement cancellation. A zero refund posts no debit. The actual Reception user
+is the processor; verbal Owner consultation is not stored as electronic approval.
+RefundDetails shows the amount actually refunded; Sale details show retained money. Retries
+with the same operation ID, payload and actor return the original Refund.
+After 24 hours Reception must use a Manager or Owner with `Payments.Refund` and
+branch authorization; granting that capability to Reception alone is insufficient.
 
 ## API and authorization
 
@@ -222,9 +237,9 @@ with a manually chosen refund is required.
 | POST /api/sales/{id}/payments | Additional payment and explicit allocations | Payments.Create |
 | GET /api/sales/{id}/payments | Paginated payment history | Payments.View |
 | GET /api/sales/{id}/installments | Actual obligation status | Payments.View |
-| POST /api/sales/{id}/refunds | Manual cancellation/refund | Payments.Refund |
+| POST /api/sales/{id}/refunds | Elevated manual cancellation/refund | Payments.Refund + Owner/BranchManager role |
 | GET /api/sales/{id}/refunds | Paginated refund history | Payments.View |
-| POST /api/sales/{id}/quick-cancel | Exact unused recent reversal | Sales.QuickCancel |
+| POST /api/sales/{id}/quick-cancel | Reception's manual zero/partial/full cancellation within 24h | Sales.QuickCancel + Reception role |
 | GET /api/sales/branch-totals | Cash/InstaPay gross, refunds and net | Payments.View |
 | GET /api/financial-accounts | Active operational Cash/InstaPay accounts | Payments.View |
 | POST /api/financial-accounts | Named zero-opening account provision | Branches.Manage AND Branches.AccessAll |

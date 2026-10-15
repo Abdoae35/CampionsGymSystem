@@ -312,7 +312,7 @@ Schema-shaped response (not an executed response):
 Source: `CampionsSystem.API/Controllers/SalesController.cs:20`, action `Refund`.
 Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Payments.Refund`.
-Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Manual chosen amount, including zero with empty parts; positive unrefunded collection cap. Newest-first source allocation; any finalized affected commission source rejects whole operation. Own Shift.
+Scope/actor: effective `Payments.Refund` plus stored BranchManager or Owner membership and Sale branch scope. BranchManager needs an own open eligible Shift; an Owner administrative refund may have null ShiftId while retaining the real actor. Reception cannot use this elevated route even with a mistaken capability grant. Manual chosen amount, including zero with empty parts; positive unrefunded collection cap. Newest-first source allocation; finalized Sales/Private earnings protection rejects affected refunds.
 ### Path/query inputs
 | Name / location | Required | Exact OpenAPI type/constraints | Declared default |
 |---|---|---|---|
@@ -407,13 +407,13 @@ Schema-shaped response (not an executed response):
 Source: `CampionsSystem.API/Controllers/SalesController.cs:24`, action `QuickCancel`.
 Status: **VERIFIED FROM CODE / completed backend**. Deployment readiness is separate; see [rollout limitations](../OPEN_QUESTIONS_AND_GAPS.md).
 Auth: Bearer authentication required. Exact controller policies (AND): `Permission:Sales.QuickCancel`.
-Scope/actor: apply module rules above and [guard evidence](rules/Sales.md). Independent Sales.QuickCancel; exact 24-hour actual window and unused grant; full reversal to original accounts. Own Shift. No client refund formula.
+Scope/actor: effective `Sales.QuickCancel`, stored Reception membership, Sale branch scope, active linked employment and own open Shift. The server checks the Sale's persisted `createdAt` against its clock; exactly 24 hours is allowed, later is rejected. Gym, Private and Classes attendance does not determine the chosen refund. The operator explicitly chooses zero/partial/full `amount` and positive Cash/InstaPay `parts`; use branch accounts that are active, or an inactive original account used by a completed payment on this Sale. Refunds cannot exceed net collected funds or bypass finalized earnings/commission protections.
 ### Path/query inputs
 | Name / location | Required | Exact OpenAPI type/constraints | Declared default |
 |---|---|---|---|
 | `id` / path | true | `{"type":"string","format":"uuid"}` | See query DTO defaults / guard evidence |
 ### JSON body and response
-Body: [Sales.QuickCancelRequest](../DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-sales-quickcancelrequest); exact required/nullability/limits/defaults and nested types in linked DTO and `openapi.json`.
+Body: [Sales.QuickCancelRequest](../DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-sales-quickcancelrequest): `operationId`, `reason`, explicit `amount` (0 allowed), and `parts` (empty for zero; otherwise positive branch account parts summing to `amount`). Omitting `amount` returns 400.
 Success: **200**, body [Sales.RefundDetails](../DTO_AND_ENUM_REFERENCE.md#campionssystem-bll-sales-refunddetails). No generic wrapper; arrays/primitives remain direct JSON.
 Errors/envelope: 400 validation/business; 401 unauthenticated; 403 capability/scope/ownership; 404 scoped/missing resources where BranchNotFoundException is thrown; 409 stale version/unique/serialization/deadlock; 500 unexpected. Exact applicable guard conditions and messages: linked module evidence, not a claim every status is reachable for every invocation. See master error rules; check-in/trial can deny inside 200.
 Concurrency/idempotency: operationId in body: nonempty UUID, preserve exact payload/actor on retry; business-specific matching in guard evidence. No client version field on this action unless linked contract says otherwise. No ETag/If-Match. Backend locks/uniqueness may still return conflict.
@@ -433,7 +433,9 @@ Content-Type: application/json
 
 {
   "operationId": "11111111-1111-4111-8111-111111111111",
-  "reason": "FAKE reason"
+  "reason": "Customer cancellation decision",
+  "amount": 300,
+  "parts": [{"financialAccountId":"22222222-2222-4222-8222-222222222222","amount":300}]
 }
 ```
 Schema-shaped response (not an executed response):

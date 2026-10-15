@@ -29,7 +29,8 @@ public sealed record RecordPaymentRequest(Guid OperationId, decimal Amount, IRea
 public sealed record RefundRequest(Guid OperationId, decimal Amount, IReadOnlyList<PaymentPartInput> Parts,
     string Reason);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record QuickCancelRequest(Guid OperationId, string Reason);
+public sealed record QuickCancelRequest(Guid OperationId, string Reason, [property: JsonRequired] decimal? Amount = null,
+    IReadOnlyList<PaymentPartInput>? Parts = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record OfferRequest(string Name, OfferType Type, decimal Value, IReadOnlyList<Guid> MembershipPlanIds,
     OfferEligibilityMode? EligibilityMode, Guid? AudienceCategoryId = null,

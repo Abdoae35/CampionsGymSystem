@@ -29712,6 +29712,26 @@
           ],
           "attributes": [],
           "location": null
+        },
+        {
+          "name": "Amount",
+          "jsonName": "amount",
+          "type": "decimal?",
+          "nullable": "Annotated",
+          "readOnly": false,
+          "constructor": [{"hasDefault": true, "defaultValue": null, "attributes": []}],
+          "attributes": ["System.Text.Json.Serialization.JsonRequiredAttribute"],
+          "location": null
+        },
+        {
+          "name": "Parts",
+          "jsonName": "parts",
+          "type": "System.Collections.Generic.IReadOnlyList<CampionsSystem.BLL.Sales.PaymentPartInput>",
+          "nullable": "Annotated",
+          "readOnly": false,
+          "constructor": [{"hasDefault": true, "defaultValue": null, "attributes": []}],
+          "attributes": [],
+          "location": null
         }
       ],
       "attributes": [

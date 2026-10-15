@@ -576,6 +576,7 @@ Lines 7–12
     public Task<RefundDetails> RefundAsync(Guid saleId,RefundRequest r,CancellationToken ct=default)=>TransactionAsync(async()=>
     {
         Operation(r.OperationId);var sale=await LockSaleAsync(saleId,SalesPermissions.Refund,ct);var actor=await RequireAsync(SalesPermissions.Refund,sale.BranchId,ct);
+        await RequireRefundRoleAsync(actor.UserId,quick:false,ct);
         var hash=Hash(new{SaleId=saleId,Request=r,Type=RefundType.ManagerRefund});
         var retry=await RefundRetryAsync(sale,r.OperationId,hash,actor.UserId,ct);if(retry!=null)return retry;
 
@@ -600,22 +601,25 @@ Lines 22–41
 
         string reason,RefundType type,Guid actor,CancellationToken ct)
     {
-        var activeShift=await shiftMoney.RequireShiftAsync(sale.BranchId,actor,ct);
+        var owner=type==RefundType.ManagerRefund && await new OwnerAdministrationAccess(db,current).IsOwnerAsync(actor,ct);
+        var activeShift=owner?null:await shiftMoney.RequireShiftAsync(sale.BranchId,actor,ct);
         Amount(amount,false);if(string.IsNullOrWhiteSpace(reason)||reason.Length>2000)throw new BusinessRuleException("A cancellation/refund reason is required (maximum 2000 characters).");
+        if(parts is null)throw new BusinessRuleException("Refund parts are required (empty for a zero refund).");
         var collected=await db.Payments.Where(p=>p.SaleTransactionId==sale.Id && p.Status==PaymentStatus.Completed).SumAsync(p=>p.Amount,ct);
         var refunded=await db.Refunds.Where(r=>r.SaleTransactionId==sale.Id).SumAsync(r=>r.Amount,ct);
         if(amount>collected-refunded)throw new BusinessRuleException("Refund exceeds the collected, unrefunded amount.");
         await GuardCoachingRefundAsync(sale,collected-refunded-amount,ct);
-        if(amount>0)await AccountsAsync(sale.BranchId,parts,amount,ct,type==RefundType.QuickRefund);
-        else if(parts==null || parts.Count!=0)throw new BusinessRuleException("A zero refund/cancellation must have no financial parts.");
+        var historical=amount>0 && type==RefundType.QuickRefund && await HistoricalQuickRefundAsync(sale,parts,ct);
+        if(amount>0)await AccountsAsync(sale.BranchId,parts,amount,ct,historical);
+        else if(parts.Count!=0)throw new BusinessRuleException("A zero refund/cancellation must have no financial parts.");
         var (date,day)=await BusinessDateAsync(sale.BranchId,ct);
-        var refund=new Refund{ShiftId=activeShift.Id,SaleTransactionId=sale.Id,BranchId=sale.BranchId,OperationId=op,RequestHash=hash,Amount=amount,RefundType=type,
-            Reason=reason.Trim(),ProcessedByUserId=actor,ApprovedByUserId=actor,CreatedAt=access.Now,BusinessDate=date,BusinessDayId=day};
+        var refund=new Refund{ShiftId=activeShift?.Id,SaleTransactionId=sale.Id,BranchId=sale.BranchId,OperationId=op,RequestHash=hash,Amount=amount,RefundType=type,
+            Reason=reason.Trim(),ProcessedByUserId=actor,ApprovedByUserId=type==RefundType.QuickRefund?null:actor,CreatedAt=access.Now,BusinessDate=date,BusinessDayId=day};
         await new Commissions.CommissionSources(db,access).AllocateRefundAsync(refund,ct);
         db.Add(refund);
         foreach(var part in parts)db.Add(new RefundPart{Refund=refund,FinancialAccountId=part.FinancialAccountId,Amount=part.Amount,ProviderReference=part.ProviderReference});
-        foreach(var group in parts.GroupBy(p=>p.FinancialAccountId))await shiftMoney.PostAsync(new FinancialTransaction{ShiftId=activeShift.Id,Refund=refund,FinancialAccountId=group.Key,BranchId=sale.BranchId,
-            TransactionType=FinancialTransactionType.Debit,SourceType=FinancialSourceType.Refund,Amount=group.Sum(p=>p.Amount),BusinessDate=date,BusinessDayId=day,OccurredAt=access.Now,CreatedByUserId=actor},ct,type==RefundType.QuickRefund);
+        foreach(var group in parts.GroupBy(p=>p.FinancialAccountId))await shiftMoney.PostAsync(new FinancialTransaction{ShiftId=activeShift?.Id,Refund=refund,FinancialAccountId=group.Key,BranchId=sale.BranchId,
+            TransactionType=FinancialTransactionType.Debit,SourceType=FinancialSourceType.Refund,Amount=group.Sum(p=>p.Amount),BusinessDate=date,BusinessDayId=day,OccurredAt=access.Now,CreatedByUserId=actor},ct,historical);
         if(sale.CancelledAt==null)
         {
 
@@ -758,7 +762,7 @@ Lines 5–13
 
 ## CampionsSystem.BLL/Sales/SalesService.QuickCancel.cs
 
-Lines 7–16
+Current Fix #3 source excerpt
 
 ```csharp
 
@@ -766,25 +770,16 @@ Lines 7–16
     public Task<RefundDetails> QuickCancelAsync(Guid saleId,QuickCancelRequest r,CancellationToken ct=default)=>TransactionAsync(async()=>
     {
         Operation(r.OperationId);var sale=await LockSaleAsync(saleId,SalesPermissions.QuickCancel,ct);var actor=await RequireAsync(SalesPermissions.QuickCancel,sale.BranchId,ct);
+        await RequireRefundRoleAsync(actor.UserId,quick:true,ct);
         var hash=Hash(new{SaleId=saleId,Request=r,Type=RefundType.QuickRefund});var retry=await RefundRetryAsync(sale,r.OperationId,hash,actor.UserId,ct);if(retry!=null)return retry;
         if(sale.CancelledAt!=null || sale.CreatedAt>access.Now || access.Now-sale.CreatedAt>TimeSpan.FromHours(24))
             throw new BusinessRuleException("Quick Cancel requires an uncancelled Sale created within the last 24 actual hours.");
-        if(await db.Refunds.AnyAsync(x=>x.SaleTransactionId==sale.Id,ct))throw new BusinessRuleException("Existing refund history requires the normal cancellation workflow.");
-        var grant=await db.MembershipSubscriptionTransactions.AsNoTracking().SingleOrDefaultAsync(g=>g.SaleTransactionId==sale.Id && g.OperationId!=null,ct);
-        if(grant!=null && (await db.BorrowedGymSessions.AnyAsync(d=>d.SettledByTransactionId==grant.Id,ct)
-
-```
-
-Lines 18–23
-
-```csharp
-
-            || await db.MemberBenefitUsages.AnyAsync(u=>u.MemberSubscriptionBenefit.MembershipSubscriptionTransactionId==grant.Id,ct)
-            || await db.CheckIns.AnyAsync(c=>c.MemberSubscriptionId==grant.MemberSubscriptionId && c.CheckedInAt>=grant.CreatedAt,ct)
-            || await db.SubscriptionFreezes.AnyAsync(f=>f.MemberSubscriptionId==grant.MemberSubscriptionId && f.CreatedAt>=grant.CreatedAt,ct)))
-            throw new BusinessRuleException("The purchased grant has been used/effective; use authorized normal cancellation instead.");
-        var parts=await db.PaymentParts.Where(p=>p.Payment.SaleTransactionId==sale.Id && p.Payment.Status==PaymentStatus.Completed)
-            .GroupBy(p=>p.FinancialAccountId).Select(g=>new PaymentPartInput(g.Key,g.Sum(p=>p.Amount),null)).ToListAsync(ct);
+        if(r.Amount is null)throw new BusinessRuleException("Choose an explicit refund amount, including zero for cancellation without payment.");
+        var refund=await RefundCoreAsync(sale,r.OperationId,hash,r.Amount.Value,r.Parts??[],r.Reason,RefundType.QuickRefund,actor.UserId,ct);
+        access.Audit(actor.UserId,sale.BranchId,"Sale.QuickCancelled",nameof(SaleTransaction),sale.Id,
+            after:new{RefundId=refund.Id,refund.Amount,Retained=await RetainedAsync(sale.Id,ct)});
+        await db.SaveChangesAsync(ct);return refund;
+    },ct);
 
 ```
 

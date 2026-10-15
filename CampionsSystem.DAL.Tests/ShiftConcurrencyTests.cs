@@ -45,8 +45,8 @@ public sealed partial class SalesConcurrencyTests
             var row = await db.Shifts.SingleAsync(); shift = row.Id; version = row.Version;
             counts = await db.CashCounts.CountAsync();
             var closer = new ApplicationUser { UserName = "override-manager" }; manager = closer.Id;
-            var role = new IdentityRole<Guid>("BranchManager") { Id = Guid.NewGuid(), NormalizedName = "BRANCHMANAGER" };
-            db.AddRange(closer, role, new IdentityUserRole<Guid> { UserId = manager, RoleId = role.Id });
+            var role = await db.Roles.SingleAsync(r => r.NormalizedName == "BRANCHMANAGER");
+            db.AddRange(closer, new IdentityUserRole<Guid> { UserId = manager, RoleId = role.Id });
             await db.SaveChangesAsync();
         }
         async Task<bool> Close()
