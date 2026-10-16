@@ -43,9 +43,9 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Backend audit Fix #4 Payroll recognition idempotency is implemented and pushed as `9f4fb00` on `Fix4-Payroll-Recognition-Idempotency`. Fixes #1–#3 remain ancestors; findings #5–#6 were not changed.
-- Payroll commission recognition now takes a transaction-scoped lock on the global OperationId before its existing branch lock and audit lookup; a filtered unique AuditLog index prevents duplicate recognition markers. Exact retries return the stored result, mismatched period/actor requests are rejected, and rollback leaves the ID reusable. Payroll calculation and API contracts are unchanged.
-- Fix #4 validation: five targeted tests and the complete isolated suite 933/933 passed, zero failures/skips (43m34s); clean build zero warnings/errors, EF model drift none, migration SQL and diff checks clean. Migration `20261015164806_AddPayrollRecognitionOperationUniqueness` is prepared and validated in isolated test schemas only. Local Development preflight found zero existing payroll markers/duplicates; no Development or Production schema/data was changed. Separate approval and fresh duplicate preflight are needed before Development activation. Prior Fix #2/#3 details and operational grants remain in entries below.
+- Backend audit Fix #5 InstaPay provider-reference export is implemented and pushed as `c937219` on `Fix5-InstaPay-Provider-References`. Fixes #1–#4 remain ancestors; finding #6 is untouched.
+- Monthly financial transaction rows now include nullable account-matched `ProviderReference` and part-level reference evidence. New XLSX exports expose exact stored values, blank cells for absent/empty values and JSON arrays for multiple same-account references, with unchanged ledger row count and amounts. Old frozen revisions remain unchanged. The API row DTO adds only this nullable field; no payment validation, verification workflow, formula, schema or role change occurred.
+- Three focused tests and the complete isolated suite 936/936 passed, zero failures/skips (38m31s on the durable rerun); clean build zero warnings/errors, EF model drift none, staged diff clean. No Development/Production data was touched. Prior authorized Fix #4 Development activation remains at 29 migrations, zero pending, 112 tables. The earlier activation checkpoint and this required history/handoff update are uncommitted locally and excluded from the pushed Fix #5 commit; see the latest chronological entries.
 
 ### Retained prior local deployment checkpoint (historical)
 
@@ -2632,3 +2632,87 @@ pending model changes, and staged Git diff checks passed. Feature commit
 `9f4fb00` was pushed to `origin/Fix4-Payroll-Recognition-Idempotency`. This
 separate history/handoff checkpoint records the result. No Production or
 Development data/schema, frontend code, finding #5 or finding #6 was changed.
+
+### 2026-10-16 — Activate Fix #4 on local Development
+
+Request: apply only `20261015164806_AddPayrollRecognitionOperationUniqueness`
+to local Development `localhost:5432/campions_gym`, after identity/history,
+duplicate and backup checks, then verify the result. Source branch was clean
+at pushed `dcf2c65`; the Fix #4 lock, index configuration and additive
+migration were present. The Development user-secret configuration matched the
+target, with no connection-string environment override. Live PostgreSQL
+identified itself as local `::1:5432`, database `campions_gym`; the only other
+database session was idle local pgAdmin. EF and SQL agreed on 28 applied
+migrations with exactly this one pending. Fresh preflight found zero payroll
+recognition markers, zero duplicate operation IDs, 11 AuditLogs, zero Payrolls
+and 112 public tables.
+
+Created timestamped custom-format backup
+`/Users/macbookpro/Backups/Campeones/20261015223810Z/campions_gym_before_Fix4_20261015223810Z.dump`
+(551,705 bytes; SHA-256
+`764b222355358191f030b3a851f15bc98c63248305c273a49fcb09d006c6416e`).
+`pg_restore` listed 112 table definitions and 112 table-data entries, and a
+complete archive read/decompression to `/dev/null` succeeded. No restore was
+performed. Rechecked identity, migration count and duplicates immediately
+before applying. The first sandboxed EF read could not reach localhost; its
+approved unsandboxed read confirmed the sole pending migration.
+
+Applied the named migration through `ASPNETCORE_ENVIRONMENT=Development dotnet
+ef database update ... --no-build`; EF executed only the filtered unique
+`AuditLogs` index creation and history insert. Post-application SQL confirmed
+29 applied migrations, target history row exactly once, valid/unique index with
+the intended `Payroll.RecognitionOperation` predicate, 112 tables, 11 AuditLogs,
+zero Payrolls and zero duplicate markers. EF listed no pending migrations and
+reported no model drift. Five focused regression tests passed in disposable
+test schemas on the separate local `postgres` database. A first test filter
+matched no tests and was corrected before the passing five-test run; a sandboxed
+EF drift attempt was interrupted when localhost access stalled, then completed
+successfully with approved local access.
+
+No Production access, seeding, customer-data change, application-source edit,
+role-grant change, commit or push occurred. Only the required `AGENTS.md` and
+`PROJECT_HISTORY.md` checkpoint is modified locally; the pushed source HEAD
+remains `dcf2c65`. Future Production deployment requires its own authorization
+and duplicate-marker preflight.
+
+### 2026-10-16 — Backend audit Fix #5 InstaPay references in monthly exports
+
+Request: fix only the omission of optional stored PaymentPart/RefundPart
+`ProviderReference` values from monthly financial transaction evidence and
+XLSX, preserving existing payment validation, ledger amounts and frozen
+revisions. Started from pushed Fix #4 handoff `dcf2c65`, with the preceding
+Development-activation edits to `AGENTS.md` and this file already uncommitted.
+Created `Fix5-InstaPay-Provider-References` without discarding those edits.
+
+Root cause: `MonthlyReportBuilder.TransactionsAsync` loaded payment/refund
+parts but projected only their IDs, account IDs and amounts. It now projects
+each stored optional reference into `SourceEvidence`, and places only parts
+matching the financial transaction's account in the new nullable
+`FinancialTransactionReportRow.ProviderReference` field. One nonempty value
+is emitted exactly as stored; multiple same-account values use a JSON array
+in stable part-ID order; null/empty values produce a blank Excel cell.
+The six-sheet workbook writer already exports report fields, so no ledger
+posting, amount, commission, account balance, payment input or verification
+workflow was changed. The paginated transactions/report API row gains this
+nullable field. Previously frozen report revisions and workbook bytes remain
+immutable; newly closed revisions include the field. Updated
+`docs/MONTHLY_CLOSING.md` with the export contract.
+
+Added three focused tests in `MonthlyProviderReferenceTests.cs` for a
+Reception-only InstaPay payment without a reference, split Cash/InstaPay
+payments/refunds with exact and blank exported cells, and multiple references
+on one account movement without a duplicate ledger amount. An initial test
+compile error from target-typed array construction was corrected; targeted
+tests then passed 2/2 and the expanded selection passed 3/3. A first full
+run lost its output session during a server restart, so its result was not
+claimed. The durable TRX rerun passed 936/936, zero failures/skips, in 38m31s.
+Clean build passed with zero warnings/errors, EF reported no model drift, and
+staged `git diff --check` passed. No migration was required; no Development or
+Production schema/data was touched.
+
+Only the DTO, transaction builder, focused test file and Monthly Closing
+documentation were staged and committed as `c937219`; the commit was pushed
+to `origin/Fix5-InstaPay-Provider-References`. The prior uncommitted
+Development-activation history/handoff documents were deliberately excluded
+from that commit and remain modified locally with this new checkpoint. No
+finding #6, frontend code, role grants or business-rule changes were made.
