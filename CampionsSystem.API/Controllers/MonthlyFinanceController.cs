@@ -65,6 +65,13 @@ public sealed class MaintenancePlansController(MaintenanceService maintenance):B
     public Task<IActionResult> Configure(MaintenancePlanRequest r,CancellationToken ct)=>Execute(()=>maintenance.ConfigureAsync(r,ct));
     [HttpGet,Authorize(Policy="Permission:Maintenance.View")]
     public Task<IActionResult> Plans([FromQuery]Guid? branchId,[FromQuery]DateOnly? asOf,[FromQuery]int page=1,[FromQuery]int pageSize=25,CancellationToken ct=default)=>Execute(()=>maintenance.PlansAsync(branchId,asOf,page,pageSize,ct));
+    [HttpGet("summary"),Authorize(Policy="Permission:Maintenance.View")]
+    public Task<IActionResult> Summary([FromQuery]Guid? branchId,[FromQuery]DateOnly? asOf,[FromQuery]int horizonDays=90,CancellationToken ct=default)
+        =>Execute(()=>maintenance.SummaryAsync(branchId,asOf,horizonDays,ct));
+    [HttpGet("reminders"),Authorize(Policy="Permission:Maintenance.View")]
+    public Task<IActionResult> Reminders([FromQuery]Guid? branchId,[FromQuery]DateOnly? asOf,[FromQuery]int horizonDays=90,
+        [FromQuery]int page=1,[FromQuery]int pageSize=25,CancellationToken ct=default)
+        =>Execute(()=>maintenance.RemindersAsync(branchId,asOf,horizonDays,page,pageSize,ct));
     [HttpGet("{id:guid}/history"),Authorize(Policy="Permission:Maintenance.View")]
     public Task<IActionResult> History(Guid id,[FromQuery]int page=1,[FromQuery]int pageSize=25,CancellationToken ct=default)=>Execute(()=>maintenance.HistoryAsync(id,page,pageSize,ct));
 }

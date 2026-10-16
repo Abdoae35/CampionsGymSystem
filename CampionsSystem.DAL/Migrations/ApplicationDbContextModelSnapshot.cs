@@ -3500,6 +3500,10 @@ namespace CampionsSystem.DAL.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
                     b.Property<decimal>("ExpectedCost")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -3517,6 +3521,9 @@ namespace CampionsSystem.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
+
+                    b.Property<DateOnly?>("NextExpectedDueDate")
+                        .HasColumnType("date");
 
                     b.Property<Guid>("OperationId")
                         .HasColumnType("uuid");

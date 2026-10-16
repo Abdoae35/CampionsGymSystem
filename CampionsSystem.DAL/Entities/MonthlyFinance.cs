@@ -80,9 +80,11 @@ public sealed class MaintenancePlanRevision
     public GymBranch Branch { get; set; } = null!;
     public int Revision { get; set; }
     public string Name { get; set; } = null!;
+    public string? Description { get; set; }
     public decimal ExpectedCost { get; set; }
     public int FrequencyMonths { get; set; }
     public DateOnly FirstDueDate { get; set; }
+    public DateOnly? NextExpectedDueDate { get; set; }
     public bool IsActive { get; set; } = true;
     public Guid OperationId { get; set; }
     public string RequestHash { get; set; } = null!;

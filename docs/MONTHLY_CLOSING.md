@@ -198,11 +198,13 @@ subtract another 2,000 from the earned-cost result.
 ## Informational maintenance
 
 Owner configures a versioned branch plan: expected cost, frequency in months, first
-due date, name, reason and active status. EGP 15,000 every 3 months suggests EGP
-5,000/month and a next expected maintenance date. Frequency is 1–120 months. This
+and next due dates, name, optional description, reason and active status. EGP 15,000 every 3 months suggests EGP
+5,000/month. Frequency is 1–120 months. This
 is **InformationalOnly**: no reserve balance, automatic allocation, debit, transfer,
 withdrawal, expense or profit provision. Owner chooses whether/how to save money.
-Actual maintenance uses the existing paid Expense workflow once.
+Actual maintenance uses the existing paid Expense workflow once. See
+[Planned periodic expenses](PLANNED_PERIODIC_EXPENSES.md) for due reminders,
+branch summaries, Owner-only mutations and exact V1 contracts.
 
 ## APIs and effective permissions
 
@@ -238,8 +240,10 @@ workbook. Provision these complete-report capabilities deliberately.
 | POST | `/api/payroll/commission-recognitions` | existing Payroll.Manage + Branches.AccessAll |
 | POST | `/api/payroll/{id}/payments` | Payroll.RecordPayment + Branches.AccessAll |
 | GET | `/api/payroll/{id}/payments` | Payroll.View |
-| POST | `/api/maintenance-plans` | Maintenance.Manage + Branches.AccessAll |
+| POST | `/api/maintenance-plans` | Owner membership + Maintenance.Manage + Branches.AccessAll |
 | GET | `/api/maintenance-plans` | Maintenance.View |
+| GET | `/api/maintenance-plans/summary` | Maintenance.View |
+| GET | `/api/maintenance-plans/reminders` | Maintenance.View |
 | GET | `/api/maintenance-plans/{id}/history` | Maintenance.View |
 
 22 operations. Collection reads accept `page=1&pageSize=25` (size 1–100; page

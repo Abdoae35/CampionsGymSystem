@@ -6,6 +6,8 @@ Finalized 2026-10-12 against clean Git **`master` at `476f0a77bf4f0a75839ab3b9a7
 
 Read in order:
 
+**Current feature addendum:** [Planned periodic expenses V1](PLANNED_PERIODIC_EXPENSES.md) documents the new maintenance summary/reminders and revised plan contract. The older full OpenAPI capture below predates later backend features and is not authoritative for this feature.
+
 1. [Authentication, permissions and branch context](AUTH_PERMISSIONS_BRANCH_CONTEXT.md).
 2. [React/API setup and examples](INTEGRATION_SETUP_AND_EXAMPLES.md).
 3. [Full endpoint catalog](API_ENDPOINT_CATALOG.md), [DTOs/enums](DTO_AND_ENUM_REFERENCE.md), and [raw OpenAPI](openapi.json), [source-derived frontend specification](openapi.integration.json), with their [provenance/limits](OPENAPI_STATUS.md).

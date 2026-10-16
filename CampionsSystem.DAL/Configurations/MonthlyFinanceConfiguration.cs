@@ -80,6 +80,7 @@ public sealed class MaintenancePlanRevisionConfiguration : IEntityTypeConfigurat
         b.HasIndex(x => new { x.PlanId, x.Revision }).IsUnique();
         b.Property(x => x.RequestHash).HasMaxLength(64).IsRequired();
         b.Property(x => x.Name).HasMaxLength(256).IsRequired();
+        b.Property(x => x.Description).HasMaxLength(2000);
         b.Property(x => x.ExpectedCost).HasPrecision(18, 2);
         b.ToTable("MaintenancePlanRevisions", t => t.HasCheckConstraint("CK_MaintenancePlanRevisions_Values", "\"ExpectedCost\" > 0 AND \"FrequencyMonths\" BETWEEN 1 AND 120 AND \"Revision\" > 0"));
     }

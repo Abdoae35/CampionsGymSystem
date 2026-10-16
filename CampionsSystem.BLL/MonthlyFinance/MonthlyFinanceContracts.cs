@@ -25,7 +25,8 @@ public sealed record RecognizePayrollCommissionsRequest(Guid OperationId, Guid C
 public sealed record RecordPayrollPaymentRequest(Guid OperationId, decimal Amount, DateTimeOffset PaidAt, string Reason, string? Reference = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record MaintenancePlanRequest(Guid OperationId, Guid BranchId, string Name, decimal ExpectedCost, int FrequencyMonths,
-    DateOnly FirstDueDate, string Reason, Guid? PlanId = null, int ExpectedRevision = 0, bool IsActive = true);
+    DateOnly FirstDueDate, string Reason, Guid? PlanId = null, int ExpectedRevision = 0, bool IsActive = true,
+    string? Description = null, DateOnly? NextExpectedDueDate = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RecordOccurrenceRequest(Guid OperationId, DateTimeOffset OriginalOccurredAt, string Reason);
 public sealed record FinancialMonthDetails(Guid Id, Guid BranchId, string Name, DateOnly StartDate, DateOnly EndDate, string Status, int Version, int LastRevision, DateTimeOffset? FirstClosedAt);
@@ -40,7 +41,10 @@ public sealed record PayrollDetails(Guid Id, Guid EmployeeId, string EmployeeNam
 public sealed record PayrollPaymentDetails(Guid Id, Guid PayrollId, Guid EmployeeId, Guid BranchId, Guid FinancialMonthId, decimal Amount,
     decimal BalanceBefore, decimal BalanceAfter, DateTimeOffset PaidAt, DateTimeOffset RecordedAt, DateOnly BusinessDate, Guid ActorUserId, string Reason, string? Reference);
 public sealed record MaintenanceForecast(Guid Id, Guid PlanId, Guid BranchId, int Revision, string Name, decimal ExpectedCost, int FrequencyMonths,
-    DateOnly FirstDueDate, DateOnly NextExpectedDate, decimal SuggestedMonthlyAmount, bool IsActive, string Status = "InformationalOnly");
+    DateOnly FirstDueDate, DateOnly NextExpectedDate, decimal SuggestedMonthlyAmount, bool IsActive, string Status = "InformationalOnly",
+    string? Description = null, string DueStatus = "Upcoming", int DaysUntilDue = 0);
+public sealed record MaintenanceBranchSummary(Guid BranchId, DateOnly AsOf, int HorizonDays, decimal TotalSuggestedMonthlyAmount,
+    int ActivePlanCount, int UpcomingCount, int DueTodayCount, int OverdueCount);
 public sealed record FinancialTransactionReportRow(Guid LedgerId, Guid BranchId, string BranchName, Guid? FinancialMonthId, string PeriodName,
     DateTimeOffset Timestamp, DateTimeOffset? PostedAt, DateTimeOffset? OriginalOccurredAt, DateOnly? BusinessDate, Guid AccountId, string AccountName,
     string PaymentMethod, string SourceType, string Direction, decimal Amount, Guid ActorUserId, Guid? PerformingEmployeeId, string? PerformingEmployeeName,

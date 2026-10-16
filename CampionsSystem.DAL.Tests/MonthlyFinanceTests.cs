@@ -6,6 +6,7 @@ using CampionsSystem.BLL.Shifts;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class EmployeeShiftTests
 {
@@ -13,6 +14,12 @@ public sealed partial class EmployeeShiftTests
     private SalaryService Salaries()=>new(db,user,access);
     private PayrollService Payroll()=>new(db,user,access);
     private MaintenanceService Maintenance()=>new(db,user,access);
+    private async Task MaintenanceOwner()
+    {
+        var role=new IdentityRole<Guid>("Owner") { NormalizedName="OWNER" };
+        db.Add(role);db.Add(new IdentityUserRole<Guid>{UserId=a.Id,RoleId=role.Id});
+        await db.SaveChangesAsync();
+    }
     private void FinanceAccess()=>user.Context=user.Context! with{Permissions=[..user.Context.Permissions,..MonthlyFinancePermissions.Codes,"Payroll.Manage"]};
     private async Task<FinancialMonthDetails> Month(DateOnly? end=null,decimal salary=6000)
     {
@@ -132,14 +139,76 @@ public sealed partial class EmployeeShiftTests
     }
     [Fact] public async Task MaintenancePlanningIsInformationalAndActualExpenseIsPaidOnce()
     {
+        await MaintenanceOwner();
         var month=await Month(today,0);var plan=new MaintenancePlanRequest(Guid.NewGuid(),branch.Id,"Equipment",15000,3,today.AddMonths(3),"Expected maintenance");
         var forecast=await Maintenance().ConfigureAsync(plan);Assert.Equal(5000,forecast.SuggestedMonthlyAmount);Assert.Equal("InformationalOnly",forecast.Status);
+        var historicalHash=FinancialOperations.Hash(new{plan.OperationId,plan.BranchId,plan.Name,plan.ExpectedCost,plan.FrequencyMonths,
+            plan.FirstDueDate,plan.Reason,plan.PlanId,plan.ExpectedRevision,plan.IsActive});
+        Assert.Equal(historicalHash,(await db.MaintenancePlanRevisions.SingleAsync()).RequestHash);
         Assert.Equal(forecast.Id,(await Maintenance().ConfigureAsync(plan)).Id);Assert.Empty(await db.FinancialTransactions.ToListAsync());
         var shift=await Service().OpenAsync(new(Guid.NewGuid(),100000));var category=new ExpenseCategory{Name="Equipment"};db.Add(category);await db.SaveChangesAsync();
         var paid=new PaidExpenseRequest(Guid.NewGuid(),category.Id,cash.Id,15000,"Actually paid maintenance");await Expenses().RecordPaidAsync(paid);await Expenses().RecordPaidAsync(paid);
         await Service().CloseAsync(shift.Id,new(Guid.NewGuid(),shift.Version,85000));await Months().CloseAsync(month.Id,new(Guid.NewGuid(),0,"Close"));
         var report=await Months().ReportAsync(month.Id);Assert.Equal(15000,report.Summary.OrdinaryExpenses);Assert.Equal(-15000,report.Summary.NetOperatingResult);
         Assert.Single(report.Transactions);Assert.Single(report.Maintenance);Assert.Single(await db.Expenses.ToListAsync());
+    }
+    [Fact] public async Task PlannedExpensesSummarizeRoundedReservesAndPersistentDueRemindersByBranch()
+    {
+        await MaintenanceOwner();FinanceAccess();var service=Maintenance();
+        var first=await service.ConfigureAsync(new(Guid.NewGuid(),branch.Id,"Equipment",15000,3,today.AddDays(-2),"Plan",Description:"Quarterly servicing"));
+        var second=await service.ConfigureAsync(new(Guid.NewGuid(),branch.Id,"Renovation",24000,6,today.AddDays(10),"Plan"));
+        var third=await service.ConfigureAsync(new(Guid.NewGuid(),branch.Id,"Rounding",100,3,today,"Plan"));
+        Assert.Equal(33.33m,third.SuggestedMonthlyAmount);
+        var summary=await service.SummaryAsync(branch.Id,today,30);
+        Assert.Equal(9033.33m,summary.TotalSuggestedMonthlyAmount);Assert.Equal(3,summary.ActivePlanCount);
+        Assert.Equal(1,summary.OverdueCount);Assert.Equal(1,summary.UpcomingCount);Assert.Equal(1,summary.DueTodayCount);
+        var page=await service.RemindersAsync(branch.Id,today,30,pageSize:2);
+        Assert.Equal(3,page.Total);Assert.Equal(2,page.Items.Count);Assert.Equal("Overdue",page.Items[0].DueStatus);
+        Assert.Equal("Quarterly servicing",page.Items[0].Description);
+        Assert.Single((await service.RemindersAsync(branch.Id,today,30,page:2,pageSize:2)).Items);
+        Assert.Empty(await db.FinancialTransactions.ToListAsync());Assert.Empty(await db.Expenses.ToListAsync());
+        Assert.Equal(first.NextExpectedDate,today.AddDays(-2));Assert.Equal(second.NextExpectedDate,today.AddDays(10));
+    }
+    [Fact] public async Task PlannedExpenseEditDeactivationAndFrozenMonthKeepSeparateHistory()
+    {
+        await MaintenanceOwner();var month=await Month(today,0);var service=Maintenance();
+        var create=new MaintenancePlanRequest(Guid.NewGuid(),branch.Id,"Equipment",15000,3,today,"Plan",Description:"Initial");
+        var first=await service.ConfigureAsync(create);Assert.Equal(first.Id,(await service.ConfigureAsync(create)).Id);
+        await Months().CloseAsync(month.Id,new(Guid.NewGuid(),0,"Close"));var frozen=await Months().ExportAsync(month.Id);
+        var second=await service.ConfigureAsync(create with{OperationId=Guid.NewGuid(),PlanId=first.PlanId,ExpectedRevision=1,
+            ExpectedCost=18000,Description="Revised",NextExpectedDueDate=today.AddMonths(3)});
+        Assert.Equal(6000,second.SuggestedMonthlyAmount);Assert.Equal("Upcoming",second.DueStatus);
+        var disabled=await service.ConfigureAsync(create with{OperationId=Guid.NewGuid(),PlanId=first.PlanId,ExpectedRevision=2,IsActive=false});
+        Assert.Equal("Inactive",disabled.DueStatus);Assert.Equal(3,(await service.HistoryAsync(first.PlanId)).Total);
+        Assert.Equal(0,(await service.SummaryAsync(branch.Id)).TotalSuggestedMonthlyAmount);
+        Assert.Equal(frozen.Bytes,(await Months().ExportAsync(month.Id)).Bytes);
+        Assert.Empty(await db.FinancialTransactions.ToListAsync());
+    }
+    [Fact] public async Task PlannedExpenseMutationRequiresOwnerMembershipAndEffectivePermissions()
+    {
+        FinanceAccess();var request=new MaintenancePlanRequest(Guid.NewGuid(),branch.Id,"Equipment",15000,3,today,"Plan");
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>Maintenance().ConfigureAsync(request));
+        await MaintenanceOwner();user.Context=user.Context! with{Permissions=["Branches.AccessAll",MonthlyFinancePermissions.MaintenanceView]};
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>Maintenance().ConfigureAsync(request));
+        user.Context=user.Context! with{Permissions=[..user.Context.Permissions,MonthlyFinancePermissions.MaintenanceManage]};
+        await Assert.ThrowsAsync<BusinessRuleException>(()=>Maintenance().ConfigureAsync(request with{ExpectedCost=0}));
+        await Assert.ThrowsAsync<BusinessRuleException>(()=>Maintenance().ConfigureAsync(request with{FrequencyMonths=0}));
+        await Assert.ThrowsAsync<BusinessRuleException>(()=>Maintenance().ConfigureAsync(request with{NextExpectedDueDate=today.AddDays(-1)}));
+        await Maintenance().ConfigureAsync(request);
+        await Assert.ThrowsAsync<BusinessRuleException>(()=>Maintenance().ConfigureAsync(request with{Name="Other"}));
+        Assert.Empty(await db.FinancialTransactions.ToListAsync());
+    }
+    [Fact] public async Task PlannedExpenseBranchReadsRemainIsolatedAndCannotMutateOtherBranch()
+    {
+        await MaintenanceOwner();FinanceAccess();var service=Maintenance();
+        var elsewhere=await service.ConfigureAsync(new(Guid.NewGuid(),other.Id,"Other branch servicing",12000,4,today.AddDays(2),"Plan"));
+        Assert.Equal(3000,(await service.SummaryAsync(other.Id)).TotalSuggestedMonthlyAmount);
+        Assert.Equal(0,(await service.SummaryAsync(branch.Id)).TotalSuggestedMonthlyAmount);
+        user.Context=user.Context! with{Permissions=[MonthlyFinancePermissions.MaintenanceView,MonthlyFinancePermissions.MaintenanceManage]};
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>service.SummaryAsync(other.Id));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>service.RemindersAsync(other.Id));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>service.HistoryAsync(elsewhere.PlanId));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>service.ConfigureAsync(new(Guid.NewGuid(),other.Id,"Other",100,2,today,"Attempt")));
     }
     [Fact] public async Task FinanceScopeAndEffectiveCapabilitiesRemainIndependent()
     {
