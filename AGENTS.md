@@ -27,6 +27,10 @@ rather than repeating the whole conversation. Never record secrets, credentials,
 or private environment values. Do not claim checks or actions that were not run.
 
 Preserve existing user changes. Do not commit or push unless requested.
+For future feature work, the user creates and checks out the branch. Do not
+create or switch to a new feature branch on your own. Complete and push each
+user-assigned task on that branch after verification; the user handles merging
+it into master and creating the next branch.
 For the Authentication task (2026-10-06), the user explicitly requested committing
 and pushing each completed, verified small subtask to the current Auth branch.
 For the Branch feature (2026-10-07), the user explicitly requested small verified
@@ -41,7 +45,8 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
-- Backend audit Fix #5 InstaPay provider-reference export is implemented and pushed as `c937219` on `Fix5-InstaPay-Provider-References`; Fixes #1–#4 remain ancestors and finding #6 was not touched.
+- The user confirmed the feature branch was merged into `master`. Read-only Git verification found clean local `master` and both remote `master` and `Fix5-InstaPay-Provider-References` at `96c6239`, containing Fix #5. The user now creates/checks out feature branches, asks for a task, and handles merges; assistants must not create branches independently and should push completed verified tasks to the user-provided branch.
+- Backend audit Fix #5 InstaPay provider-reference export was implemented as `c937219` on `Fix5-InstaPay-Provider-References`; Fixes #1–#4 remain ancestors and finding #6 was not touched.
 - New monthly reports, the paginated financial-month transactions API and newly frozen six-sheet XLSX workbooks include nullable `ProviderReference` per ledger/account row. One reference is exported exactly, multiple same-account references are a JSON array, and absent/empty references yield a blank cell. Part-level `SourceEvidence` retains every stored value. Payments/refunds, ledger totals, commissions, optional input and old frozen revisions are unchanged.
 - Fix #5 verification: three focused tests and full isolated suite 936/936 passed (38m31s durable rerun), clean build zero warnings/errors, EF model drift none, staged diff clean. No migration or Development/Production data change. Earlier Owner-authorized Fix #4 Development activation completed with 29 migrations, zero pending and a verified backup; see `PROJECT_HISTORY.md`. The prior activation history/handoff edits remain uncommitted locally and were excluded from the Fix #5 commit; this checkpoint extends them without staging or pushing them.
 
