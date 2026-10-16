@@ -47,10 +47,9 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Live remote `master` and `Fix5-InstaPay-Provider-References` were verified at `96c6239`, which contains Fix #5. The current checkout is the user-created `Fix-#6--Monthly-Closing-Historical-Data-Scalability` branch at `96c6239`, with only this uncommitted history/handoff checkpoint. The user creates/checks out branches and merges them; assistants implement and push each completed task on the user-provided branch.
-- Backend audit Fix #5 InstaPay provider-reference export was implemented and pushed as `c937219` on `Fix5-InstaPay-Provider-References`. Fixes #1–#4 remain ancestors; finding #6 is untouched.
-- Monthly financial transaction rows now include nullable account-matched `ProviderReference` and part-level reference evidence. New XLSX exports expose exact stored values, blank cells for absent/empty values and JSON arrays for multiple same-account references, with unchanged ledger row count and amounts. Old frozen revisions remain unchanged. The API row DTO adds only this nullable field; no payment validation, verification workflow, formula, schema or role change occurred.
-- Three focused tests and the complete isolated suite 936/936 passed, zero failures/skips (38m31s on the durable rerun); clean build zero warnings/errors, EF model drift none, staged diff clean. No Development/Production data was touched. Prior authorized Fix #4 Development activation remains at 29 migrations, zero pending, 112 tables. The earlier activation checkpoint and this required history/handoff update are uncommitted locally and excluded from the pushed Fix #5 commit; see the latest chronological entries.
+- Backend audit Fix #6 Monthly Closing historical scalability is implemented on the user-created `Fix-#6--Monthly-Closing-Historical-Data-Scalability` branch. Source/test/feature-doc commit `9e45a6f` is pushed; Fixes #1–#5 remain ancestors. The user creates/checks out branches and merges them; assistants work and push each completed task on the supplied branch.
+- The report builder aggregates prior Payroll, employee payments, Coach earnings and Coach payouts in PostgreSQL. Current-month detail remains bounded; older Payroll rows no longer repeat as current detail, but this month's payments against older entitlements remain visible. Existing six-sheet XLSX/DTO shapes, ledger postings, financial calculations and frozen revisions remain intact. The current-period 50,000-row and export-size limits remain.
+- Validation: 60/60 Monthly Closing regressions, two 50,001-row historical volume tests, deferred-payment test, and full isolated suite 939/939 passed. Clean no-incremental build had zero warnings/errors; EF reported no model drift; Git diff checks passed. No migration or Development/Production data change. See latest chronological entry. Next task awaits user direction and merge.
 
 ### Retained prior local deployment checkpoint (historical)
 
@@ -2739,3 +2738,44 @@ at `96c6239`; the assistant did not create or switch branches. No application
 code, database, migration, commit, or remote was changed. This workflow
 checkpoint updates only `AGENTS.md` and `PROJECT_HISTORY.md`; it remains
 uncommitted and unpushed. The next feature task awaits user direction.
+
+### 2026-10-16 — Backend audit Fix #6 Monthly Closing historical scalability
+
+Request: fix only the confirmed 50,000-row historical-data failure in Monthly
+Closing, while keeping each branch/month's activity and six-sheet workbook
+separate, preserving exact balances, limits on genuine current-month detail,
+frozen revisions and existing commission/payroll rules. The user supplied and
+checked out `Fix-#6--Monthly-Closing-Historical-Data-Scalability`; no branch was
+created or switched by the assistant. Baseline worktree was clean at `4086d83`.
+
+`MonthlyReportBuilder.BuildAsync` previously used `Bounded` on all earlier
+Payroll rows, PayrollPaymentRecords, CoachEarnings and CoachPayouts, then summed
+them in memory. A small current month could therefore fail after enough old
+records accumulated, and the Payroll detail array repeated earlier months.
+The report now uses database-side `SUM` and grouped Coach aggregates for prior
+obligations, loads bounded detailed rows only for the selected financial
+month, and keeps this month's payment records against earlier Payroll rows.
+The current ledger and source-evidence queries, Cash/InstaPay book aggregates,
+financial cutoff, refund/finalization protections, formulas, six worksheet
+names, DTO shapes and frozen revision bytes were not changed. Updated
+`docs/MONTHLY_CLOSING.md` to explain the current detail limit and carry-forward
+semantics. No schema/model/migration change was needed.
+
+Added `MonthlyFinanceScalabilityTests.cs`: isolated-schema bulk fixtures with
+50,001 earlier Payroll payment rows and 50,001 earlier Coach earning rows prove
+the new month reports opening/closing outstanding without old detail or frozen
+workbook changes; a deferred payment test proves a current payment against an
+older entitlement appears once. The broader Monthly Closing selection passed
+60/60; the two volume tests passed 2/2 and deferred-payment test passed 1/1.
+Complete isolated solution suite passed 939/939, zero failures/skips, in 40m08s
+with persistent TRX at `/private/tmp/campeones-fix6/fix6-full.trx`. Clean
+no-incremental solution build passed with zero warnings/errors. EF reported no
+pending model changes; staged diff/whitespace checks passed. No Development or
+Production database data/schema was changed, and no migration was applied.
+
+Only the report builder, focused test file and Monthly Closing guide were
+committed as `9e45a6f` and pushed to the user-created Fix #6 branch. This
+separate history/handoff checkpoint records the completed operation. All six
+original audit findings now have code fixes in this branch's ancestry; release
+or Production rollout remains separate, and the user handles the merge into
+`master`.
