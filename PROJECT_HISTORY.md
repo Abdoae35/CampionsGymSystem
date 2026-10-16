@@ -47,9 +47,9 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Backend audit Fix #6 Monthly Closing historical scalability is implemented on the user-created `Fix-#6--Monthly-Closing-Historical-Data-Scalability` branch. Source/test/feature-doc commit `9e45a6f` is pushed; Fixes #1–#5 remain ancestors. The user creates/checks out branches and merges them; assistants work and push each completed task on the supplied branch.
-- The report builder aggregates prior Payroll, employee payments, Coach earnings and Coach payouts in PostgreSQL. Current-month detail remains bounded; older Payroll rows no longer repeat as current detail, but this month's payments against older entitlements remain visible. Existing six-sheet XLSX/DTO shapes, ledger postings, financial calculations and frozen revisions remain intact. The current-period 50,000-row and export-size limits remain.
-- Validation: 60/60 Monthly Closing regressions, two 50,001-row historical volume tests, deferred-payment test, and full isolated suite 939/939 passed. Clean no-incremental build had zero warnings/errors; EF reported no model drift; Git diff checks passed. No migration or Development/Production data change. See latest chronological entry. Next task awaits user direction and merge.
+- Planned Periodic Expenses V1 is implemented and pushed as `933ff78` on the user-created `PlannedPeriodicExpenses` branch; `master` was not merged or switched. The six original backend audit fixes are ancestors in this branch.
+- Existing append-only maintenance revisions now support descriptions and explicit next due dates. Owner-only writes, branch monthly reserve totals, paginated upcoming/overdue reminders, and frontend contract documentation were added without financial ledger postings or actual reserve balances. Actual Expense payments remain independent. Existing frozen Monthly Closing revisions are preserved.
+- Final verification: five focused tests and full isolated suite 943/943 passed; clean build had zero warnings/errors; EF reported no model drift; staged diff check passed. Migration `20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate` was validated in isolated schemas only and is **not applied to Development or Production**. No application database data or role grants were changed. See latest history entry; final frontend handoff recapture and migration activation await separate direction.
 
 ### Retained prior local deployment checkpoint (historical)
 
@@ -2779,3 +2779,48 @@ separate history/handoff checkpoint records the completed operation. All six
 original audit findings now have code fixes in this branch's ancestry; release
 or Production rollout remains separate, and the user handles the merge into
 `master`.
+
+### 2026-10-16 — Planned Periodic Expenses V1
+
+Request: extend existing Maintenance Planning into Owner-controlled, branch-scoped
+periodic expense plans with informational monthly reserve suggestions and due
+reminders, without creating Expenses, ledger movements or fictitious reserve
+balances. The user supplied and checked out `PlannedPeriodicExpenses` at clean
+`6555bea`; no branch was created, switched or merged by the assistant.
+
+The existing `MaintenancePlanRevisions` append-only history, operation-ID
+idempotency, stale-revision check, audit trail, `Maintenance.View` branch reads,
+and `MaintenanceForecast` rounding were reused. Added nullable description and
+explicit next expected due date to revisions, Owner membership enforcement on
+mutations in addition to effective `Maintenance.Manage` and `Branches.AccessAll`,
+active-branch plan locking independent of a cash drawer, branch suggested-reserve
+summary, and paginated overdue/upcoming reminders. The old request hash is
+preserved when both new optional fields are omitted, so old operation retries
+remain valid. Overdue dates persist until the Owner explicitly revises them;
+revising a due date is not proof of payment. Actual payments remain in the
+existing Expenses workflow, with no automatic plan-to-payment link in V1.
+
+`20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate` adds only two
+nullable columns to `MaintenancePlanRevisions`; no old migrations were edited.
+`docs/PLANNED_PERIODIC_EXPENSES.md`, Monthly Closing guidance and a focused
+`docs/frontend-handoff/` addendum document routes, DTOs, permissions, examples
+and the operational migration requirement. The older full handoff OpenAPI
+capture was not regenerated; final full handoff recapture remains a later task.
+
+The first full isolated run exposed that the old maintenance write path required
+a configured drawer; it finished 942 passed/1 failed. Replaced that dependency
+with a transaction-scoped plan lock and active-branch validation. Five focused
+tests then passed, including branch isolation, rounding, reminders, history,
+old-hash retries and frozen reporting. The final full isolated suite passed
+943/943 with zero failures/skips in 29m05s; persistent result is
+`/private/tmp/planned-periodic-expenses-full-final.trx`. Clean no-incremental
+solution build passed with zero warnings/errors; EF reported no pending model
+changes; staged diff/whitespace checks passed. Isolated tests exercised the
+new migration, but it was **not** applied to local Development or Production.
+No Development/Production records, customer data, role grants or production systems changed.
+
+Feature source, migration, tests and docs were committed as `933ff78` and
+pushed to `origin/PlannedPeriodicExpenses`; the user handles merging. This
+history/handoff checkpoint is an uncommitted local documentation-only edit.
+Migration approval/application and final all-module frontend handoff recapture
+remain separate operational tasks; no next feature was started.
