@@ -47,8 +47,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Current `master`/`origin/master` at `e1475b2` contains the six original backend audit fixes, Planned Periodic Expenses V1 and the finalized frontend handoff. The handoff documents 227 controller operations across 28 controllers (36 Coaching), plus Development-only health, with raw and source-derived OpenAPI, DTO/permission/workflow guides, examples and `docs/Campeones-V1-Frontend-Handoff-20261016.zip`. See `docs/frontend-handoff/README_START_HERE.md` and the latest history entry. The required AGENTS/history checkpoint is local and uncommitted.
-- Owner-approved Development activation is complete: `20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate` was applied only to `localhost:5432/campions_gym` after a verified timestamped backup. There are 30 applied migrations, zero pending and 112 tables; new nullable columns match the model, all 111 other table row counts match baseline, and EF reports no drift. Production, grants, seed/customer data and backend source were untouched; see the activation history entry.
+- On user-created `Excel_import_export`, optional Excel bulk registration was committed and pushed as `eeae53c`; the user handles merging into master. Lead, normal Gym Member and FreelanceHouse templates/preview/confirmation use existing manual creation services and permissions. The updated handoff includes 231 controller actions (232 runtime OpenAPI operations including Development health) and `docs/Campeones-V1-Frontend-Handoff-ExcelImport-20261017.zip`. Full isolated suite passed 954/954 before the final added test cases; final Excel tests passed 14/14, build clean, EF model drift none. This required AGENTS/history checkpoint remains local and uncommitted; see latest history entry.
+- Owner-approved Development activation of the prior Planned Periodic Expenses migration left `localhost:5432/campions_gym` at a verified 30 migrations and 112 tables. The additive `20261016201337_AddExcelImportSessions` was generated and exercised only in disposable test schemas; it has not been applied to Development or Production and needs separate approval before Excel APIs can be activated. No role grants, seed/customer data or financial records were changed by this task.
 - Read-only local grant checks found `Shifts.CloseOthers` granted to Owner/BranchManager, but numerous V1 capabilities remain ungranted, including `Vault.View`, `Sales.QuickCancel`, FinancialMonths, Salaries, Maintenance and several Private/Coach actions; the exact list is in the handoff readiness guide. No grant was changed.
 
 ### Retained prior local deployment checkpoint (historical)
@@ -2937,3 +2937,46 @@ this was a documentation packaging operation. `AGENTS.md` and
 `PROJECT_HISTORY.md` remain local uncommitted checkpoint edits and were not
 part of the push. Frontend integration still needs environment-specific API
 configuration and Owner-directed capability grants described in the handoff.
+
+### 2026-10-17 — Optional Excel bulk registration
+
+Request: add a faster, optional Excel creation path for new Leads, normal Gym
+Members and FreelanceHouse customers without changing manual registration,
+Lead conversion or financial workflows; deliver templates, protected preview,
+idempotent confirmation, tests and a refreshed React handoff.
+
+On the user-created `Excel_import_export` branch (base `cbf1697`), added four
+`/api/excel-imports` actions: kind-specific XLSX template download, multipart
+preview, confirmation by import ID, and result lookup. The workbook parser
+limits uploads to 1 MiB/100 data rows, validates exact headers and inert cell
+values, and rejects formulas/macros/external links. A 30-minute server-owned
+batch stores row requests and results; preview writes no customer record.
+Confirmation rechecks the original actor, effective manual-create capability,
+branch, own Shift where required, phone uniqueness and plan/coach eligibility.
+It invokes the existing Lead/Member services per row under a transaction/row
+lock, so eligible rows can succeed while invalid/duplicate rows remain reported
+and retries cannot recreate successful rows. No subscription, Sale, Payment or
+financial transaction is generated. Existing single-record and conversion APIs
+were not changed; no permission grants were added.
+
+Added `20261016201337_AddExcelImportSessions`, an additive migration creating
+only `ExcelImportBatches` and `ExcelImportRows` with FKs/indexes. Reviewed the
+generated Up operations and SQL; no old migration, drop, data update or
+Production/Development schema was changed. Isolated disposable test schemas
+applied the migration. Refreshed the raw and derived OpenAPI (232 matching
+runtime operations), Excel API/React workflow guidance and eight Postman
+requests. Packaged `docs/Campeones-V1-Frontend-Handoff-ExcelImport-20261017.zip`:
+124 files matched the handoff directory byte-for-byte; CRC passed, 123 manifest
+hashes, 1,443 schema references and 1,353 portable Markdown links resolved.
+
+Verification: full isolated suite passed 954/954, no failures or skips, in
+43m21s. That run began before the final small parser guard and additional
+Excel test cases; the final targeted Excel suite then passed 14/14 with those
+changes. Solution build succeeded with zero warnings/errors; EF reported no
+model drift; staged diff and whitespace checks passed. Committed only feature
+source, migration, tests and frontend handoff/ZIP as `eeae53c` and pushed
+`origin/Excel_import_export`. No merge was performed. This history/handoff
+checkpoint is local and uncommitted. Development activation of the new migration
+still needs explicit approval; Owner-directed grants and browser CORS setup
+remain environment-specific. No real customer import or Production operation
+was performed.
