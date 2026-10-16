@@ -172,6 +172,16 @@ The summary distinguishes:
 - Employee external payment records, funded coach payouts, advances and outstanding.
 - Ledger credits/debits/net cashflow, original book/physical cash and count discrepancies.
 
+The detailed transaction, Payroll, employee-payment, Coach-earning and Coach-payout
+rows belong to the selected financial month. Earlier Payroll and Coach facts are
+aggregated by the database into opening outstanding balances, so years of prior
+records do not consume the 50,000-row current-period detail limit. Payment records
+made this month against an older Payroll entitlement remain this month's payment
+detail and reduce closing outstanding once. The report still includes only the
+selected month's ledger movements; historical movements contribute through the
+existing branch account balances, without appearing again as current activity.
+Previously frozen closing revisions and workbook bytes are unchanged.
+
 **Net operating result** is a management result on collected revenue:
 
 `Net member collections − net ordinary paid operating expenses − prorated basic salary
@@ -278,10 +288,11 @@ bytes rather than regeneration. Six Excel-valid worksheets:
 Built with .NET ZIP/XML OOXML, with wrapped headers, frozen first rows and numeric
 money cells. User text is inline text, never executable formulas. Long JSON evidence
 is split into numbered columns without truncation. Stable ordering, bulk source
-queries, cancellation, Excel row/column checks, 50,000 rows per dataset, 64 MiB report
-JSON and 32 MiB workbook bounds prevent uncontrolled closing/export. Exceeding limits
-rejects the close atomically. This is a bounded synchronous report, not a background
-export service. Stored revision bytes ensure historical reproducibility.
+queries, cancellation, Excel row/column checks, 50,000 rows per current-period
+detail dataset, 64 MiB report JSON and 32 MiB workbook bounds prevent uncontrolled
+closing/export. Exceeding limits rejects the close atomically. This is a bounded
+synchronous report, not a background export service. Stored revision bytes ensure
+historical reproducibility.
 
 Forward migration: `20261012164313_ImplementMonthlyClosingAndEmployeePayments`;
 review [SQL](database/MONTHLY_CLOSING.sql). Existing historical migrations are
