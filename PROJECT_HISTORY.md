@@ -47,9 +47,9 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- Planned Periodic Expenses V1 is implemented and pushed as `933ff78` on the user-created `PlannedPeriodicExpenses` branch; `master` was not merged or switched. The six original backend audit fixes are ancestors in this branch.
-- Existing append-only maintenance revisions now support descriptions and explicit next due dates. Owner-only writes, branch monthly reserve totals, paginated upcoming/overdue reminders, and frontend contract documentation were added without financial ledger postings or actual reserve balances. Actual Expense payments remain independent. Existing frozen Monthly Closing revisions are preserved.
-- Final verification: five focused tests and full isolated suite 943/943 passed; clean build had zero warnings/errors; EF reported no model drift; staged diff check passed. Migration `20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate` was validated in isolated schemas only and is **not applied to Development or Production**. No application database data or role grants were changed. See latest history entry; final frontend handoff recapture and migration activation await separate direction.
+- Current `master`/`origin/master` at `e1475b2` contains the six original backend audit fixes, Planned Periodic Expenses V1 and the finalized frontend handoff. The handoff documents 227 controller operations across 28 controllers (36 Coaching), plus Development-only health, with raw and source-derived OpenAPI, DTO/permission/workflow guides, examples and `docs/Campeones-V1-Frontend-Handoff-20261016.zip`. See `docs/frontend-handoff/README_START_HERE.md` and the latest history entry. The required AGENTS/history checkpoint is local and uncommitted.
+- Owner-approved Development activation is complete: `20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate` was applied only to `localhost:5432/campions_gym` after a verified timestamped backup. There are 30 applied migrations, zero pending and 112 tables; new nullable columns match the model, all 111 other table row counts match baseline, and EF reports no drift. Production, grants, seed/customer data and backend source were untouched; see the activation history entry.
+- Read-only local grant checks found `Shifts.CloseOthers` granted to Owner/BranchManager, but numerous V1 capabilities remain ungranted, including `Vault.View`, `Sales.QuickCancel`, FinancialMonths, Salaries, Maintenance and several Private/Coach actions; the exact list is in the handoff readiness guide. No grant was changed.
 
 ### Retained prior local deployment checkpoint (historical)
 
@@ -2824,3 +2824,116 @@ pushed to `origin/PlannedPeriodicExpenses`; the user handles merging. This
 history/handoff checkpoint is an uncommitted local documentation-only edit.
 Migration approval/application and final all-module frontend handoff recapture
 remain separate operational tasks; no next feature was started.
+
+### 2026-10-16 — V1 master preflight and final frontend API handoff
+
+Request: verify that current master contains all six audit fixes and Planned
+Periodic Expenses, preflight only the local Development migration without
+applying it, then refresh the complete V1 backend-to-React API contract and
+assess freeze readiness. The initially clean `master` matched `origin/master`
+at `e3b8cc3`. Ancestry contains Fixes #1–#6 and Planned Periodic Expenses.
+No branch was created, switched, merged, committed or pushed.
+
+Read-only Development checks confirmed PostgreSQL 14.20 at
+`localhost:5432/campions_gym`, 29 applied migrations, 112 public tables and
+only `20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate` pending.
+The migration adds nullable `Description` and `NextExpectedDueDate` columns to
+`MaintenancePlanRevisions`; the local table has zero rows. A custom-format
+`pg_dump` dry run to `/dev/null` succeeded, confirming the backup command can
+run, but **no timestamped backup file was created and no migration applied**.
+Development permission grants were not changed; Production was neither accessed
+nor assessed. A separate read-only grant inventory found `Shifts.CloseOthers`
+already granted to Owner/BranchManager, but 23 active V1 capabilities had no
+role grant or direct override locally (exact list in the frontend handoff),
+including `Vault.View`, `Sales.QuickCancel`, FinancialMonths, Salaries and
+Maintenance permissions. The first read-only permission query failed on an
+`Effect` column type mismatch; a corrected read-only query succeeded. No
+permission record was changed. The Owner requested explicit approval before
+any Development write.
+
+Captured the current runtime Development OpenAPI from a temporary local API
+process and stopped it. It has 228 operations: 227 MVC controller actions
+across 28 controllers plus Development-only database health. A metadata-only
+compiled exporter independently found the same 227 route/method pairs, 440
+reachable type shapes and zero semantic errors. Regenerated `docs/frontend-handoff/`
+raw and source-derived OpenAPI, endpoint metadata, all per-controller pages,
+DTO/enum inventory, security, error, workflow, six-fix, module coverage,
+integration and operational-readiness guides, plus 21 focused V1 Postman
+examples. Preserved historical branch-only documents as an archive. The
+portable ZIP is `docs/Campeones-V1-Frontend-Handoff-20261016.zip`.
+
+Static validation passed: exact route-set equality, 1,379 resolved OpenAPI
+references, 464 portable Markdown links, parsed package JSON and Postman
+bodies, 36 Coaching actions, and ZIP CRC/content check for 121 files.
+`git diff --check` passed. The integration OpenAPI is explicitly source-derived
+because raw IActionResult metadata omits many success/auth shapes; no business
+flows were executed and full tests/build were not rerun for this documentation
+operation. No backend source/migration, database data/schema, role grant,
+Production system or customer record changed. Handoff and history files plus
+the ZIP remain local uncommitted work; Development migration approval and
+environment capability/CORS configuration remain the activation steps.
+
+### 2026-10-16 — Approved local Development Planned Periodic Expenses migration
+
+Request: after explicit Owner approval, create and verify a timestamped
+PostgreSQL backup, apply **only**
+`20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate` to local
+Development `localhost:5432/campions_gym`, and verify migrations, schema and
+existing data. Do not touch Production, role grants, seed data or backend
+features.
+
+Before writing, rechecked EF's configured Development target as Npgsql
+`campions_gym` at `tcp://localhost:5432`, PostgreSQL 14.20 Homebrew, 29 applied
+migrations and exactly that one pending migration. SQL inspection confirmed 112
+tables, zero `MaintenancePlanRevisions` rows, neither new column present and
+only one other idle local pgAdmin client. The reviewed Up method adds nullable
+`Description varchar(2000)` and nullable `NextExpectedDueDate date`; no data
+update, drop or permission change. Baseline counts were saved for the 111
+non-EF-history tables.
+
+Created `/Users/macbookpro/Backups/Campeones/20261016T154517Z/campions_gym_20261016T154517Z.dump`
+with `pg_dump` 14.20 custom format (552,145 bytes; SHA-256
+`053280f1660772fcee5386f2b8363b868264390e5463583bbc83f3617e6c9f87`).
+Verified its `pg_restore --list` identity/TOC and full archive read to
+`/dev/null`, both successful. Rechecked the unchanged database identity,
+history, table and target-column state immediately before applying.
+
+Ran the established EF Core `database update` workflow with explicit named
+migration, DAL project/API startup/ApplicationDbContext and Development
+environment. EF acquired its migration lock, added only the two reviewed
+columns, inserted that migration history row and completed `Done`. Post-check:
+30 applied migrations, zero pending, 112 tables, exactly one target history
+row, `Description` nullable varchar(2000), `NextExpectedDueDate` nullable
+date, and zero plan rows. All 111 other table row counts matched baseline
+byte-for-byte; EF `has-pending-model-changes` reported no drift. No failure or
+recovery step occurred.
+
+Refreshed the current frontend handoff's Development activation statements,
+verification manifest and portable ZIP; static route/reference/link checks and
+ZIP integrity still pass. Production was not accessed; no grants, seeding,
+customer records, backend source, migration files, branch, commit or push were
+changed. Existing unrelated/uncommitted handoff documentation remains
+preserved on `master`. Owner-directed capability grants and any approved CORS
+setup remain separate integration tasks. A full test suite was not rerun for
+this schema-only activation.
+
+### 2026-10-16 — Final V1 frontend handoff documentation commit
+
+Request: review the existing handoff edits, confirm the portable ZIP reflects
+the activated Development migration (30 applied, zero pending), commit only
+the frontend handoff documentation and ZIP, and push to the existing branch.
+
+Confirmed the handoff's Development status in its readiness guide and
+verification manifest. The ZIP CRC check passed; all 121 ZIP entries matched
+the corresponding `docs/frontend-handoff/` files byte-for-byte, and the
+manifest's 120 recorded hashes matched. Staged-file review and
+`git diff --cached --check` passed. Committed only
+`docs/frontend-handoff/` and
+`docs/Campeones-V1-Frontend-Handoff-20261016.zip` as `e1475b2`
+(`docs: finalize V1 frontend API handoff`) and pushed `master` to
+`origin/master`. No backend source, database, permissions or Production
+operation was performed for this request. No tests/build were rerun because
+this was a documentation packaging operation. `AGENTS.md` and
+`PROJECT_HISTORY.md` remain local uncommitted checkpoint edits and were not
+part of the push. Frontend integration still needs environment-specific API
+configuration and Owner-directed capability grants described in the handoff.
