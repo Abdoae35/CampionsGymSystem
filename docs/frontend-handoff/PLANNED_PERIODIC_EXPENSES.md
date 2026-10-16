@@ -1,6 +1,6 @@
 # Planned periodic expenses: V1 React API addendum
 
-This addendum supersedes the maintenance-plan entries in the older handoff catalog/OpenAPI capture. Those captures predate Monthly Closing and later audit fixes; do not generate a new client for maintenance from them. Use the [feature contract](../PLANNED_PERIODIC_EXPENSES.md) and this addendum until the complete frontend handoff is recaptured. The checked-in source is authoritative.
+This V1 module guide complements the [current API catalog](API_ENDPOINT_CATALOG.md) and [regenerated OpenAPI](openapi.json). The checked-in source is authoritative; the exact DTOs and five routes below match current master.
 
 Authenticate with the existing Bearer token. Render create/edit/deactivate only when the user is an actual Owner and effective `Maintenance.Manage` and `Branches.AccessAll` are available. The server verifies Owner membership independently of UI flags. Reads require effective `Maintenance.View` and branch scope. A Deny overrides inherited role grants. Choose a branch explicitly with `branchId` when permitted; otherwise use the current branch. All dates are `YYYY-MM-DD`; money is a JSON decimal number in EGP.
 
@@ -63,4 +63,4 @@ An active branch can have plans before a shared cash drawer is configured; plans
 
 Validation: positive `expectedCost` with at most two decimals, nonblank name up to 256 characters, optional description up to 2,000, frequency 1–120 months, dates in years 1–9900, next due no earlier than first due, nonblank reason, valid operation ID, and matching expected revision. Standard 400 validation/business error, 401 unauthenticated, 403 unauthorized/branch scope, 404 unknown plan, and 409 stale revision/transaction conflict apply. Never infer a paid Expense, an actual reserve balance, or profit reduction from these endpoints. Actual payment uses the existing Expenses API; V1 has no automatic plan/payment link.
 
-This feature adds two nullable columns through migration `20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate`. The API needs that migration on its target database before these routes are used. It was prepared and tested only against isolated schemas; Development and Production activation require separate approval.
+This feature adds two nullable columns through migration `20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate`. The API needs that migration on its target database before these routes are used. It is applied and verified on local Development after explicit Owner approval; Production rollout remains separate and unverified. Development capabilities still require intentional Owner grants.

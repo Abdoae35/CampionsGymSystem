@@ -1,2 +1,3 @@
-# Private/Classes status — superseded draft briefing
-The completed backend was published at a2a0c56 and is included in the current master source inspected at 476f0a7. All **36 Coaching operations** are now integrated in the [current catalog](api/Coaching.md) and [current OpenAPI](openapi.json). Use [confirmed feature rules](PRIVATE_CLASSES.md), [React workflows](REACT_COACHING_INTEGRATION.md) and [operational prerequisites](OPEN_QUESTIONS_AND_GAPS.md). Earlier uncommitted/build/publication blockers and the future-calendar-date concern are superseded. The preserved [historical archive](branch-only/README_ARCHIVE.md) is not the integration authority. Classes compensation remains disabled until Owner formula definition.
+# Archived branch status
+
+This page once tracked an unmerged Private/Classes branch. Current `master` at `e3b8cc3` includes all **36 Coaching operations**. Use the [current Coaching API contract](api/Coaching.md), [V1 workflow guide](V1_WORKFLOWS.md), and [raw OpenAPI](openapi.json). The preserved [branch-only archive](branch-only/README_ARCHIVE.md) is historical evidence, not an integration contract.

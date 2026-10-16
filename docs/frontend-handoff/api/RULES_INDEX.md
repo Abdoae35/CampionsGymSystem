@@ -1,29 +1,3 @@
-# Business validation and scope evidence
+# Current business-rule navigation
 
-**VERIFIED FROM CODE**. Each module file contains source-local guard/permission/date/money/retry/sorting excerpts with line numbers, including shared helpers. These are evidence, not new rules. Test names are assertions present in source, **not a claim each was run in this audit**. Follow endpoints and workflow prose for interaction sequences.
-
-- [Authentication](rules/Authentication.md)
-
-- [Branches](rules/Branches.md)
-
-- [CheckIns](rules/CheckIns.md)
-
-- [Coaching](rules/Coaching.md)
-
-- [Commissions](rules/Commissions.md)
-
-- [Crm](rules/Crm.md)
-
-- [Employees](rules/Employees.md)
-
-- [Members](rules/Members.md)
-
-- [Operations](rules/Operations.md)
-
-- [Plans](rules/Plans.md)
-
-- [Sales](rules/Sales.md)
-
-- [Shifts](rules/Shifts.md)
-
-- [Subscriptions](rules/Subscriptions.md)
+The current V1 workflow overview is [V1_WORKFLOWS.md](../V1_WORKFLOWS.md). Full maintained backend rules are in `docs/SALES_PAYMENTS.md`, `docs/SHIFTS_VAULT_EXPENSES.md`, `docs/MONTHLY_CLOSING.md`, `docs/PRIVATE_CLASSES.md`, `docs/PERMISSIONS_ADMINISTRATION.md`, and `docs/PLANNED_PERIODIC_EXPENSES.md` in the backend repository. The `api/rules/` source-excerpt files were captured at an older commit and are historical evidence only; they do not supersede current source, controller pages or this handoff's V1 rules.

@@ -1,0 +1,809 @@
+{
+  "info": {
+    "name": "Campeones V1 final contract examples",
+    "description": "Source-checked representative requests from current master e3b8cc3. Fake fixtures only. Import the older Campions.Auth collection for earlier module examples. Set baseUrl/accessToken and each resource/account ID privately. No requests were executed in the documentation task.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5236"
+    },
+    {
+      "key": "accessToken",
+      "value": "EXAMPLE_TOKEN"
+    },
+    {
+      "key": "operationId",
+      "value": "11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "key": "saleId",
+      "value": "REPLACE_SALE_ID"
+    },
+    {
+      "key": "shiftId",
+      "value": "REPLACE_SHIFT_ID"
+    },
+    {
+      "key": "financialMonthId",
+      "value": "REPLACE_MONTH_ID"
+    },
+    {
+      "key": "accessVersion64",
+      "value": "REPLACE_WITH_RETURNED_VERSION"
+    }
+  ],
+  "item": [
+    {
+      "name": "Owner access administration",
+      "item": [
+        {
+          "name": "Permission catalog",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/access-administration/permissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "access-administration",
+                "permissions"
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures."
+          }
+        },
+        {
+          "name": "Effective user access",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/access-administration/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "access-administration",
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures."
+          }
+        },
+        {
+          "name": "Set user Deny override",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/access-administration/users/{{userId}}/permissions/{{permissionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "access-administration",
+                "users",
+                "{{userId}}",
+                "permissions",
+                "{{permissionId}}"
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effect\": \"Deny\",\n  \"operationId\": \"{{operationId}}\",\n  \"expectedVersion\": \"{{accessVersion64}}\",\n  \"reason\": \"Example access review\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Clear override (inherit role grants)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/access-administration/users/{{userId}}/permissions/{{permissionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "access-administration",
+                "users",
+                "{{userId}}",
+                "permissions",
+                "{{permissionId}}"
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"effect\": null,\n  \"operationId\": \"{{operationId}}\",\n  \"expectedVersion\": \"{{accessVersion64}}\",\n  \"reason\": \"Example follow-up review\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shift and shared drawer",
+      "item": [
+        {
+          "name": "Own and branch-period summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shifts/{{shiftId}}/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shifts",
+                "{{shiftId}}",
+                "summary"
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures."
+          }
+        },
+        {
+          "name": "Own ledger rows",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shifts/{{shiftId}}/transactions?page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shifts",
+                "{{shiftId}}",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures."
+          }
+        },
+        {
+          "name": "All branch interval rows by actual operator",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shifts/{{shiftId}}/branch-transactions?page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shifts",
+                "{{shiftId}}",
+                "branch-transactions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures."
+          }
+        },
+        {
+          "name": "Owner/Manager override close without count",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shifts/{{shiftId}}/close-override",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shifts",
+                "{{shiftId}}",
+                "close-override"
+              ]
+            },
+            "description": "Requires Shifts.CloseOthers, stored Owner/BranchManager identity and branch scope. Omit countedCash to record Unverified with no fabricated zero count.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"expectedVersion\": 1,\n  \"reason\": \"Example employee unavailable\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sales cancellation and payment",
+      "item": [
+        {
+          "name": "InstaPay payment without reference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales/{{saleId}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sales",
+                "{{saleId}}",
+                "payments"
+              ]
+            },
+            "description": "Select an authorized InstaPay account. providerReference is optional; this is a real collection and requires the actual employee Shift.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"amount\": 100,\n  \"parts\": [\n    {\n      \"financialAccountId\": \"33333333-3333-4333-8333-333333333333\",\n      \"amount\": 100,\n      \"providerReference\": null\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Split payment with optional provider reference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales/{{saleId}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sales",
+                "{{saleId}}",
+                "payments"
+              ]
+            },
+            "description": "Use a fresh operationId for a separate action. Account IDs must have the corresponding Cash/InstaPay methods.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"amount\": 100,\n  \"parts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 40\n    },\n    {\n      \"financialAccountId\": \"33333333-3333-4333-8333-333333333333\",\n      \"amount\": 60,\n      \"providerReference\": \"EXAMPLE-TRANSFER-1\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reception Quick Cancel partial",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales/{{saleId}}/quick-cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sales",
+                "{{saleId}}",
+                "quick-cancel"
+              ]
+            },
+            "description": "Only stored Reception within 24 hours inclusive with Sales.QuickCancel and own Shift. Manual refund; usage never determines the amount.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"reason\": \"Example agreed partial refund\",\n  \"amount\": 40,\n  \"parts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 40\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Manager/Owner zero-refund cancellation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sales/{{saleId}}/refunds",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sales",
+                "{{saleId}}",
+                "refunds"
+              ]
+            },
+            "description": "Elevated Payments.Refund workflow; stored Owner/BranchManager role and branch scope. Zero refund creates no ledger debit.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"amount\": 0,\n  \"parts\": [],\n  \"reason\": \"Example cancellation with no refund\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Financial month and payroll",
+      "item": [
+        {
+          "name": "Open branch financial month",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/financial-months",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "financial-months"
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"name\": \"Example period\",\n  \"startDate\": \"2026-11-01\",\n  \"endDate\": \"2026-11-30\",\n  \"reason\": \"Example opening\",\n  \"branchId\": \"22222222-2222-4222-8222-222222222222\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Close branch month",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/close",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "financial-months",
+                "{{financialMonthId}}",
+                "close"
+              ]
+            },
+            "description": "All branch Shifts must be closed; count is optional and discrepancy does not block closing.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"expectedVersion\": 1,\n  \"reason\": \"Example reviewed close\",\n  \"countedCash\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Frozen report revision",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/report?revision=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "financial-months",
+                "{{financialMonthId}}",
+                "report"
+              ],
+              "query": [
+                {
+                  "key": "revision",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures."
+          }
+        },
+        {
+          "name": "Frozen XLSX revision",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/financial-months/{{financialMonthId}}/export?revision=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "financial-months",
+                "{{financialMonthId}}",
+                "export"
+              ],
+              "query": [
+                {
+                  "key": "revision",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Returns six-sheet XLSX binary plus X-Workbook-SHA256 header. Save bytes; do not parse as JSON."
+          }
+        },
+        {
+          "name": "Recognize finalized Sales commissions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payroll/commission-recognitions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payroll",
+                "commission-recognitions"
+              ]
+            },
+            "description": "OperationId is globally serialized; exact retry returns same result. Different period or actor with same ID rejects.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"commissionPeriodId\": \"{{commissionPeriodId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Record partial employee payout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/payroll/{{payrollId}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payroll",
+                "{{payrollId}}",
+                "payments"
+              ]
+            },
+            "description": "Owner-declared payout evidence; no cash drawer/account ledger movement is created.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"amount\": 2000,\n  \"paidAt\": \"2026-11-30T12:00:00Z\",\n  \"reason\": \"Example partial payment\",\n  \"reference\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Planned periodic expenses",
+      "item": [
+        {
+          "name": "Create quarterly plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance-plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "maintenance-plans"
+              ]
+            },
+            "description": "Owner membership, Maintenance.Manage and Branches.AccessAll. Forecast only, no ledger movement.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operationId\": \"{{operationId}}\",\n  \"branchId\": \"22222222-2222-4222-8222-222222222222\",\n  \"name\": \"Equipment service\",\n  \"description\": \"Example quarterly inspection\",\n  \"expectedCost\": 15000,\n  \"frequencyMonths\": 3,\n  \"firstDueDate\": \"2027-01-15\",\n  \"nextExpectedDueDate\": \"2027-01-15\",\n  \"reason\": \"Example forecast\",\n  \"expectedRevision\": 0,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Branch suggested monthly total",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance-plans/summary?branchId=22222222-2222-4222-8222-222222222222&asOf=2026-10-16&horizonDays=90",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "maintenance-plans",
+                "summary"
+              ],
+              "query": [
+                {
+                  "key": "branchId",
+                  "value": "22222222-2222-4222-8222-222222222222"
+                },
+                {
+                  "key": "asOf",
+                  "value": "2026-10-16"
+                },
+                {
+                  "key": "horizonDays",
+                  "value": "90"
+                }
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures."
+          }
+        },
+        {
+          "name": "Upcoming and overdue reminders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/maintenance-plans/reminders?branchId=22222222-2222-4222-8222-222222222222&asOf=2026-10-16&horizonDays=90&page=1&pageSize=25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "maintenance-plans",
+                "reminders"
+              ],
+              "query": [
+                {
+                  "key": "branchId",
+                  "value": "22222222-2222-4222-8222-222222222222"
+                },
+                {
+                  "key": "asOf",
+                  "value": "2026-10-16"
+                },
+                {
+                  "key": "horizonDays",
+                  "value": "90"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "25"
+                }
+              ]
+            },
+            "description": "Schema-shaped example; replace all IDs, dates and account values with authorized test fixtures."
+          }
+        }
+      ]
+    }
+  ]
+}

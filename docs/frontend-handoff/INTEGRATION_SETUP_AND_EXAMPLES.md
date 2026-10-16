@@ -1,76 +1,39 @@
-# Integration setup and examples
+# React integration setup and examples
 
-**VERIFIED FROM CODE**: `API/Properties/launchSettings.json`: profile http `http://localhost:5236`; https `https://localhost:7186` plus http port 5236, Development. API routes use `/api`; Development OpenAPI is `/openapi/v1.json`. No Swagger UI registration or `/swagger` contract. `UseHttpsRedirection` is active; use configured HTTPS/dev certificate or a same-origin development proxy. Actual deployed host/URL/certificate availability is **UNKNOWN**.
+The API uses `/api` routes, bearer JWT authentication and JSON camelCase. Development profiles in source are HTTP `http://localhost:5236` and HTTPS `https://localhost:7186`; configure the actual deployed base URL. `GET /openapi/v1.json` and `/health/database` are Development-only. `Program.cs` does not configure CORS, so use an approved same-origin proxy for local React development or arrange a backend CORS policy separately. Set a public frontend base-URL variable only; keep signing keys, database settings and credentials on the server.
 
-The backend needs a securely supplied DefaultConnection, Jwt issuer/audience/base64 key (minimum 32 random bytes), valid AuthContext timezone, and compatible database schema. **No values are included here.** Startup requires configuration but does not automatically migrate/seed. Run an approved configured baseline via `dotnet run --project CampionsSystem.API --launch-profile https`; The completed backend is available in source; verify deployment schema and operational configuration before using it. Do not use seed/setup/migration switches just to make frontend screens work. Authorized backend administration must provision credentials/capabilities, cities/branches/employees, accounts/drawer/catalogs and commission rules/periods. No City CRUD API exists.
+1. Login with `POST /api/auth/login`; store the token using the frontend project's security policy. Call `GET /api/auth/me` before protected screens and after access changes. Attach `Authorization: Bearer <token>`. On 401, clear session and reauthenticate; on 403, retain login and show permission/scope denial.
+2. Use `/me.permissions` to show actions, and the Owner access-administration inventory for grant explanations. Deny wins. Do not infer branch access from a role name or provide a synthetic branch header. Keep current user/branch in query cache keys and invalidate after assignment/role changes.
+3. Send JSON `Content-Type: application/json` for bodies. `DateOnly` is `YYYY-MM-DD`; timestamps have offsets. Backend decimals and IDs are authoritative. Do not use JS binary floating point to recompute monetary facts. Enums are mixed numeric/string by property; use generated schemas and [DTO reference](DTO_AND_ENUM_REFERENCE.md).
+4. Lists expose their own page shape: many use `{items,totalCount,page,pageSize}`, while Shift/Access pages use `{items,total,page,pageSize}`. Read the individual response schema; do not assume one generic envelope. Page defaults/maximums are route-specific. Keep filters in query keys; debounce name/phone/code search; request bounded pages for histories.
+5. Retry financial writes only with the **same** operation ID, actor and payload when the first result is uncertain. A new ID is a new action. Reload after conflict. Read [error contracts](API_ERRORS.md); 204 may be empty, and some access decisions return 200 with `allowed:false`.
 
-**PROPOSED FRONTEND VARIABLE** (not present/verified in a separate frontend repo): `VITE_API_BASE_URL=https://localhost:7186`. Inspect repo conventions first. Vite variables are public; never place database/JWT signing secrets/passwords there. No backend CORS policy exists. **RECOMMENDATION**: proxy `/api` through Vite in development or obtain a narrowly configured approved CORS policy. No origin list is currently guaranteed; no frontend port is assumed.
+Example login and bootstrap (fabricated credentials and token):
 
-## HTTP conventions
+```http
+POST /api/auth/login
+Content-Type: application/json
 
-Bearer auth; JSON bodies `Content-Type: application/json`; `Accept: application/json`. No custom operation/branch headers: operationId/version/branch are JSON or query fields where listed. Routes have Guid constraints but OpenAPI paths omit `:guid`; catalog preserves exact route templates. JSON is camelCase via MVC System.Text.Json Web defaults, case-insensitive reads, decimals emitted as JSON numbers; enum serialization is **mixed per type/property**, not globally string. Read DTO reference. Strict mutation types reject unknown fields; send explicit null on positional nullable fields when shape requires it. Nonnullable value-type parameters can default to zero when omitted; business guards still validate. API [Required] != C# nonnullable != schema required.
-
-Most lists use `{items,totalCount,page,pageSize}`; Shift/Commission pages use `total`; CommissionProgress has employeeCount/Employees rather than normal total. Some routes return plain arrays/Guid/bool or null 204. There is no universal `{data,success}` wrapper. Business errors are ProblemDetails (`type,title,status,detail?,instance?,traceId?`); model errors ValidationProblemDetails add `errors` keyed by property. 401/403 may be empty Bearer responses; unknown route 404 can also lack an envelope. Unhandled failures use AddProblemDetails/UseExceptionHandler, normally 500 with deployment/content-negotiation details unknown. No backend retry-after/rate-limit/ETag convention is configured.
-
-All examples below and per-endpoint examples use **FAKE values**, schema-shaped documentation only; no operational requests were sent. IDs must be replaced with authorized configured test fixtures; dates/counts/prices must match those fixtures. Authentication/CSRF cookies are not used.
-
-```sh
-curl --request POST "$API_BASE_URL/api/auth/login" \
-  --header 'Content-Type: application/json' \
-  --data '{"userNameOrEmail":"fake.frontend.operator","password":"FAKE_PASSWORD_PLACEHOLDER"}'
-curl "$API_BASE_URL/api/auth/me" --header "Authorization: Bearer $ACCESS_TOKEN"
-curl "$API_BASE_URL/api/members?search=FAKE&page=1&pageSize=25" --header "Authorization: Bearer $ACCESS_TOKEN"
-curl "$API_BASE_URL/api/financial-accounts" --header "Authorization: Bearer $ACCESS_TOKEN"
+{"userNameOrEmail":"example.reception","password":"EXAMPLE_ONLY"}
 ```
 
-Login response placeholder (not a valid token):
-
-```json
-{"accessToken":"FAKE_TOKEN_PLACEHOLDER","expiresAt":"2026-10-12T12:00:00Z","user":{"id":"11111111-1111-4111-8111-111111111111","userName":"fake.frontend.operator","employeeId":"22222222-2222-4222-8222-222222222222","fullName":"FAKE Operator","roles":["Reception"]}}
+```http
+GET /api/auth/me
+Authorization: Bearer EXAMPLE_TOKEN
 ```
 
-Check-in read-only preview:
+Example branch-period Shift review before closure:
 
-```sh
-curl --request POST "$API_BASE_URL/api/check-ins/evaluate" \
-  --header "Authorization: Bearer $ACCESS_TOKEN" --header 'Content-Type: application/json' \
-  --data '{"memberId":"33333333-3333-4333-8333-333333333333","memberCode":null,"branchId":null}'
+```http
+GET /api/shifts/11111111-1111-4111-8111-111111111111/summary
+Authorization: Bearer EXAMPLE_TOKEN
 ```
 
-Paid gym purchase body: assuming active offered plan price 1200, own shift/drawer, eligible Member and a configured account. New real operation UUID; retry preserves it.
-
-```json
-{"operationId":"44444444-4444-4444-8444-444444444444","memberId":"33333333-3333-4333-8333-333333333333","membershipPlanId":"55555555-5555-4555-8555-555555555555","purchaseMode":0,"activationMode":0,"paymentParts":[{"financialAccountId":"66666666-6666-4666-8666-666666666666","amount":1200,"providerReference":null}],"offerId":null,"startDate":null,"reservationDueDate":null,"installments":null,"branchId":null,"initialPaymentRequired":null}
+```http
+GET /api/shifts/11111111-1111-4111-8111-111111111111/branch-transactions?page=1&pageSize=25
+Authorization: Bearer EXAMPLE_TOKEN
 ```
 
-Send to `POST /api/sales`; result is SaleReceipt `{saleId,paymentIds}`. Fetch `/api/sales/{saleId}` and subscription/current after success. Later collection body is `{operationId,amount,parts,allocations?}`, not the create-sale paymentParts shape. Full and paginated response examples for all workflows are linked from [catalog](API_ENDPOINT_CATALOG.md).
+Example optional provider reference: a payment/refund part may send `"providerReference":null`; when present, the exact stored reference is exported in monthly financial evidence. Never infer bank verification from it. See the exact [Sales DTO](api/Sales.md) and [Monthly Finance export](api/MonthlyFinance.md).
 
-Expense actual return body for `POST /api/expenses/{id}/returns`:
-
-```json
-{"operationId":"77777777-7777-4777-8777-777777777777","returnedAmount":50,"fundsActuallyReturned":true,"reason":"FAKE actual returned funds","returnReference":"FAKE-RETURN-001"}
-```
-
-Commission initial fallback body for `POST /api/commissions/rules` (illustrative inputs, not seeded defaults):
-
-```json
-{"operationId":"88888888-8888-4888-8888-888888888888","employeeId":null,"effectiveFrom":"2026-10-12","newClients":{"target":30000,"belowRate":5,"reachedRate":7},"renewals":{"target":30000,"belowRate":3,"reachedRate":5},"branchId":"99999999-9999-4999-8999-999999999999"}
-```
-
-## Dates and money
-
-DateOnly is YYYY-MM-DD; preserve as calendar text, never convert through UTC Date midnight. DateTimeOffset values are instants; backend stored actual timestamps are UTC. Configured default timezone Africa/Cairo observes platform timezone rules; no hardcoded UTC+2 assumption. The open branch BusinessDay can retain yesterday after midnight; backend BusinessDate is authoritative for money/access/periods. Employee auth validity and collection-time commission employment rights use gym-local actual date independently. Historic nullable dates remain unknown. Date ranges/sort/defaults vary and are enumerated in module evidence; do not add unsupported `sortBy`.
-
-Decimal amounts reject excess precision and backend money bounds. Database numeric(18,2) can exceed JavaScript safe integer precision even for integer portions; bigint ClientCode/long Shift version likewise need explicit precision review. **RECOMMENDATION**: use decimal-safe input/math and bounded UI values; backend totals/quote/commission/access are authoritative. Do not send locale separators or currency symbols. Exact arithmetic/rate rounding lives on backend; formatting is not business calculation.
-
-## Client and mock recommendations
-
-**RECOMMENDATIONS**: one typed HTTP adapter, AbortSignal for cancellable searches, debounce around 250–400 ms, keep page/filters in query keys, include user and explicit branch context, cancel/remove old scoped queries on auth/branch changes. TanStack Query invalidate member/search/ownership/CRM after profile/conversion; subscriptions/access/history/Sales after finance/freeze; Shift/drawer/expenses/audit/totals after payouts/counts; commissions after collections/refunds/config/finalization. Select bounded pages explicitly. No automatic retry for irreversible/non-idempotent mutations; exact stable-operation retries only after inspecting failure.
-
-Mock development can use fabricated catalog examples and recorded **schema shapes**, without copied real customer records/tokens. Simulate 400 ValidationProblemDetails, blank 401/403, 404, 409, business-denial HTTP 200, null 204, stale context and network-uncertain idempotent retry. Label mock mode visibly and never represent fixtures as seeded backend facts.
-
-No multipart/file upload/download, PDF/Excel receipt/report export, push notification endpoint, SignalR hub, barcode generation or message sending is registered. Reports are JSON. Receipt/reference strings are text, not attachment APIs. Lead bulk JSON is not a spreadsheet import.
-
-## Frontend specification selection
-
-Use [openapi.integration.json](openapi.integration.json) for generator-friendly verified success response types, Bearer policies and property enum converters. Keep [raw OpenAPI](openapi.json) for exact runtime export provenance and compare with [compiler contracts](endpoint-contracts.json). See [OpenAPI limits](OPENAPI_STATUS.md). Business errors from BranchControllerBase put their message in title; model-binding errors add errors, and detail is optional. [Concrete error handling](API_ERRORS.md) and [Coaching integration](REACT_COACHING_INTEGRATION.md).
+Example informational plan creation uses [validated complete body](PLANNED_PERIODIC_EXPENSES.md); Owner membership, `Maintenance.Manage` and `Branches.AccessAll` are all required. The plan does not fund an account. The existing [Postman collection](postman/README.md) and [V1 examples](postman/Campeones.V1.Final.postman_collection.json) provide additional request shapes. No example was executed against customer data.

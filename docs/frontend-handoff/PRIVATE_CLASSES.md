@@ -250,11 +250,11 @@ New forward migrations:
 - `20261012104721_EnforceCoachingEvidenceCompleteness`: validates required operational
   snapshots and explicit normal-coach target facts, closing nullable check loopholes.
 
-Both are **generated, not applied to the application or Production database**. Isolated
-PostgreSQL tests apply them inside owned disposable schemas. Existing migration files
-are unchanged. Review the forward SQL in `docs/database` and use your normal controlled
-migration rollout. Grant new capabilities explicitly through trusted authorization
-administration. Configure actual periods, coach thresholds, active catalog, accounts,
+Both were applied to the verified local Development database in an earlier authorized
+activation. Production migration status is not verified by this handoff. Review the
+forward SQL in `docs/database` and use controlled environment rollout. Grant new
+capabilities explicitly through Owner-only access administration. Configure actual
+periods, coach thresholds, active catalog, accounts,
 drawer, expense category and employee shifts. No defaults, historical backfills,
 operational seed money or permission grants were created.
 
@@ -266,7 +266,7 @@ access restrictions. Transactions/savepoints, consistent drawer/member locks, ba
 versions, unique operations/attendance and advisory operation locks protect retries,
 concurrent consumption, refund/recognition races and overpayment.
 
-Final full regression: **822/822 passed**, zero failures/skips, 50 new cases over the
+At the original feature implementation checkpoint, full regression was **822/822 passed**, zero failures/skips, 50 new cases over the
 verified 772 baseline. Clean rebuild has zero warnings/errors; EF drift none; all
 46 historical migration files are unchanged. Focused 84/84, migration/expiry/new-package
 29/29 and class history 10/10 passed. Earlier fixture/resource failures and their
@@ -281,5 +281,6 @@ permissions, branch scope, historical snapshots and committed PostgreSQL races.
 
 The only undefined compensation decision is the Classes earnings formula; it remains
 disabled. Refunds reaching finalized earnings and payout correction remain rejected
-until the Owner defines an adjustment policy. Frontend, payroll, automatic expiry
-recognition and booking/capacity/waitlists are outside this implementation.
+until the Owner defines an adjustment policy. Payroll is now covered separately by
+the [current Monthly Finance and Payroll contracts](api/MonthlyFinance.md); automatic
+expiry recognition and booking/capacity/waitlists remain unavailable.

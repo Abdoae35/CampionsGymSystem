@@ -1,37 +1,31 @@
 {
-  "validationDate": "2026-10-12",
-  "sourceCommit": "476f0a77bf4f0a75839ab3b9a7f5e65dbc284b80",
-  "controllerOperations": 191,
-  "controllers": 23,
+  "validationDate": "2026-10-16",
+  "sourceCommit": "e3b8cc3",
+  "controllerOperations": 227,
+  "controllers": 28,
   "coachingOperations": 36,
-  "openApi": {
+  "rawOpenApi": {
     "version": "3.1.1",
-    "paths": 153,
-    "operations": 192,
-    "schemas": 102
+    "paths": 185,
+    "operations": 228,
+    "schemas": 128
   },
-  "jsonFilesParsed": 10,
-  "openApiReferencesResolved": 2159,
-  "integrationSpec": {
-    "operations": 192,
-    "responseSchemasAdded": 139,
-    "errorSchemasAdded": 2,
-    "totalSchemas": 243,
-    "propertySerializerOverrides": 11,
-    "origin": "source-derived supplement, not raw runtime export"
+  "integrationOpenApi": {
+    "operations": 228,
+    "schemas": 300,
+    "derivedResponseSchemas": 172
   },
-  "requestExamplesStructurallyChecked": 90,
-  "responseExamplesJsonParsed": 191,
-  "coachingPostman": {
-    "examples": 37,
-    "operationsCovered": 36,
-    "jsonBodiesParsed": 18,
-    "executed": false
-  },
-  "portableLinksChecked": 2240,
-  "backendSourceChanges": 0,
-  "databaseOperations": 0,
-  "businessTestsRerun": false,
-  "validationLimit": "Structural/schema-pointer and source/catalog consistency checks; no full external OpenAPI/JSON-Schema validator or operational fixture execution.",
+  "compilerTypeShapes": 440,
+  "compilerSemanticErrors": 0,
+  "jsonFilesParsed": 11,
+  "schemaReferencesResolved": 1379,
+  "portableLinksChecked": 464,
+  "postmanV1Examples": 21,
+  "businessOperationsExecuted": false,
+  "developmentMigrationApplied": true,
+  "developmentMigration": "20261016114618_AddPlannedPeriodicExpenseDescriptionAndDueDate",
+  "developmentAppliedMigrationCount": 30,
+  "developmentPendingMigrationCount": 0,
+  "validationLimits": "Static route/JSON/schema-pointer/link checks and source-derived metadata; no operational business-flow execution.",
   "errors": []
 }
