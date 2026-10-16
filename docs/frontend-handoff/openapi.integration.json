@@ -17509,6 +17509,444 @@
         "x-source-action": "CampionsSystem.API/Controllers/VaultController.cs:22",
         "x-response-csharp-type": "CampionsSystem.BLL.Shifts.ShiftPage<CampionsSystem.BLL.Shifts.FinancialAuditDetails>"
       }
+    },
+    "/api/excel-imports/{kind}/template": {
+      "get": {
+        "tags": [
+          "ExcelImports"
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "leads",
+                "members",
+                "freelance-customers"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated or expired/invalid token"
+          },
+          "403": {
+            "description": "Effective permission, original uploader, Shift or branch scope denied"
+          },
+          "400": {
+            "description": "Unknown import kind"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-controller-policies": [
+          "Authenticated; kind-specific effective permissions enforced by ExcelImportService"
+        ],
+        "x-service-permissions": {
+          "leads": [
+            "Leads.Manage",
+            "Leads.Assign OR Members.OwnSalesCustomers"
+          ],
+          "members": [
+            "Members.Create",
+            "creation-type-specific Sales ownership capability",
+            "open own Shift"
+          ],
+          "freelance-customers": [
+            "Members.Create",
+            "FreelancePlans.ManageEligibleMembers",
+            "open own Shift"
+          ]
+        },
+        "x-source-action": "CampionsSystem.API/Controllers/ExcelImportsController.cs"
+      }
+    },
+    "/api/excel-imports/{kind}/preview": {
+      "post": {
+        "tags": [
+          "ExcelImports"
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "leads",
+                "members",
+                "freelance-customers"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated or expired/invalid token"
+          },
+          "413": {
+            "description": "HTTP upload body exceeds the configured request limit"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-controller-policies": [
+          "Authenticated; kind-specific effective permissions enforced by ExcelImportService"
+        ],
+        "x-service-permissions": {
+          "leads": [
+            "Leads.Manage",
+            "Leads.Assign OR Members.OwnSalesCustomers"
+          ],
+          "members": [
+            "Members.Create",
+            "creation-type-specific Sales ownership capability",
+            "open own Shift"
+          ],
+          "freelance-customers": [
+            "Members.Create",
+            "FreelancePlans.ManageEligibleMembers",
+            "open own Shift"
+          ]
+        },
+        "x-source-action": "CampionsSystem.API/Controllers/ExcelImportsController.cs"
+      }
+    },
+    "/api/excel-imports/{id}/confirm": {
+      "post": {
+        "tags": [
+          "ExcelImports"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated or expired/invalid token"
+          },
+          "409": {
+            "description": "Concurrent or duplicate database change; retry the same import ID"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-controller-policies": [
+          "Authenticated; kind-specific effective permissions enforced by ExcelImportService"
+        ],
+        "x-service-permissions": {
+          "leads": [
+            "Leads.Manage",
+            "Leads.Assign OR Members.OwnSalesCustomers"
+          ],
+          "members": [
+            "Members.Create",
+            "creation-type-specific Sales ownership capability",
+            "open own Shift"
+          ],
+          "freelance-customers": [
+            "Members.Create",
+            "FreelancePlans.ManageEligibleMembers",
+            "open own Shift"
+          ]
+        },
+        "x-source-action": "CampionsSystem.API/Controllers/ExcelImportsController.cs"
+      }
+    },
+    "/api/excel-imports/{id}": {
+      "get": {
+        "tags": [
+          "ExcelImports"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelImportResult"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated or expired/invalid token"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-controller-policies": [
+          "Authenticated; kind-specific effective permissions enforced by ExcelImportService"
+        ],
+        "x-service-permissions": {
+          "leads": [
+            "Leads.Manage",
+            "Leads.Assign OR Members.OwnSalesCustomers"
+          ],
+          "members": [
+            "Members.Create",
+            "creation-type-specific Sales ownership capability",
+            "open own Shift"
+          ],
+          "freelance-customers": [
+            "Members.Create",
+            "FreelancePlans.ManageEligibleMembers",
+            "open own Shift"
+          ]
+        },
+        "x-source-action": "CampionsSystem.API/Controllers/ExcelImportsController.cs"
+      }
     }
   },
   "components": {
@@ -31622,6 +32060,141 @@
           "after"
         ],
         "x-csharp-type": "CampionsSystem.BLL.Shifts.FinancialAuditDetails"
+      },
+      "ExcelImportResult": {
+        "required": [
+          "importId",
+          "kind",
+          "expiresAt",
+          "totalRows",
+          "validRows",
+          "invalidRows",
+          "duplicateRows",
+          "createdRows",
+          "failedRows",
+          "rows",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "importId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalRows": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "validRows": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "invalidRows": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "duplicateRows": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "createdRows": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "failedRows": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExcelImportRowResult"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ExcelImportRowResult": {
+        "required": [
+          "rowNumber",
+          "status",
+          "message",
+          "createdRecordId",
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "rowNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          },
+          "message": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdRecordId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
       }
     },
     "securitySchemes": {
@@ -31719,6 +32292,9 @@
     },
     {
       "name": "Vault"
+    },
+    {
+      "name": "ExcelImports"
     }
   ],
   "x-handoff-provenance": {
@@ -31738,6 +32314,7 @@
       "UpdateMembershipPlanRequest.mode",
       "PlanBenefitRequest.grantType"
     ],
-    "developmentDatabaseModified": false
+    "developmentDatabaseModified": false,
+    "excelImportAddendum": "Excel_import_export branch; four runtime controller actions, exact runtime response schemas and service-specific permissions"
   }
 }

@@ -1,5 +1,5 @@
 # V1 API operation catalog
-Current `master` source `e3b8cc3`: **227 controller operations across 28 controllers**. The runtime OpenAPI has **228 operations** because it also exposes Development-only `GET /health/database`. Four legacy Operations writes return HTTP 410. The Development OpenAPI document-serving registration is not itself listed in the spec.
+V1 baseline plus `Excel_import_export` Excel addendum: **231 controller operations across 29 controllers**. The runtime OpenAPI has **232 operations** because it also exposes Development-only `GET /health/database`. Four legacy Operations writes return HTTP 410. The Development OpenAPI document-serving registration is not itself listed in the spec.
 For a route, use its [controller contract](api/), exact [DTO inventory](DTO_AND_ENUM_REFERENCE.md), and [runtime OpenAPI](openapi.json). Controller policy attributes are listed below. Service-level Owner checks, branch/actor restrictions, employment and financial state still apply; UI permissions are advisory.
 | Controller | Operations | Contract |
 |---|---:|---|
@@ -15,6 +15,7 @@ For a route, use its [controller contract](api/), exact [DTO inventory](DTO_AND_
 | EmployeeBranches | 4 | [EmployeeBranches](api/EmployeeBranches.md) |
 | EmployeeSalaries | 2 | [EmployeeSalaries](api/EmployeeSalaries.md) |
 | Employees | 6 | [Employees](api/Employees.md) |
+| ExcelImports | 4 | [ExcelImports](api/ExcelImports.md) |
 | Expenses | 8 | [Expenses](api/Expenses.md) |
 | FinancialAccounts | 2 | [FinancialAccounts](api/FinancialAccounts.md) |
 | Leads | 14 | [Leads](api/Leads.md) |
@@ -31,6 +32,15 @@ For a route, use its [controller contract](api/), exact [DTO inventory](DTO_AND_
 | Shifts | 9 | [Shifts](api/Shifts.md) |
 | Subscriptions | 9 | [Subscriptions](api/Subscriptions.md) |
 | Vault | 8 | [Vault](api/Vault.md) |
+
+Excel Bulk Import addendum (full workflow and DTOs: [ExcelImports](api/ExcelImports.md)):
+
+| Method | Route | Controller action | Effective capability | Request | Success |
+|---|---|---|---|---|---|
+| GET | `/api/excel-imports/{kind}/template` | `ExcelImports.Template` | Kind-specific manual-create capability | `—` | XLSX |
+| POST | `/api/excel-imports/{kind}/preview` | `ExcelImports.Preview` | Kind-specific manual-create capability | Multipart `File` | `ExcelImportResult` |
+| POST | `/api/excel-imports/{id:guid}/confirm` | `ExcelImports.Confirm` | Kind-specific capability, original uploader and current branch/Shift rules | `—` | `ExcelImportResult` |
+| GET | `/api/excel-imports/{id:guid}` | `ExcelImports.Result` | Kind-specific capability, original uploader | `—` | `ExcelImportResult` |
 
 | Method | Route | Controller action | Controller policies (AND) | Request body | Success shape |
 |---|---|---|---|---|---|

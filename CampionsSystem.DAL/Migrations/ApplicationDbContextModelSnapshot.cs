@@ -2398,6 +2398,69 @@ namespace CampionsSystem.DAL.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ExcelImportBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId", "ExpiresAt");
+
+                    b.ToTable("ExcelImportBatches", (string)null);
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ExcelImportRow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedRecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("RowNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId", "RowNumber")
+                        .IsUnique();
+
+                    b.ToTable("ExcelImportRows", (string)null);
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.Expense", b =>
                 {
                     b.Property<Guid>("Id")
@@ -7478,6 +7541,26 @@ namespace CampionsSystem.DAL.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ExcelImportBatch", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ExcelImportRow", b =>
+                {
+                    b.HasOne("CampionsSystem.DAL.Entities.ExcelImportBatch", "Batch")
+                        .WithMany("Rows")
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
+                });
+
             modelBuilder.Entity("CampionsSystem.DAL.Entities.Expense", b =>
                 {
                     b.HasOne("CampionsSystem.DAL.Entities.ApplicationUser", "ApprovedByUser")
@@ -9374,6 +9457,11 @@ namespace CampionsSystem.DAL.Migrations
             modelBuilder.Entity("CampionsSystem.DAL.Entities.City", b =>
                 {
                     b.Navigation("Branches");
+                });
+
+            modelBuilder.Entity("CampionsSystem.DAL.Entities.ExcelImportBatch", b =>
+                {
+                    b.Navigation("Rows");
                 });
 
             modelBuilder.Entity("CampionsSystem.DAL.Entities.InstallmentAgreement", b =>

@@ -38,6 +38,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddGymAuthentication(builder.Configuration);
 builder.Services.AddScoped<DevelopmentAuthSeeder>();
 builder.Services.AddScoped<CampionsSystem.BLL.Crm.LeadManagementService>();
+builder.Services.AddScoped<CampionsSystem.BLL.Imports.ExcelImportService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Crm.CrmPermissionSetup>();
 builder.Services.AddScoped<BranchManagementService>();
 builder.Services.AddScoped<CampionsSystem.BLL.Members.MemberManagementService>();

@@ -121,6 +121,8 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
     public DbSet<PayrollPaymentRecord> PayrollPaymentRecords => Set<PayrollPaymentRecord>();
     public DbSet<MaintenancePlanRevision> MaintenancePlanRevisions => Set<MaintenancePlanRevision>();
     public DbSet<FinancialOccurrenceEvidence> FinancialOccurrenceEvidence => Set<FinancialOccurrenceEvidence>();
+    public DbSet<ExcelImportBatch> ExcelImportBatches => Set<ExcelImportBatch>();
+    public DbSet<ExcelImportRow> ExcelImportRows => Set<ExcelImportRow>();
 
 
     protected override void OnModelCreating(ModelBuilder builder)

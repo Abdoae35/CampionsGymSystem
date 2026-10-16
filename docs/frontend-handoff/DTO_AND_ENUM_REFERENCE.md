@@ -1,6 +1,10 @@
 # Source-derived DTO and enum reference
-Current master `e3b8cc3`: 440 reachable compiler type shapes, including primitives, arrays and constructed types. The raw OpenAPI defines public request schemas; the integration supplement adds omitted success response schemas. JSON names below are source-derived, not manually invented. Nullable annotation alone does not settle MVC or business requiredness.
+V1 baseline (`e3b8cc3`) compiler inventory plus the Excel Bulk Import addendum below. The raw OpenAPI defines public request schemas; the integration supplement adds omitted success response schemas. Nullable annotation alone does not settle MVC or business requiredness.
 Dates use ISO `YYYY-MM-DD`; timestamps carry offsets; Guid is UUID; decimals are JSON numbers. Check per-property converters: most enums are numeric, but annotated properties emit string enum names. Do not use JavaScript floating point as a money authority.
+
+## Excel Bulk Import addendum
+
+`ExcelImportUploadRequest` is multipart form-data with required binary field `File`. It is not a JSON request. `ExcelImportResult` is JSON: `importId` (UUID), `kind` (string), `expiresAt` (timestamp), `totalRows`, `validRows`, `invalidRows`, `duplicateRows`, `createdRows`, `failedRows` (integers), `rows` (`ExcelImportRowResult[]`) and `warnings` (`string[]`). `ExcelImportRowResult` is `rowNumber` (Excel row integer), `status` (string), `message` (nullable string), `createdRecordId` (nullable UUID) and `values` (map of submitted column names to strings). See [Excel Bulk Import](EXCEL_BULK_IMPORT.md) for allowed values and row-level rules. No new financial DTO is introduced.
 
 <a id="anonymous-type-system-guid-id"></a>
 ## `<anonymous type: System.Guid Id>`

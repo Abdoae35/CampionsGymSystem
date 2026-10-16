@@ -1,6 +1,6 @@
 # V1 module coverage against current master
 
-Every controller below has a current per-action contract in `api/`, with the exact route, method, controller policies, request type and success type. The [catalog](API_ENDPOINT_CATALOG.md) lists all **227** actions. The raw OpenAPI contains those plus Development-only health. Four legacy Operations writes are explicitly disabled (410).
+The original V1 controller inventory below remains valid. The [catalog](API_ENDPOINT_CATALOG.md) now lists **231** actions, including the four [ExcelImports](api/ExcelImports.md) addendum actions; raw OpenAPI contains those plus Development-only health. Four legacy Operations writes remain disabled (410).
 
 | Module | Controllers | Current behavior to use |
 |---|---|---|
