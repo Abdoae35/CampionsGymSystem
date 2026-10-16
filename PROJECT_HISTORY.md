@@ -47,7 +47,7 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- `master` is clean locally and live remote `master` and `Fix5-InstaPay-Provider-References` both point to `96c6239`, which contains Fix #5. The user creates/checks out future branches and merges them; assistants implement and push each completed task on the user-provided branch.
+- Live remote `master` and `Fix5-InstaPay-Provider-References` were verified at `96c6239`, which contains Fix #5. The current checkout is the user-created `Fix-#6--Monthly-Closing-Historical-Data-Scalability` branch at `96c6239`, with only this uncommitted history/handoff checkpoint. The user creates/checks out branches and merges them; assistants implement and push each completed task on the user-provided branch.
 - Backend audit Fix #5 InstaPay provider-reference export was implemented and pushed as `c937219` on `Fix5-InstaPay-Provider-References`. Fixes #1–#4 remain ancestors; finding #6 is untouched.
 - Monthly financial transaction rows now include nullable account-matched `ProviderReference` and part-level reference evidence. New XLSX exports expose exact stored values, blank cells for absent/empty values and JSON arrays for multiple same-account references, with unchanged ledger row count and amounts. Old frozen revisions remain unchanged. The API row DTO adds only this nullable field; no payment validation, verification workflow, formula, schema or role change occurred.
 - Three focused tests and the complete isolated suite 936/936 passed, zero failures/skips (38m31s on the durable rerun); clean build zero warnings/errors, EF model drift none, staged diff clean. No Development/Production data was touched. Prior authorized Fix #4 Development activation remains at 29 migrations, zero pending, 112 tables. The earlier activation checkpoint and this required history/handoff update are uncommitted locally and excluded from the pushed Fix #5 commit; see the latest chronological entries.
@@ -2733,8 +2733,9 @@ for future tasks.
 
 Read-only verification before this decision found clean local `master` at
 `96c6239`, containing Fix #5, and live remote `master` and
-`Fix5-InstaPay-Provider-References` at the same commit. No application code,
-database, migration, Git branch, commit, or remote was changed. This workflow
+`Fix5-InstaPay-Provider-References` at the same commit. During the checkpoint,
+the user created and checked out `Fix-#6--Monthly-Closing-Historical-Data-Scalability`
+at `96c6239`; the assistant did not create or switch branches. No application
+code, database, migration, commit, or remote was changed. This workflow
 checkpoint updates only `AGENTS.md` and `PROJECT_HISTORY.md`; it remains
-uncommitted and unpushed. The next feature task awaits user direction on a
-user-created branch.
+uncommitted and unpushed. The next feature task awaits user direction.
