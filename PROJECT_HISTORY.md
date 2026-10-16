@@ -47,8 +47,8 @@ it does not replace checking the actual repository.
 
 ## Current state
 
-- On user-created `Excel_import_export`, optional Excel bulk registration was committed and pushed as `eeae53c`; the user handles merging into master. Lead, normal Gym Member and FreelanceHouse templates/preview/confirmation use existing manual creation services and permissions. The updated handoff includes 231 controller actions (232 runtime OpenAPI operations including Development health) and `docs/Campeones-V1-Frontend-Handoff-ExcelImport-20261017.zip`. Full isolated suite passed 954/954 before the final added test cases; final Excel tests passed 14/14, build clean, EF model drift none. This required AGENTS/history checkpoint remains local and uncommitted; see latest history entry.
-- Owner-approved Development activation of the prior Planned Periodic Expenses migration left `localhost:5432/campions_gym` at a verified 30 migrations and 112 tables. The additive `20261016201337_AddExcelImportSessions` was generated and exercised only in disposable test schemas; it has not been applied to Development or Production and needs separate approval before Excel APIs can be activated. No role grants, seed/customer data or financial records were changed by this task.
+- `master`, `origin/master` and `Excel_import_export` remain at `7e147f8`, containing optional Excel bulk registration commit `eeae53c`, tests and the 124-file frontend handoff ZIP. No source, branch, commit or push changed during the Owner-approved local Development migration activation. Earlier 14/14 Excel tests and zero-warning solution build remain the latest application checks. This AGENTS/history checkpoint is local and uncommitted; see latest history entry.
+- Local Development `localhost:5432/campions_gym` has 31 applied migrations, zero pending and 114 public tables after `20261016201337_AddExcelImportSessions`. A verified timestamped backup preceded application; all 111 preexisting non-history table row counts match baseline and the two new tables are empty. EF model drift is none. Production, grants, seeds and customer records were untouched.
 - Read-only local grant checks found `Shifts.CloseOthers` granted to Owner/BranchManager, but numerous V1 capabilities remain ungranted, including `Vault.View`, `Sales.QuickCancel`, FinancialMonths, Salaries, Maintenance and several Private/Coach actions; the exact list is in the handoff readiness guide. No grant was changed.
 
 ### Retained prior local deployment checkpoint (historical)
@@ -2980,3 +2980,68 @@ checkpoint is local and uncommitted. Development activation of the new migration
 still needs explicit approval; Owner-directed grants and browser CORS setup
 remain environment-specific. No real customer import or Production operation
 was performed.
+
+### 2026-10-17 — Excel Bulk Import master merge verification
+
+Request: safely merge completed Excel Bulk Import commit `eeae53c` into master,
+preserving local files; verify build, latest Excel tests, EF model consistency
+and pending migration, then push master only if checks pass.
+
+Initial Git inspection found a clean working tree already on `master` at
+`7e147f8`; local and remote master and both feature refs were identical.
+`eeae53c` is an ancestor of master, and `7e147f8` adds the previous required
+AGENTS/history checkpoint. Reviewed the feature diff from `cbf1697`: Excel
+controller/service/parser, entity/configuration/additive migration, tests,
+OpenAPI, documentation, Postman examples and portable ZIP are present. No
+unrelated uncommitted files existed, so no switch, merge commit, reset or push
+was needed. The 124 ZIP entries matched the handoff files byte-for-byte, and
+the Git diff whitespace check passed.
+
+Latest Excel-specific isolated tests passed 14/14 with no failures or skips;
+the solution build passed with zero warnings/errors; EF reported no pending
+model changes. A sandboxed read-only EF migration-list attempt stalled and was
+cancelled without writing; rerunning the same read-only check with local
+execution permissions succeeded. Development has 30 applied migrations and
+only `20261016201337_AddExcelImportSessions` pending. No migration, grant,
+seed, customer import, Development/Production data write, commit or push was
+performed for this verification. Master was already synchronized with
+`origin/master` at `7e147f8`. This required history/handoff update remains
+local and uncommitted; the pending migration still needs separate approval.
+
+### 2026-10-17 — Approved local Development Excel Import activation
+
+Request: back up and apply only `20261016201337_AddExcelImportSessions` to
+local Development `localhost:5432/campions_gym`, then verify 31 migrations,
+zero pending, data preservation and EF model consistency. No Production,
+permissions, customer import or backend change was authorized.
+
+Preflight confirmed the Development user-secret target as localhost:5432 and
+`campions_gym`; PostgreSQL reported `campions_gym` at loopback `::1:5432`
+(Homebrew 14.20), 30 applied migrations, 112 public tables, neither Excel
+table present and no non-loopback database clients. EF listed only the approved
+migration as pending. Captured exact counts for all 112 existing tables (243
+total rows, including 30 history rows). Reviewed the migration and generated
+SQL: two CREATE TABLE statements, two indexes and the history insert; no
+data update, old-table alteration, drop or truncate. A sandboxed SQL-preview
+attempt stalled and was cancelled without writing; local execution succeeded.
+
+Created custom-format backup
+`/Users/macbookpro/Backups/Campeones/20261016T230019Z/campions_gym_20261016T230019Z.dump`
+(551,834 bytes; SHA-256
+`1598be4c7664bb2e6b01833da291454c797a503a0878746da7cb67619f2d02d3`).
+`pg_dump` exited successfully; `pg_restore --list` found 112 TABLE and 112
+TABLE DATA entries including EF history, and a full archive read to
+`/dev/null` succeeded. No restore was performed. The final pre-apply query
+again confirmed database identity, 30 history rows, 112 tables and absent
+Excel tables.
+
+Applied the single named migration with EF Core under Development. EF acquired
+its migration lock, created `ExcelImportBatches` and `ExcelImportRows` with
+the reviewed FKs/indexes, inserted one migration-history row and finished
+`Done`. Post-check: 31 applied migrations, zero pending, 114 public tables,
+exactly one target history row and both new tables empty. All 111 preexisting
+non-history table row counts matched the baseline; EF reported no model drift.
+The first read-only post-check query had a quoting typo; its corrected rerun
+passed and no data change resulted. Production was not accessed. No grant,
+seeding, customer/financial operation, source edit, commit or push occurred.
+Only the required AGENTS/history checkpoint remains local and uncommitted.
