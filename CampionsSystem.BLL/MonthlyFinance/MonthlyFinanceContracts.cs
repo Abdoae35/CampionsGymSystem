@@ -46,7 +46,8 @@ public sealed record FinancialTransactionReportRow(Guid LedgerId, Guid BranchId,
     string PaymentMethod, string SourceType, string Direction, decimal Amount, Guid ActorUserId, Guid? PerformingEmployeeId, string? PerformingEmployeeName,
     Guid? ShiftId, Guid? CustomerId, string? CustomerName, Guid? CommercialSalesOwnerId, string? CommercialSalesOwnerName, Guid? SaleId,
     Guid? PaymentId, Guid? RefundId, Guid? ExpenseId, Guid? AdvanceId, Guid? WithdrawalId, Guid? CoachPayoutId, Guid? PayrollId,
-    Guid? OperationId, Guid? ExpenseCategoryId, string? Category, string? Notes, string? Receipt, Guid? ReversalId, Guid? OriginalPaymentId, string SourceEvidence, string AuditEvidence);
+    Guid? OperationId, Guid? ExpenseCategoryId, string? Category, string? Notes, string? Receipt, Guid? ReversalId, Guid? OriginalPaymentId, string SourceEvidence, string AuditEvidence,
+    string? ProviderReference = null);
 public sealed record ExpenseCategoryTotal(Guid CategoryId, string Category, decimal Paid, decimal Returned, decimal Net);
 public sealed record CoachMonthRow(Guid CoachEmployeeId, string CoachName, decimal OpeningOutstanding, decimal ActualSessionEarnings,
     decimal ExpirationEarnings, decimal Earned, decimal Paid, decimal ClosingOutstanding, int CompletedClasses, int ClassAttendances,

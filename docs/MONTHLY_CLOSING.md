@@ -154,6 +154,16 @@ purchased plan snapshots. Known original occurrence evidence is append-only. Und
 legacy ledger entries remain in all-time drawer book balance and are disclosed as
 unassignable, rather than silently allocated to a month.
 
+The report, paginated transactions API and new closing workbooks append a nullable
+`ProviderReference` field/column to each ledger row. For Payment/Refund rows it
+uses only parts on that row's financial account: one nonempty reference appears
+exactly as stored, multiple references on the same account appear as a JSON
+array, and no reference produces a blank Excel cell. `SourceEvidence` also
+retains each part's ID, account, amount and exact optional `ProviderReference`.
+Cash/InstaPay split parts remain evidence for their existing ledger movements;
+they do not add money rows or verify an InstaPay transfer. Already frozen
+closing revisions and their workbook bytes remain unchanged.
+
 The summary distinguishes:
 
 - Gross collections, actual refunds and net member collections.

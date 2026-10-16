@@ -34,8 +34,8 @@ internal sealed partial class MonthlyReportBuilder
         var names=employees.ToDictionary(x=>x.Id,x=>x.FullName);var actors=employees.Where(x=>x.UserId!=null).ToDictionary(x=>x.UserId!.Value);var employeesById=employees.ToDictionary(x=>x.Id);
         var accountIds=ledger.Select(x=>x.FinancialAccountId).Distinct().ToArray();var accounts=await db.FinancialAccounts.AsNoTracking().Where(x=>accountIds.Contains(x.Id)).ToDictionaryAsync(x=>x.Id,ct);
         var ledgerIds=ledger.Select(x=>x.Id).ToArray();var occurrences=await db.FinancialOccurrenceEvidence.AsNoTracking().Where(x=>ledgerIds.Contains(x.FinancialTransactionId)&&x.RecordedAt<=cutoff).ToDictionaryAsync(x=>x.FinancialTransactionId,ct);
-        var paymentParts=await Bounded(db.PaymentParts.AsNoTracking().Where(x=>paymentIds.Contains(x.PaymentId)).OrderBy(x=>x.Id).Select(x=>new{x.Id,x.PaymentId,x.FinancialAccountId,x.Amount}),ct);
-        var refundParts=await Bounded(db.RefundParts.AsNoTracking().Where(x=>refundIds.Contains(x.RefundId)).OrderBy(x=>x.Id).Select(x=>new{x.Id,x.RefundId,x.FinancialAccountId,x.Amount}),ct);
+        var paymentParts=await Bounded(db.PaymentParts.AsNoTracking().Where(x=>paymentIds.Contains(x.PaymentId)).OrderBy(x=>x.Id).Select(x=>new{x.Id,x.PaymentId,x.FinancialAccountId,x.Amount,x.ProviderReference}),ct);
+        var refundParts=await Bounded(db.RefundParts.AsNoTracking().Where(x=>refundIds.Contains(x.RefundId)).OrderBy(x=>x.Id).Select(x=>new{x.Id,x.RefundId,x.FinancialAccountId,x.Amount,x.ProviderReference}),ct);
         var allocations=await Bounded(db.CommissionRefundAllocations.AsNoTracking().Where(x=>refundIds.Contains(x.RefundId)).OrderBy(x=>x.RefundId).ThenBy(x=>x.PaymentId).Select(x=>new{x.RefundId,x.PaymentId,x.Amount}),ct);
         var reversals=await Bounded(db.ExpenseReversals.AsNoTracking().Where(x=>expenseIds.Contains(x.ExpenseId)&&x.OccurredAt<=cutoff),ct);
         var refs=ledgerIds.Concat(paymentIds).Concat(refundIds).Concat(expenseIds).Concat(advanceIds).Concat(movementIds).Concat(payrollIds).Concat(saleIds).Concat(reversals.Select(x=>x.Id)).Concat(payouts.Values.Select(x=>x.Id)).Distinct().ToArray();
@@ -59,6 +59,14 @@ internal sealed partial class MonthlyReportBuilder
             var payout=t.ExpenseId==null?null:payouts.GetValueOrDefault(t.ExpenseId.Value);var reversal=reversalByLedger.GetValueOrDefault(t.Id);
             var performingEmployee=t.ShiftId!=null?shiftEmployees.GetValueOrDefault(t.ShiftId.Value):null;
             var customer=sale==null?null:members.GetValueOrDefault(sale.MemberId);var actor=performingEmployee!=null?employeesById.GetValueOrDefault(performingEmployee.Value):actors.GetValueOrDefault(t.CreatedByUserId);var account=accounts[t.FinancialAccountId];
+            // Ledger posting groups parts by account. Preserve every stored reference
+            // in SourceEvidence, and show only this account's references in its row.
+            var providerReferences=payment!=null
+                ?partsByPayment[payment.Id].Where(x=>x.FinancialAccountId==account.Id).Select(x=>x.ProviderReference).Where(x=>!string.IsNullOrEmpty(x)).ToArray()
+                :refund!=null
+                    ?partsByRefund[refund.Id].Where(x=>x.FinancialAccountId==account.Id).Select(x=>x.ProviderReference).Where(x=>!string.IsNullOrEmpty(x)).ToArray()
+                    :[];
+            var providerReference=providerReferences.Length switch {0=>null,1=>providerReferences[0],_=>JsonSerializer.Serialize(providerReferences)};
             var evidence=JsonSerializer.Serialize(new{
                 Sale=sale==null?null:new{sale.Id,sale.SaleType,sale.SaleCategory,sale.GrossAmount,sale.DiscountAmount,sale.NetAmount,sale.SalesEmployeeId,sale.Status,sale.CancelledAt,sale.CancelledByUserId,sale.CancellationReason,
                     PurchasedPlan=sale.MembershipSnapshot==null?null:new{sale.MembershipSnapshot.PlanName,sale.MembershipSnapshot.MembershipPlanId,sale.MembershipSnapshot.DurationDays,sale.MembershipSnapshot.SessionCount}},
@@ -78,7 +86,7 @@ internal sealed partial class MonthlyReportBuilder
                 account.Id,account.Name,account.AccountType.ToString(),t.SourceType.ToString(),t.TransactionType.ToString(),t.Amount,t.CreatedByUserId,actor?.Id,actor?.FullName,t.ShiftId,sale?.MemberId,customer?.FullName,
                 sale?.SalesEmployeeId,sale?.SalesEmployeeId==null?null:names.GetValueOrDefault(sale.SalesEmployeeId.Value),saleId,t.PaymentId,t.RefundId,t.ExpenseId,t.EmployeeAdvanceId,t.CashMovementId,payout?.Id,t.PayrollId,
                 reversal?.OperationId??payment?.OperationId??refund?.OperationId??advance?.OperationId??movement?.OperationId??expense?.OperationId,expense?.ExpenseCategoryId,expense?.ExpenseCategory.Name,t.Notes,
-                reversal?.ReturnReference??expense?.ReceiptReference??advance?.Reference,reversal?.Id,refund?.OriginalPaymentId,evidence,auditEvidence));
+                reversal?.ReturnReference??expense?.ReceiptReference??advance?.Reference,reversal?.Id,refund?.OriginalPaymentId,evidence,auditEvidence,providerReference));
         }
         return result;
     }
