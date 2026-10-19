@@ -19,12 +19,20 @@ public sealed class SubscriptionHistoryRequest
     public PlanCategory? PlanType { get; set; }
     public DateOnly? From { get; set; }
     public DateOnly? To { get; set; }
+    public bool IncludePending { get; set; }
 }
 public sealed record SubscriptionSummary(Guid Id, Guid MemberId, Guid SourcePlanId, string? PlanName,
     string? PlanType, Guid OriginBranchId, Guid AccessCityId, string Mode, DateOnly StartDate,
     DateOnly? EndDate, string Status, int? TotalSessions, int? RemainingSessions, int Version,
     Guid? EmployeeId, Guid? FollowsSubscriptionId, bool IsStandaloneVisit = false);
 public sealed record SubscriptionHistory(IReadOnlyList<SubscriptionSummary> Items, int TotalCount, int Page, int PageSize);
+// Opt-in history view. The legacy history item keeps its required Id and StartDate contract.
+public sealed record SubscriptionHistoryItem(Guid? SubscriptionId, Guid? SaleId, Guid MemberId, Guid PlanId,
+    string? PlanName, string? PlanType, Guid OriginBranchId, Guid AccessCityId, string Mode,
+    DateOnly? StartDate, DateOnly? EndDate, string ActivationStatus, int? TotalSessions,
+    int? RemainingSessions, DateOnly? SaleBusinessDate, string? PurchaseMode, int? PurchasedDurationDays,
+    decimal? FinalPrice, decimal? Collected, string? PaymentStatus);
+public sealed record SubscriptionPurchaseHistory(IReadOnlyList<SubscriptionHistoryItem> Items, int TotalCount, int Page, int PageSize);
 public sealed record BenefitSnapshot(Guid Id, Guid GrantId, string Code, string Name, string GrantType, int? GrantedQuantity, bool Cancelled = false);
 public sealed record SubscriptionGrantDetails(Guid Id, Guid PlanId, string? PlanName, string PlanType,
     Guid? PlanBranchId, Guid? AccessCityId, string? Mode, int DurationDays, int? Sessions, int? FreezeDays,

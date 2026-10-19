@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using CampionsSystem.BLL.Subscriptions;
+using CampionsSystem.BLL.Sales;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
@@ -9,6 +10,31 @@ using Microsoft.Extensions.DependencyInjection;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class AuthenticationApiTests
 {
+    [Fact] public async Task OptInSubscriptionHistoryShowsPaidPendingSaleWithIndependentReadPermission()
+    {
+        var f = await SalesHttpFixture();
+        await GrantPermission("Finance", SalesPermissions.Create);
+        await Authenticate();
+        var saleResponse = await client.PostAsJsonAsync("/api/sales", new CreateSaleRequest(Guid.NewGuid(), f.Member,
+            f.Plan, PurchaseMode.FullPayment, SubscriptionActivationMode.FirstCheckIn, [new(f.Account, 1200)]));
+        Assert.Equal(HttpStatusCode.OK, saleResponse.StatusCode);
+        var sale = (await saleResponse.Content.ReadFromJsonAsync<SaleReceipt>())!;
+        var route = $"/api/members/{f.Member}/subscriptions";
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync(route + "?includePending=true")).StatusCode);
+
+        await GrantPermission("SubscriptionReader", SubscriptionPermissions.View);
+        Assert.Empty((await client.GetFromJsonAsync<SubscriptionHistory>(route))!.Items);
+        var history = (await client.GetFromJsonAsync<SubscriptionPurchaseHistory>(route + "?includePending=true"))!;
+        var item = Assert.Single(history.Items);
+        Assert.Equal(sale.SaleId, item.SaleId);
+        Assert.Null(item.SubscriptionId); Assert.Null(item.StartDate);
+        Assert.Equal("PendingFirstCheckIn", item.ActivationStatus);
+        Assert.Equal("Paid", item.PaymentStatus);
+        Assert.False((await client.GetFromJsonAsync<MemberEntitlement>(route + "/current"))!.HasAccess);
+        Assert.Equal(HttpStatusCode.Forbidden,
+            (await client.GetAsync(route + $"?includePending=true&branchId={f.Other}")).StatusCode);
+    }
+
     private async Task<(Guid Subscription,Guid Member,Guid Source,Guid Target,Guid Employee,Guid Plan)> SubscriptionHttpFixture(bool otherBranch=false)
     {
         var f=await BranchFixture();await using var scope=factory.Services.CreateAsyncScope();var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

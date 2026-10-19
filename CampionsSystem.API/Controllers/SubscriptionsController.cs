@@ -8,7 +8,9 @@ public sealed class SubscriptionsController(SubscriptionService subscriptions) :
 {
     [HttpGet("/api/members/{memberId:guid}/subscriptions"), Authorize(Policy="Permission:Subscriptions.View")]
     public Task<IActionResult> History(Guid memberId, [FromQuery] SubscriptionHistoryRequest request, CancellationToken ct)
-        => Execute(()=>subscriptions.GetHistoryAsync(memberId,request,ct));
+        => request.IncludePending
+            ? Execute(()=>subscriptions.GetPurchaseHistoryAsync(memberId,request,ct))
+            : Execute(()=>subscriptions.GetHistoryAsync(memberId,request,ct));
     [HttpGet("/api/members/{memberId:guid}/subscriptions/current"), Authorize(Policy="Permission:Subscriptions.View")]
     public Task<IActionResult> Current(Guid memberId, [FromQuery] Guid? branchId, CancellationToken ct)
         => Execute(()=>subscriptions.GetCurrentEntitlementAsync(memberId,branchId,ct));

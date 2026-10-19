@@ -86,12 +86,14 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         return rows.Select(Summary).ToArray();
     }
 
-    public async Task<SubscriptionHistory> GetHistoryAsync(Guid memberId, SubscriptionHistoryRequest r, CancellationToken ct = default)
+    private static void ValidateHistoryRequest(SubscriptionHistoryRequest r)
     {
-        var user = await RequireAsync(SubscriptionPermissions.View, r.BranchId, false, ct);
         if (r.Page < 1 || r.PageSize is < 1 or > 100 || (long)(r.Page - 1) * r.PageSize > int.MaxValue
             || r.From > r.To || r.Status.HasValue && !Enum.IsDefined(r.Status.Value)
             || r.PlanType.HasValue && !Enum.IsDefined(r.PlanType.Value)) throw new BusinessRuleException("Invalid subscription filters or pagination.");
+    }
+    private IQueryable<Evaluation> HistoryQuery(Guid memberId, SubscriptionHistoryRequest r, CurrentUserContext user)
+    {
         var q = Evaluated().Where(x => x.Subscription.MemberId == memberId);
         if (!user.Permissions.Contains("Branches.AccessAll") || r.BranchId != null)
         {
@@ -102,6 +104,13 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         if (r.PlanType.HasValue) q = q.Where(x => x.PlanType == r.PlanType || r.PlanType == PlanCategory.Employee && x.Subscription.EmployeeId != null);
         if (r.From.HasValue) q = q.Where(x => x.Subscription.StartDate >= r.From);
         if (r.To.HasValue) q = q.Where(x => x.Subscription.StartDate <= r.To);
+        return q;
+    }
+    public async Task<SubscriptionHistory> GetHistoryAsync(Guid memberId, SubscriptionHistoryRequest r, CancellationToken ct = default)
+    {
+        var user = await RequireAsync(SubscriptionPermissions.View, r.BranchId, false, ct);
+        ValidateHistoryRequest(r);
+        var q = HistoryQuery(memberId,r,user);
         var count = await q.CountAsync(ct);
         var rows = await q.OrderByDescending(x => x.Subscription.StartDate).ThenBy(x => x.Subscription.Id)
             .Skip((r.Page - 1) * r.PageSize).Take(r.PageSize).ToListAsync(ct);
