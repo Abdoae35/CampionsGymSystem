@@ -50,6 +50,26 @@ User secrets are local development storage, not an encrypted production vault.
 On another machine, create the database/account and set this secret locally.
 Production must provide its own connection through a secure configuration source.
 
+## Isolated Testing API
+
+The `Testing` launch profile listens at `http://127.0.0.1:5290` and sets
+`ASPNETCORE_ENVIRONMENT=Testing`. Start it from the repository root with:
+
+```sh
+python3 scripts/run-local-testing-api.py
+```
+
+The launcher reads the existing local user-secret connection and JWT key,
+changes only the database name to `campions_gym_testing`, and supplies the
+result through the existing `ConnectionStrings:DefaultConnection` configuration
+key. Before starting, it verifies `localhost:5432/campions_gym_testing` has
+31 applied migrations and 114 tables. It prints no credentials and performs no
+migration or seeding. The original `http`/`https` Development profiles and their
+`campions_gym` connection remain unchanged. Directly launching the `Testing`
+profile without the launcher has no Testing credential and must fail rather
+than fall back to Development. The Development-only `/health/database` route is
+not registered in Testing; use authenticated API requests for a smoke check.
+
 ## Setup details
 
 - `CampionsSystem.DAL/Data/ApplicationDbContext.cs` is the Guid Identity EF context.

@@ -4518,13 +4518,33 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/api/financial-accounts",
+            "url": "{{baseUrl}}/api/financial-accounts?branchId={{branchId}}",
+            "description": "Read-only list of active Cash and InstaPay accounts for the selected branch. Requires Payments.View and branch access. Set branchId to the employee's operational branch; do not confuse the branch ID with a returned financial account ID. The response contains id, branchId, name, method and isActive, but no balances. This request does not configure a drawer, open a Shift or move money. Reception token is used here; the next request uses the Owner token for drawer setup.",
             "auth": {
               "type": "bearer",
               "bearer": [
                 {
                   "key": "token",
                   "value": "{{receptionToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Owner: active branch accounts for drawer setup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/financial-accounts?branchId={{branchId}}",
+            "description": "Use the Owner token and explicitly select the Sales employee's operational branch with branchId; an Owner normally has no default operational branch. Requires Payments.View and access to the selected branch. Find an active account with method Cash and copy its id into cashAccountId before the one-time Vault drawer setup. An empty list means no active Cash/InstaPay account exists for this branch. This GET is read-only and does not create a financial account, drawer, Shift or ledger movement.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ownerToken}}",
                   "type": "string"
                 }
               ]
@@ -5504,10 +5524,20 @@
               }
             ],
             "url": "{{baseUrl}}/api/vault/setup",
-            "description": "Uses trusted current branch and capability checks. New operational money requires the acting employee's own open shift. Preserve OperationId for retries; use a new ID for a distinct action. Preserve the original request body as well as OperationId on retry.",
+            "description": "One-time Owner/global setup of the selected branch's shared Cash drawer, not an employee Shift. Requires Vault.Manage and Branches.AccessAll. Include branchId because an Owner normally has no current operational branch. financialAccountId must identify an active Cash account of that branch. countedCash is the real physical opening count; a positive count on a virgin zero-opening account records an audited initial-position ledger movement, not Sales revenue. Reuse the same OperationId and body only for a retry of this exact setup.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"operationId\": \"{{drawerSetupOperationId}}\",\n  \"financialAccountId\": \"{{cashAccountId}}\",\n  \"countedCash\": {{drawerCount}},\n  \"reason\": \"Audited physical position at setup\"\n}",
+              "raw": "{\n  \"branchId\": \"{{branchId}}\",\n  \"operationId\": \"{{drawerSetupOperationId}}\",\n  \"financialAccountId\": \"{{cashAccountId}}\",\n  \"countedCash\": {{drawerCount}},\n  \"reason\": \"Audited physical position at setup\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5521,7 +5551,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.collectionVariables.get('drawerSetupOperationId')) pm.collectionVariables.set('drawerSetupOperationId', pm.variables.replaceIn('{$guid}')); "
+                  "if (!pm.collectionVariables.get('drawerSetupOperationId')) pm.collectionVariables.set('drawerSetupOperationId', pm.variables.replaceIn('{{$guid}}'));"
                 ]
               }
             }
@@ -5538,7 +5568,17 @@
               }
             ],
             "url": "{{baseUrl}}/api/shifts",
-            "description": "Uses trusted current branch and capability checks. New operational money requires the acting employee's own open shift. Preserve OperationId for retries; use a new ID for a distinct action. Preserve the original request body as well as OperationId on retry.",
+            "description": "The logged-in active employee manually opens only their own Shift at their assigned operational branch; requires Shifts.Manage and a configured shared branch drawer. openingCash is the real count of the shared drawer at opening, not employee-owned money. No open BusinessDay is required when today's BusinessDate applies. Reuse the same OperationId and body only for a retry of this exact opening.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"operationId\": \"{{shiftOpenOperationId}}\",\n  \"openingCash\": {{drawerCount}}\n}",
@@ -5555,7 +5595,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (!pm.collectionVariables.get('shiftOpenOperationId')) pm.collectionVariables.set('shiftOpenOperationId', pm.variables.replaceIn('{$guid}')); "
+                  "if (!pm.collectionVariables.get('shiftOpenOperationId')) pm.collectionVariables.set('shiftOpenOperationId', pm.variables.replaceIn('{{$guid}}'));"
                 ]
               }
             },
@@ -6119,10 +6159,10 @@
               ]
             },
             "url": "{{baseUrl}}/api/commissions/rules",
-            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created.",
+            "description": "Owner/global configuration requires Commission.ManageRules and Branches.AccessAll. Put branchId in the JSON body; this POST route stays /api/commissions/rules, and an HTTP branch header is not used. employeeId:null creates branch fallback rules for employees without personal rules. Confirm actual targets/rates and effective BusinessDate before sending. Keep the same operationId and body for an exact retry. No shift or payout is created.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"operationId\": \"{{commissionDefaultOperationId}}\",\n  \"employeeId\": null,\n  \"effectiveFrom\": \"{{commissionRuleEffectiveFrom}}\",\n  \"newClients\": {\n    \"target\": 30000,\n    \"belowRate\": 5,\n    \"reachedRate\": 7\n  },\n  \"renewals\": {\n    \"target\": 30000,\n    \"belowRate\": 3,\n    \"reachedRate\": 5\n  }\n}",
+              "raw": "{\n  \"operationId\": \"{{commissionDefaultOperationId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"employeeId\": null,\n  \"effectiveFrom\": \"{{commissionRuleEffectiveFrom}}\",\n  \"newClients\": {\n    \"target\": 30000,\n    \"belowRate\": 5,\n    \"reachedRate\": 7\n  },\n  \"renewals\": {\n    \"target\": 30000,\n    \"belowRate\": 3,\n    \"reachedRate\": 5\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6164,10 +6204,10 @@
               ]
             },
             "url": "{{baseUrl}}/api/commissions/rules",
-            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created.",
+            "description": "Owner/global configuration requires Commission.ManageRules and Branches.AccessAll. Put branchId in the JSON body; this POST route stays /api/commissions/rules, and an HTTP branch header is not used. Set employeeId to the intended Employee UUID for personal New/Renewal rules; confirm targets/rates and effective BusinessDate. Keep the same operationId and body for an exact retry. No shift or payout is created.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"operationId\": \"{{commissionRuleOperationId}}\",\n  \"employeeId\": \"{{commissionEmployeeId}}\",\n  \"effectiveFrom\": \"{{commissionRuleEffectiveFrom}}\",\n  \"newClients\": {\n    \"target\": 30000,\n    \"belowRate\": 5,\n    \"reachedRate\": 7\n  },\n  \"renewals\": {\n    \"target\": 30000,\n    \"belowRate\": 3,\n    \"reachedRate\": 5\n  }\n}",
+              "raw": "{\n  \"operationId\": \"{{commissionRuleOperationId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"employeeId\": \"{{commissionEmployeeId}}\",\n  \"effectiveFrom\": \"{{commissionRuleEffectiveFrom}}\",\n  \"newClients\": {\n    \"target\": 30000,\n    \"belowRate\": 5,\n    \"reachedRate\": 7\n  },\n  \"renewals\": {\n    \"target\": 30000,\n    \"belowRate\": 3,\n    \"reachedRate\": 5\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6208,8 +6248,8 @@
                 }
               ]
             },
-            "url": "{{baseUrl}}/api/commissions/rules?employeeId={{commissionEmployeeId}}&page=1&pageSize=25",
-            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created."
+            "url": "{{baseUrl}}/api/commissions/rules?branchId={{branchId}}&employeeId={{commissionEmployeeId}}&page=1&pageSize=25",
+            "description": "Read-only rule history; requires Commission.View. An Owner must select branchId in the query. This request filters for one employee's personal rules; remove employeeId to inspect branch fallback rules. It does not calculate commission or change any rule."
           },
           "response": [],
           "event": []
@@ -6235,10 +6275,10 @@
               ]
             },
             "url": "{{baseUrl}}/api/commissions/periods",
-            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created.",
+            "description": "Opening a branch commission period requires Commission.ClosePeriod and Branches.AccessAll. An Owner supplies branchId in this JSON body; the POST URL does not change. Use actual inclusive BusinessDate bounds and a new operationId for a new period. No shift, payment or payout is created.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"operationId\": \"{{commissionPeriodOperationId}}\",\n  \"name\": \"Configured branch commission period\",\n  \"startDate\": \"{{commissionStartDate}}\",\n  \"endDate\": \"{{commissionEndDate}}\"\n}",
+              "raw": "{\n  \"operationId\": \"{{commissionPeriodOperationId}}\",\n  \"branchId\": \"{{branchId}}\",\n  \"name\": \"Configured branch commission period\",\n  \"startDate\": \"{{commissionStartDate}}\",\n  \"endDate\": \"{{commissionEndDate}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6288,8 +6328,8 @@
                 }
               ]
             },
-            "url": "{{baseUrl}}/api/commissions/periods?page=1&pageSize=25",
-            "description": "Requires documented capability and trusted branch scope. Configure initial rules before opening the first period. Dates are explicit illustrative BusinessDates; select actual branch boundaries. Preserve OperationId and payload on retries. No shift or payout is created."
+            "url": "{{baseUrl}}/api/commissions/periods?branchId={{branchId}}&page=1&pageSize=25",
+            "description": "Read-only commission-period history; requires Commission.View. An Owner selects the branch with branchId in the query. The period ID from this response is used for progress and employee statements."
           },
           "response": [],
           "event": []

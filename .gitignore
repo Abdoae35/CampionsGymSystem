@@ -48,5 +48,6 @@ Thumbs.db
 Desktop.ini
 # Local testing data - do not upload to GitHub
 /test-data/
+/docs/test-data/*.xlsx
 # Local Postman environments contain demo credentials/tokens
 /postman/*.local.postman_environment.json
