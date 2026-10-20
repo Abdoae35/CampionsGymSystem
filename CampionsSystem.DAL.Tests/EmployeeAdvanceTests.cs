@@ -15,12 +15,13 @@ public sealed partial class EmployeeShiftTests
         user.Context=user.Context! with{Permissions=[ShiftPermissions.AdvanceCreate,ShiftPermissions.AdvanceView,ShiftPermissions.VaultView,ShiftPermissions.Manage,ShiftPermissions.View]};
         var r=new AdvanceRequest(Guid.NewGuid(),eb.Id,account.Id,500,"Employee advance","advance-ref");var result=await Expenses().RecordAdvanceAsync(r);
         Assert.Equal(eb.Id,result.ReceivingEmployeeId);Assert.Equal(ea.Id,result.RecordingEmployeeId);Assert.Equal(type,result.Method);Assert.Equal(shift.Id,result.ShiftId);
+        Assert.Equal("Ahmed",result.RecordingEmployeeName);Assert.Equal(account.Name,result.AccountName);
         Assert.Equal(result.Id,(await Expenses().RecordAdvanceAsync(r)).Id);var ledger=await db.FinancialTransactions.SingleAsync();Assert.Equal(FinancialSourceType.EmployeeAdvance,ledger.SourceType);
         Assert.Equal(result.Id,ledger.EmployeeAdvanceId);Assert.Null(ledger.ExpenseId);Assert.Null(ledger.PayrollId);
         Assert.Empty(await db.Expenses.ToListAsync());Assert.Empty(await db.Payrolls.ToListAsync());Assert.Empty(await db.PayrollDeductions.ToListAsync());
         Assert.Equal(type==FinancialAccountType.Cash?99500:100000,(await Vault().PositionAsync()).ExpectedPhysicalCash);
         await Service().CloseAsync(shift.Id,new(Guid.NewGuid(),shift.Version,type==FinancialAccountType.Cash?99500:100000));Assert.Equal(result.Id,(await Expenses().RecordAdvanceAsync(r)).Id);
-        Assert.Single((await Expenses().AdvancesAsync(new())).Items);
+        Assert.Equal("Ahmed",Assert.Single((await Expenses().AdvancesAsync(new())).Items).RecordingEmployeeName);
     }
     [Fact] public async Task AdvanceRequiresOwnShiftPermissionActiveRecipientAndCashFunds()
     {

@@ -17,6 +17,8 @@ public sealed partial class EmployeeShiftTests
         user.Context=user.Context! with{Permissions=[ShiftPermissions.ExpenseCreate,ShiftPermissions.ExpenseView,ShiftPermissions.Manage,ShiftPermissions.View,ShiftPermissions.VaultView]};
         var r=new PaidExpenseRequest(Guid.NewGuid(),category.Id,account.Id,500,"Operational repair","receipt-1");
         var paid=await Expenses().RecordPaidAsync(r);Assert.Equal(paid.Id,(await Expenses().RecordPaidAsync(r)).Id);
+        Assert.Equal("Ahmed",paid.RecordingEmployeeName);Assert.Equal("Ahmed",paid.RecordedByName);Assert.Equal(account.Name,paid.AccountName);
+        Assert.Equal(account.Name,Assert.Single((await Expenses().HistoryAsync(new())).Items).AccountName);
         var original=await db.Expenses.SingleAsync();Assert.Null(original.ApprovedByUserId);Assert.Equal(ea.Id,paid.RecordingEmployeeId);Assert.Equal(shift.Id,paid.ShiftId);
         var ledger=await db.FinancialTransactions.SingleAsync();Assert.Equal(FinancialSourceType.Expense,ledger.SourceType);Assert.Equal(FinancialTransactionType.Debit,ledger.TransactionType);
         Assert.Equal(account.Id,ledger.FinancialAccountId);Assert.Equal(type,paid.Method);Assert.NotNull(paid.PaidAt);

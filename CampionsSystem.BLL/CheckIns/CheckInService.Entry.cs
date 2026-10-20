@@ -1,3 +1,4 @@
+using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Operations;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
@@ -26,12 +27,17 @@ public sealed partial class CheckInService
     private static CheckInDetails Details(CheckIn row,Member? member)=>new(row.Id,row.OperationId,row.MemberId,row.MemberId==member?.Id?member?.MemberCode:null,
         row.MemberId==member?.Id?member?.FullName:null,row.BranchId,row.BusinessDate,row.BusinessDayId,row.CheckedInAt,row.CheckInType.ToString(),row.CheckInMethod.ToString(),
         row.MemberSubscriptionId,row.SessionConsumed,row.SessionsBefore,row.SessionsAfter,row.CreatedByUserId);
+    private async Task<CheckInDetails> DetailsWithActorAsync(CheckIn row,Member? member,CancellationToken ct)
+    {
+        var names=await ActorDisplayNames.LoadAsync(db,[row.CreatedByUserId],ct);
+        return Details(row,member) with{ActorName=ActorDisplayNames.Get(names,row.CreatedByUserId)};
+    }
     private async Task<CheckInResult> RecordedResultAsync(CheckIn row,Member member,CancellationToken ct,bool borrowAvailable=false)
     {
         var sub=await db.MemberSubscriptions.AsNoTracking().SingleAsync(x=>x.Id==row.MemberSubscriptionId,ct);
         var used=row.CheckInType==CheckInType.BorrowedGym?await db.BorrowedGymSessions.CountAsync(x=>x.ExpiredSubscriptionId==sub.Id,ct):0;
         return new(new(true,AccessReasons.Allowed,member.Id,member.MemberCode,member.FullName,row.BranchId,row.BusinessDate!.Value,row.BusinessDayId,
-            sub.Id,sub.AccessMode.ToString(),row.CheckInType==CheckInType.BorrowedGym?sub.RemainingSessions:row.SessionsAfter,borrowAvailable,used,borrowAvailable?Math.Max(0,2-used):0),Details(row,member));
+            sub.Id,sub.AccessMode.ToString(),row.CheckInType==CheckInType.BorrowedGym?sub.RemainingSessions:row.SessionsAfter,borrowAvailable,used,borrowAvailable?Math.Max(0,2-used):0),await DetailsWithActorAsync(row,member,ct));
     }
     public async Task<CheckInResult> CreateAsync(CreateCheckInRequest r,CancellationToken ct=default)
     {

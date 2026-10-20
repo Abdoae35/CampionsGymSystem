@@ -25,22 +25,28 @@ public sealed record PrivateAttendanceRequest(Guid OperationId, Guid GymCheckInI
 public sealed record PrivateTransferRequest(Guid OperationId, Guid CoachEmployeeId, int ExpectedVersion, string Reason);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PrivateExpiryRequest(Guid OperationId, Guid CommissionPeriodId, string Reason);
-public sealed record PrivateAssignmentDetails(Guid Id, Guid CoachEmployeeId, DateTimeOffset AssignedAt, DateTimeOffset? EndedAt, string? Reason);
+public sealed record PrivateAssignmentDetails(Guid Id, Guid CoachEmployeeId, DateTimeOffset AssignedAt, DateTimeOffset? EndedAt, string? Reason,
+    string? CoachEmployeeName = null);
 public sealed record PrivateAttendanceDetails(Guid Id, Guid SubscriptionId, Guid CoachEmployeeId, Guid GymCheckInId,
-    DateOnly? BusinessDate, DateTimeOffset SessionAt, int? SessionNumber, decimal? SessionValue, bool? TransferredPackage);
+    DateOnly? BusinessDate, DateTimeOffset SessionAt, int? SessionNumber, decimal? SessionValue, bool? TransferredPackage,
+    string? MemberName = null, string? MemberCode = null, string? CoachEmployeeName = null);
 public sealed record PrivateDetails(Guid Id, Guid MemberId, Guid BranchId, DateOnly StartDate, DateOnly EndDate,
     int PurchasedSessions, int UsedSessions, int RemainingSessions, int Version, bool Cancelled,
     string? PackageName, decimal Price, decimal UnitSessionValue, decimal RemainderValue,
-    Guid? OriginalCoachEmployeeId, IReadOnlyList<PrivateAssignmentDetails> Assignments);
+    Guid? OriginalCoachEmployeeId, IReadOnlyList<PrivateAssignmentDetails> Assignments,
+    string? MemberName = null, string? MemberCode = null, string? OriginalCoachEmployeeName = null);
 public sealed record PrivateExpiryDetails(Guid Id, Guid SubscriptionId, Guid CoachEmployeeId, int UnusedSessions,
-    decimal EligibleValue, bool? TransferredPackage, DateOnly? BusinessDate, DateTimeOffset SettledAt, string? Reason);
+    decimal EligibleValue, bool? TransferredPackage, DateOnly? BusinessDate, DateTimeOffset SettledAt, string? Reason,
+    string? CoachEmployeeName = null);
 public sealed record CoachingMemberResult(Guid Id, string MemberCode, long? ClientCode, string Name, string Phone);
 public sealed record CoachingPage<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);
 public sealed record ClassesSubscriptionDetails(Guid Id, Guid MemberId, Guid BranchId, Guid SaleId, string PackageName,
-    DateOnly StartDate, DateOnly EndDate, int PurchasedSessions, int RemainingSessions, decimal Price, bool Cancelled, int Version);
+    DateOnly StartDate, DateOnly EndDate, int PurchasedSessions, int RemainingSessions, decimal Price, bool Cancelled, int Version,
+    string? MemberName = null, string? MemberCode = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ClassTypeRequest(Guid BranchId, string Name, Guid CoachEmployeeId, bool IsActive = true, string? Description = null);
-public sealed record ClassTypeDetails(Guid Id, Guid BranchId, string Name, Guid CoachEmployeeId, bool IsActive, string? Description);
+public sealed record ClassTypeDetails(Guid Id, Guid BranchId, string Name, Guid CoachEmployeeId, bool IsActive, string? Description,
+    string? CoachEmployeeName = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ClassOccurrenceRequest(Guid OperationId, Guid ClassTypeId, Guid CoachEmployeeId, DateTimeOffset StartsAt);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -48,26 +54,33 @@ public sealed record CompleteClassRequest(Guid OperationId, int ExpectedVersion,
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ClassAttendanceRequest(Guid OperationId, Guid MemberId, Guid? ClassesSubscriptionId = null);
 public sealed record ClassOccurrenceDetails(Guid Id, Guid ClassTypeId, Guid BranchId, Guid CoachEmployeeId,
-    DateOnly? BusinessDate, DateTimeOffset StartsAt, DateTimeOffset? EndedAt, string Status, int Attendance, int Version);
+    DateOnly? BusinessDate, DateTimeOffset StartsAt, DateTimeOffset? EndedAt, string Status, int Attendance, int Version,
+    string? ClassTypeName = null, string? CoachEmployeeName = null);
 public sealed record ClassAttendanceDetails(Guid Id, Guid MemberId, Guid SubscriptionId, Guid ClassSessionId,
-    Guid CoachEmployeeId, DateOnly BusinessDate, int RemainingSessions, DateTimeOffset RegisteredAt);
+    Guid CoachEmployeeId, DateOnly BusinessDate, int RemainingSessions, DateTimeOffset RegisteredAt,
+    string? MemberName = null, string? MemberCode = null, string? CoachEmployeeName = null, string? ClassTypeName = null);
 public sealed record ClassCoachStatistics(Guid CoachEmployeeId, int CompletedClasses, int TotalAttendance, decimal AverageAttendance,
-    decimal? Target, bool? TargetReached, IReadOnlyList<ClassOccurrenceDetails> Occurrences, string CompensationStatus = "NotConfigured");
+    decimal? Target, bool? TargetReached, IReadOnlyList<ClassOccurrenceDetails> Occurrences, string CompensationStatus = "NotConfigured",
+    string? CoachEmployeeName = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CoachTargetRequest(Guid OperationId, Guid CommissionPeriodId, Guid CoachEmployeeId,
     decimal? PrivateTarget, decimal? ClassesAverageTarget);
-public sealed record CoachTargetDetails(Guid Id, Guid PeriodId, Guid CoachEmployeeId, decimal? PrivateTarget, decimal? ClassesAverageTarget);
+public sealed record CoachTargetDetails(Guid Id, Guid PeriodId, Guid CoachEmployeeId, decimal? PrivateTarget, decimal? ClassesAverageTarget,
+    string? CoachEmployeeName = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RecognizeCoachEarningsRequest(Guid OperationId, Guid CommissionPeriodId);
 public sealed record CoachProgress(Guid CoachEmployeeId, decimal EligibleValue, decimal? Target, bool? TargetReached,
-    decimal? NormalRate, decimal? ProjectedEarnings, decimal DeferredValue);
+    decimal? NormalRate, decimal? ProjectedEarnings, decimal DeferredValue, string? CoachEmployeeName = null);
 public sealed record CoachEarningsProgress(Guid PeriodId, bool Finalized, IReadOnlyList<CoachProgress> Coaches);
 public sealed record CoachEarningDetails(Guid Id, Guid CoachEmployeeId, Guid PeriodId, Guid SaleId, Guid? SessionId,
-    Guid? ExpirySettlementId, decimal EligibleValue, decimal Rate, decimal Earned, bool TransferredPackage, DateOnly BusinessDate);
-public sealed record CoachBalance(Guid BranchId, Guid CoachEmployeeId, decimal Earned, decimal Paid, decimal Outstanding);
+    Guid? ExpirySettlementId, decimal EligibleValue, decimal Rate, decimal Earned, bool TransferredPackage, DateOnly BusinessDate,
+    string? CoachEmployeeName = null);
+public sealed record CoachBalance(Guid BranchId, Guid CoachEmployeeId, decimal Earned, decimal Paid, decimal Outstanding,
+    string? CoachEmployeeName = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CoachPayoutRequest(Guid OperationId, Guid BranchId, Guid CoachEmployeeId, decimal Amount,
     Guid FinancialAccountId, Guid ExpenseCategoryId, string Reason, string? ReceiptReference = null);
 public sealed record CoachPayoutDetails(Guid Id, Guid BranchId, Guid CoachEmployeeId, Guid ExpenseId,
     Guid AccountId, string Method, decimal Amount, decimal BalanceBefore, decimal BalanceAfter,
-    DateOnly BusinessDate, DateTimeOffset PaidAt, Guid AuthorizedByUserId);
+    DateOnly BusinessDate, DateTimeOffset PaidAt, Guid AuthorizedByUserId,
+    string? CoachEmployeeName = null, string? AuthorizedByName = null);

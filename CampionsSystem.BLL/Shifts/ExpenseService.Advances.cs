@@ -6,9 +6,21 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.BLL.Shifts;
 public sealed partial class ExpenseService
 {
-    private async Task<AdvanceDetails> Details(EmployeeAdvance a,CancellationToken ct)=>new(a.Id,a.BranchId,a.ShiftId,a.ReceivingEmployeeId,
-        await db.Employees.Where(x=>x.Id==a.ReceivingEmployeeId).Select(x=>x.FullName).SingleAsync(ct),a.RecordingEmployeeId,a.FinancialAccountId,
-        await db.FinancialAccounts.Where(x=>x.Id==a.FinancialAccountId).Select(x=>x.AccountType).SingleAsync(ct),a.Amount,a.Reason,a.Reference,a.OccurredAt,a.BusinessDate);
+    private async Task<AdvanceDetails> Details(EmployeeAdvance a,CancellationToken ct)=>(await AdvanceDetailsMany([a],ct))[0];
+    private async Task<AdvanceDetails[]> AdvanceDetailsMany(IReadOnlyList<EmployeeAdvance> rows,CancellationToken ct)
+    {
+        if(rows.Count==0)return [];
+        var employeeIds=rows.SelectMany(x=>new[]{x.ReceivingEmployeeId,x.RecordingEmployeeId}).Distinct().ToArray();
+        var employees=await db.Employees.AsNoTracking().Where(x=>employeeIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName}).ToDictionaryAsync(x=>x.Id,x=>x.FullName,ct);
+        var accountIds=rows.Select(x=>x.FinancialAccountId).Distinct().ToArray();
+        var accounts=await db.FinancialAccounts.AsNoTracking().Where(x=>accountIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.AccountType,x.Name}).ToDictionaryAsync(x=>x.Id,ct);
+        return rows.Select(a=>new AdvanceDetails(a.Id,a.BranchId,a.ShiftId,a.ReceivingEmployeeId,
+            employees[a.ReceivingEmployeeId],a.RecordingEmployeeId,a.FinancialAccountId,
+            accounts[a.FinancialAccountId].AccountType,a.Amount,a.Reason,a.Reference,a.OccurredAt,a.BusinessDate,
+            employees.GetValueOrDefault(a.RecordingEmployeeId),accounts[a.FinancialAccountId].Name)).ToArray();
+    }
     public Task<AdvanceDetails> RecordAdvanceAsync(AdvanceRequest r,CancellationToken ct=default)=>money.TransactionAsync(async()=>
     {
         FinancialOperations.Operation(r.OperationId);FinancialOperations.Money(r.Amount,true);FinancialOperations.Reason(r.Reason);
@@ -45,6 +57,6 @@ public sealed partial class ExpenseService
         var(branch,_)=await money.ResolveAsync(ShiftPermissions.AdvanceView,r.BranchId,ct);var q=db.EmployeeAdvances.AsNoTracking().Where(x=>x.BranchId==branch);
         if(r.From!=null)q=q.Where(x=>x.BusinessDate>=r.From);if(r.To!=null)q=q.Where(x=>x.BusinessDate<=r.To);if(r.AccountId!=null)q=q.Where(x=>x.FinancialAccountId==r.AccountId);
         var total=await q.CountAsync(ct);var rows=await q.OrderByDescending(x=>x.OccurredAt).ThenBy(x=>x.Id).Skip((r.Page-1)*r.PageSize).Take(r.PageSize).ToListAsync(ct);
-        var items=new List<AdvanceDetails>();foreach(var row in rows)items.Add(await Details(row,ct));return new(items,total,r.Page,r.PageSize);
+        return new(await AdvanceDetailsMany(rows,ct),total,r.Page,r.PageSize);
     }
 }

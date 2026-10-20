@@ -111,7 +111,7 @@ internal sealed partial class MonthlyReportBuilder(ApplicationDbContext db, ICur
         decimal Sum(string source,string direction)=>transactions.Where(x=>x.SourceType==source&&x.Direction==direction).Sum(x=>x.Amount);
         var gross=Sum("Payment","Credit");var refunds=Sum("Refund","Debit");var ordinary=categories.Sum(x=>x.Net);var basic=salaries.Sum(x=>x.BasicSalary);
         var commissions=payrollThis.Sum(x=>x.CommissionAmount);var privateEarned=currentEarnings.Sum(x=>x.Amount);var credits=transactions.Where(x=>x.Direction=="Credit").Sum(x=>x.Amount);var debits=transactions.Where(x=>x.Direction=="Debit").Sum(x=>x.Amount);
-        var drawer=preserved??await coordination.PositionAsync(month.BranchId,ct);
+        var drawer=(preserved??await coordination.PositionAsync(month.BranchId,ct)) with { AccountName=null };
         var summary=new MonthlySummary(gross,refunds,gross-refunds,ordinary,basic,commissions,privateEarned,payments.Sum(x=>x.Amount),currentPayouts.Sum(x=>x.Amount),Sum("EmployeeAdvance","Debit"),credits,debits,credits-debits,
             gross-refunds-ordinary-basic-commissions-privateEarned,employeeOpening,priorPayrollTotal+payrollThis.Sum(x=>x.NetAmount)-priorPaymentTotal-payments.Sum(x=>x.Amount)+pendingBasic,coaches.Sum(x=>x.OpeningOutstanding),coaches.Sum(x=>x.ClosingOutstanding),drawer.BookCash,drawer.ExpectedPhysicalCash,drawer.LastCountedCash,drawer.ExpectedPhysicalCash-drawer.BookCash,counts.Sum(x=>x.Difference),
             "Net member collections - net ordinary paid operating expenses - prorated basic salary - newly recognized finalized Sales commissions - newly recognized Private earnings. Payments/advances/maintenance forecasts are not additional earned costs.");

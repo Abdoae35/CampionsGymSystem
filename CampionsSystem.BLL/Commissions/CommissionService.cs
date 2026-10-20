@@ -28,7 +28,7 @@ public sealed partial class CommissionService(ApplicationDbContext db, ICurrentU
     private static void Page(int page, int size)
     { if (page < 1 || page > 1000000 || size is < 1 or > 100) throw new BusinessRuleException("Page must be positive; pageSize must be 1..100."); }
     internal static CommissionPeriodDetails Details(CommissionPeriod p) => new(p.Id, p.BranchId, p.Name, p.StartBusinessDate, p.EndBusinessDate, p.Status.ToString(), p.Version, p.ClosedAt);
-    private static CommissionRuleDetails RuleDetails(CommissionRule r) => new(r.Id, r.EmployeeId, r.BranchId, r.CommissionType.ToString(), r.EffectiveFrom, r.TargetAmount, r.BelowTargetRate, r.ReachedTargetRate, r.Revision);
+    private static CommissionRuleDetails RuleDetails(CommissionRule r,string? employeeName=null) => new(r.Id, r.EmployeeId, r.BranchId, r.CommissionType.ToString(), r.EffectiveFrom, r.TargetAmount, r.BelowTargetRate, r.ReachedTargetRate, r.Revision,employeeName);
     private async Task<CommissionPeriod> ReadAsync(Guid id, CancellationToken ct)
     {
         var p = await db.CommissionPeriods.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BranchNotFoundException("Commission period not found.");
@@ -60,8 +60,9 @@ public sealed partial class CommissionService(ApplicationDbContext db, ICurrentU
         var actor = await AdminAsync(CommissionPermissions.Manage, branch, ct); await LockAsync(branch, ct);
         var hash = FinancialOperations.Hash(r with { BranchId = branch });
         var prior = await db.CommissionRules.AsNoTracking().Where(x => x.OperationId == r.OperationId).ToListAsync(ct);
-        if (prior.Count > 0) { if (prior.Count != 2 || prior.Any(x => x.RequestHash != hash || x.CreatedByUserId != actor)) throw new BusinessRuleException("Operation belongs to another configuration request."); return (IReadOnlyList<CommissionRuleDetails>)prior.Select(RuleDetails).ToArray(); }
-        if (r.EmployeeId.HasValue && !await db.Employees.AnyAsync(e => e.Id == r.EmployeeId, ct)) throw new BranchNotFoundException("Employee not found.");
+        var employeeName=r.EmployeeId.HasValue?await db.Employees.AsNoTracking().Where(e=>e.Id==r.EmployeeId.Value).Select(e=>e.FullName).SingleOrDefaultAsync(ct):null;
+        if (prior.Count > 0) { if (prior.Count != 2 || prior.Any(x => x.RequestHash != hash || x.CreatedByUserId != actor)) throw new BusinessRuleException("Operation belongs to another configuration request."); return (IReadOnlyList<CommissionRuleDetails>)prior.Select(x=>RuleDetails(x,employeeName)).ToArray(); }
+        if (r.EmployeeId.HasValue && employeeName==null) throw new BranchNotFoundException("Employee not found.");
         if (r.NewClients == null || r.Renewals == null) throw new BusinessRuleException("Both independent category rules are required.");
         var period = await db.CommissionPeriods.AsNoTracking().Where(p => p.BranchId == branch).OrderByDescending(p => p.StartAt).FirstOrDefaultAsync(ct);
         if (period != null && (period.EndBusinessDate == null || r.EffectiveFrom != period.EndBusinessDate.Value.AddDays(1)))
@@ -77,7 +78,7 @@ public sealed partial class CommissionService(ApplicationDbContext db, ICurrentU
             var rule = new CommissionRule { BranchId = branch, EmployeeId = r.EmployeeId, CommissionType = type, CalculationMethod = CommissionCalculationMethod.TargetPercentage,
                 TargetAmount = input.Target, BelowTargetRate = input.BelowRate, ReachedTargetRate = input.ReachedRate, EffectiveFrom = r.EffectiveFrom,
                 Revision = revision + 1, OperationId = r.OperationId, RequestHash = hash, CreatedByUserId = actor, CreatedAt = access.Now };
-            db.Add(rule); result.Add(RuleDetails(rule)); access.Audit(actor, branch, "Commission.RuleConfigured", nameof(CommissionRule), rule.Id, after: result[^1]);
+            db.Add(rule); result.Add(RuleDetails(rule,employeeName)); access.Audit(actor, branch, "Commission.RuleConfigured", nameof(CommissionRule), rule.Id, after: RuleDetails(rule));
         }
         return (IReadOnlyList<CommissionRuleDetails>)result;
     }, ct);
@@ -93,6 +94,7 @@ public sealed partial class CommissionService(ApplicationDbContext db, ICurrentU
         Page(page, pageSize); var (branch, _) = await coordination.ResolveAsync(CommissionPermissions.View, branchId, ct);
         var q = db.CommissionRules.AsNoTracking().Where(x => x.BranchId == branch && x.EmployeeId == employeeId && (x.CommissionType == CommissionType.SalesNew || x.CommissionType == CommissionType.SalesRenewal));
         var count = await q.CountAsync(ct); var rows = await q.OrderByDescending(x => x.EffectiveFrom).ThenByDescending(x => x.Revision).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
-        return new(rows.Select(RuleDetails).ToArray(), count, page, pageSize);
+        var name=employeeId.HasValue?await db.Employees.AsNoTracking().Where(x=>x.Id==employeeId.Value).Select(x=>x.FullName).SingleOrDefaultAsync(ct):null;
+        return new(rows.Select(x=>RuleDetails(x,name)).ToArray(), count, page, pageSize);
     }
 }

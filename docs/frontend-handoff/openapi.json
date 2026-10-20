@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:5287/"
+      "url": "http://127.0.0.1:18747/"
     }
   ],
   "paths": {
@@ -4580,7 +4580,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { }
             }
           }
         }
@@ -7547,7 +7547,7 @@
           "200": {
             "description": "OK",
             "content": {
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { }
             }
           }
         }
@@ -9991,6 +9991,13 @@
               "type": "string",
               "format": "date"
             }
+          },
+          {
+            "name": "IncludePending",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -10714,6 +10721,30 @@
           },
           "result": {
             "$ref": "#/components/schemas/AccessChangeResult"
+          },
+          "actorName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "targetUserName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "roleName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "permissionCode": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

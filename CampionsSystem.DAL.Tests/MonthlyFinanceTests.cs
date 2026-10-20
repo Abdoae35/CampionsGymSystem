@@ -62,6 +62,9 @@ public sealed partial class EmployeeShiftTests
         var closed=await Months().CloseAsync(month.Id,close);Assert.Equal("Closed",closed.Status);
         Assert.Equal(closed.Id,(await Months().CloseAsync(month.Id,close)).Id);Assert.Single(await db.FinancialClosingRevisions.ToListAsync());
         var report=await Months().ReportAsync(month.Id);Assert.Equal(100000,report.Summary.BookCash);Assert.Equal(99800,report.Summary.ExpectedPhysicalCash);
+        Assert.Equal("Ahmed",Assert.Single(await Months().RevisionsAsync(month.Id)).ActorName);
+        Assert.All((await Months().EventsAsync(month.Id)).Items,x=>Assert.Equal("Ahmed",x.ActorName));
+        Assert.Equal("Ahmed",Assert.Single(report.CashCounts,x=>x.Kind=="Recount").ActorName);
         Assert.Equal(-200,report.Summary.PhysicalVsBook);Assert.Equal(-200,report.Summary.PeriodObservedDiscrepancies);
         Assert.Empty(await db.FinancialTransactions.ToListAsync());Assert.Empty(await db.Expenses.ToListAsync());
         await Assert.ThrowsAsync<BusinessRuleException>(()=>Service().OpenAsync(new(Guid.NewGuid(),99800)));
@@ -81,7 +84,14 @@ public sealed partial class EmployeeShiftTests
         ea=await db.Employees.SingleAsync(x=>x.Id==ea.Id);ea.FullName="Later name";await db.SaveChangesAsync();
         var reopened=await Months().ReopenAsync(month.Id,new(Guid.NewGuid(),closed.Version,"Investigate"));
         Assert.Equal("Reopened",reopened.Status);Assert.Equal(original.Bytes,(await Months().ExportAsync(month.Id,1)).Bytes);
-        Assert.Equal(old.Payroll.First().EmployeeName,(await Months().ReportAsync(month.Id,1)).Payroll.First().EmployeeName);
+        Assert.NotEqual(old.Payroll.Single(x=>x.EmployeeId==ea.Id).EmployeeName,
+            (await Months().ReportAsync(month.Id,1)).Payroll.Single(x=>x.EmployeeId==ea.Id).EmployeeName);
+        Assert.Equal("Later name",(await Months().ReportAsync(month.Id,1)).Payroll.Single(x=>x.EmployeeId==ea.Id).EmployeeName);
+        Assert.Equal(cash.Name,(await Months().ReportAsync(month.Id,1)).Drawer.AccountName);
+        var archivedJson=await db.FinancialClosingRevisions.Where(x=>x.FinancialMonthId==month.Id&&x.Revision==1).Select(x=>x.ReportJson).SingleAsync();
+        var archived=System.Text.Json.JsonSerializer.Deserialize<MonthlyReport>(archivedJson)!;
+        Assert.Null(archived.Drawer.AccountName);
+        Assert.All(archived.Shifts,x=>Assert.Null(x.ClosedByName));
         await Months().CloseAsync(month.Id,new(Guid.NewGuid(),reopened.Version,"Reissue"));Assert.Equal(2,(await Months().RevisionsAsync(month.Id)).Count);
         Assert.Equal(original.Bytes,(await Months().ExportAsync(month.Id,1)).Bytes);Assert.Equal(2,await db.Payrolls.CountAsync());
         using var zip=new ZipArchive(new MemoryStream(original.Bytes));Assert.Equal(11,zip.Entries.Count);
@@ -105,6 +115,7 @@ public sealed partial class EmployeeShiftTests
     [Fact] public async Task SalaryProrationAndTransferSplitBasicByBranchDaysAndKeepHistory()
     {
         var month=await Month();var assignment=await db.EmployeeBranchAssignments.SingleAsync(x=>x.EmployeeId==ea.Id);
+        Assert.Equal("Ahmed",Assert.Single(await Salaries().HistoryAsync(ea.Id,branch.Id)).ActorName);
         assignment.EndDate=today.AddDays(14);db.Add(new EmployeeBranchAssignment{EmployeeId=ea.Id,BranchId=other.Id,StartDate=today.AddDays(15),AssignedByUserId=a.Id});await db.SaveChangesAsync();
         var second=new FinancialMonth{BranchId=other.Id,Name="Other",StartDate=month.StartDate,EndDate=month.EndDate,CreatedByUserId=a.Id,CreatedAt=clock.Now};db.Add(second);await db.SaveChangesAsync();
         var first=await Salaries().PreviewAsync(month.Id,ea.Id);var transferred=await Salaries().PreviewAsync(second.Id,ea.Id);
@@ -131,6 +142,8 @@ public sealed partial class EmployeeShiftTests
         var next=await Months().OpenAsync(new(Guid.NewGuid(),"Next",today.AddDays(1),today.AddDays(30),"Next"));
         var entitlement=(await Payroll().HistoryAsync(employeeId:ea.Id)).Items.Single();var pay=new RecordPayrollPaymentRequest(Guid.NewGuid(),2000,clock.Now,"Actually paid", "receipt");
         var first=await Payroll().RecordPaymentAsync(entitlement.Id,pay);Assert.Equal(4000,first.BalanceAfter);Assert.Equal(next.Id,first.FinancialMonthId);
+        Assert.Equal("Ahmed",first.ActorName);Assert.Equal("Ahmed",first.EmployeeName);
+        Assert.Equal("Ahmed",Assert.Single((await Payroll().PaymentsAsync(entitlement.Id)).Items).ActorName);
         Assert.Equal(first.Id,(await Payroll().RecordPaymentAsync(entitlement.Id,pay)).Id);
         await Assert.ThrowsAsync<BusinessRuleException>(()=>Payroll().RecordPaymentAsync(entitlement.Id,pay with{OperationId=Guid.NewGuid(),Amount=4000.01m}));
         await Payroll().RecordPaymentAsync(entitlement.Id,pay with{OperationId=Guid.NewGuid(),Amount=4000});Assert.Equal(0,(await Payroll().HistoryAsync(employeeId:ea.Id)).Items.Single().Outstanding);

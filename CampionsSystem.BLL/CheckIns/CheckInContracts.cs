@@ -44,7 +44,7 @@ public sealed record AccessDecision(bool Allowed, string ReasonCode, Guid? Membe
 public sealed record CheckInDetails(Guid Id, Guid? OperationId, Guid? MemberId, string? MemberCode,
     string? MemberName, Guid BranchId, DateOnly? BusinessDate, Guid? BusinessDayId,
     DateTimeOffset OccurredAt, string Type, string Method, Guid? SubscriptionId, bool SessionConsumed,
-    int? SessionsBefore, int? SessionsAfter, Guid ActorId);
+    int? SessionsBefore, int? SessionsAfter, Guid ActorId, string? ActorName = null);
 public sealed record CheckInResult(AccessDecision Decision, CheckInDetails? CheckIn);
 public sealed class CheckInHistoryRequest
 {

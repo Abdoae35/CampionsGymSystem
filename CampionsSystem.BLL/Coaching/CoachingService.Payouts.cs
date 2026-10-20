@@ -1,3 +1,4 @@
+using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Operations;
 using CampionsSystem.BLL.Shifts;
 using CampionsSystem.DAL.Entities;
@@ -50,16 +51,33 @@ public sealed partial class CoachingService
             return await PayoutDetailsAsync(payout, ct);
         }, ct);
     private async Task<CoachPayoutDetails> PayoutDetailsAsync(CoachPayout p, CancellationToken ct)
+        => (await PayoutDetailsManyAsync([p],ct))[0];
+    private async Task<CoachPayoutDetails[]> PayoutDetailsManyAsync(IReadOnlyList<CoachPayout> rows,CancellationToken ct)
     {
-        var e = p.Expense ?? await db.Expenses.AsNoTracking().SingleAsync(e => e.Id == p.ExpenseId, ct);
-        var method = await db.FinancialAccounts.Where(a => a.Id == e.FinancialAccountId).Select(a => a.AccountType).SingleAsync(ct);
-        return new(p.Id, p.BranchId, p.CoachEmployeeId, p.ExpenseId, e.FinancialAccountId, method.ToString(), p.Amount, p.BalanceBefore, p.BalanceAfter, p.BusinessDate, p.PaidAt, p.AuthorizedByUserId);
+        if(rows.Count==0)return [];
+        var expenseIds=rows.Where(x=>x.Expense==null).Select(x=>x.ExpenseId).Distinct().ToArray();
+        var expenses=await db.Expenses.AsNoTracking().Where(x=>expenseIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FinancialAccountId}).ToDictionaryAsync(x=>x.Id,x=>x.FinancialAccountId,ct);
+        var accountIds=rows.Select(x=>x.Expense?.FinancialAccountId??expenses[x.ExpenseId]).Distinct().ToArray();
+        var accounts=await db.FinancialAccounts.AsNoTracking().Where(x=>accountIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.AccountType}).ToDictionaryAsync(x=>x.Id,x=>x.AccountType,ct);
+        var coachIds=rows.Select(x=>x.CoachEmployeeId).Distinct().ToArray();
+        var coaches=await db.Employees.AsNoTracking().Where(x=>coachIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName}).ToDictionaryAsync(x=>x.Id,x=>x.FullName,ct);
+        var actors=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>x.AuthorizedByUserId),ct);
+        return rows.Select(p=>
+        {
+            var accountId=p.Expense?.FinancialAccountId??expenses[p.ExpenseId];
+            return new CoachPayoutDetails(p.Id,p.BranchId,p.CoachEmployeeId,p.ExpenseId,accountId,
+                accounts[accountId].ToString(),p.Amount,p.BalanceBefore,p.BalanceAfter,p.BusinessDate,p.PaidAt,
+                p.AuthorizedByUserId,coaches.GetValueOrDefault(p.CoachEmployeeId),ActorDisplayNames.Get(actors,p.AuthorizedByUserId));
+        }).ToArray();
     }
     public async Task<CoachingPage<CoachPayoutDetails>> PayoutHistoryAsync(Guid branch, Guid coach, int page = 1, int pageSize = 25, CancellationToken ct = default)
     {
         Page(page, pageSize); await access.RequireAsync(CoachingPermissions.EarningsView, branch, ct);
         var q = db.CoachPayouts.AsNoTracking().Where(p => p.BranchId == branch && p.CoachEmployeeId == coach); var total = await q.CountAsync(ct);
         var rows = await q.OrderByDescending(p => p.PaidAt).ThenBy(p => p.Id).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
-        var details = new List<CoachPayoutDetails>(); foreach (var p in rows) details.Add(await PayoutDetailsAsync(p, ct)); return new(details, total, page, pageSize);
+        return new(await PayoutDetailsManyAsync(rows,ct),total,page,pageSize);
     }
 }

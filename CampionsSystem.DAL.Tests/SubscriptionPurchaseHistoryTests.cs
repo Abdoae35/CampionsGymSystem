@@ -24,6 +24,7 @@ public sealed partial class SalesTests
         Assert.Equal("PendingFirstCheckIn", item.ActivationStatus); Assert.Equal("Paid", item.PaymentStatus);
         Assert.Equal("Monthly", item.PlanName); Assert.Equal(plan.Id, item.PlanId);
         Assert.Equal("SessionBased", item.Mode); Assert.Equal(30, item.PurchasedDurationDays);
+        Assert.Equal(b.Name, item.OriginBranchName); Assert.Equal(b.City.Name, item.AccessCityName);
         Assert.Equal(12, item.TotalSessions); Assert.Equal(12, item.RemainingSessions);
         Assert.Equal(1200, item.FinalPrice); Assert.Equal(1200, item.Collected);
         Assert.Empty(await db.MemberSubscriptions.ToListAsync());
@@ -47,6 +48,7 @@ public sealed partial class SalesTests
         Assert.Null(item.SaleId); Assert.Equal("Active", item.ActivationStatus);
         Assert.Equal(today.AddDays(4), item.StartDate); Assert.Equal(11, item.RemainingSessions);
         Assert.Equal(entry.Decision.SubscriptionId, item.SubscriptionId);
+        Assert.Equal(b.Name, item.OriginBranchName); Assert.Equal(b.City.Name, item.AccessCityName);
         Assert.Equal(1, (await subscriptions.GetHistoryAsync(member.Id, new())).TotalCount);
         Assert.Equal(sale.SaleId, (await db.MembershipSubscriptionTransactions.SingleAsync()).SaleTransactionId);
     }

@@ -235,6 +235,20 @@ public sealed class AccessAdministrationService(ApplicationDbContext db, OwnerAd
             return new AccessAuditDetails(x.Id, x.EntityId!.Value, x.UserId, x.CreatedAt, e.Kind, e.TargetUserId,
                 e.RoleId, e.PermissionId, e.Reason, e.OldValues, e.NewValues, e.Result);
         }).ToArray();
-        return new(items, total, q.Page, q.PageSize);
+        var actorNames = await ActorDisplayNames.LoadAsync(db, items.Select(x => x.ActorUserId)
+            .Concat(items.Select(x => x.TargetUserId)), ct);
+        var roleIds = items.Where(x => x.RoleId.HasValue).Select(x => x.RoleId!.Value).Distinct().ToArray();
+        var roleNames = await db.Roles.AsNoTracking().Where(x => roleIds.Contains(x.Id))
+            .Select(x => new { x.Id, x.Name }).ToDictionaryAsync(x => x.Id, x => x.Name, ct);
+        var permissionIds = items.Where(x => x.PermissionId.HasValue).Select(x => x.PermissionId!.Value).Distinct().ToArray();
+        var permissionCodes = await db.Permissions.AsNoTracking().Where(x => permissionIds.Contains(x.Id))
+            .Select(x => new { x.Id, x.Code }).ToDictionaryAsync(x => x.Id, x => x.Code, ct);
+        return new(items.Select(x => x with
+        {
+            ActorName = ActorDisplayNames.Get(actorNames, x.ActorUserId),
+            TargetUserName = ActorDisplayNames.Get(actorNames, x.TargetUserId),
+            RoleName = x.RoleId.HasValue ? roleNames.GetValueOrDefault(x.RoleId.Value) : null,
+            PermissionCode = x.PermissionId.HasValue ? permissionCodes.GetValueOrDefault(x.PermissionId.Value) : null
+        }).ToArray(), total, q.Page, q.PageSize);
     }
 }

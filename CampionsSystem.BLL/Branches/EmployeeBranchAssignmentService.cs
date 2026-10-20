@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 namespace CampionsSystem.BLL.Branches;
 
 public sealed record BranchAssignmentDetails(Guid Id, Guid EmployeeId, Guid BranchId, string BranchName,
-    DateOnly StartDate, DateOnly? EndDate, bool IsPrimary, Guid AssignedByUserId, DateTimeOffset CreatedAt);
+    DateOnly StartDate, DateOnly? EndDate, bool IsPrimary, Guid AssignedByUserId, DateTimeOffset CreatedAt,
+    string? AssignedByName = null);
 public sealed record AssignBranchRequest(Guid BranchId, DateOnly StartDate);
 public sealed record TransferBranchRequest(Guid TargetBranchId, DateOnly EffectiveDate);
 
@@ -31,8 +32,13 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
         if (active.Count > 1) throw new BusinessRuleException("Employee has overlapping assignments; reconcile the history first.");
         return active.SingleOrDefault();
     }
-    private static BranchAssignmentDetails Details(EmployeeBranchAssignment x) => new(x.Id, x.EmployeeId,
-        x.BranchId, x.Branch.Name, x.StartDate, x.EndDate, x.IsPrimary, x.AssignedByUserId, x.CreatedAt);
+    private static BranchAssignmentDetails Details(EmployeeBranchAssignment x,string? assignedByName) => new(x.Id, x.EmployeeId,
+        x.BranchId, x.Branch.Name, x.StartDate, x.EndDate, x.IsPrimary, x.AssignedByUserId, x.CreatedAt,assignedByName);
+    private async Task<BranchAssignmentDetails> DetailsAsync(EmployeeBranchAssignment x,CancellationToken ct)
+    {
+        var names=await ActorDisplayNames.LoadAsync(database,[x.AssignedByUserId],ct);
+        return Details(x,ActorDisplayNames.Get(names,x.AssignedByUserId));
+    }
     private async Task CheckEmployeeAsync(Guid id, CancellationToken ct)
     {
         if (!await database.Employees.AnyAsync(x => x.Id == id, ct)) throw new BranchNotFoundException("Employee not found.");
@@ -41,7 +47,7 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
     {
         var user = await RequireAsync("Employees.View", ct); await CheckEmployeeAsync(employeeId, ct);
         var assignment = await CurrentAsync(employeeId, ct); Scope(user, assignment?.BranchId);
-        return assignment is null ? null : Details(assignment);
+        return assignment is null ? null : await DetailsAsync(assignment,ct);
     }
     public async Task<IReadOnlyList<BranchAssignmentDetails>> HistoryAsync(Guid employeeId, CancellationToken ct = default)
     {
@@ -49,7 +55,8 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
         Scope(user, (await CurrentAsync(employeeId, ct))?.BranchId);
         var history = await database.EmployeeBranchAssignments.AsNoTracking().Include(x => x.Branch)
             .Where(x => x.EmployeeId == employeeId).OrderBy(x => x.StartDate).ThenBy(x => x.Id).ToListAsync(ct);
-        return history.Select(Details).ToArray();
+        var names=await ActorDisplayNames.LoadAsync(database,history.Select(x=>x.AssignedByUserId),ct);
+        return history.Select(x=>Details(x,ActorDisplayNames.Get(names,x.AssignedByUserId))).ToArray();
     }
     public async Task<BranchAssignmentDetails> AssignAsync(Guid employeeId, AssignBranchRequest request, CancellationToken ct = default)
     {
@@ -75,8 +82,10 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
             access.Audit(user.UserId, branch.Id, "Employee.BranchAssigned", nameof(EmployeeBranchAssignment), assignment.Id,
                 after: new { EmployeeId = employeeId, NewBranchId = branch.Id, EffectiveDate = request.StartDate });
             await database.SaveChangesAsync(ct);
+            var names=await ActorDisplayNames.LoadAsync(database,[assignment.AssignedByUserId],ct);
             return new BranchAssignmentDetails(assignment.Id, employeeId, branch.Id, branch.Name, assignment.StartDate,
-                assignment.EndDate, assignment.IsPrimary, assignment.AssignedByUserId, assignment.CreatedAt);
+                assignment.EndDate, assignment.IsPrimary, assignment.AssignedByUserId, assignment.CreatedAt,
+                ActorDisplayNames.Get(names,assignment.AssignedByUserId));
         }, ct);
     }
     public async Task<BranchAssignmentDetails> TransferAsync(Guid employeeId, TransferBranchRequest request, CancellationToken ct = default)
@@ -125,8 +134,10 @@ public sealed class EmployeeBranchAssignmentService(ApplicationDbContext databas
                 new { EmployeeId = employeeId, OldBranchId = old.BranchId, NewBranchId = target.Id,
                     NewAssignmentId = assignment.Id, EffectiveDate = request.EffectiveDate, ActorUserId = user.UserId });
             await database.SaveChangesAsync(ct);
+            var names=await ActorDisplayNames.LoadAsync(database,[assignment.AssignedByUserId],ct);
             return new BranchAssignmentDetails(assignment.Id, employeeId, target.Id, target.Name, assignment.StartDate,
-                assignment.EndDate, assignment.IsPrimary, assignment.AssignedByUserId, assignment.CreatedAt);
+                assignment.EndDate, assignment.IsPrimary, assignment.AssignedByUserId, assignment.CreatedAt,
+                ActorDisplayNames.Get(names,assignment.AssignedByUserId));
         }, ct);
     }
 

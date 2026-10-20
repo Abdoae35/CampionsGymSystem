@@ -11,6 +11,11 @@ public sealed class SalaryService(ApplicationDbContext db, ICurrentUserService c
 {
     private readonly FinancialOperations coordination = new(db, current, access);
     internal static SalarySettingDetails Details(EmployeeSalarySetting x) => new(x.Id, x.EmployeeId, x.BasicSalary, x.EffectiveFrom, x.EffectiveTo, x.CreatedByUserId, x.CreatedAt);
+    private async Task<SalarySettingDetails> DetailsAsync(EmployeeSalarySetting setting,CancellationToken ct)
+    {
+        var names=await ActorDisplayNames.LoadAsync(db,[setting.CreatedByUserId],ct);
+        return Details(setting) with{ActorName=ActorDisplayNames.Get(names,setting.CreatedByUserId)};
+    }
     public Task<SalarySettingDetails> ConfigureAsync(Guid employeeId, SetSalaryRequest r, CancellationToken ct = default) => coordination.TransactionAsync(async () =>
     {
         FinancialOperations.Operation(r.OperationId); FinancialOperations.Money(r.BasicSalary); FinancialOperations.Reason(r.Reason);
@@ -19,7 +24,7 @@ public sealed class SalaryService(ApplicationDbContext db, ICurrentUserService c
             ?? throw new BranchNotFoundException("Employee not found.");
         var hash = FinancialOperations.Hash(new { employeeId, r });
         var prior = await db.EmployeeSalarySettings.AsNoTracking().SingleOrDefaultAsync(x => x.OperationId == r.OperationId, ct);
-        if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId, actor); return Details(prior); }
+        if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId, actor); return await DetailsAsync(prior,ct); }
         if (r.EffectiveFrom == default || r.EffectiveFrom < employee.HireDate)
             throw new BusinessRuleException("Salary must start on or after the employment start date.");
         if (await db.Payrolls.AnyAsync(x => x.EmployeeId == employeeId && x.FinancialMonthId != null && x.CommissionSummaryId == null && x.FinancialMonth!.EndDate >= r.EffectiveFrom, ct))
@@ -34,14 +39,16 @@ public sealed class SalaryService(ApplicationDbContext db, ICurrentUserService c
         settings.Add(row);
         await SalaryProjection.ValidateHistoryChangeAsync(db, employee, ct, settings: settings);
         db.Add(row); access.Audit(actor, null, "Salary.Configured", nameof(EmployeeSalarySetting), row.Id, after: new { employeeId, r.BasicSalary, r.EffectiveFrom, r.Reason });
-        return Details(row);
+        return await DetailsAsync(row,ct);
     }, ct);
     public async Task<IReadOnlyList<SalarySettingDetails>> HistoryAsync(Guid employeeId, Guid? branchId = null, CancellationToken ct = default)
     {
         var (branch, _) = await coordination.ResolveAsync(MonthlyFinancePermissions.SalaryView, branchId, ct);
         if (!await db.EmployeeBranchAssignments.AnyAsync(x => x.EmployeeId == employeeId && x.BranchId == branch, ct)) throw new UnauthorizedAccessException();
-        return await db.EmployeeSalarySettings.AsNoTracking().Where(x => x.EmployeeId == employeeId).OrderBy(x => x.EffectiveFrom).ThenBy(x => x.Id)
+        var rows=await db.EmployeeSalarySettings.AsNoTracking().Where(x => x.EmployeeId == employeeId).OrderBy(x => x.EffectiveFrom).ThenBy(x => x.Id)
             .Select(x => new SalarySettingDetails(x.Id, x.EmployeeId, x.BasicSalary, x.EffectiveFrom, x.EffectiveTo, x.CreatedByUserId, x.CreatedAt)).ToListAsync(ct);
+        var names=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>x.ActorUserId),ct);
+        return rows.Select(x=>x with{ActorName=ActorDisplayNames.Get(names,x.ActorUserId)}).ToArray();
     }
     public async Task<SalaryEntitlement> PreviewAsync(Guid monthId, Guid employeeId, CancellationToken ct = default)
     {

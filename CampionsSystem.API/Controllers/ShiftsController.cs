@@ -32,7 +32,7 @@ public sealed class BusinessDaysController(ShiftService shifts):BranchController
     [HttpGet("current"),Authorize(Policy="Permission:Shifts.View")]
     public Task<IActionResult> Current([FromQuery]Guid? branchId,CancellationToken ct)=>Execute(()=>shifts.CurrentBusinessDayAsync(branchId,ct));
     [HttpPost,Authorize(Policy="Permission:Shifts.Manage")]
-    public Task<IActionResult> Open(OpenBusinessDayRequest r,CancellationToken ct)=>Execute(async()=>ShiftService.DayDetails(await shifts.OpenBusinessDayAsync(r,ct)));
+    public Task<IActionResult> Open(OpenBusinessDayRequest r,CancellationToken ct)=>Execute(async()=>await shifts.DayDetailsAsync(await shifts.OpenBusinessDayAsync(r,ct),ct));
     [HttpPost("{id:guid}/close"),Authorize(Policy="Permission:Shifts.Manage")]
-    public Task<IActionResult> Close(Guid id,CancellationToken ct)=>Execute(async()=>ShiftService.DayDetails(await shifts.CloseBusinessDayAsync(id,ct)));
+    public Task<IActionResult> Close(Guid id,CancellationToken ct)=>Execute(async()=>await shifts.DayDetailsAsync(await shifts.CloseBusinessDayAsync(id,ct),ct));
 }

@@ -79,7 +79,7 @@ public sealed partial class CoachingService(ApplicationDbContext db, ICurrentUse
             var (sub, batch, actor) = await PrivateAsync(id, CoachingPermissions.RegisterPrivate, ct);
             var hash = FinancialOperations.Hash(new { id, r });
             var prior = await db.PrivateSessions.AsNoTracking().SingleOrDefaultAsync(x => x.OperationId == r.OperationId, ct);
-            if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId, actor); return SessionDetails(prior); }
+            if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId, actor); return await SessionDetailsAsync(prior,sub.MemberId,ct); }
             var (date, _) = await coordination.BusinessDateAsync(sub.BranchId, ct);
             var assignment = await db.PrivateCoachAssignments.AsNoTracking().SingleOrDefaultAsync(x => x.PrivateSubscriptionId == id && x.EndedAt == null && x.AssignedAt <= access.Now, ct)
                 ?? throw new BusinessRuleException("Package has no current coach assignment.");
@@ -107,9 +107,17 @@ public sealed partial class CoachingService(ApplicationDbContext db, ICurrentUse
                 TransferredPackage = assignment.Id != batch.OriginalAssignmentId, CreatedByUserId = actor, SessionAt = access.Now, Notes = r.Notes };
             batch.RemainingSessions--; sub.RemainingSessions--; sub.Version++; db.Add(session);
             access.Audit(actor, sub.BranchId, "Private.SessionRegistered", nameof(PrivateSession), session.Id, after: new { SubscriptionId = id, GymCheckInId = checkIn.Id, session.CoachEmployeeId, session.SessionValue, sub.RemainingSessions, date });
-            return SessionDetails(session);
+            return await SessionDetailsAsync(session,sub.MemberId,ct);
         }, ct);
     private static PrivateAttendanceDetails SessionDetails(PrivateSession s) => new(s.Id, s.PrivateSubscriptionId, s.CoachEmployeeId, s.GymCheckInId, s.BusinessDate, s.SessionAt, s.SessionNumber, s.SessionValue, s.TransferredPackage);
+    private async Task<PrivateAttendanceDetails> SessionDetailsAsync(PrivateSession session,Guid memberId,CancellationToken ct)
+    {
+        var member=await db.Members.AsNoTracking().Where(x=>x.Id==memberId)
+            .Select(x=>new{x.FullName,x.MemberCode}).SingleOrDefaultAsync(ct);
+        var coach=await db.Employees.AsNoTracking().Where(x=>x.Id==session.CoachEmployeeId)
+            .Select(x=>x.FullName).SingleOrDefaultAsync(ct);
+        return SessionDetails(session) with { MemberName=member?.FullName,MemberCode=member?.MemberCode,CoachEmployeeName=coach };
+    }
     public Task<PrivateAssignmentDetails> TransferAsync(Guid id, PrivateTransferRequest r, CancellationToken ct = default)
         => coordination.TransactionAsync(async () =>
         {
@@ -117,7 +125,7 @@ public sealed partial class CoachingService(ApplicationDbContext db, ICurrentUse
             var (sub, _, actor) = await PrivateAsync(id, CoachingPermissions.Transfer, ct);
             var hash = FinancialOperations.Hash(new { id, r });
             var prior = await db.PrivateCoachAssignments.AsNoTracking().SingleOrDefaultAsync(x => x.OperationId == r.OperationId, ct);
-            if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId, actor); return AssignmentDetails(prior); }
+            if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId, actor); return await AssignmentDetailsAsync(prior,ct); }
             if (sub.Version != r.ExpectedVersion) throw new DbUpdateConcurrencyException();
             var (date, _) = await coordination.BusinessDateAsync(sub.BranchId, ct);
             if (sub.Status == PrivateSubscriptionStatus.Cancelled || sub.EndDate < date || sub.RemainingSessions <= 0) throw new BusinessRuleException("No transferable Private balance remains.");
@@ -129,9 +137,15 @@ public sealed partial class CoachingService(ApplicationDbContext db, ICurrentUse
                 AssignedAt = access.Now, CreatedAt = access.Now, CreatedByUserId = actor, OperationId = r.OperationId, RequestHash = hash, TransferReason = r.Reason.Trim() };
             db.Add(row); sub.Version++;
             access.Audit(actor, sub.BranchId, "Private.CoachTransferred", nameof(PrivateCoachAssignment), row.Id, new { old.CoachEmployeeId }, new { r.CoachEmployeeId, id, r.Reason });
-            return AssignmentDetails(row);
+            return await AssignmentDetailsAsync(row,ct);
         }, ct);
     private static PrivateAssignmentDetails AssignmentDetails(PrivateCoachAssignment a) => new(a.Id, a.CoachEmployeeId, a.AssignedAt, a.EndedAt, a.TransferReason);
+    private async Task<PrivateAssignmentDetails> AssignmentDetailsAsync(PrivateCoachAssignment assignment,CancellationToken ct)
+    {
+        var name=await db.Employees.AsNoTracking().Where(x=>x.Id==assignment.CoachEmployeeId)
+            .Select(x=>x.FullName).SingleOrDefaultAsync(ct);
+        return AssignmentDetails(assignment) with { CoachEmployeeName=name };
+    }
     public Task<PrivateExpiryDetails> SettleExpiryAsync(Guid id, PrivateExpiryRequest r, CancellationToken ct = default)
         => coordination.TransactionAsync(async () =>
         {
@@ -139,7 +153,7 @@ public sealed partial class CoachingService(ApplicationDbContext db, ICurrentUse
             var (sub, batch, _) = await PrivateAsync(id, CoachingPermissions.Expiry, ct);
             var actor = await OwnerAsync(CoachingPermissions.Expiry, sub.BranchId, ct); var hash = FinancialOperations.Hash(new { id, r });
             var prior = await db.PrivateExpirySettlements.AsNoTracking().SingleOrDefaultAsync(x => x.OperationId == r.OperationId, ct);
-            if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId!.Value, actor); return ExpiryDetails(prior); }
+            if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId!.Value, actor); return await ExpiryDetailsAsync(prior,ct); }
             var (date, _) = await coordination.BusinessDateAsync(sub.BranchId, ct);
             var period = await db.CommissionPeriods.AsNoTracking().SingleOrDefaultAsync(p => p.Id == r.CommissionPeriodId && p.BranchId == sub.BranchId
                 && p.StartBusinessDate <= date && p.EndBusinessDate >= date && p.Status == CommissionPeriodStatus.Open, ct)
@@ -158,9 +172,15 @@ public sealed partial class CoachingService(ApplicationDbContext db, ICurrentUse
                 OperationId = r.OperationId, RequestHash = hash, Reason = r.Reason.Trim(), CreatedByUserId = actor, CreatedAt = access.Now, SettledAt = access.Now };
             db.Add(row); sub.Status = PrivateSubscriptionStatus.Expired; sub.Version++;
             access.Audit(actor, sub.BranchId, "Private.ExpiryAuthorized", nameof(PrivateExpirySettlement), row.Id, after: ExpiryDetails(row));
-            return ExpiryDetails(row);
+            return await ExpiryDetailsAsync(row,ct);
         }, ct);
     private static PrivateExpiryDetails ExpiryDetails(PrivateExpirySettlement x) => new(x.Id, x.PrivateSubscriptionId, x.CoachEmployeeId, x.RemainingSessions, x.EligibleAmount, x.TransferredPackage, x.BusinessDate, x.SettledAt, x.Reason);
+    private async Task<PrivateExpiryDetails> ExpiryDetailsAsync(PrivateExpirySettlement settlement,CancellationToken ct)
+    {
+        var name=await db.Employees.AsNoTracking().Where(x=>x.Id==settlement.CoachEmployeeId)
+            .Select(x=>x.FullName).SingleOrDefaultAsync(ct);
+        return ExpiryDetails(settlement) with { CoachEmployeeName=name };
+    }
     public async Task<PrivateDetails> PrivateDetailsAsync(Guid id, CancellationToken ct = default)
     {
         var s = await db.PrivateSubscriptions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new BranchNotFoundException("Private subscription not found.");
@@ -168,16 +188,30 @@ public sealed partial class CoachingService(ApplicationDbContext db, ICurrentUse
         var batch = await db.PrivateSubscriptionTransactions.AsNoTracking().Where(x => x.PrivateSubscriptionId == id).ToListAsync(ct);
         if (batch.Count != 1) throw new BusinessRuleException("Legacy multiple batches require reconciliation."); var b = batch[0];
         var assignments = await db.PrivateCoachAssignments.AsNoTracking().Where(x => x.PrivateSubscriptionId == id).OrderBy(x => x.AssignedAt).ThenBy(x => x.Id).ToListAsync(ct);
+        var member=await db.Members.AsNoTracking().Where(x=>x.Id==s.MemberId)
+            .Select(x=>new{x.FullName,x.MemberCode}).SingleOrDefaultAsync(ct);
+        var coachIds=assignments.Select(x=>x.CoachEmployeeId)
+            .Concat(b.OriginalCoachEmployeeId.HasValue?[b.OriginalCoachEmployeeId.Value]:[]).Distinct().ToArray();
+        var coaches=await db.Employees.AsNoTracking().Where(x=>coachIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName}).ToDictionaryAsync(x=>x.Id,x=>x.FullName,ct);
         return new(s.Id, s.MemberId, s.BranchId, s.StartDate, s.EndDate, s.TotalSessions, s.TotalSessions - s.RemainingSessions,
             s.RemainingSessions, s.Version, s.Status == PrivateSubscriptionStatus.Cancelled, b.PackageNameSnapshot, b.NetAmount,
-            b.UnitSessionValue, b.RemainderValue, b.OriginalCoachEmployeeId, assignments.Select(AssignmentDetails).ToArray());
+            b.UnitSessionValue, b.RemainderValue, b.OriginalCoachEmployeeId,
+            assignments.Select(x=>AssignmentDetails(x) with { CoachEmployeeName=coaches.GetValueOrDefault(x.CoachEmployeeId) }).ToArray(),
+            member?.FullName,member?.MemberCode,b.OriginalCoachEmployeeId.HasValue?coaches.GetValueOrDefault(b.OriginalCoachEmployeeId.Value):null);
     }
     public async Task<CoachingPage<PrivateAttendanceDetails>> PrivateHistoryAsync(Guid id, int page = 1, int pageSize = 25, CancellationToken ct = default)
     {
         Page(page, pageSize); var branch = await db.PrivateSubscriptions.Where(x => x.Id == id).Select(x => (Guid?)x.BranchId).SingleOrDefaultAsync(ct) ?? throw new BranchNotFoundException("Private subscription not found.");
         await access.RequireAsync(CoachingPermissions.PrivateView, branch, ct); var q = db.PrivateSessions.AsNoTracking().Where(x => x.PrivateSubscriptionId == id);
         var total = await q.CountAsync(ct); var rows = await q.OrderByDescending(x => x.SessionAt).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
-        return new(rows.Select(SessionDetails).ToArray(), total, page, pageSize);
+        var memberId=await db.PrivateSubscriptions.AsNoTracking().Where(x=>x.Id==id).Select(x=>x.MemberId).SingleAsync(ct);
+        var member=await db.Members.AsNoTracking().Where(x=>x.Id==memberId).Select(x=>new{x.FullName,x.MemberCode}).SingleOrDefaultAsync(ct);
+        var coachIds=rows.Select(x=>x.CoachEmployeeId).Distinct().ToArray();
+        var coaches=await db.Employees.AsNoTracking().Where(x=>coachIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName}).ToDictionaryAsync(x=>x.Id,x=>x.FullName,ct);
+        return new(rows.Select(x=>SessionDetails(x) with { MemberName=member?.FullName,MemberCode=member?.MemberCode,
+            CoachEmployeeName=coaches.GetValueOrDefault(x.CoachEmployeeId) }).ToArray(),total,page,pageSize);
     }
     private Task<bool> IsRecognizedAsync(Guid period, CancellationToken ct) => db.AuditLogs.AnyAsync(a => a.Action == "CoachEarnings.PeriodRecognized" && a.EntityId == period, ct);
 }

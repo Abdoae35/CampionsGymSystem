@@ -116,8 +116,10 @@ public sealed partial class MonthlyFinanceService(ApplicationDbContext db, ICurr
     public async Task<IReadOnlyList<RevisionDetails>> RevisionsAsync(Guid id, CancellationToken ct = default)
     {
         await ReadAsync(id, MonthlyFinancePermissions.View, ct);
-        return await db.FinancialClosingRevisions.AsNoTracking().Where(x => x.FinancialMonthId == id).OrderBy(x => x.Revision)
+        var rows=await db.FinancialClosingRevisions.AsNoTracking().Where(x => x.FinancialMonthId == id).OrderBy(x => x.Revision)
             .Select(x => new RevisionDetails(x.Id,x.Revision,x.SnapshotAt,x.ActorUserId,x.Reason,x.WorkbookSha256,x.SchemaVersion)).ToListAsync(ct);
+        var names=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>x.ActorUserId),ct);
+        return rows.Select(x=>x with{ActorName=ActorDisplayNames.Get(names,x.ActorUserId)}).ToArray();
     }
     public async Task<ShiftPage<MonthEventDetails>> EventsAsync(Guid id, int page = 1, int pageSize = 25, CancellationToken ct = default)
     {
@@ -125,7 +127,8 @@ public sealed partial class MonthlyFinanceService(ApplicationDbContext db, ICurr
         var q = db.FinancialMonthEvents.AsNoTracking().Where(x => x.FinancialMonthId == id); var total = await q.CountAsync(ct);
         var rows = await q.OrderBy(x => x.ResultVersion).ThenBy(x => x.Id).Skip((page-1)*pageSize).Take(pageSize)
             .Select(x => new MonthEventDetails(x.Id,x.Kind,x.OperationId,x.ActorUserId,x.Reason,x.RecordedAt,x.ResultVersion,x.Revision)).ToListAsync(ct);
-        return new(rows,total,page,pageSize);
+        var names=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>x.ActorUserId),ct);
+        return new(rows.Select(x=>x with{ActorName=ActorDisplayNames.Get(names,x.ActorUserId)}).ToArray(),total,page,pageSize);
     }
     public async Task<MonthlyReport> ReportAsync(Guid id, int? revision = null, CancellationToken ct = default)
     {
@@ -135,11 +138,12 @@ public sealed partial class MonthlyFinanceService(ApplicationDbContext db, ICurr
             var number = revision ?? m.LastRevision;
             var json = await db.FinancialClosingRevisions.AsNoTracking().Where(x => x.FinancialMonthId == id && x.Revision == number).Select(x => x.ReportJson).SingleOrDefaultAsync(ct)
                 ?? throw new BranchNotFoundException("Closing revision not found.");
-            return JsonSerializer.Deserialize<MonthlyReport>(json)!;
+            return await WithCurrentNamesAsync(JsonSerializer.Deserialize<MonthlyReport>(json)!,ct);
         }
-        if (db.Database.CurrentTransaction != null) return await reports.BuildAsync(m,0,access.Now,null,ct);
+        if (db.Database.CurrentTransaction != null) return await WithCurrentNamesAsync(await reports.BuildAsync(m,0,access.Now,null,ct),ct);
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
-        var report = await reports.BuildAsync(m,0,access.Now,null,ct); await tx.CommitAsync(ct); return report;
+        var report = await reports.BuildAsync(m,0,access.Now,null,ct); await tx.CommitAsync(ct);
+        return await WithCurrentNamesAsync(report,ct);
     }
     public async Task<ShiftPage<FinancialTransactionReportRow>> TransactionsAsync(Guid id, int? revision = null, int page = 1, int pageSize = 25, CancellationToken ct = default)
     {

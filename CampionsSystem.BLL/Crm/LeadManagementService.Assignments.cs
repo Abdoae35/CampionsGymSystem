@@ -38,7 +38,8 @@ public sealed partial class LeadManagementService
     {
         await GetLeadByIdAsync(id,ct);
         return await db.LeadAssignments.AsNoTracking().Where(a=>a.LeadId==id).OrderByDescending(a=>a.AssignedAt).ThenBy(a=>a.Id)
-            .Select(a=>new LeadAssignmentDetails(a.Id,a.SalesEmployeeId,a.SalesEmployee.FullName,a.AssignedAt,a.EndedAt,a.AssignedByUserId,a.Reason)).ToListAsync(ct);
+            .Select(a=>new LeadAssignmentDetails(a.Id,a.SalesEmployeeId,a.SalesEmployee.FullName,a.AssignedAt,a.EndedAt,a.AssignedByUserId,a.Reason,
+                db.Employees.Where(e=>e.UserId==a.AssignedByUserId).Select(e=>e.FullName).FirstOrDefault())).ToListAsync(ct);
     }
     public async Task<LeadListResult> GetMyLeadsAsync(LeadListRequest r,CancellationToken ct=default)
     {

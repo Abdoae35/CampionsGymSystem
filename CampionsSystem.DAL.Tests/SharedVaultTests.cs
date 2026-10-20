@@ -83,4 +83,44 @@ public sealed partial class EmployeeShiftTests
         await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>Vault().MovementsAsync(new(other.Id)));
         await Assert.ThrowsAsync<BusinessRuleException>(()=>Vault().MovementsAsync(new(PageSize:101)));
     }
+
+    [Fact] public async Task VaultReadsUseCurrentNamesWithoutChangingHistoryOrScope()
+    {
+        var shift=await Service().OpenAsync(new(Guid.NewGuid(),100000));
+        Assert.Equal("Shared drawer",(await Vault().PositionAsync()).AccountName);
+        var recorded=await Vault().CountAsync(new(Guid.NewGuid(),100000,"Physical recount"));
+        Assert.Equal("Ahmed",recorded.ActorName);
+        var countPage=await Vault().CountsAsync(new(Page:1,PageSize:1));
+        Assert.Equal(2,countPage.Total);
+        Assert.Single(countPage.Items);
+        Assert.Equal(recorded.Id,countPage.Items[0].Id);
+        Assert.Equal("Ahmed",countPage.Items[0].ActorName);
+
+        await Vault().WithdrawAsync(new(Guid.NewGuid(),50,"Owner withdrawal"));
+        var movementPage=await Vault().MovementsAsync(new(Page:1,PageSize:1));
+        Assert.Single(movementPage.Items);
+        Assert.Equal("Ahmed",movementPage.Items[0].ActorName);
+        Assert.Equal("Shared drawer",movementPage.Items[0].AccountName);
+        Assert.Equal(cash.Id,movementPage.Items[0].AccountId);
+
+        var reports=new ShiftReportService(db,user,access);
+        var audit=await reports.AuditAsync(page:1,pageSize:25);
+        Assert.Contains(audit.Items,x=>x.ActorId==a.Id&&x.ActorName=="Ahmed");
+        db.Add(new AuditLog{BranchId=branch.Id,Action="Vault.Legacy",EntityType="CashCount",CreatedAt=clock.Now.AddMinutes(1)});
+        ea.FullName="Current Ahmed";
+        cash.Name="Current Cash Account";
+        await db.SaveChangesAsync();
+
+        Assert.Equal("Current Cash Account",(await Vault().PositionAsync()).AccountName);
+        Assert.Equal("Current Ahmed",(await Vault().CountsAsync(new(Page:1,PageSize:1))).Items[0].ActorName);
+        Assert.Equal("Current Ahmed",(await Vault().MovementsAsync(new(Page:1,PageSize:1))).Items[0].ActorName);
+        var refreshedAudit=await reports.AuditAsync(page:1,pageSize:25);
+        Assert.Contains(refreshedAudit.Items,x=>x.ActorId==a.Id&&x.ActorName=="Current Ahmed");
+        Assert.Contains(refreshedAudit.Items,x=>x.ActorId==null&&x.ActorName==null);
+
+        user.Context=user.Context! with{Permissions=[ShiftPermissions.VaultView]};
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>Vault().CountsAsync(new(other.Id)));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>reports.AuditAsync(other.Id));
+        Assert.Equal(shift.Id,recorded.ShiftId);
+    }
 }

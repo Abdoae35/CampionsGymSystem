@@ -104,7 +104,9 @@ public sealed class FinancialOperations(ApplicationDbContext db, ICurrentUserSer
         var physical = last == null ? book : last.CountedCash + await db.FinancialTransactions.Where(x => x.BranchId == branch && x.FinancialAccountId == drawer.FinancialAccountId && x.DrawerSequence > last.MovementSequence)
             .SumAsync(x => x.TransactionType == FinancialTransactionType.Credit ? x.Amount : -x.Amount, ct);
         var differences = await db.CashCounts.Where(x => x.BranchId == branch).SumAsync(x => x.Difference, ct);
-        return new(branch, drawer.FinancialAccountId, book, physical, last?.CountedCash ?? book, drawer.MovementSequence, last?.Id, differences);
+        var accountName = await db.FinancialAccounts.AsNoTracking().Where(x => x.Id == drawer.FinancialAccountId)
+            .Select(x => x.Name).SingleOrDefaultAsync(ct);
+        return new(branch, drawer.FinancialAccountId, book, physical, last?.CountedCash ?? book, drawer.MovementSequence, last?.Id, differences, accountName);
     }
     public async Task<CashCount> CountAsync(Guid branch, Guid actor, Guid operation, string hash, decimal counted, string kind, Guid? shift, string? reason, CancellationToken ct)
     {

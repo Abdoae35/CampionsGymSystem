@@ -62,7 +62,8 @@ public sealed record AccessUserItem(Guid UserId, string? UserName, bool IsActive
 public sealed record AccessChangeResult(Guid OperationId, bool Changed, string Version);
 public sealed record AccessAuditDetails(Guid AuditId, Guid OperationId, Guid? ActorUserId,
     DateTimeOffset Timestamp, string Kind, Guid? TargetUserId, Guid? RoleId, Guid? PermissionId,
-    string Reason, string OldValues, string NewValues, AccessChangeResult Result);
+    string Reason, string OldValues, string NewValues, AccessChangeResult Result,
+    string? ActorName = null, string? TargetUserName = null, string? RoleName = null, string? PermissionCode = null);
 public sealed class AccessAdministrationException(int status, string message) : Exception(message)
 {
     public int Status { get; } = status;

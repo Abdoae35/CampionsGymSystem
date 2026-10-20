@@ -32,6 +32,24 @@ public sealed partial class CommissionService
         }
         return result;
     }
+    private async Task<CommissionSourceLine[]> WithSourceNamesAsync(IEnumerable<CommissionSourceLine> source,CancellationToken ct)
+    {
+        var rows=source.ToArray();
+        if(rows.Length==0)return rows;
+        var memberIds=rows.Select(x=>x.MemberId).Distinct().ToArray();
+        var members=await db.Members.AsNoTracking().Where(x=>memberIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName,x.MemberCode}).ToDictionaryAsync(x=>x.Id,ct);
+        var employeeIds=rows.SelectMany(x=>new[]{x.OriginalSalesEmployeeId,x.EmployeeId}).Where(x=>x.HasValue)
+            .Select(x=>x!.Value).Distinct().ToArray();
+        var employees=await db.Employees.AsNoTracking().Where(x=>employeeIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName}).ToDictionaryAsync(x=>x.Id,x=>x.FullName,ct);
+        return rows.Select(x=>x with{
+            MemberName=members.GetValueOrDefault(x.MemberId)?.FullName,
+            MemberCode=members.GetValueOrDefault(x.MemberId)?.MemberCode,
+            OriginalSalesEmployeeName=x.OriginalSalesEmployeeId.HasValue?employees.GetValueOrDefault(x.OriginalSalesEmployeeId.Value):null,
+            EmployeeName=x.EmployeeId.HasValue?employees.GetValueOrDefault(x.EmployeeId.Value):null
+        }).ToArray();
+    }
     private static CommissionCategoryProgress Calculate(string category, IReadOnlyList<CommissionSourceLine> lines, CommissionRule? rule)
     {
         var gross = lines.Sum(x => x.GrossCollection); var refunds = lines.Sum(x => x.Refunds); var eligible = lines.Sum(x => x.EligibleCollection);
@@ -111,7 +129,8 @@ public sealed partial class CommissionService
             a.Payment.BusinessDate >= period.StartBusinessDate && a.Payment.BusinessDate <= period.EndBusinessDate)
             .OrderBy(a => a.Refund.CreatedAt).ThenBy(a => a.RefundId).ThenBy(a => a.PaymentId)
             .Select(a => new CommissionRefundSource(a.RefundId,a.PaymentId,a.Amount,a.Payment.BusinessDate,a.Refund.BusinessDate,a.Refund.CreatedAt)).ToListAsync(ct);
-        return (ReportProgress(period,lines,statements,1,Math.Max(1,statements.Count)),lines.OrderBy(x=>x.PaidAt).ThenBy(x=>x.PaymentId).ToArray(),refunds);
+        return (ReportProgress(period,lines,statements,1,Math.Max(1,statements.Count)),
+            lines.OrderBy(x=>x.PaidAt).ThenBy(x=>x.PaymentId).ToArray(),refunds);
     }
     public Task<EmployeeCommissionStatement> EmployeeStatementAsync(Guid periodId, Guid employeeId, CancellationToken ct = default)
         => SnapshotAsync(() => EmployeeStatementCoreAsync(periodId, employeeId, ct), ct);
@@ -127,7 +146,7 @@ public sealed partial class CommissionService
         Page(page, pageSize); var p = await ReadAsync(periodId, ct); IEnumerable<CommissionSourceLine> lines = await LinesAsync(p, ct);
         if (employeeId.HasValue) lines = lines.Where(l => l.EmployeeId == employeeId || l.OriginalSalesEmployeeId == employeeId);
         var rows = lines.OrderByDescending(l => l.PaidAt).ThenByDescending(l => l.PaymentId).ToArray();
-        return new(rows.Skip((page - 1) * pageSize).Take(pageSize).ToArray(), rows.Length, page, pageSize);
+        return new(await WithSourceNamesAsync(rows.Skip((page - 1) * pageSize).Take(pageSize),ct), rows.Length, page, pageSize);
     }
     public Task<CommissionPage<CommissionRefundSource>> RefundSourcesAsync(Guid periodId, int page = 1, int pageSize = 25, CancellationToken ct = default)
         => SnapshotAsync(async () =>

@@ -23,11 +23,18 @@ public sealed partial class SalesTests
     [Fact] public async Task CoachingClassesNeedNoReceptionOrRegularMembershipAndShareOneBalanceAcrossTypes()
     {
         var sale = await ClassesPurchase(2); var yoga = await ClassOccurrence(); var zumba = await ClassOccurrence("Zumba");
+        Assert.Equal("Yoga",yoga.ClassTypeName);Assert.NotNull(yoga.CoachEmployeeName);
+        Assert.Equal(yoga.CoachEmployeeName,Assert.Single((await Coaching().ClassTypesAsync(b.Id)).Items,x=>x.Name=="Yoga").CoachEmployeeName);
+        Assert.Equal(member.FullName,Assert.Single((await Coaching().ClassesSubscriptionsAsync(b.Id,member.Id)).Items).MemberName);
         var r = new ClassAttendanceRequest(Guid.NewGuid(), member.Id, sale.SubscriptionId);
         var first = await Coaching().RegisterClassAsync(yoga.Id, r); Assert.Equal(1, first.RemainingSessions);
+        Assert.Equal(member.FullName,first.MemberName);Assert.Equal(member.MemberCode,first.MemberCode);
+        Assert.Equal("Yoga",first.ClassTypeName);Assert.Equal(yoga.CoachEmployeeName,first.CoachEmployeeName);
         Assert.Equal(first.Id, (await Coaching().RegisterClassAsync(yoga.Id, r)).Id);
         var second = await Coaching().RegisterClassAsync(zumba.Id, r with { OperationId = Guid.NewGuid() }); Assert.Equal(0, second.RemainingSessions);
         Assert.Equal(2, (await Coaching().ClassMemberHistoryAsync(b.Id, member.Id)).TotalCount);
+        Assert.Equal("Yoga",Assert.Single((await Coaching().ClassAttendanceHistoryAsync(yoga.Id)).Items).ClassTypeName);
+        Assert.Equal("Zumba",Assert.Single((await Coaching().OccurrencesAsync(b.Id,today,today)).Items,x=>x.Id==zumba.Id).ClassTypeName);
         Assert.Empty(await db.MemberSubscriptions.ToListAsync()); Assert.Empty(await db.CheckIns.Where(c => c.CheckInType == CheckInType.Gym).ToListAsync());
         Assert.All(await db.CheckIns.ToListAsync(), c => { Assert.Equal(CheckInType.Class, c.CheckInType); Assert.True(c.SessionConsumed); });
         await Assert.ThrowsAsync<BusinessRuleException>(async () => await Coaching().RegisterClassAsync((await ClassOccurrence("CrossFit")).Id, new(Guid.NewGuid(), member.Id)));
@@ -64,6 +71,7 @@ public sealed partial class SalesTests
         await Coaching().CompleteOccurrenceAsync(first.Id, new(Guid.NewGuid(), 0)); await Coaching().CompleteOccurrenceAsync(second.Id, new(Guid.NewGuid(), 0));
         var stats = await Coaching().ClassStatisticsAsync(b.Id, coach.Id, today, today, period);
         Assert.Equal(2, stats.CompletedClasses); Assert.Equal(1, stats.TotalAttendance); Assert.Equal(0.5m, stats.AverageAttendance); Assert.True(stats.TargetReached);
+        Assert.Equal(coach.FullName,stats.CoachEmployeeName);
         Assert.Equal("NotConfigured", stats.CompensationStatus); Assert.Empty(await db.CoachEarnings.ToListAsync());
     }
     [Fact] public async Task CoachingClassesTenEightTwelveAttendeesAverageTen()
@@ -112,9 +120,14 @@ public sealed partial class SalesTests
     [Fact] public async Task CoachingOwnerPartialPayoutsReduceFourThousandToTwoThousandThenZeroExactlyOnce()
     {
         var (coach, category) = await CoachingEarned(); var account = (await Account()).Id;
+        var coachName=(await db.Employees.SingleAsync(x=>x.Id==coach)).FullName;
+        Assert.Equal(coachName,Assert.Single((await Coaching().EarningsHistoryAsync(b.Id,coach)).Items).CoachEmployeeName);
         var initial = await new VaultService(db, user, access).PositionAsync(b.Id); var r = new CoachPayoutRequest(Guid.NewGuid(), b.Id, coach, 2000, account, category, "Part payment");
         var first = await Coaching().PayAsync(r); Assert.Equal(4000, first.BalanceBefore); Assert.Equal(2000, first.BalanceAfter);
+        Assert.Equal(coachName,first.CoachEmployeeName);Assert.Equal(coachName,first.AuthorizedByName);
+        Assert.Equal(coachName,Assert.Single((await Coaching().PayoutHistoryAsync(b.Id,coach)).Items).CoachEmployeeName);
         Assert.Equal(first.Id, (await Coaching().PayAsync(r)).Id); Assert.Equal(2000, (await Coaching().BalanceAsync(b.Id, coach)).Outstanding);
+        Assert.Equal(coachName,(await Coaching().BalanceAsync(b.Id,coach)).CoachEmployeeName);
         clock.Now = clock.Now.AddMonths(1); var second = await Coaching().PayAsync(r with { OperationId = Guid.NewGuid(), Reason = "Remainder" });
         Assert.Equal(0, second.BalanceAfter); Assert.Equal(0, (await Coaching().BalanceAsync(b.Id, coach)).Outstanding);
         Assert.Equal(2, await db.CoachPayouts.CountAsync()); Assert.Equal(2, await db.Expenses.CountAsync());
@@ -152,9 +165,14 @@ public sealed partial class SalesTests
     [Fact] public async Task CoachingRecognitionRetryPreservesFinalEvidenceAndDoesNotWriteMoney()
     {
         var sale = await PrivatePurchase(); await DeliverPrivate(sale.SubscriptionId); var coach = await db.Employees.SingleAsync(); var period = await CoachingPeriod();
-        await Coaching().ConfigureTargetsAsync(new(Guid.NewGuid(), period, coach.Id, 100, null)); clock.Now = clock.Now.AddDays(1);
+        var target=await Coaching().ConfigureTargetsAsync(new(Guid.NewGuid(), period, coach.Id, 100, null));
+        Assert.Equal(coach.FullName,target.CoachEmployeeName);
+        Assert.Equal(coach.FullName,Assert.Single(await Coaching().TargetsAsync(period)).CoachEmployeeName);
+        clock.Now = clock.Now.AddDays(1);
         var ledger = await db.FinancialTransactions.CountAsync(); var r = new RecognizeCoachEarningsRequest(Guid.NewGuid(), period);
-        await Coaching().RecognizeAsync(r); await Coaching().RecognizeAsync(r); Assert.Single(await db.CoachEarnings.ToListAsync());
+        Assert.Equal(coach.FullName,Assert.Single((await Coaching().RecognizeAsync(r)).Coaches).CoachEmployeeName);
+        Assert.Equal(coach.FullName,Assert.Single((await Coaching().ProgressAsync(period)).Coaches).CoachEmployeeName);
+        await Coaching().RecognizeAsync(r); Assert.Single(await db.CoachEarnings.ToListAsync());
         Assert.Equal(ledger, await db.FinancialTransactions.CountAsync()); Assert.Empty(await db.CoachPayouts.ToListAsync());
         await Assert.ThrowsAsync<BusinessRuleException>(() => Coaching().RecognizeAsync(r with { OperationId = Guid.NewGuid() }));
     }

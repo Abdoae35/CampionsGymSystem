@@ -85,6 +85,22 @@ public sealed partial class SubscriptionLifecycleTests : IAsyncLifetime
         user.Context=user.Context! with { CurrentBranch=new(cairo.Id,cairo.Name) };
         Assert.False((await service.GetCurrentEntitlementAsync(member.Id,cairo.Id)).HasAccess);
     }
+    [Fact] public async Task CurrentNamesAppearAcrossHistoryDetailsAndCurrentEntitlement()
+    {
+        var period = await Period();
+        Assert.Equal("B", Assert.Single((await service.GetHistoryAsync(member.Id, new())).Items).OriginBranchName);
+        b.Name = "Renamed branch"; a.City.Name = "Renamed city";
+        await db.SaveChangesAsync();
+        var history = Assert.Single((await service.GetHistoryAsync(member.Id, new())).Items);
+        Assert.Equal("Renamed branch", history.OriginBranchName);
+        Assert.Equal("Renamed city", history.AccessCityName);
+        var details = (await service.GetDetailsAsync(period.Id)).Subscription;
+        Assert.Equal("Renamed branch", details.OriginBranchName);
+        Assert.Equal("Renamed city", details.AccessCityName);
+        var current = (await service.GetCurrentEntitlementAsync(member.Id, a.Id)).Subscription;
+        Assert.Equal("Renamed branch", current!.OriginBranchName);
+        Assert.Equal("Renamed city", current.AccessCityName);
+    }
     [Fact] public async Task OvernightOpenBusinessDayPreventsPrematureDateExpiry()
     {
         var s = await Period(end:today); clock.Now=new(2026,10,10,22,30,0,TimeSpan.Zero); // next Cairo calendar date
