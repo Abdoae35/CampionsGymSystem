@@ -10,12 +10,29 @@ namespace CampionsSystem.BLL.Shifts;
 public sealed partial class ExpenseService(ApplicationDbContext db, ICurrentUserService current, OperationAccess access)
 {
     private readonly FinancialOperations money = new(db,current,access);
-    private async Task<ExpenseDetails> Details(Expense e,CancellationToken ct)
+    private async Task<ExpenseDetails> Details(Expense e,CancellationToken ct)=>(await DetailsMany([e],ct))[0];
+    private async Task<ExpenseDetails[]> DetailsMany(IReadOnlyList<Expense> rows,CancellationToken ct)
     {
-        var category=await db.ExpenseCategories.Where(x=>x.Id==e.ExpenseCategoryId).Select(x=>x.Name).SingleAsync(ct);
-        var method=await db.FinancialAccounts.Where(x=>x.Id==e.FinancialAccountId).Select(x=>x.AccountType).SingleAsync(ct);
-        var returned=await db.ExpenseReversals.Where(x=>x.ExpenseId==e.Id).SumAsync(x=>x.Amount,ct);
-        return new(e.Id,e.BranchId,e.ShiftId,e.RecordingEmployeeId,e.ExpenseCategoryId,category,e.FinancialAccountId,method,e.Amount,returned,e.Description,e.ReceiptReference,e.ExpenseDate,e.BusinessDate,e.PaidAt,e.Status,e.CreatedByUserId);
+        if(rows.Count==0)return [];
+        var categoryIds=rows.Select(x=>x.ExpenseCategoryId).Distinct().ToArray();
+        var categories=await db.ExpenseCategories.AsNoTracking().Where(x=>categoryIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.Name}).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
+        var accountIds=rows.Select(x=>x.FinancialAccountId).Distinct().ToArray();
+        var accounts=await db.FinancialAccounts.AsNoTracking().Where(x=>accountIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.AccountType,x.Name}).ToDictionaryAsync(x=>x.Id,ct);
+        var employeeIds=rows.Where(x=>x.RecordingEmployeeId.HasValue).Select(x=>x.RecordingEmployeeId!.Value).Distinct().ToArray();
+        var employees=await db.Employees.AsNoTracking().Where(x=>employeeIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName}).ToDictionaryAsync(x=>x.Id,x=>x.FullName,ct);
+        var ids=rows.Select(x=>x.Id).ToArray();
+        var reversals=await db.ExpenseReversals.AsNoTracking().Where(x=>ids.Contains(x.ExpenseId))
+            .GroupBy(x=>x.ExpenseId).Select(x=>new{Id=x.Key,Amount=x.Sum(y=>y.Amount)})
+            .ToDictionaryAsync(x=>x.Id,x=>x.Amount,ct);
+        var actors=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>x.CreatedByUserId),ct);
+        return rows.Select(e=>new ExpenseDetails(e.Id,e.BranchId,e.ShiftId,e.RecordingEmployeeId,e.ExpenseCategoryId,
+            categories[e.ExpenseCategoryId],e.FinancialAccountId,accounts[e.FinancialAccountId].AccountType,
+            e.Amount,reversals.GetValueOrDefault(e.Id),e.Description,e.ReceiptReference,e.ExpenseDate,e.BusinessDate,e.PaidAt,e.Status,
+            e.CreatedByUserId,e.RecordingEmployeeId.HasValue?employees.GetValueOrDefault(e.RecordingEmployeeId.Value):null,
+            ActorDisplayNames.Get(actors,e.CreatedByUserId),accounts[e.FinancialAccountId].Name)).ToArray();
     }
     public Task<ExpenseDetails> RecordPaidAsync(PaidExpenseRequest r,CancellationToken ct=default)=>money.TransactionAsync(async()=>
     {
@@ -86,7 +103,7 @@ public sealed partial class ExpenseService(ApplicationDbContext db, ICurrentUser
         var(branch,_)=await money.ResolveAsync(ShiftPermissions.ExpenseView,r.BranchId,ct);var q=db.Expenses.AsNoTracking().Where(x=>x.BranchId==branch);
         if(r.From!=null)q=q.Where(x=>x.BusinessDate>=r.From);if(r.To!=null)q=q.Where(x=>x.BusinessDate<=r.To);if(r.AccountId!=null)q=q.Where(x=>x.FinancialAccountId==r.AccountId);
         var total=await q.CountAsync(ct);var rows=await q.OrderByDescending(x=>x.ExpenseDate).ThenBy(x=>x.Id).Skip((r.Page-1)*r.PageSize).Take(r.PageSize).ToListAsync(ct);
-        var items=new List<ExpenseDetails>();foreach(var row in rows)items.Add(await Details(row,ct));return new(items,total,r.Page,r.PageSize);
+        return new(await DetailsMany(rows,ct),total,r.Page,r.PageSize);
     }
     public async Task<ShiftPage<ExpenseCategoryDetails>> CategoriesAsync(int page=1,int pageSize=25,CancellationToken ct=default)
     {

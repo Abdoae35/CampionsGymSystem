@@ -48,6 +48,23 @@ public sealed partial class EmployeeShiftTests : IAsyncLifetime
         Assert.Equal(99800,(await new FinancialOperations(db,user,access).PositionAsync(branch.Id,default)).ExpectedPhysicalCash);
         Assert.Equal(100000,(await new FinancialOperations(db,user,access).PositionAsync(branch.Id,default)).BookCash);
     }
+    [Fact] public async Task ShiftAndBusinessDayReadsUseCurrentBranchAndActorNames()
+    {
+        var service=Service();var day=await service.OpenBusinessDayAsync(new(Guid.NewGuid(),today));
+        var shift=await service.OpenAsync(new(Guid.NewGuid(),100000));
+        Assert.Equal("A",shift.BranchName);
+        Assert.Equal("Ahmed",(await service.CurrentBusinessDayAsync())!.OpenedByName);
+        await service.CloseBusinessDayAsync(day.Id);
+        var closed=await service.CloseAsync(shift.Id,new(Guid.NewGuid(),shift.Version,100000));
+        branch.Name="Renamed branch";ea.FullName="Renamed employee";await db.SaveChangesAsync();
+        var history=Assert.Single((await service.HistoryAsync(new())).Items);
+        Assert.Equal("Renamed branch",history.BranchName);
+        Assert.Equal("Renamed employee",history.ClosedByName);
+        var dayDetails=await service.DayDetailsAsync(day);
+        Assert.Equal("Renamed branch",dayDetails.BranchName);
+        Assert.Equal("Renamed employee",dayDetails.OpenedByName);
+        Assert.Equal("Renamed employee",dayDetails.ClosedByName);
+    }
     [Fact] public async Task ForgottenShiftIsReturnedAndCannotBeDuplicatedOrAutomaticallyClosed()
     {
         var service = Service(); var one = await service.OpenAsync(new(Guid.NewGuid(),100000)); clock.Now = clock.Now.AddDays(3);

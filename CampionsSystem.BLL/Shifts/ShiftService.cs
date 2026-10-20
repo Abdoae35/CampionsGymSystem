@@ -25,12 +25,31 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
     {
         var(branch,_)=await money.ResolveAsync(ShiftPermissions.View,branchId,ct);
         var row=await db.BusinessDays.AsNoTracking().SingleOrDefaultAsync(x=>x.BranchId==branch&&x.Status==BusinessDayStatus.Open,ct);
-        return row==null?null:DayDetails(row);
+        return row==null?null:await DayDetailsAsync(row,ct);
     }
     public static BusinessDayDetails DayDetails(BusinessDay day)=>new(day.Id,day.BranchId,day.BusinessDate,day.Status,day.OpenedAt,day.ClosedAt,day.OpenedByUserId,day.ClosedByUserId);
-    private async Task<ShiftDetails> Details(Shift row, CancellationToken ct) => DetailsOf(row,
-        row.EmployeeId == null ? null : await db.Employees.Where(x => x.Id == row.EmployeeId).Select(x => x.FullName).SingleAsync(ct));
-    internal static ShiftDetails DetailsOf(Shift row, string? employeeName)
+    public async Task<BusinessDayDetails> DayDetailsAsync(BusinessDay day,CancellationToken ct=default)
+    {
+        var branchName=await db.GymBranches.AsNoTracking().Where(x=>x.Id==day.BranchId).Select(x=>x.Name).SingleOrDefaultAsync(ct);
+        var actors=await ActorDisplayNames.LoadAsync(db,[day.OpenedByUserId,day.ClosedByUserId],ct);
+        return DayDetails(day) with { BranchName=branchName,OpenedByName=day.OpenedByUserId.HasValue?actors.GetValueOrDefault(day.OpenedByUserId.Value):null,
+            ClosedByName=day.ClosedByUserId.HasValue?actors.GetValueOrDefault(day.ClosedByUserId.Value):null };
+    }
+    private async Task<ShiftDetails> Details(Shift row, CancellationToken ct) => (await DetailsMany([row],ct))[0];
+    private async Task<ShiftDetails[]> DetailsMany(IReadOnlyList<Shift> rows,CancellationToken ct)
+    {
+        if(rows.Count==0)return [];
+        var employeeIds=rows.Where(x=>x.EmployeeId.HasValue).Select(x=>x.EmployeeId!.Value).Distinct().ToArray();
+        var employees=await db.Employees.AsNoTracking().Where(x=>employeeIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName}).ToDictionaryAsync(x=>x.Id,x=>x.FullName,ct);
+        var branchIds=rows.Select(x=>x.BranchId).Distinct().ToArray();
+        var branches=await db.GymBranches.AsNoTracking().Where(x=>branchIds.Contains(x.Id))
+            .Select(x=>new{x.Id,x.Name}).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
+        var actors=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>x.ClosedByUserId),ct);
+        return rows.Select(x=>DetailsOf(x,x.EmployeeId.HasValue?employees.GetValueOrDefault(x.EmployeeId.Value):null,
+            branches.GetValueOrDefault(x.BranchId),x.ClosedByUserId.HasValue?actors.GetValueOrDefault(x.ClosedByUserId.Value):null)).ToArray();
+    }
+    internal static ShiftDetails DetailsOf(Shift row, string? employeeName,string? branchName=null,string? closedByName=null)
     {
         var balances = row.ClosingAccountBalancesJson == null ? null : JsonSerializer.Deserialize<ShiftAccountBalance[]>(row.ClosingAccountBalancesJson);
         return new(row.Id, row.BranchId, row.EmployeeId, employeeName,
@@ -39,7 +58,7 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
         row.ClosedAt == null ? null : row.CloseOperationId == null ? "LegacyUnknown" : row.ClosedByUserId == row.OpenedByUserId ? "Self" : "Override",
         row.ClosedAt == null ? null : row.CloseOperationId == null ? "Unknown" : row.ActualClosingCash.HasValue ? "Verified" : "Unverified",
         balances, balances?.FirstOrDefault(x => x.AccountId == row.FinancialAccountId)?.BookBalance,
-        balances == null ? null : balances.Where(x => x.Method == FinancialAccountType.InstaPay).Sum(x => x.BookBalance));
+        balances == null ? null : balances.Where(x => x.Method == FinancialAccountType.InstaPay).Sum(x => x.BookBalance),branchName,closedByName);
     }
 
     public Task<ShiftDetails> OpenAsync(OpenShiftRequest r, CancellationToken ct = default) => money.TransactionAsync(async () =>
@@ -132,8 +151,7 @@ public sealed class ShiftService(ApplicationDbContext db, ICurrentUserService cu
         if (r.From != null) query = query.Where(x => x.OpeningBusinessDate >= r.From);
         if (r.To != null) query = query.Where(x => x.OpeningBusinessDate <= r.To);
         var total = await query.CountAsync(ct); var rows = await query.OrderByDescending(x => x.OpenedAt).ThenBy(x => x.Id).Skip((r.Page - 1) * r.PageSize).Take(r.PageSize).ToListAsync(ct);
-        var items = new List<ShiftDetails>(); foreach (var row in rows) items.Add(await Details(row, ct));
-        return new(items, total, r.Page, r.PageSize);
+        return new(await DetailsMany(rows,ct), total, r.Page, r.PageSize);
     }
 
     public Task<BusinessDay> OpenBusinessDayAsync(OpenBusinessDayRequest r, CancellationToken ct = default) => money.TransactionAsync(async () =>
