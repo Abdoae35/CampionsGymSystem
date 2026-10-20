@@ -8,8 +8,10 @@ public sealed class SalesController(SalesService sales):BranchControllerBase
     [HttpPost,Authorize(Policy="Permission:Payments.Create")]
     public Task<IActionResult> Create(CreateSaleRequest r,CancellationToken ct)=>Execute(()=>sales.CreateAsync(r,ct));
     [HttpGet,Authorize(Policy="Permission:Payments.View")]
+    [ProducesResponseType(typeof(SaleHistory),StatusCodes.Status200OK)]
     public Task<IActionResult> History([FromQuery]SaleHistoryRequest r,CancellationToken ct)=>Execute(()=>sales.GetHistoryAsync(r,ct));
     [HttpGet("{id:guid}"),Authorize(Policy="Permission:Payments.View")]
+    [ProducesResponseType(typeof(SaleDetails),StatusCodes.Status200OK)]
     public Task<IActionResult> Details(Guid id,CancellationToken ct)=>Execute(()=>sales.GetDetailsAsync(id,ct));
     [HttpPost("{id:guid}/payments"),Authorize(Policy="Permission:Payments.Create")]
     public Task<IActionResult> Pay(Guid id,RecordPaymentRequest r,CancellationToken ct)=>Execute(()=>sales.RecordPaymentAsync(id,r,ct));

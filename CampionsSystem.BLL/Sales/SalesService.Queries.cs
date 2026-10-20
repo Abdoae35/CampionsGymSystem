@@ -1,3 +1,4 @@
+using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Branches;
 using CampionsSystem.BLL.Operations;
 using CampionsSystem.DAL.Entities;
@@ -27,14 +28,14 @@ public sealed partial class SalesService
     private IQueryable<MoneyFacts> Facts(IQueryable<SaleTransaction> sales)=>sales.Select(s=>new MoneyFacts{Sale=s,
         Collected=db.Payments.Where(p=>p.SaleTransactionId==s.Id && p.Status==PaymentStatus.Completed).Sum(p=>p.Amount),
         Refunded=db.Refunds.Where(r=>r.SaleTransactionId==s.Id).Sum(r=>r.Amount)});
-    private static SaleSummary Summary(MoneyFacts f,string? memberName=null,string? memberCode=null)
+    private static SaleSummary Summary(MoneyFacts f,string? memberName=null,string? memberCode=null,string? soldByName=null)
     {
         var s=f.Sale;
         var status=s.OperationId==null?s.Status.ToString():s.CancelledAt!=null?f.Refunded==f.Collected && f.Collected>0?"Refunded":f.Refunded>0?"PartiallyRefunded":"Cancelled"
             :f.Collected>=s.NetAmount?"Paid":s.PurchaseMode==PurchaseMode.Reservation?"Reserved":s.PurchaseMode==PurchaseMode.Installment
                 && f.Collected>0 && f.Collected>=s.InitialPaymentRequired?"InstallmentActive":f.Collected>0?"PartiallyPaid":"PendingPayment";
         return new(s.Id,s.MemberId,s.BranchId,s.BusinessDate,s.CreatedAt,s.GrossAmount,s.DiscountAmount,s.NetAmount,f.Collected,f.Refunded,
-            s.CancelledAt!=null?0:Math.Max(0,s.NetAmount-f.Collected),status,s.PurchaseMode?.ToString(),s.ActivationMode?.ToString(),s.CancelledAt!=null,s.Version,memberName,memberCode);
+            s.CancelledAt!=null?0:Math.Max(0,s.NetAmount-f.Collected),status,s.PurchaseMode?.ToString(),s.ActivationMode?.ToString(),s.CancelledAt!=null,s.Version,s.CreatedByUserId,memberName,memberCode,soldByName);
     }
     public async Task<SaleHistory> GetHistoryAsync(SaleHistoryRequest r,CancellationToken ct=default)
     {
@@ -46,10 +47,11 @@ public sealed partial class SalesService
         var memberIds=rows.Select(x=>x.Sale.MemberId).Distinct().ToArray();
         var members=await db.Members.AsNoTracking().Where(m=>memberIds.Contains(m.Id))
             .Select(m=>new{m.Id,m.FullName,m.MemberCode}).ToDictionaryAsync(m=>m.Id,ct);
+        var creatorNames=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>x.Sale.CreatedByUserId),ct);
         return new(rows.Select(x=>
         {
             members.TryGetValue(x.Sale.MemberId,out var member);
-            return Summary(x,member?.FullName,member?.MemberCode);
+            return Summary(x,member?.FullName,member?.MemberCode,ActorDisplayNames.Get(creatorNames,x.Sale.CreatedByUserId));
         }).ToArray(),count,r.Page,r.PageSize);
     }
     public async Task<IReadOnlyList<InstallmentDetails>> GetInstallmentsAsync(Guid saleId,CancellationToken ct=default)
@@ -94,7 +96,8 @@ public sealed partial class SalesService
         }
         var member=await db.Members.AsNoTracking().Where(m=>m.Id==sale.MemberId)
             .Select(m=>new{m.FullName,m.MemberCode}).SingleAsync(ct);
-        return new(Summary(facts,member.FullName,member.MemberCode),member.FullName,snapshot?.PlanName,snapshot?.PlanCategory.ToString(),
+        var creatorNames=await ActorDisplayNames.LoadAsync(db,[sale.CreatedByUserId],ct);
+        return new(Summary(facts,member.FullName,member.MemberCode,ActorDisplayNames.Get(creatorNames,sale.CreatedByUserId)),member.FullName,snapshot?.PlanName,snapshot?.PlanCategory.ToString(),
             snapshot?.MembershipPlanId,snapshot?.CityId,sale.SalesEmployeeId,sale.SalesAttributionSnapshot?.ToString(),sale.CommissionEligible,sale.TargetEligible,
             grant?.MemberSubscriptionId,grant?.Id,status,sale.RequestedStartDate,sale.ReservationDueDate,sale.OfferNameSnapshot,sale.ExtraDaysSnapshot,
             sale.CancelledAt!=null?Math.Max(0,facts.Collected-facts.Refunded):0,(await GetPaymentsAsync(id,1,100,ct)).Items,(await GetRefundsAsync(id,1,100,ct)).Items,

@@ -50,8 +50,8 @@ public sealed record RefundDetails(Guid Id, Guid? OperationId, Guid BranchId, Da
 public sealed record InstallmentDetails(Guid Id, int Number, DateOnly DueDate, decimal Amount, decimal Paid, string Status);
 public sealed record SaleSummary(Guid Id, Guid MemberId, Guid BranchId, DateOnly? BusinessDate, DateTimeOffset CreatedAt,
     decimal OriginalPrice, decimal Discount, decimal FinalPrice, decimal Collected, decimal Refunded, decimal Outstanding,
-    string Status, string? PurchaseMode, string? ActivationMode, bool Cancelled, int Version,
-    string? MemberName = null, string? MemberCode = null);
+    string Status, string? PurchaseMode, string? ActivationMode, bool Cancelled, int Version, Guid SoldByUserId,
+    string? MemberName = null, string? MemberCode = null, string? SoldByName = null);
 public sealed record SaleDetails(SaleSummary Sale, string MemberName, string? PlanName, string? PlanType,
     Guid? PlanId, Guid? AccessCityId, Guid? SalesEmployeeId, string? SalesAttribution,
     bool? CommissionEligible, bool? TargetEligible, Guid? SubscriptionId, Guid? GrantId,

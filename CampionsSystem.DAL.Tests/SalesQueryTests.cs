@@ -1,8 +1,14 @@
 using CampionsSystem.BLL.Sales;
+using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Operations;
+using CampionsSystem.BLL.Subscriptions;
+using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 namespace CampionsSystem.DAL.Tests;
 public sealed partial class SalesTests
 {
@@ -20,8 +26,12 @@ public sealed partial class SalesTests
         Assert.Equal(1,salePage.TotalCount);
         Assert.Equal(member.FullName,listed.MemberName);
         Assert.Equal(member.MemberCode,listed.MemberCode);
+        Assert.Equal(actor.Id,listed.SoldByUserId);
+        Assert.Equal("Operational employee",listed.SoldByName);
         Assert.Equal(details.Sale.Collected,listed.Collected);
         Assert.Equal(member.FullName,details.Sale.MemberName);
+        Assert.Equal(actor.Id,details.Sale.SoldByUserId);
+        Assert.Equal("Operational employee",details.Sale.SoldByName);
         member.FullName="Current Buyer";
         member.MemberCode="M-CURRENT-BUYER";
         await db.SaveChangesAsync();
@@ -32,6 +42,46 @@ public sealed partial class SalesTests
         user.Context=user.Context! with{Permissions=[SalesPermissions.View],CurrentBranch=new(a.Id,a.Name)};
         Assert.Empty((await Finance().GetHistoryAsync(new())).Items);await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>Finance().GetDetailsAsync(sale.SaleId));
         await Assert.ThrowsAsync<UnauthorizedAccessException>(()=>Finance().GetBranchTotalsAsync(b.Id));
+    }
+    [Fact] public async Task SoldByUsesCreatorRatherThanAttributedEmployeeAndHandlesInactiveOrUnlinkedCreator()
+    {
+        var cash=await Account();
+        var credited=new Employee{FullName="Credited Sales",Phone="credited-sales",HireDate=today.AddYears(-1)};
+        db.Add(credited);
+        db.Add(new MemberSalesAssignment{MemberId=member.Id,SalesEmployee=credited,AssignmentType=AssignmentType.Sales,
+            AssignedAt=access.Now,AssignedByUserId=actor.Id});
+        await db.SaveChangesAsync();
+        var sale=await Finance().CreateAsync(Purchase(new PaymentPartInput(cash.Id,1200)));
+        var creator=await db.Employees.SingleAsync(x=>x.UserId==actor.Id);
+        creator.FullName="Current Reception";creator.EmploymentStatus=EmploymentStatus.Suspended;
+        await db.SaveChangesAsync();
+        var listed=Assert.Single((await Finance().GetHistoryAsync(new(){BranchId=b.Id,MemberId=member.Id})).Items);
+        Assert.Equal(actor.Id,listed.SoldByUserId);Assert.Equal("Current Reception",listed.SoldByName);
+        var details=await Finance().GetDetailsAsync(sale.SaleId);
+        Assert.Equal(credited.Id,details.SalesEmployeeId);
+        Assert.Equal(actor.Id,details.Sale.SoldByUserId);Assert.Equal("Current Reception",details.Sale.SoldByName);
+
+        creator.UserId=null;await db.SaveChangesAsync();
+        Assert.Null(Assert.Single((await Finance().GetHistoryAsync(new(){BranchId=b.Id,MemberId=member.Id})).Items).SoldByName);
+        var unlinked=await Finance().GetDetailsAsync(sale.SaleId);
+        Assert.Equal(actor.Id,unlinked.Sale.SoldByUserId);Assert.Null(unlinked.Sale.SoldByName);
+    }
+    [Fact] public async Task PaginatedSoldByResolutionUsesOneEmployeeQueryPerPage()
+    {
+        for(var i=0;i<4;i++)db.Add(new SaleTransaction{MemberId=member.Id,BranchId=b.Id,SaleType=SaleType.GymMembership,
+            GrossAmount=100,NetAmount=100,Status=SaleStatus.Open,CreatedByUserId=actor.Id,CreatedAt=access.Now.AddMinutes(i)});
+        await db.SaveChangesAsync();
+        var sql=new List<string>();
+        await using var readDb=new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseNpgsql(fixture.Connection).LogTo(sql.Add,[RelationalEventId.CommandExecuted],LogLevel.Information).Options);
+        readDb.Database.UseTransaction(fixture.Transaction);
+        var readAccess=new OperationAccess(user,readDb,clock,Options.Create(new AuthContextOptions()));
+        var readSubscriptions=new SubscriptionService(readDb,user,readAccess);
+        var service=new SalesService(readDb,user,readAccess,new OfferService(readDb,user,readAccess,readSubscriptions),readSubscriptions);
+        var page=await service.GetHistoryAsync(new(){BranchId=b.Id,PageSize=3});
+        Assert.Equal(4,page.TotalCount);Assert.Equal(3,page.Items.Count);
+        Assert.All(page.Items,x=>{Assert.Equal(actor.Id,x.SoldByUserId);Assert.Equal("Operational employee",x.SoldByName);});
+        Assert.Single(sql,x=>x.Contains("FROM \"Employees\"",StringComparison.Ordinal));
     }
     [Fact] public async Task ReservationStatusPaymentHistoryAndPaginationAreAuthoritative()
     {
