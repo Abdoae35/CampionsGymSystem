@@ -170,6 +170,7 @@ public sealed class ShiftReportService(ApplicationDbContext db, ICurrentUserServ
         var total=await q.CountAsync(ct);
         var items=await q.OrderByDescending(x=>x.CreatedAt).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize)
             .Select(x=>new FinancialAuditDetails(x.Id,x.Action,x.EntityType,x.EntityId,x.UserId,x.CreatedAt,x.OldValues,x.NewValues)).ToListAsync(ct);
-        return new(items,total,page,pageSize);
+        var names=await ActorDisplayNames.LoadAsync(db,items.Select(x=>x.ActorId),ct);
+        return new(items.Select(x=>x with{ActorName=ActorDisplayNames.Get(names,x.ActorId)}).ToList(),total,page,pageSize);
     }
 }

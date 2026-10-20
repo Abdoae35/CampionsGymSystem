@@ -14,4 +14,14 @@ public sealed class ShiftContractTests
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<CloseShiftRequest>(body, options));
         Assert.Null(JsonSerializer.Deserialize<OverrideCloseShiftRequest>(body, options)!.CountedCash);
     }
+
+    [Fact]
+    public void OldDrawerSnapshotDeserializesWithoutNewAccountName()
+    {
+        var json = $$"""{"branchId":"{{Guid.NewGuid()}}","accountId":"{{Guid.NewGuid()}}","bookCash":10,"expectedPhysicalCash":10,"lastCountedCash":10,"movementSequence":1,"lastCountId":null,"observedDiscrepancies":0}""";
+        var position = JsonSerializer.Deserialize<DrawerPosition>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        Assert.NotNull(position);
+        Assert.Null(position.AccountName);
+        Assert.Equal(10, position.BookCash);
+    }
 }

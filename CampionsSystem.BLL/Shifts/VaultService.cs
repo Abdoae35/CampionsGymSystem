@@ -9,8 +9,15 @@ namespace CampionsSystem.BLL.Shifts;
 public sealed class VaultService(ApplicationDbContext db, ICurrentUserService current, OperationAccess access)
 {
     private readonly FinancialOperations money = new(db,current,access);
-    private static DrawerPosition SetupSnapshot(CashCount c) => new(c.BranchId,c.FinancialAccountId,c.BookCash,c.CountedCash,c.CountedCash,c.MovementSequence,c.Id,c.Difference);
-    private static CashCountDetails Details(CashCount c) => new(c.Id,c.BranchId,c.ShiftId,c.Kind,c.ExpectedCash,c.CountedCash,c.BookCash,c.Difference,c.OccurredAt,c.BusinessDate,c.CreatedByUserId,c.Reason,c.ObservationOrder);
+    private static DrawerPosition SetupSnapshot(CashCount c, string? accountName) => new(c.BranchId,c.FinancialAccountId,c.BookCash,c.CountedCash,c.CountedCash,c.MovementSequence,c.Id,c.Difference,accountName);
+    private static CashCountDetails Details(CashCount c, string? actorName) => new(c.Id,c.BranchId,c.ShiftId,c.Kind,c.ExpectedCash,c.CountedCash,c.BookCash,c.Difference,c.OccurredAt,c.BusinessDate,c.CreatedByUserId,c.Reason,c.ObservationOrder,actorName);
+    private async Task<string?> AccountNameAsync(Guid id,CancellationToken ct) =>
+        await db.FinancialAccounts.AsNoTracking().Where(x=>x.Id==id).Select(x=>x.Name).SingleOrDefaultAsync(ct);
+    private async Task<CashCountDetails> CountDetailsAsync(CashCount count,CancellationToken ct)
+    {
+        var names=await ActorDisplayNames.LoadAsync(db,[count.CreatedByUserId],ct);
+        return Details(count,ActorDisplayNames.Get(names,count.CreatedByUserId));
+    }
     private static CashMovementDetails Details(CashMovement m) => new(m.Id,m.BranchId,m.ShiftId,m.Kind,m.Amount,m.OccurredAt,m.BusinessDate,m.Reason);
     public Task<DrawerPosition> SetupAsync(SetupDrawerRequest r, CancellationToken ct = default) => money.TransactionAsync(async () =>
     {
@@ -21,7 +28,7 @@ public sealed class VaultService(ApplicationDbContext db, ICurrentUserService cu
         if(branchRow==null || !branchRow.IsActive)throw new BusinessRuleException("Select an active branch.");
         var hash = FinancialOperations.Hash(r with { BranchId = branch });
         var prior = await db.CashDrawers.SingleOrDefaultAsync(x=>x.OperationId==r.OperationId,ct);
-        if (prior != null) { FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor); if(prior.BranchId!=branch) throw new UnauthorizedAccessException(); return SetupSnapshot(await db.CashCounts.AsNoTracking().SingleAsync(x=>x.OperationId==r.OperationId,ct)); }
+        if (prior != null) { FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor); if(prior.BranchId!=branch) throw new UnauthorizedAccessException(); var count=await db.CashCounts.AsNoTracking().SingleAsync(x=>x.OperationId==r.OperationId,ct);return SetupSnapshot(count,await AccountNameAsync(count.FinancialAccountId,ct)); }
         if (await db.CashDrawers.AnyAsync(x=>x.BranchId==branch,ct)) throw new BusinessRuleException("Branch drawer is already configured; record a new physical observation instead.");
         var account = await db.FinancialAccounts.FromSqlInterpolated($"SELECT * FROM \"FinancialAccounts\" WHERE \"Id\"={r.FinancialAccountId} FOR SHARE").AsNoTracking().SingleOrDefaultAsync(ct);
         if(account==null || !account.IsActive || account.BranchId!=branch || account.AccountType!=FinancialAccountType.Cash) throw new BusinessRuleException("Select an active Cash account of this branch.");
@@ -41,7 +48,7 @@ public sealed class VaultService(ApplicationDbContext db, ICurrentUserService cu
         }
         var initialCount = await money.CountAsync(branch,actor,r.OperationId,hash,r.CountedCash,"Initial",null,r.Reason,ct);
         access.Audit(actor,branch,"Vault.DrawerConfigured",nameof(CashDrawer),branch,after:new { account.Id,r.CountedCash,date });
-        await db.SaveChangesAsync(ct); return SetupSnapshot(initialCount);
+        await db.SaveChangesAsync(ct); return SetupSnapshot(initialCount,account.Name);
     },ct);
     public Task<CashCountDetails> CountAsync(CountCashRequest r,CancellationToken ct=default)=>money.TransactionAsync(async()=>
     {
@@ -49,10 +56,10 @@ public sealed class VaultService(ApplicationDbContext db, ICurrentUserService cu
         var(branch,actor)=await money.ResolveAsync(ShiftPermissions.VaultManage,r.BranchId,ct); await money.LockBranchAsync(branch,ct);
         var hash=FinancialOperations.Hash(r with { BranchId=branch });
         var prior=await db.CashCounts.AsNoTracking().SingleOrDefaultAsync(x=>x.OperationId==r.OperationId,ct);
-        if(prior!=null) { FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor); if(prior.BranchId!=branch)throw new UnauthorizedAccessException(); return Details(prior); }
+        if(prior!=null) { FinancialOperations.Retry(prior.RequestHash,hash,prior.CreatedByUserId,actor); if(prior.BranchId!=branch)throw new UnauthorizedAccessException(); return await CountDetailsAsync(prior,ct); }
         var shift=await money.RequireShiftAsync(branch,actor,ct);
         var count=await money.CountAsync(branch,actor,r.OperationId,hash,r.CountedCash,"Recount",shift.Id,r.Reason,ct);
-        await db.SaveChangesAsync(ct); return Details(count);
+        await db.SaveChangesAsync(ct); return await CountDetailsAsync(count,ct);
     },ct);
     public Task<DrawerPosition> PositionAsync(Guid? branchId=null,CancellationToken ct=default)=>money.TransactionAsync(async()=>
     {var(branch,_)=await money.ResolveAsync(ShiftPermissions.VaultView,branchId,ct);await money.LockBranchAsync(branch,ct);return await money.PositionAsync(branch,ct);},ct);
@@ -78,7 +85,8 @@ public sealed class VaultService(ApplicationDbContext db, ICurrentUserService cu
         if(r.From!=null)q=q.Where(x=>x.BusinessDate>=r.From);if(r.To!=null)q=q.Where(x=>x.BusinessDate<=r.To);
         if(r.AccountId!=null)q=q.Where(x=>x.FinancialAccountId==r.AccountId);
         var total=await q.CountAsync(ct);var rows=await q.OrderByDescending(x=>x.ObservationOrder).Skip((r.Page-1)*r.PageSize).Take(r.PageSize).ToListAsync(ct);
-        return new(rows.Select(Details).ToList(),total,r.Page,r.PageSize);
+        var names=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>(Guid?)x.CreatedByUserId),ct);
+        return new(rows.Select(x=>Details(x,ActorDisplayNames.Get(names,x.CreatedByUserId))).ToList(),total,r.Page,r.PageSize);
     }
     public async Task<ShiftPage<FinancialMovementDetails>> MovementsAsync(VaultHistoryRequest r,CancellationToken ct=default)
     {
@@ -86,7 +94,8 @@ public sealed class VaultService(ApplicationDbContext db, ICurrentUserService cu
         var q=db.FinancialTransactions.AsNoTracking().Where(x=>x.BranchId==branch);
         if(r.From!=null)q=q.Where(x=>x.BusinessDate>=r.From);if(r.To!=null)q=q.Where(x=>x.BusinessDate<=r.To);if(r.AccountId!=null)q=q.Where(x=>x.FinancialAccountId==r.AccountId);
         var total=await q.CountAsync(ct);var items=await q.OrderByDescending(x=>x.OccurredAt).ThenBy(x=>x.Id).Skip((r.Page-1)*r.PageSize).Take(r.PageSize)
-            .Select(x=>new FinancialMovementDetails(x.Id,x.FinancialAccountId,x.BranchId,x.ShiftId,x.SourceType,x.TransactionType,x.Amount,x.OccurredAt,x.BusinessDate,x.CreatedByUserId)).ToListAsync(ct);
-        return new(items,total,r.Page,r.PageSize);
+            .Select(x=>new FinancialMovementDetails(x.Id,x.FinancialAccountId,x.BranchId,x.ShiftId,x.SourceType,x.TransactionType,x.Amount,x.OccurredAt,x.BusinessDate,x.CreatedByUserId,null,x.FinancialAccount.Name)).ToListAsync(ct);
+        var names=await ActorDisplayNames.LoadAsync(db,items.Select(x=>(Guid?)x.ActorId),ct);
+        return new(items.Select(x=>x with{ActorName=ActorDisplayNames.Get(names,x.ActorId)}).ToList(),total,r.Page,r.PageSize);
     }
 }
