@@ -11,6 +11,8 @@ public sealed partial class SalesTests
     [Fact] public async Task CommissionSettingsAreIndependentFutureOnlyAndPreserveRuleHistory()
     {
         var r = await Settings(); var initial = await Commissions().ConfigureAsync(r); Assert.Equal(2, initial.Count);
+        Assert.All(initial,x=>Assert.NotNull(x.EmployeeName));
+        Assert.All((await Commissions().RulesAsync(r.EmployeeId)).Items,x=>Assert.Equal(initial[0].EmployeeName,x.EmployeeName));
         var p = await Commissions().OpenAsync(new(Guid.NewGuid(), "Custom boundary", today, today.AddDays(13)));
         await Assert.ThrowsAsync<BusinessRuleException>(() => Commissions().ConfigureAsync(r with { OperationId = Guid.NewGuid(), NewClients = new(10000, 1, 2) }));
         var changed = await Commissions().ConfigureAsync(r with { OperationId = Guid.NewGuid(), EffectiveFrom = today.AddDays(14), NewClients = new(10000, 1, 2) });

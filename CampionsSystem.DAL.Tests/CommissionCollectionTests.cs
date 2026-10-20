@@ -30,7 +30,10 @@ public sealed partial class SalesTests
         Assert.Equal(owner.Id, statement.EmployeeId); Assert.Equal(5, statement.NewClients.AppliedRate); Assert.False(statement.NewClients.TargetReached);
         Assert.Equal(1000, statement.NewClients.Commission); Assert.Equal(5, statement.Renewals.AppliedRate); Assert.True(statement.Renewals.TargetReached);
         Assert.Equal(1500, statement.Renewals.Commission); Assert.Equal(2500, progress.TotalCommission); Assert.Equal(50000, progress.GrossCollections);
-        Assert.Equal(new[] { "NewMembership", "Renewal" }, (await Commissions().SourcesAsync(period.Id)).Items.OrderBy(x => x.PaidAt).ThenBy(x => x.GrossCollection).Select(x => x.Category));
+        var sources=(await Commissions().SourcesAsync(period.Id)).Items;
+        Assert.Equal(new[] { "NewMembership", "Renewal" }, sources.OrderBy(x => x.PaidAt).ThenBy(x => x.GrossCollection).Select(x => x.Category));
+        Assert.All(sources,x=>{Assert.Equal(member.FullName,x.MemberName);Assert.Equal(member.MemberCode,x.MemberCode);
+            Assert.Equal(owner.FullName,x.OriginalSalesEmployeeName);Assert.Equal(owner.FullName,x.EmployeeName);});
         Assert.All(await db.Payments.ToListAsync(), p => Assert.Equal(period.Id, p.CommissionPeriodId));
     }
     [Fact] public async Task CommissionNewTargetUnlocksAllNewRevenueWithoutChangingRenewalRate()
