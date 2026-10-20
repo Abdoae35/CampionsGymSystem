@@ -23,11 +23,18 @@ public sealed partial class SalesTests
     [Fact] public async Task CoachingClassesNeedNoReceptionOrRegularMembershipAndShareOneBalanceAcrossTypes()
     {
         var sale = await ClassesPurchase(2); var yoga = await ClassOccurrence(); var zumba = await ClassOccurrence("Zumba");
+        Assert.Equal("Yoga",yoga.ClassTypeName);Assert.NotNull(yoga.CoachEmployeeName);
+        Assert.Equal(yoga.CoachEmployeeName,Assert.Single((await Coaching().ClassTypesAsync(b.Id)).Items,x=>x.Name=="Yoga").CoachEmployeeName);
+        Assert.Equal(member.FullName,Assert.Single((await Coaching().ClassesSubscriptionsAsync(b.Id,member.Id)).Items).MemberName);
         var r = new ClassAttendanceRequest(Guid.NewGuid(), member.Id, sale.SubscriptionId);
         var first = await Coaching().RegisterClassAsync(yoga.Id, r); Assert.Equal(1, first.RemainingSessions);
+        Assert.Equal(member.FullName,first.MemberName);Assert.Equal(member.MemberCode,first.MemberCode);
+        Assert.Equal("Yoga",first.ClassTypeName);Assert.Equal(yoga.CoachEmployeeName,first.CoachEmployeeName);
         Assert.Equal(first.Id, (await Coaching().RegisterClassAsync(yoga.Id, r)).Id);
         var second = await Coaching().RegisterClassAsync(zumba.Id, r with { OperationId = Guid.NewGuid() }); Assert.Equal(0, second.RemainingSessions);
         Assert.Equal(2, (await Coaching().ClassMemberHistoryAsync(b.Id, member.Id)).TotalCount);
+        Assert.Equal("Yoga",Assert.Single((await Coaching().ClassAttendanceHistoryAsync(yoga.Id)).Items).ClassTypeName);
+        Assert.Equal("Zumba",Assert.Single((await Coaching().OccurrencesAsync(b.Id,today,today)).Items,x=>x.Id==zumba.Id).ClassTypeName);
         Assert.Empty(await db.MemberSubscriptions.ToListAsync()); Assert.Empty(await db.CheckIns.Where(c => c.CheckInType == CheckInType.Gym).ToListAsync());
         Assert.All(await db.CheckIns.ToListAsync(), c => { Assert.Equal(CheckInType.Class, c.CheckInType); Assert.True(c.SessionConsumed); });
         await Assert.ThrowsAsync<BusinessRuleException>(async () => await Coaching().RegisterClassAsync((await ClassOccurrence("CrossFit")).Id, new(Guid.NewGuid(), member.Id)));
@@ -64,6 +71,7 @@ public sealed partial class SalesTests
         await Coaching().CompleteOccurrenceAsync(first.Id, new(Guid.NewGuid(), 0)); await Coaching().CompleteOccurrenceAsync(second.Id, new(Guid.NewGuid(), 0));
         var stats = await Coaching().ClassStatisticsAsync(b.Id, coach.Id, today, today, period);
         Assert.Equal(2, stats.CompletedClasses); Assert.Equal(1, stats.TotalAttendance); Assert.Equal(0.5m, stats.AverageAttendance); Assert.True(stats.TargetReached);
+        Assert.Equal(coach.FullName,stats.CoachEmployeeName);
         Assert.Equal("NotConfigured", stats.CompensationStatus); Assert.Empty(await db.CoachEarnings.ToListAsync());
     }
     [Fact] public async Task CoachingClassesTenEightTwelveAttendeesAverageTen()
