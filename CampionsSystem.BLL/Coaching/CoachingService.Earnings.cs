@@ -16,7 +16,7 @@ public sealed partial class CoachingService
             var period = await PeriodAsync(r.CommissionPeriodId, ct); var actor = await OwnerAsync(CoachingPermissions.Targets, period.BranchId, ct);
             await coordination.LockBranchAsync(period.BranchId, ct); var hash = FinancialOperations.Hash(r);
             var prior = await db.CoachTargetRules.AsNoTracking().SingleOrDefaultAsync(t => t.OperationId == r.OperationId, ct);
-            if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId, actor); return TargetDetails(prior); }
+            if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.CreatedByUserId, actor); return await TargetDetailsAsync(prior,ct); }
             if (r.PrivateTarget == null && r.ClassesAverageTarget == null || r.PrivateTarget <= 0 || r.ClassesAverageTarget <= 0
                 || r.ClassesAverageTarget != null && (decimal.Round(r.ClassesAverageTarget.Value, 4) != r.ClassesAverageTarget || r.ClassesAverageTarget > 99999999999999.9999m))
                 throw new BusinessRuleException("Supply an explicit positive Private target and/or Classes average target (up to four decimals).");
@@ -28,9 +28,14 @@ public sealed partial class CoachingService
             if (await db.CoachTargetRules.AnyAsync(t => t.CommissionPeriodId == period.Id && t.CoachEmployeeId == r.CoachEmployeeId, ct)) throw new BusinessRuleException("Targets are already configured for this coach/period; immutable configuration preserves history.");
             var row = new CoachTargetRule { CommissionPeriodId = period.Id, CoachEmployeeId = r.CoachEmployeeId,
                 PrivateTarget = r.PrivateTarget, ClassesAverageTarget = r.ClassesAverageTarget, OperationId = r.OperationId, RequestHash = hash, CreatedByUserId = actor, CreatedAt = access.Now };
-            db.Add(row); access.Audit(actor, period.BranchId, "CoachEarnings.TargetsConfigured", nameof(CoachTargetRule), row.Id, after: r); return TargetDetails(row);
+            db.Add(row); access.Audit(actor, period.BranchId, "CoachEarnings.TargetsConfigured", nameof(CoachTargetRule), row.Id, after: r); return await TargetDetailsAsync(row,ct);
         }, ct);
     private static CoachTargetDetails TargetDetails(CoachTargetRule t) => new(t.Id, t.CommissionPeriodId, t.CoachEmployeeId, t.PrivateTarget, t.ClassesAverageTarget);
+    private async Task<CoachTargetDetails> TargetDetailsAsync(CoachTargetRule target,CancellationToken ct)
+    {
+        var name=await db.Employees.AsNoTracking().Where(x=>x.Id==target.CoachEmployeeId).Select(x=>x.FullName).SingleOrDefaultAsync(ct);
+        return TargetDetails(target) with { CoachEmployeeName=name };
+    }
     private async Task<CommissionPeriod> PeriodAsync(Guid id, CancellationToken ct)
     {
         var p = await db.CommissionPeriods.AsNoTracking().SingleOrDefaultAsync(p => p.Id == id, ct) ?? throw new BranchNotFoundException("Period not found.");
@@ -40,7 +45,8 @@ public sealed partial class CoachingService
     {
         var p = await PeriodAsync(periodId, ct); await access.RequireAsync(CoachingPermissions.EarningsView, p.BranchId, ct);
         return await db.CoachTargetRules.AsNoTracking().Where(t => t.CommissionPeriodId == p.Id).OrderBy(t => t.CoachEmployeeId)
-            .Select(t => new CoachTargetDetails(t.Id, t.CommissionPeriodId, t.CoachEmployeeId, t.PrivateTarget, t.ClassesAverageTarget)).ToListAsync(ct);
+            .Select(t => new CoachTargetDetails(t.Id, t.CommissionPeriodId, t.CoachEmployeeId, t.PrivateTarget, t.ClassesAverageTarget,
+                t.CoachEmployee.FullName)).ToListAsync(ct);
     }
     private sealed record EarningSource(Guid Sale, Guid Coach, Guid? Session, Guid? Expiry, decimal Value, bool Transferred, int Order, decimal FundedBefore = 0, decimal FundedNow = 0, decimal PriorExactCommission = 0, decimal PriorRoundedCommission = 0);
     private async Task<List<EarningSource>> FundingAsync(CommissionPeriod period, CancellationToken ct)
@@ -97,12 +103,21 @@ public sealed partial class CoachingService
             return new CoachProgress(g.Key, total, target, target == null ? null : total >= target, rate, earnings, g.Sum(s => s.Value - s.FundedBefore - s.FundedNow));
         }).ToArray());
     }
+    private async Task<CoachEarningsProgress> WithCoachNamesAsync(CoachEarningsProgress progress,CancellationToken ct)
+    {
+        var ids=progress.Coaches.Select(x=>x.CoachEmployeeId).Distinct().ToArray();
+        if(ids.Length==0)return progress;
+        var names=await db.Employees.AsNoTracking().Where(x=>ids.Contains(x.Id))
+            .Select(x=>new{x.Id,x.FullName}).ToDictionaryAsync(x=>x.Id,x=>x.FullName,ct);
+        return progress with { Coaches=progress.Coaches.Select(x=>x with{CoachEmployeeName=names.GetValueOrDefault(x.CoachEmployeeId)}).ToArray() };
+    }
     public async Task<CoachEarningsProgress> ProgressAsync(Guid periodId, CancellationToken ct = default)
     {
         var period = await PeriodAsync(periodId, ct); await access.RequireAsync(CoachingPermissions.EarningsView, period.BranchId, ct);
-        if (db.Database.CurrentTransaction != null) return await ProgressCoreAsync(period, ct);
+        if (db.Database.CurrentTransaction != null) return await WithCoachNamesAsync(await ProgressCoreAsync(period, ct),ct);
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
-        var result = await ProgressCoreAsync(period, ct); await tx.CommitAsync(ct); return result;
+        var result = await ProgressCoreAsync(period, ct); await tx.CommitAsync(ct);
+        return await WithCoachNamesAsync(result,ct);
     }
     public Task<CoachEarningsProgress> RecognizeAsync(RecognizeCoachEarningsRequest r, CancellationToken ct = default)
         => coordination.TransactionAsync(async () =>
@@ -117,7 +132,7 @@ public sealed partial class CoachingService
             {
                 using var evidence = JsonDocument.Parse(operation.NewValues!);
                 if (operation.UserId != actor || evidence.RootElement.GetProperty("PeriodId").GetGuid() != p.Id || evidence.RootElement.GetProperty("Hash").GetString() != hash) throw new BusinessRuleException("Operation belongs to another recognition request.");
-                return await ProgressCoreAsync(p, ct);
+                return await WithCoachNamesAsync(await ProgressCoreAsync(p, ct),ct);
             }
             if (await IsRecognizedAsync(p.Id, ct)) throw new BusinessRuleException("Coach earnings period is already finalized.");
             var (date, _) = await coordination.BusinessDateAsync(p.BranchId, ct);
@@ -141,7 +156,7 @@ public sealed partial class CoachingService
             }
             access.Audit(actor, p.BranchId, "CoachEarnings.RecognitionOperation", nameof(CommissionPeriod), r.OperationId, after: new { PeriodId = p.Id, Hash = hash });
             access.Audit(actor, p.BranchId, "CoachEarnings.PeriodRecognized", nameof(CommissionPeriod), p.Id, after: progress with { Finalized = true });
-            await db.SaveChangesAsync(ct); return await ProgressCoreAsync(p, ct);
+            await db.SaveChangesAsync(ct); return await WithCoachNamesAsync(await ProgressCoreAsync(p, ct),ct);
         }, ct);
     private async Task<CoachBalance> BalanceCoreAsync(Guid branch, Guid coach, CancellationToken ct)
     {
@@ -152,9 +167,15 @@ public sealed partial class CoachingService
     public async Task<CoachBalance> BalanceAsync(Guid branch, Guid coach, CancellationToken ct = default)
     {
         await access.RequireAsync(CoachingPermissions.EarningsView, branch, ct);
-        if (db.Database.CurrentTransaction != null) return await BalanceCoreAsync(branch, coach, ct);
+        if (db.Database.CurrentTransaction != null) return await WithCoachNameAsync(await BalanceCoreAsync(branch, coach, ct),ct);
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead, ct);
-        var result = await BalanceCoreAsync(branch, coach, ct); await tx.CommitAsync(ct); return result;
+        var result = await BalanceCoreAsync(branch, coach, ct); await tx.CommitAsync(ct);
+        return await WithCoachNameAsync(result,ct);
+    }
+    private async Task<CoachBalance> WithCoachNameAsync(CoachBalance balance,CancellationToken ct)
+    {
+        var name=await db.Employees.AsNoTracking().Where(x=>x.Id==balance.CoachEmployeeId).Select(x=>x.FullName).SingleOrDefaultAsync(ct);
+        return balance with { CoachEmployeeName=name };
     }
     public async Task<CoachingPage<CoachEarningDetails>> EarningsHistoryAsync(Guid branch, Guid coach, int page = 1, int pageSize = 25, CancellationToken ct = default)
     {
@@ -162,6 +183,6 @@ public sealed partial class CoachingService
         var q = db.CoachEarnings.AsNoTracking().Where(e => e.BranchId == branch && e.CoachEmployeeId == coach); var count = await q.CountAsync(ct);
         return new(await q.OrderByDescending(e => e.BusinessDate).ThenBy(e => e.Id).Skip((page - 1) * pageSize).Take(pageSize).Select(e =>
             new CoachEarningDetails(e.Id, e.CoachEmployeeId, e.CommissionPeriodId, e.SaleTransactionId, e.PrivateSessionId, e.PrivateExpirySettlementId,
-                e.EligibleValue, e.Rate, e.Amount, e.TransferredPackage, e.BusinessDate)).ToListAsync(ct), count, page, pageSize);
+                e.EligibleValue, e.Rate, e.Amount, e.TransferredPackage, e.BusinessDate,e.CoachEmployee.FullName)).ToListAsync(ct), count, page, pageSize);
     }
 }

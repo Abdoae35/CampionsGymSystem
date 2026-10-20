@@ -65,18 +65,22 @@ public sealed record ClassCoachStatistics(Guid CoachEmployeeId, int CompletedCla
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CoachTargetRequest(Guid OperationId, Guid CommissionPeriodId, Guid CoachEmployeeId,
     decimal? PrivateTarget, decimal? ClassesAverageTarget);
-public sealed record CoachTargetDetails(Guid Id, Guid PeriodId, Guid CoachEmployeeId, decimal? PrivateTarget, decimal? ClassesAverageTarget);
+public sealed record CoachTargetDetails(Guid Id, Guid PeriodId, Guid CoachEmployeeId, decimal? PrivateTarget, decimal? ClassesAverageTarget,
+    string? CoachEmployeeName = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RecognizeCoachEarningsRequest(Guid OperationId, Guid CommissionPeriodId);
 public sealed record CoachProgress(Guid CoachEmployeeId, decimal EligibleValue, decimal? Target, bool? TargetReached,
-    decimal? NormalRate, decimal? ProjectedEarnings, decimal DeferredValue);
+    decimal? NormalRate, decimal? ProjectedEarnings, decimal DeferredValue, string? CoachEmployeeName = null);
 public sealed record CoachEarningsProgress(Guid PeriodId, bool Finalized, IReadOnlyList<CoachProgress> Coaches);
 public sealed record CoachEarningDetails(Guid Id, Guid CoachEmployeeId, Guid PeriodId, Guid SaleId, Guid? SessionId,
-    Guid? ExpirySettlementId, decimal EligibleValue, decimal Rate, decimal Earned, bool TransferredPackage, DateOnly BusinessDate);
-public sealed record CoachBalance(Guid BranchId, Guid CoachEmployeeId, decimal Earned, decimal Paid, decimal Outstanding);
+    Guid? ExpirySettlementId, decimal EligibleValue, decimal Rate, decimal Earned, bool TransferredPackage, DateOnly BusinessDate,
+    string? CoachEmployeeName = null);
+public sealed record CoachBalance(Guid BranchId, Guid CoachEmployeeId, decimal Earned, decimal Paid, decimal Outstanding,
+    string? CoachEmployeeName = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record CoachPayoutRequest(Guid OperationId, Guid BranchId, Guid CoachEmployeeId, decimal Amount,
     Guid FinancialAccountId, Guid ExpenseCategoryId, string Reason, string? ReceiptReference = null);
 public sealed record CoachPayoutDetails(Guid Id, Guid BranchId, Guid CoachEmployeeId, Guid ExpenseId,
     Guid AccountId, string Method, decimal Amount, decimal BalanceBefore, decimal BalanceAfter,
-    DateOnly BusinessDate, DateTimeOffset PaidAt, Guid AuthorizedByUserId);
+    DateOnly BusinessDate, DateTimeOffset PaidAt, Guid AuthorizedByUserId,
+    string? CoachEmployeeName = null, string? AuthorizedByName = null);
