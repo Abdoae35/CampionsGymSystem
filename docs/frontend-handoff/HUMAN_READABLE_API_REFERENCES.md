@@ -10,7 +10,7 @@ Source: `feature/HumanReadableApiReferences` at `2857260` plus this documentatio
 | `CashCountDetails` | `GET /api/vault/counts`, count write result, monthly report `cashCounts[]` | `actorName` |
 | `FinancialAuditDetails` | `GET /api/vault/audit` | `actorName` |
 | `DrawerPosition` | `GET /api/vault/position`, monthly report `drawer` | `accountName` |
-| `SaleSummary` | `GET /api/sales` `items[]` | `memberName`, `memberCode` |
+| `SaleSummary` | `GET /api/sales` `items[]`, `GET /api/sales/{id}` nested `sale` | `memberName`, `memberCode`, `soldByUserId`, `soldByName` |
 | `CheckInDetails` | `GET /api/check-ins`, `GET /api/members/{memberId}/check-ins/current-business-day`, Check-In write result `checkIn` | `actorName` |
 | `SubscriptionSummary` | `GET /api/members/{memberId}/subscriptions` when `includePending` is absent/false, `GET /api/members/{memberId}/subscriptions/current` nested `subscription`, `GET /api/subscriptions/{id}` nested `subscription` | `originBranchName`, `accessCityName` |
 | `SubscriptionHistoryItem` | `GET /api/members/{memberId}/subscriptions?includePending=true` `items[]` | `originBranchName`, `accessCityName` |
@@ -48,6 +48,8 @@ Only relevant fields are shown; keep all other fields from the current contract.
     "memberId": "22222222-2222-4222-8222-222222222222",
     "memberName": "Amina Hassan",
     "memberCode": "M-000123",
+    "soldByUserId": "33333333-3333-4333-8333-333333333333",
+    "soldByName": "Reception employee",
     "finalPrice": 500.00
   }],
   "totalCount": 1,
@@ -57,6 +59,38 @@ Only relevant fields are shown; keep all other fields from the current contract.
 ```
 
 Before this change, a Sale summary included the same ID, Member ID and financial fields but omitted `memberName` and `memberCode`.
+
+### Sales creator: Sold By
+
+`GET /api/sales?branchId={branchId}&memberId={memberId}&purchaseMode={purchaseMode}&from={YYYY-MM-DD}&to={YYYY-MM-DD}&page=1&pageSize=25` returns `SaleHistory` with `items`, `totalCount`, `page`, and `pageSize`. All filters are optional; `page` defaults to 1 and `pageSize` to 25 (maximum 100). Existing branch scope, sorting, totals and `Payments.View` authorization are unchanged. Each `items[]` element is a `SaleSummary`.
+
+`GET /api/sales/{id}` returns `SaleDetails`, with the same `SaleSummary` under `sale`. Read `sale.soldByUserId` and `sale.soldByName` for the details screen; there are no duplicate top-level Sold By fields. This endpoint also requires `Payments.View` and sale-branch access.
+
+| JSON field | Type | Meaning |
+|---|---|---|
+| `soldByUserId` | UUID string, non-null | The recorded Identity User who created the Sale (`SaleTransaction.CreatedByUserId`). |
+| `soldByName` | string or null | Current `Employee.FullName` linked through `Employee.UserId`; null for an unlinked Owner or unavailable employee identity. No email or username fallback. |
+| `memberName`, `memberCode` | string or null | Existing current Member labels; retained unchanged. |
+
+The Sales-attributed `salesEmployeeId` on Sale Details is a separate commercial reference. Payment receivers and refund processors are also separate actors. Frontend migration: add these two fields to the shared Sale summary type, show `soldByName` with a neutral missing-name label when null, and retain `soldByUserId` for identification. No route, request, permission or database change is needed.
+
+Sale Details fragment:
+
+```json
+{
+  "sale": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "memberId": "22222222-2222-4222-8222-222222222222",
+    "memberName": "Amina Hassan",
+    "memberCode": "M-000123",
+    "soldByUserId": "33333333-3333-4333-8333-333333333333",
+    "soldByName": "Reception employee"
+  },
+  "salesEmployeeId": "44444444-4444-4444-8444-444444444444"
+}
+```
+
+These are response fragments; unchanged fields are omitted here. The addition is JSON-backward-compatible for clients that ignore unknown response properties.
 
 ```json
 {
@@ -154,8 +188,8 @@ After the first valid Check-In, the pending sale item is removed and the created
 
 Existing endpoint policies remain in controller source: `Vault.View`, `Payments.View`, `CheckIns.View`/`CheckIns.Create`, `Subscriptions.View`, `Shifts.View`, `Expenses.View`, `Advances.View`, `Leads.View`, `Employees.View`, `Commission.View`, `Private.View`, `Classes.View`, `CoachEarnings.View`, `FinancialMonths.View`, `Salaries.View`, `Payroll.View` and Owner-only Access Administration with both `Users.View` and `Roles.View` for history. Shared write responses retain their existing manage/create permissions. Existing branch checks remain service-enforced; labels are resolved after authorization from referenced IDs and do not grant a new directory. Paginated rows use bounded batch lookups; no per-item identity fetch is introduced.
 
-Render a nullable label when present. If null, use a neutral UI placeholder such as “Unknown” or hide that secondary label; keep the GUID available for diagnostics and actions. Do not display a private username/email as an automatic fallback. No DTO removal or required-field change was made. Clients accepting additional JSON properties need no migration; strict decoders must add the fields listed above. The existing `includePending=true` history shape is distinct from the default history shape and requires its `SubscriptionHistoryItem` model.
+Render a nullable label when present. If null, use a neutral UI placeholder such as “Unknown” or hide that secondary label; keep the GUID available for diagnostics and actions. Do not display a private username/email as an automatic fallback. No existing DTO field was removed or made newly required. The added Sales `soldByUserId` is non-null and required in the new response schema. Clients accepting additional JSON properties need no migration; strict decoders must add the fields listed above. The existing `includePending=true` history shape is distinct from the default history shape and requires its `SubscriptionHistoryItem` model.
 
 ## OpenAPI provenance
 
-`openapi.json` was recaptured from this feature's Development `/openapi/v1.json` on 2026-10-20 with an unreachable dummy local database target and throwaway JWT settings. Only OpenAPI was requested; no database endpoint or business API was called. The temporary local API process was stopped. The raw document contains 189 paths, 232 operations and 131 schemas. Runtime OpenAPI omits many `IActionResult` success schemas; `openapi.integration.json` is an older derived V1 supplement without a regeneration script in this repository and is **not updated for this feature**. Use this manifest and the current DTO source for changed response shapes. The raw document's local `servers` URL is capture-only.
+`openapi.json` was recaptured on 2026-10-20 from the Sales Sold By feature's Development `/openapi/v1.json` with an unreachable dummy local database target and throwaway JWT settings. Only OpenAPI was requested; no database endpoint or business API was called. The temporary local API process was stopped. The raw document contains 189 paths, 232 operations and 138 schemas. The two Sales GETs now declare their success response types, so `SaleHistory`, `SaleDetails` and `SaleSummary` appear in runtime OpenAPI. Other `IActionResult` success schemas may remain omitted. `openapi.integration.json` is an older derived V1 supplement without a regeneration script in this repository and is **not updated for this feature**. Use this manifest and the current DTO source for changed response shapes. The raw document's local `servers` URL is capture-only.

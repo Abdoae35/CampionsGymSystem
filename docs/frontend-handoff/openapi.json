@@ -9184,7 +9184,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleHistory"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleHistory"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleHistory"
+                }
+              }
+            }
           }
         }
       }
@@ -9207,7 +9224,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -12565,6 +12599,42 @@
       "FinancialAccountType": {
         "type": "integer"
       },
+      "FinancialPartDetails": {
+        "required": [
+          "accountId",
+          "accountName",
+          "method",
+          "amount",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "amount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "reference": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "FollowUpWindow": {
         "enum": [
           "Overdue",
@@ -12690,6 +12760,54 @@
           }
         },
         "additionalProperties": false
+      },
+      "InstallmentDetails": {
+        "required": [
+          "id",
+          "number",
+          "dueDate",
+          "amount",
+          "paid",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "paid": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
       },
       "InstallmentLineInput": {
         "required": [
@@ -13345,6 +13463,75 @@
         },
         "additionalProperties": false
       },
+      "PaymentDetails": {
+        "required": [
+          "id",
+          "operationId",
+          "branchId",
+          "businessDate",
+          "businessDayId",
+          "paidAt",
+          "amount",
+          "parts",
+          "allocations"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "branchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "businessDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "businessDayId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "amount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FinancialPartDetails"
+            }
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallmentAllocationInput"
+            }
+          }
+        }
+      },
       "PaymentPartInput": {
         "required": [
           "financialAccountId",
@@ -13867,6 +14054,68 @@
         },
         "additionalProperties": false
       },
+      "RefundDetails": {
+        "required": [
+          "id",
+          "operationId",
+          "branchId",
+          "businessDate",
+          "createdAt",
+          "amount",
+          "type",
+          "reason",
+          "parts"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operationId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "branchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "businessDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "amount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "type": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "parts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FinancialPartDetails"
+            }
+          }
+        }
+      },
       "RefundRequest": {
         "required": [
           "operationId",
@@ -14057,6 +14306,250 @@
         },
         "additionalProperties": false
       },
+      "SaleDetails": {
+        "required": [
+          "sale",
+          "memberName",
+          "planName",
+          "planType",
+          "planId",
+          "accessCityId",
+          "salesEmployeeId",
+          "salesAttribution",
+          "commissionEligible",
+          "targetEligible",
+          "subscriptionId",
+          "grantId",
+          "activationStatus",
+          "requestedStartDate",
+          "reservationDueDate",
+          "offerName",
+          "extraDays",
+          "retainedCancellationRevenue",
+          "payments",
+          "refunds",
+          "installments"
+        ],
+        "type": "object",
+        "properties": {
+          "sale": {
+            "$ref": "#/components/schemas/SaleSummary"
+          },
+          "memberName": {
+            "type": "string"
+          },
+          "planName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "planType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "planId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "accessCityId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "salesEmployeeId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "salesAttribution": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "commissionEligible": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "targetEligible": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "subscriptionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "grantId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "activationStatus": {
+            "type": "string"
+          },
+          "requestedStartDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "reservationDueDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "offerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "extraDays": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "retainedCancellationRevenue": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentDetails"
+            }
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RefundDetails"
+            }
+          },
+          "installments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InstallmentDetails"
+            }
+          },
+          "offerId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "offerType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "offerValue": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "offerEligibilityMode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "offerAudienceCategoryId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "retainedRevenueClassification": {
+            "type": "string",
+            "default": "CancellationFee"
+          },
+          "retainedCommissionEligible": {
+            "type": "boolean",
+            "default": false
+          },
+          "retainedTargetEligible": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "SaleHistory": {
+        "required": [
+          "items",
+          "totalCount",
+          "page",
+          "pageSize"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleSummary"
+            }
+          },
+          "totalCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "page": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pageSize": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "SalesAssignmentRequest": {
         "type": "object",
         "properties": {
@@ -14073,6 +14566,149 @@
           }
         },
         "additionalProperties": false
+      },
+      "SaleSummary": {
+        "required": [
+          "id",
+          "memberId",
+          "branchId",
+          "businessDate",
+          "createdAt",
+          "originalPrice",
+          "discount",
+          "finalPrice",
+          "collected",
+          "refunded",
+          "outstanding",
+          "status",
+          "purchaseMode",
+          "activationMode",
+          "cancelled",
+          "version",
+          "soldByUserId"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "memberId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "branchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "businessDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "originalPrice": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "discount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "finalPrice": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "collected": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "refunded": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "outstanding": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "status": {
+            "type": "string"
+          },
+          "purchaseMode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "activationMode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cancelled": {
+            "type": "boolean"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "soldByUserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "memberName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "memberCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "soldByName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
       },
       "SaveBenefitRequest": {
         "required": [
