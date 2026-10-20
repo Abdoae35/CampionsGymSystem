@@ -101,7 +101,7 @@ public sealed class PayrollService(ApplicationDbContext db, ICurrentUserService 
         var actor = await access.RequireAsync(MonthlyFinancePermissions.PayrollPay, p.BranchId, ct); await access.RequireAsync("Branches.AccessAll", p.BranchId, ct);
         await coordination.LockBranchAsync(p.BranchId, ct); var hash = FinancialOperations.Hash(new { payrollId, r });
         var prior = await db.PayrollPaymentRecords.AsNoTracking().SingleOrDefaultAsync(x => x.OperationId == r.OperationId, ct);
-        if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.ActorUserId, actor); return PaymentDetails(prior, p); }
+        if (prior != null) { FinancialOperations.Retry(prior.RequestHash, hash, prior.ActorUserId, actor); return await PaymentDetailsAsync(prior,p,ct); }
         if (p.FinancialMonthId == null) throw new BusinessRuleException("Legacy payroll requires explicit reconciliation; no paid status or funding is inferred.");
         var (date, _) = await coordination.BusinessDateAsync(p.BranchId, ct);
         var month = await FinancialMonthPosting.ResolveAsync(db, p.BranchId, date, ct) ?? throw new BusinessRuleException("Configure an open financial month first.");
@@ -112,16 +112,25 @@ public sealed class PayrollService(ApplicationDbContext db, ICurrentUserService 
             BusinessDate = date, ActorUserId = actor, Reason = r.Reason.Trim(), Reference = r.Reference };
         db.Add(record); access.Audit(actor, p.BranchId, "Payroll.PaymentRecorded", nameof(PayrollPaymentRecord), record.Id,
             after: new { payrollId, p.EmployeeId, month.Id, r.Amount, r.PaidAt, record.BalanceBefore, record.BalanceAfter, r.Reference, r.Reason, LedgerPosted = false });
-        return PaymentDetails(record, p);
+        return await PaymentDetailsAsync(record,p,ct);
     }, ct);
     internal static PayrollPaymentDetails PaymentDetails(PayrollPaymentRecord r, Payroll p) => new(r.Id, p.Id, p.EmployeeId, p.BranchId, r.FinancialMonthId,
         r.Amount, r.BalanceBefore, r.BalanceAfter, r.PaidAt, r.RecordedAt, r.BusinessDate, r.ActorUserId, r.Reason, r.Reference);
+    private async Task<PayrollPaymentDetails> PaymentDetailsAsync(PayrollPaymentRecord record,Payroll payroll,CancellationToken ct)
+    {
+        var actors=await ActorDisplayNames.LoadAsync(db,[record.ActorUserId],ct);
+        var employee=await db.Employees.AsNoTracking().Where(x=>x.Id==payroll.EmployeeId).Select(x=>x.FullName).SingleOrDefaultAsync(ct);
+        return PaymentDetails(record,payroll) with{ActorName=ActorDisplayNames.Get(actors,record.ActorUserId),EmployeeName=employee};
+    }
     public async Task<ShiftPage<PayrollPaymentDetails>> PaymentsAsync(Guid payrollId, int page = 1, int pageSize = 25, CancellationToken ct = default)
     {
         MonthlyFinanceService.Page(page, pageSize); var p = await db.Payrolls.AsNoTracking().SingleOrDefaultAsync(x => x.Id == payrollId, ct) ?? throw new BranchNotFoundException("Payroll entitlement not found.");
         await access.RequireAsync(MonthlyFinancePermissions.PayrollView, p.BranchId, ct);
         var q = db.PayrollPaymentRecords.AsNoTracking().Where(x => x.PayrollId == payrollId); var total = await q.CountAsync(ct);
         var rows = await q.OrderByDescending(x => x.RecordedAt).ThenBy(x => x.Id).Skip((page-1)*pageSize).Take(pageSize).ToListAsync(ct);
-        return new(rows.Select(x => PaymentDetails(x, p)).ToArray(), total, page, pageSize);
+        var actors=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>x.ActorUserId),ct);
+        var employee=await db.Employees.AsNoTracking().Where(x=>x.Id==p.EmployeeId).Select(x=>x.FullName).SingleOrDefaultAsync(ct);
+        return new(rows.Select(x=>PaymentDetails(x,p) with{ActorName=ActorDisplayNames.Get(actors,x.ActorUserId),
+            EmployeeName=employee}).ToArray(),total,page,pageSize);
     }
 }

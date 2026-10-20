@@ -30,16 +30,20 @@ public sealed record MaintenancePlanRequest(Guid OperationId, Guid BranchId, str
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record RecordOccurrenceRequest(Guid OperationId, DateTimeOffset OriginalOccurredAt, string Reason);
 public sealed record FinancialMonthDetails(Guid Id, Guid BranchId, string Name, DateOnly StartDate, DateOnly EndDate, string Status, int Version, int LastRevision, DateTimeOffset? FirstClosedAt);
-public sealed record MonthEventDetails(Guid Id, string Kind, Guid OperationId, Guid ActorUserId, string Reason, DateTimeOffset RecordedAt, int ResultVersion, int? Revision);
-public sealed record RevisionDetails(Guid Id, int Revision, DateTimeOffset SnapshotAt, Guid ActorUserId, string Reason, string WorkbookSha256, int SchemaVersion);
-public sealed record SalarySettingDetails(Guid Id, Guid EmployeeId, decimal BasicSalary, DateOnly EffectiveFrom, DateOnly? EffectiveTo, Guid ActorUserId, DateTimeOffset CreatedAt);
+public sealed record MonthEventDetails(Guid Id, string Kind, Guid OperationId, Guid ActorUserId, string Reason, DateTimeOffset RecordedAt, int ResultVersion, int? Revision,
+    string? ActorName = null);
+public sealed record RevisionDetails(Guid Id, int Revision, DateTimeOffset SnapshotAt, Guid ActorUserId, string Reason, string WorkbookSha256, int SchemaVersion,
+    string? ActorName = null);
+public sealed record SalarySettingDetails(Guid Id, Guid EmployeeId, decimal BasicSalary, DateOnly EffectiveFrom, DateOnly? EffectiveTo, Guid ActorUserId, DateTimeOffset CreatedAt,
+    string? ActorName = null);
 public sealed record SalaryDayEvidence(DateOnly Date, Guid AssignmentId, Guid SalarySettingId, decimal MonthlyRate, decimal UnroundedDailyAmount);
 public sealed record SalaryEntitlement(Guid EmployeeId, string EmployeeName, Guid BranchId, Guid FinancialMonthId, int PeriodDays, int EligibleDays,
     decimal BasicSalary, decimal Advances, decimal PayableBasicSalary, IReadOnlyList<SalaryDayEvidence> Days);
 public sealed record PayrollDetails(Guid Id, Guid EmployeeId, string EmployeeName, Guid BranchId, Guid? FinancialMonthId, Guid? CommissionPeriodId,
     Guid? CommissionSummaryId, decimal BasicSalary, decimal Commission, decimal AdvancesDeducted, decimal Payable, decimal Paid, decimal Outstanding, string Status);
 public sealed record PayrollPaymentDetails(Guid Id, Guid PayrollId, Guid EmployeeId, Guid BranchId, Guid FinancialMonthId, decimal Amount,
-    decimal BalanceBefore, decimal BalanceAfter, DateTimeOffset PaidAt, DateTimeOffset RecordedAt, DateOnly BusinessDate, Guid ActorUserId, string Reason, string? Reference);
+    decimal BalanceBefore, decimal BalanceAfter, DateTimeOffset PaidAt, DateTimeOffset RecordedAt, DateOnly BusinessDate, Guid ActorUserId, string Reason, string? Reference,
+    string? ActorName = null, string? EmployeeName = null);
 public sealed record MaintenanceForecast(Guid Id, Guid PlanId, Guid BranchId, int Revision, string Name, decimal ExpectedCost, int FrequencyMonths,
     DateOnly FirstDueDate, DateOnly NextExpectedDate, decimal SuggestedMonthlyAmount, bool IsActive, string Status = "InformationalOnly",
     string? Description = null, string DueStatus = "Upcoming", int DaysUntilDue = 0);
@@ -51,7 +55,7 @@ public sealed record FinancialTransactionReportRow(Guid LedgerId, Guid BranchId,
     Guid? ShiftId, Guid? CustomerId, string? CustomerName, Guid? CommercialSalesOwnerId, string? CommercialSalesOwnerName, Guid? SaleId,
     Guid? PaymentId, Guid? RefundId, Guid? ExpenseId, Guid? AdvanceId, Guid? WithdrawalId, Guid? CoachPayoutId, Guid? PayrollId,
     Guid? OperationId, Guid? ExpenseCategoryId, string? Category, string? Notes, string? Receipt, Guid? ReversalId, Guid? OriginalPaymentId, string SourceEvidence, string AuditEvidence,
-    string? ProviderReference = null);
+    string? ProviderReference = null, string? ActorName = null);
 public sealed record ExpenseCategoryTotal(Guid CategoryId, string Category, decimal Paid, decimal Returned, decimal Net);
 public sealed record CoachMonthRow(Guid CoachEmployeeId, string CoachName, decimal OpeningOutstanding, decimal ActualSessionEarnings,
     decimal ExpirationEarnings, decimal Earned, decimal Paid, decimal ClosingOutstanding, int CompletedClasses, int ClassAttendances,

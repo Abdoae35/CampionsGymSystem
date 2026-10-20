@@ -99,22 +99,19 @@ internal sealed partial class MonthlyReportBuilder(ApplicationDbContext db, ICur
                 completed.Length==0?null:(decimal)attendees/completed.Length);
         }).ToArray();
         var advances=await Bounded(db.EmployeeAdvances.AsNoTracking().Where(x=>x.BranchId==month.BranchId&&(x.FinancialMonthId==month.Id||x.FinancialMonthId==null&&x.BusinessDate>=month.StartDate&&x.BusinessDate<=month.EndDate))
-            .OrderBy(x=>x.OccurredAt).ThenBy(x=>x.Id).Select(x=>new AdvanceDetails(x.Id,x.BranchId,x.ShiftId,x.ReceivingEmployeeId,x.ReceivingEmployee.FullName,x.RecordingEmployeeId,x.FinancialAccountId,x.FinancialAccount.AccountType,x.Amount,x.Reason,x.Reference,x.OccurredAt,x.BusinessDate,x.RecordingEmployee.FullName,x.FinancialAccount.Name)),ct);
+            .OrderBy(x=>x.OccurredAt).ThenBy(x=>x.Id).Select(x=>new AdvanceDetails(x.Id,x.BranchId,x.ShiftId,x.ReceivingEmployeeId,x.ReceivingEmployee.FullName,x.RecordingEmployeeId,x.FinancialAccountId,x.FinancialAccount.AccountType,x.Amount,x.Reason,x.Reference,x.OccurredAt,x.BusinessDate)),ct);
         var counts=await Bounded(db.CashCounts.AsNoTracking().Where(x=>x.BranchId==month.BranchId&&x.OccurredAt<=financialCutoff&&x.BusinessDate>=month.StartDate&&x.BusinessDate<=month.EndDate)
             .OrderBy(x=>x.ObservationOrder).Select(x=>new CashCountDetails(x.Id,x.BranchId,x.ShiftId,x.Kind,x.ExpectedCash,x.CountedCash,x.BookCash,x.Difference,x.OccurredAt,x.BusinessDate,x.CreatedByUserId,x.Reason,x.ObservationOrder)),ct);
         var shiftRows=await Bounded(db.Shifts.AsNoTracking().Include(x=>x.Employee).Where(x=>x.BranchId==month.BranchId&&x.OpenedAt<=financialCutoff&&x.OpeningBusinessDate<=month.EndDate&&(x.ClosingBusinessDate==null||x.ClosingBusinessDate>=month.StartDate))
             .OrderBy(x=>x.OpenedAt).ThenBy(x=>x.Id),ct);
-        var reportActors=await ActorDisplayNames.LoadAsync(db,shiftRows.Select(x=>x.ClosedByUserId).Concat(counts.Select(x=>(Guid?)x.ActorId)),ct);
-        counts=counts.Select(x=>x with{ActorName=ActorDisplayNames.Get(reportActors,x.ActorId)}).ToList();
-        var shifts=shiftRows.Select(x=>ShiftService.DetailsOf(x,x.Employee?.FullName,branchName,
-            ActorDisplayNames.Get(reportActors,x.ClosedByUserId))).ToArray();
+        var shifts=shiftRows.Select(x=>ShiftService.DetailsOf(x,x.Employee?.FullName)).ToArray();
         var maintenanceRows=await Bounded(db.MaintenancePlanRevisions.AsNoTracking().Where(x=>x.BranchId==month.BranchId&&x.RecordedAt<=cutoff&&!db.MaintenancePlanRevisions.Any(y=>y.PlanId==x.PlanId&&y.RecordedAt<=cutoff&&y.Revision>x.Revision)).OrderBy(x=>x.PlanId),ct);
         var maintenance=maintenanceRows.Select(x=>MaintenanceService.Forecast(x,month.EndDate)).ToArray();
         var categories=transactions.Where(x=>x.SourceType=="Expense"&&x.CoachPayoutId==null).GroupBy(x=>new{x.ExpenseCategoryId,Name=x.Category??"Legacy/uncategorized"}).Select(g=>new ExpenseCategoryTotal(g.Key.ExpenseCategoryId??Guid.Empty,g.Key.Name,g.Where(x=>x.Direction=="Debit").Sum(x=>x.Amount),g.Where(x=>x.Direction=="Credit").Sum(x=>x.Amount),g.Sum(x=>x.Direction=="Debit"?x.Amount:-x.Amount))).OrderBy(x=>x.Category).ToArray();
         decimal Sum(string source,string direction)=>transactions.Where(x=>x.SourceType==source&&x.Direction==direction).Sum(x=>x.Amount);
         var gross=Sum("Payment","Credit");var refunds=Sum("Refund","Debit");var ordinary=categories.Sum(x=>x.Net);var basic=salaries.Sum(x=>x.BasicSalary);
         var commissions=payrollThis.Sum(x=>x.CommissionAmount);var privateEarned=currentEarnings.Sum(x=>x.Amount);var credits=transactions.Where(x=>x.Direction=="Credit").Sum(x=>x.Amount);var debits=transactions.Where(x=>x.Direction=="Debit").Sum(x=>x.Amount);
-        var drawer=preserved??await coordination.PositionAsync(month.BranchId,ct);
+        var drawer=(preserved??await coordination.PositionAsync(month.BranchId,ct)) with { AccountName=null };
         var summary=new MonthlySummary(gross,refunds,gross-refunds,ordinary,basic,commissions,privateEarned,payments.Sum(x=>x.Amount),currentPayouts.Sum(x=>x.Amount),Sum("EmployeeAdvance","Debit"),credits,debits,credits-debits,
             gross-refunds-ordinary-basic-commissions-privateEarned,employeeOpening,priorPayrollTotal+payrollThis.Sum(x=>x.NetAmount)-priorPaymentTotal-payments.Sum(x=>x.Amount)+pendingBasic,coaches.Sum(x=>x.OpeningOutstanding),coaches.Sum(x=>x.ClosingOutstanding),drawer.BookCash,drawer.ExpectedPhysicalCash,drawer.LastCountedCash,drawer.ExpectedPhysicalCash-drawer.BookCash,counts.Sum(x=>x.Difference),
             "Net member collections - net ordinary paid operating expenses - prorated basic salary - newly recognized finalized Sales commissions - newly recognized Private earnings. Payments/advances/maintenance forecasts are not additional earned costs.");
