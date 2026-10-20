@@ -67,7 +67,14 @@ public sealed partial class SalesTests
         await Assert.ThrowsAsync<BusinessRuleException>(() => Coaching().RegisterPrivateAsync(sale.SubscriptionId, new(Guid.NewGuid(), Guid.NewGuid())));
         var reception = await CoachingReception(); Assert.Equal(10, (await Coaching().PrivateDetailsAsync(sale.SubscriptionId)).RemainingSessions);
         var r = new PrivateAttendanceRequest(Guid.NewGuid(), reception); var first = await Coaching().RegisterPrivateAsync(sale.SubscriptionId, r);
+        Assert.Equal(member.FullName,first.MemberName);Assert.Equal(member.MemberCode,first.MemberCode);
+        Assert.Equal((await CoachingSetup()).FullName,first.CoachEmployeeName);
         var retry = await Coaching().RegisterPrivateAsync(sale.SubscriptionId, r); Assert.Equal(first.Id, retry.Id);
+        var details=await Coaching().PrivateDetailsAsync(sale.SubscriptionId);
+        Assert.Equal(member.FullName,details.MemberName);Assert.Equal(member.MemberCode,details.MemberCode);
+        Assert.Equal(first.CoachEmployeeName,details.OriginalCoachEmployeeName);
+        Assert.Equal(first.CoachEmployeeName,Assert.Single(details.Assignments).CoachEmployeeName);
+        Assert.Equal(member.FullName,Assert.Single((await Coaching().PrivateHistoryAsync(sale.SubscriptionId)).Items).MemberName);
         Assert.Equal(9, (await Coaching().PrivateDetailsAsync(sale.SubscriptionId)).RemainingSessions); Assert.Single(await db.PrivateSessions.ToListAsync());
         await Assert.ThrowsAsync<BusinessRuleException>(() => Coaching().RegisterPrivateAsync(sale.SubscriptionId, r with { OperationId = Guid.NewGuid() }));
     }
@@ -136,6 +143,7 @@ public sealed partial class SalesTests
     {
         var sale = await PrivatePurchase(); var session = await DeliverPrivate(sale.SubscriptionId); var incoming = await IncomingCoach();
         var r = new PrivateTransferRequest(Guid.NewGuid(), incoming.Id, 1, "Transfer"); var first = await Coaching().TransferAsync(sale.SubscriptionId, r);
+        Assert.Equal(incoming.FullName,first.CoachEmployeeName);
         Assert.Equal(first.Id, (await Coaching().TransferAsync(sale.SubscriptionId, r)).Id);
         Assert.Equal(session.CoachEmployeeId, (await db.PrivateSessions.SingleAsync()).CoachEmployeeId);
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() => Coaching().RegisterPrivateAsync(sale.SubscriptionId, new(Guid.NewGuid(), session.GymCheckInId)));
@@ -168,6 +176,7 @@ public sealed partial class SalesTests
         var period = await CoachingPeriod(today, today.AddDays(2)); var original = (await db.PrivateSubscriptionTransactions.SingleAsync()).OriginalCoachEmployeeId!.Value;
         await Coaching().ConfigureTargetsAsync(new(Guid.NewGuid(), period, original, 100, null));
         var request = new PrivateExpiryRequest(Guid.NewGuid(), period, "Owner recognizes expired balance"); var settlement = await Coaching().SettleExpiryAsync(sale.SubscriptionId, request);
+        Assert.Equal(incoming.FullName,settlement.CoachEmployeeName);
         Assert.Equal(incoming.Id, settlement.CoachEmployeeId); Assert.Equal(9, settlement.UnusedSessions); Assert.True(settlement.TransferredPackage);
         Assert.Equal(settlement.Id, (await Coaching().SettleExpiryAsync(sale.SubscriptionId, request)).Id);
         await Assert.ThrowsAsync<BusinessRuleException>(() => Coaching().SettleExpiryAsync(sale.SubscriptionId, request with { OperationId = Guid.NewGuid() }));

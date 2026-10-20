@@ -25,15 +25,19 @@ public sealed record PrivateAttendanceRequest(Guid OperationId, Guid GymCheckInI
 public sealed record PrivateTransferRequest(Guid OperationId, Guid CoachEmployeeId, int ExpectedVersion, string Reason);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record PrivateExpiryRequest(Guid OperationId, Guid CommissionPeriodId, string Reason);
-public sealed record PrivateAssignmentDetails(Guid Id, Guid CoachEmployeeId, DateTimeOffset AssignedAt, DateTimeOffset? EndedAt, string? Reason);
+public sealed record PrivateAssignmentDetails(Guid Id, Guid CoachEmployeeId, DateTimeOffset AssignedAt, DateTimeOffset? EndedAt, string? Reason,
+    string? CoachEmployeeName = null);
 public sealed record PrivateAttendanceDetails(Guid Id, Guid SubscriptionId, Guid CoachEmployeeId, Guid GymCheckInId,
-    DateOnly? BusinessDate, DateTimeOffset SessionAt, int? SessionNumber, decimal? SessionValue, bool? TransferredPackage);
+    DateOnly? BusinessDate, DateTimeOffset SessionAt, int? SessionNumber, decimal? SessionValue, bool? TransferredPackage,
+    string? MemberName = null, string? MemberCode = null, string? CoachEmployeeName = null);
 public sealed record PrivateDetails(Guid Id, Guid MemberId, Guid BranchId, DateOnly StartDate, DateOnly EndDate,
     int PurchasedSessions, int UsedSessions, int RemainingSessions, int Version, bool Cancelled,
     string? PackageName, decimal Price, decimal UnitSessionValue, decimal RemainderValue,
-    Guid? OriginalCoachEmployeeId, IReadOnlyList<PrivateAssignmentDetails> Assignments);
+    Guid? OriginalCoachEmployeeId, IReadOnlyList<PrivateAssignmentDetails> Assignments,
+    string? MemberName = null, string? MemberCode = null, string? OriginalCoachEmployeeName = null);
 public sealed record PrivateExpiryDetails(Guid Id, Guid SubscriptionId, Guid CoachEmployeeId, int UnusedSessions,
-    decimal EligibleValue, bool? TransferredPackage, DateOnly? BusinessDate, DateTimeOffset SettledAt, string? Reason);
+    decimal EligibleValue, bool? TransferredPackage, DateOnly? BusinessDate, DateTimeOffset SettledAt, string? Reason,
+    string? CoachEmployeeName = null);
 public sealed record CoachingMemberResult(Guid Id, string MemberCode, long? ClientCode, string Name, string Phone);
 public sealed record CoachingPage<T>(IReadOnlyList<T> Items, int TotalCount, int Page, int PageSize);
 public sealed record ClassesSubscriptionDetails(Guid Id, Guid MemberId, Guid BranchId, Guid SaleId, string PackageName,
