@@ -30,6 +30,11 @@ public sealed partial class AuthenticationApiTests
         Assert.Equal(sale.SaleId,(await (await client.PostAsJsonAsync("/api/sales",r)).Content.ReadFromJsonAsync<SaleReceipt>())!.SaleId);
         Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/sales/{sale.SaleId}")).StatusCode);
         await GrantPermission("Finance",SalesPermissions.View);var details=(await client.GetFromJsonAsync<SaleDetails>($"/api/sales/{sale.SaleId}"))!;Assert.Equal(f.Branch,details.Sale.BranchId);Assert.Equal("Active",details.ActivationStatus);
+        var history=(await client.GetFromJsonAsync<SaleHistory>($"/api/sales?branchId={f.Branch}&page=1&pageSize=1"))!;
+        var listed=Assert.Single(history.Items);
+        Assert.Equal(1,history.TotalCount);
+        Assert.Equal("Buyer",listed.MemberName);
+        Assert.Equal("M-HTTP-SALE",listed.MemberCode);
         Assert.Equal(HttpStatusCode.Forbidden,(await client.GetAsync($"/api/sales?branchId={f.Other}")).StatusCode);
         await using var scope=factory.Services.CreateAsyncScope();var db=scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();Assert.Equal(f.Other,(await db.Members.SingleAsync()).HomeBranchId);
         Assert.Single(await db.Payments.ToListAsync());Assert.Single(await db.MemberSubscriptions.ToListAsync());Assert.Empty(await db.MemberSalesAssignments.ToListAsync());
