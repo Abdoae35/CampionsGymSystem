@@ -74,6 +74,31 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         e.Subscription.StartDate, e.Subscription.EndDate, e.Status.ToString(), e.Subscription.TotalSessions,
         e.Subscription.RemainingSessions, e.Subscription.Version, e.Subscription.EmployeeId, e.Subscription.FollowsSubscriptionId, e.Subscription.IsStandaloneVisit);
 
+    private async Task<(Dictionary<Guid, string> Branches, Dictionary<Guid, string> Cities)> DisplayNamesAsync(
+        IEnumerable<Guid> branchIds, IEnumerable<Guid> cityIds, CancellationToken ct)
+    {
+        var branches = branchIds.Distinct().ToArray();
+        var cities = cityIds.Distinct().ToArray();
+        var branchNames = branches.Length == 0 ? new Dictionary<Guid, string>()
+            : await db.GymBranches.AsNoTracking().Where(x => branches.Contains(x.Id))
+                .Select(x => new { x.Id, x.Name }).ToDictionaryAsync(x => x.Id, x => x.Name, ct);
+        var cityNames = cities.Length == 0 ? new Dictionary<Guid, string>()
+            : await db.Cities.AsNoTracking().Where(x => cities.Contains(x.Id))
+                .Select(x => new { x.Id, x.Name }).ToDictionaryAsync(x => x.Id, x => x.Name, ct);
+        return (branchNames, cityNames);
+    }
+
+    private async Task<SubscriptionSummary[]> WithDisplayNamesAsync(IEnumerable<SubscriptionSummary> source, CancellationToken ct)
+    {
+        var rows = source.ToArray();
+        var names = await DisplayNamesAsync(rows.Select(x => x.OriginBranchId), rows.Select(x => x.AccessCityId), ct);
+        return rows.Select(x => x with
+        {
+            OriginBranchName = names.Branches.GetValueOrDefault(x.OriginBranchId),
+            AccessCityName = names.Cities.GetValueOrDefault(x.AccessCityId)
+        }).ToArray();
+    }
+
     // Assembly-internal operational projection. Check-In authorizes the visited branch first;
     // it must not inherit originating-branch administration permissions.
     internal async Task<IReadOnlyList<SubscriptionSummary>> GetGymAccessFactsAsync(Guid memberId, DateOnly date, CancellationToken ct)
@@ -114,7 +139,7 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         var count = await q.CountAsync(ct);
         var rows = await q.OrderByDescending(x => x.Subscription.StartDate).ThenBy(x => x.Subscription.Id)
             .Skip((r.Page - 1) * r.PageSize).Take(r.PageSize).ToListAsync(ct);
-        return new(rows.Select(Summary).ToArray(), count, r.Page, r.PageSize);
+        return new(await WithDisplayNamesAsync(rows.Select(Summary), ct), count, r.Page, r.PageSize);
     }
     public async Task<SubscriptionDetails> GetDetailsAsync(Guid id, CancellationToken ct = default)
     {
@@ -128,7 +153,8 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
         var liveGrants=grants.Where(g=>!cancellations.Any(c=>c.GrantId==g.Id)).ToArray();
         int? allowance = liveGrants.Length == 0 || liveGrants.Any(x => x.FreezeDaysSnapshot == null) ? null : liveGrants.Sum(x => x.FreezeDaysSnapshot!.Value);
         var used = freezes.Where(x => x.FreezeType == FreezeType.Normal).Sum(x => x.DaysApplied ?? 0);
-        return new(Summary(e), await db.Members.Where(x => x.Id == e.Subscription.MemberId).Select(x => x.FullName).SingleAsync(ct),
+        var summary = (await WithDisplayNamesAsync([Summary(e)], ct))[0];
+        return new(summary, await db.Members.Where(x => x.Id == e.Subscription.MemberId).Select(x => x.FullName).SingleAsync(ct),
             allowance, used, allowance.HasValue?Math.Max(0,allowance.Value-used):null,
             await db.MemberSubscriptionBenefits.AsNoTracking().Where(x => x.MembershipSubscriptionTransaction.MemberSubscriptionId == id)
                 .OrderBy(x => x.CreatedAt).ThenBy(x => x.Id).Select(x => new BenefitSnapshot(x.Id, x.MembershipSubscriptionTransactionId,
@@ -157,7 +183,7 @@ public sealed partial class SubscriptionService(ApplicationDbContext db, ICurren
             && (x.Status == SubscriptionStatus.Active || x.Status == SubscriptionStatus.Frozen)).Take(2).ToListAsync(ct);
         if (candidates.Count > 1) throw new BusinessRuleException("Conflicting entitlements require management reconciliation.");
         var closed = await db.BranchClosures.AnyAsync(x => x.BranchId == branchId && x.AppliesToGym && x.StartDate <= date && x.EndDate >= date, ct);
-        return new(candidates.Count == 1 && candidates[0].Status == SubscriptionStatus.Active && !closed,
-            candidates.Count == 1 ? Summary(candidates[0]) : null);
+        var summary = candidates.Count == 1 ? (await WithDisplayNamesAsync([Summary(candidates[0])], ct))[0] : null;
+        return new(candidates.Count == 1 && candidates[0].Status == SubscriptionStatus.Active && !closed, summary);
     }
 }

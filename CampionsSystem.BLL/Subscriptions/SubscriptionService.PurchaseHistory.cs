@@ -10,7 +10,8 @@ public sealed partial class SubscriptionService
     private static SubscriptionHistoryItem HistoryItem(SubscriptionSummary s) => new(
         s.Id, null, s.MemberId, s.SourcePlanId, s.PlanName, s.PlanType, s.OriginBranchId,
         s.AccessCityId, s.Mode, s.StartDate, s.EndDate, s.Status, s.TotalSessions,
-        s.RemainingSessions, null, null, null, null, null, null);
+        s.RemainingSessions, null, null, null, null, null, null,
+        s.OriginBranchName, s.AccessCityName);
 
     // The default history contract remains unchanged. This opt-in view inserts the one
     // possible pending paid sale into the same ordered, filtered page of period history.
@@ -73,6 +74,12 @@ public sealed partial class SubscriptionService
         if (pending is not null && insertion >= offset && insertion < (long)offset + r.PageSize)
             items.Insert(insertion - offset, pending);
         if (items.Count > r.PageSize) items.RemoveAt(items.Count - 1);
+        var names = await DisplayNamesAsync(items.Select(x => x.OriginBranchId), items.Select(x => x.AccessCityId), ct);
+        items = items.Select(x => x with
+        {
+            OriginBranchName = names.Branches.GetValueOrDefault(x.OriginBranchId),
+            AccessCityName = names.Cities.GetValueOrDefault(x.AccessCityId)
+        }).ToList();
         return new(items, periodCount + (pending is null ? 0 : 1), r.Page, r.PageSize);
     }
 }
