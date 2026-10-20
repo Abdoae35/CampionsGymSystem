@@ -45,6 +45,7 @@ read this file and `PROJECT_HISTORY.md` before working.
 
 ## Current handoff
 
+- On 2026-10-21, `feature/SalesSoldByDisplayName` implements Sales `soldByUserId`/nullable `soldByName` from the recorded creator, with bulk paged lookup, nested details, tests, refreshed handoff and runtime OpenAPI. Build passed with zero warnings/errors; full tests passed 974/974. Commits `64cff77` and `07287d0` are pushed; PR #3 targets master and is open, not merged. Preserve the pre-existing conflict markers below and in `PROJECT_HISTORY.md`; see latest history entry.
 <<<<<<< HEAD
 - On 2026-10-20, user paused the manual API sequence at Folder 9 `Membership Plans` request 1, `GET /api/membership-plans?page=1&pageSize=25`. The request was explained but no result or “done” was reported; resume here when user returns, before request 2. User will send a separate next task. No assistant API/test/DB/application/Postman change, commit or push; see latest history entry.
 - On 2026-10-20, user marked all Folder 8 CRM Member follow-ups tested and asked to move to the next folder; no individual results were supplied. Next is Folder 9 `Membership Plans` request 1, `GET /api/membership-plans?page=1&pageSize=25`, with `MembershipPlans.View`, no body, Shift or mutation. Returns paginated plan summaries for caller's scope; Employee plans hidden by default, active/inactive included unless filtered. Await user result before request 2. No assistant API/test/DB/application/Postman change, commit or push; see latest history entry.
