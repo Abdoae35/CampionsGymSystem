@@ -3903,7 +3903,7 @@
     },
     {
       "name": "13. Subscriptions and entitlement",
-      "description": "Protected lifecycle operations only. Paid activation/renewal are BLL-only pending Finance. Select dates, UUID operation identity and latest version deliberately.",
+      "description": "Purchased memberships originate from POST /api/sales. This folder separates created subscription history, purchase history including paid FirstCheckIn sales awaiting entry, and current access. Select dates, UUID operation identity and latest version deliberately for lifecycle operations.",
       "item": [
         {
           "name": "Member history",
@@ -3921,8 +3921,39 @@
                 }
               ]
             },
-            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists."
+            "description": "Subscriptions.View; created subscription periods only. A paid FirstCheckIn purchase awaiting entry is not a MemberSubscription yet. Use the next request to include it. Results are scoped by purchase-origin branch."
           }
+        },
+        {
+          "name": "Member purchase history (including pending first check-in)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/members/{{memberId}}/subscriptions?includePending=true&page=1&pageSize=25",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Subscriptions.View. Combined paginated history of created subscriptions and eligible paid FirstCheckIn Sales awaiting entry. A pending item has activationStatus PendingFirstCheckIn, saleId, full purchased sessions, and null subscriptionId/startDate; after the first real Check-In, only its created subscription remains. Omit status to include pending; status filters select created subscription statuses only. Results use the purchase-origin branch scope (optional branchId query). This is the existing history route with includePending=true, not a new endpoint."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Combined history envelope\", () => { const body = pm.response.json(); pm.expect(body.items).to.be.an('array'); pm.expect(body.totalCount).to.be.a('number'); });"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Current access at branch",
@@ -3940,7 +3971,7 @@
                 }
               ]
             },
-            "description": "Send individually with the required subscription permission and selected branch scope. No paid grant/renewal endpoint exists."
+            "description": "Subscriptions.View. Current access decision in the selected operational branch/city; intentionally does not show a paid FirstCheckIn Sale before activation. Use Member purchase history with includePending=true to display that purchase."
           }
         },
         {
