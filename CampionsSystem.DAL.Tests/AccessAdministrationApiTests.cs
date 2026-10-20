@@ -165,10 +165,41 @@ public sealed partial class AuthenticationApiTests
         var page = (await history.Content.ReadFromJsonAsync<AccessPage<AccessAuditDetails>>())!;
         var fact = Assert.Single(page.Items); Assert.Equal(1, page.TotalCount); Assert.Equal("Approved role", fact.Reason);
         Assert.Equal(userId, fact.ActorUserId); Assert.Equal(t.User, fact.TargetUserId); Assert.True(fact.Result.Changed);
+        Assert.Null(fact.ActorName); Assert.Null(fact.TargetUserName);
+        Assert.Equal("BranchManager", fact.RoleName); Assert.Null(fact.PermissionCode);
         Assert.Contains("BranchManager", fact.NewValues);
         await using var scope = factory.Services.CreateAsyncScope(); var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var audit = await db.AuditLogs.SingleAsync(x => x.EntityId == op); audit.Description = "Tamper";
         await Assert.ThrowsAsync<InvalidOperationException>(() => db.SaveChangesAsync());
+    }
+    [Fact] public async Task AccessHistoryUsesCurrentLinkedNamesAndPermissionCodes()
+    {
+        await PrepareAccessOwner(); var target = await AccessTarget();
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.AddRange(
+                new Employee { UserId = userId, FullName = "Owner operator", Phone = "access-actor-name", HireDate = BranchToday.AddDays(-5) },
+                new Employee { UserId = target.User, FullName = "Target operator", Phone = "access-target-name", HireDate = BranchToday.AddDays(-5), EmploymentStatus = CampionsSystem.DAL.Enums.EmploymentStatus.Resigned });
+            await db.SaveChangesAsync();
+        }
+        await SetAccessOverride(target.User, target.Permission, "Deny");
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var employee = await db.Employees.SingleAsync(x => x.UserId == target.User);
+            employee.FullName = "Updated target";
+            await db.SaveChangesAsync();
+        }
+        using var response = await client.GetAsync($"{AdminRoot}/history?targetUserId={target.User}&page=1&pageSize=1");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var page = (await response.Content.ReadFromJsonAsync<AccessPage<AccessAuditDetails>>())!;
+        var item = Assert.Single(page.Items);
+        Assert.Equal("Owner operator", item.ActorName);
+        Assert.Equal("Updated target", item.TargetUserName);
+        Assert.Equal("Members.View", item.PermissionCode);
+        Assert.Null(item.RoleName);
+        Assert.Equal(1, page.TotalCount);
     }
     [Fact] public async Task DesiredStateNoopIsAuditedWithoutDuplicateMembership()
     {
