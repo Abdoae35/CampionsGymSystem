@@ -9,8 +9,10 @@ public sealed partial class CrmManagementTests
         var l=await Lead();await service.AssignLeadAsync(l.Id,new(){SalesEmployeeId=ahmed.Id});
         await service.AssignLeadAsync(l.Id,new(){SalesEmployeeId=mohamed.Id,Reason="Distribution"});
         var history=await service.GetLeadAssignmentHistoryAsync(l.Id);Assert.Equal(2,history.Count);Assert.Single(history,a=>a.EndedAt==null);
+        Assert.All(history,x=>Assert.Equal("Ahmed",x.AssignedByName));
+        Assert.Equal("Ahmed",(await service.GetCurrentLeadAssignmentAsync(l.Id))!.AssignedByName);
         Set(ahmed,"Leads.View");Assert.Empty((await service.GetMyLeadsAsync(new())).Items);
-        Set(mohamed,"Leads.View");Assert.Single((await service.GetMyLeadsAsync(new())).Items);
+        Set(mohamed,"Leads.View");Assert.Equal("Ahmed",Assert.Single((await service.GetMyLeadsAsync(new())).Items).CurrentAssignment?.AssignedByName);
         Assert.Empty((await service.GetMyLeadsAsync(new(){SalesEmployeeId=ahmed.Id})).Items);
         Assert.Contains(await db.AuditLogs.ToListAsync(),a=>a.Action=="Lead.Reassigned");
     }

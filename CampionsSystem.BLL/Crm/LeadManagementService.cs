@@ -68,10 +68,12 @@ public sealed partial class LeadManagementService(ApplicationDbContext db, ICurr
     private IQueryable<LeadDetails> Project(IQueryable<Lead> q) => q.Select(l=>new LeadDetails(l.Id,l.BranchId,l.Branch.Name,l.FullName,l.Phone,
         l.PhoneNormalized,l.SecondaryPhone,l.Email,l.Source,l.Notes,l.Status.ToString(),l.CreatedAt,l.NextFollowUpAt,
         db.LeadAssignments.Where(a=>a.LeadId==l.Id&&a.EndedAt==null).Select(a=>new LeadAssignmentDetails(a.Id,a.SalesEmployeeId,
-            a.SalesEmployee.FullName,a.AssignedAt,a.EndedAt,a.AssignedByUserId,a.Reason)).SingleOrDefault(),
+            a.SalesEmployee.FullName,a.AssignedAt,a.EndedAt,a.AssignedByUserId,a.Reason,
+            db.Employees.Where(e=>e.UserId==a.AssignedByUserId).Select(e=>e.FullName).FirstOrDefault())).SingleOrDefault(),
         l.ConvertedMemberId,l.ConvertedAt,l.LostAt,l.LostReason));
     private IQueryable<LeadAssignmentDetails> AssignmentQuery(Guid id) => Assignments().Where(a => a.LeadId == id)
-        .Select(a => new LeadAssignmentDetails(a.Id,a.SalesEmployeeId,a.SalesEmployee.FullName,a.AssignedAt,a.EndedAt,a.AssignedByUserId,a.Reason));
+        .Select(a => new LeadAssignmentDetails(a.Id,a.SalesEmployeeId,a.SalesEmployee.FullName,a.AssignedAt,a.EndedAt,a.AssignedByUserId,a.Reason,
+            db.Employees.Where(e=>e.UserId==a.AssignedByUserId).Select(e=>e.FullName).FirstOrDefault()));
     private static void Page(int page, int size)
     {
         if (page < 1 || size is < 1 or > 100 || (long)(page-1)*size > int.MaxValue) throw new BusinessRuleException("Invalid pagination.");

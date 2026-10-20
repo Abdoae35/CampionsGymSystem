@@ -12,7 +12,9 @@ public sealed partial class CrmManagementTests
         await service.AddLeadInteractionAsync(l.Id,new(){Notes="Call",InteractionType=InteractionType.Call,Status=LeadStatus.Contacted});
         var due=access.DayBounds().End.AddHours(2);
         await service.AddLeadInteractionAsync(l.Id,new(){Notes="Interested",InteractionType=InteractionType.WhatsApp,Status=LeadStatus.FollowUp,NextFollowUpAt=due});
-        Assert.Equal(2,(await service.GetLeadInteractionsAsync(l.Id)).Count);
+        var interactions=await service.GetLeadInteractionsAsync(l.Id);
+        Assert.Equal(2,interactions.Count);
+        Assert.All(interactions,x=>Assert.Equal("Ahmed",x.EmployeeName));
         Assert.Equal(due,Assert.Single((await service.GetMyLeadsAsync(new(){FollowUp=FollowUpWindow.Upcoming})).Items).NextFollowUpAt);
         Assert.Contains(await db.AuditLogs.ToListAsync(),x=>x.Action=="Lead.InteractionAdded");
     }

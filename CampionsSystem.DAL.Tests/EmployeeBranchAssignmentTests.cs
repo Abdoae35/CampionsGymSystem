@@ -33,8 +33,11 @@ public sealed class EmployeeBranchAssignmentTests : IAsyncLifetime
     {
         Assert.Null(await service.GetCurrentAsync(employee.Id));
         var assigned = await service.AssignAsync(employee.Id, new(branch.Id, access.Today));
+        Assert.Null(assigned.AssignedByName);
+        employee.UserId=current.UserId;await db.SaveChangesAsync();
+        Assert.Equal("Employee",(await service.GetCurrentAsync(employee.Id))!.AssignedByName);
         Assert.True(assigned.IsPrimary); Assert.Equal(branch.Id, (await service.GetCurrentAsync(employee.Id))!.BranchId);
-        Assert.Single(await service.HistoryAsync(employee.Id));
+        Assert.Equal("Employee",Assert.Single(await service.HistoryAsync(employee.Id)).AssignedByName);
         Assert.Contains(await db.AuditLogs.ToListAsync(), x => x.Action == "Employee.BranchAssigned");
     }
     [Fact] public async Task SecondOpenAssignmentIsRejected()

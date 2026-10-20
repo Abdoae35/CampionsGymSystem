@@ -35,6 +35,6 @@ public sealed partial class LeadManagementService
         Page(page,pageSize);await GetLeadByIdAsync(id,ct);
         return await db.LeadInteractions.AsNoTracking().Where(i=>i.LeadId==id).OrderByDescending(i=>i.ContactedAt??i.CreatedAt).ThenBy(i=>i.Id)
             .Skip((page-1)*pageSize).Take(pageSize).Select(i=>new LeadInteractionDetails(i.Id,i.EmployeeId,i.CreatedByUserId,i.InteractionType.ToString(),
-                i.Notes,i.Outcome,i.ContactedAt??i.CreatedAt,i.NextFollowUpAt,i.CreatedAt)).ToListAsync(ct);
+                i.Notes,i.Outcome,i.ContactedAt??i.CreatedAt,i.NextFollowUpAt,i.CreatedAt,i.Employee.FullName)).ToListAsync(ct);
     }
 }

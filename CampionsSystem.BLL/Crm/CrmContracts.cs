@@ -29,7 +29,8 @@ public sealed class CreateLeadRequest
     [MaxLength(4096)] public string? Notes { get; set; }
 }
 public sealed record LeadAssignmentDetails(Guid Id, Guid SalesEmployeeId, string SalesEmployeeName,
-    DateTimeOffset AssignedAt, DateTimeOffset? EndedAt, Guid AssignedByUserId, string? Reason);
+    DateTimeOffset AssignedAt, DateTimeOffset? EndedAt, Guid AssignedByUserId, string? Reason,
+    string? AssignedByName = null);
 public sealed record LeadDetails(Guid Id, Guid BranchId, string BranchName, string? FullName,
     string PrimaryPhone, string? PrimaryPhoneNormalized, string? SecondaryPhone, string? Email,
     string? Source, string? Notes, string Status, DateTimeOffset CreatedAt,
@@ -58,7 +59,7 @@ public sealed class LeadInteractionRequest
 }
 public sealed record LeadInteractionDetails(Guid Id, Guid EmployeeId, Guid? CreatedByUserId,
     string InteractionType, string Notes, string? Outcome, DateTimeOffset ContactedAt,
-    DateTimeOffset? NextFollowUpAt, DateTimeOffset CreatedAt);
+    DateTimeOffset? NextFollowUpAt, DateTimeOffset CreatedAt, string? EmployeeName = null);
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class LeadStatusRequest
 {
