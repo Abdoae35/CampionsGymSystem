@@ -15,9 +15,9 @@ public sealed partial class CheckInTests
     [Fact] public async Task TrialRedemptionAndRetryAreOneTimeHistoricalAndNonFinancial()
     {
         var i=await IssuedTrial();var op=Guid.NewGuid();var r=new RedeemTrialRequest(op,i.Id,"+20 100 000 0099");
-        var first=await service.RedeemTrialAsync(r);Assert.True(first.Allowed);Assert.Equal("Trial",first.CheckIn!.Type);Assert.Null(first.CheckIn.MemberId);
+        var first=await service.RedeemTrialAsync(r);Assert.True(first.Allowed);Assert.Equal("Trial",first.CheckIn!.Type);Assert.Null(first.CheckIn.MemberId);Assert.Null(first.CheckIn.ActorName);
         Assert.False(first.CheckIn.SessionConsumed);Assert.Null(first.CheckIn.SubscriptionId);Assert.Equal(b.Id,first.CheckIn.BranchId);Assert.Equal(today,first.CheckIn.BusinessDate);
-        var retry=await service.RedeemTrialAsync(r);Assert.Equal(first.CheckIn.Id,retry.CheckIn!.Id);Assert.Single(await db.CheckIns.ToListAsync());
+        var retry=await service.RedeemTrialAsync(r);Assert.Equal(first.CheckIn.Id,retry.CheckIn!.Id);Assert.Null(retry.CheckIn.ActorName);Assert.Single(await db.CheckIns.ToListAsync());
         Assert.Equal(GuestInvitationStatus.Redeemed,i.Status);Assert.Equal(first.CheckIn.Id,i.RedeemedCheckInId);
         var other=await IssuedTrial();Assert.Equal(TrialReasons.TrialAlreadyUsed,(await service.RedeemTrialAsync(new(Guid.NewGuid(),other.Id,other.InviteePhone))).ReasonCode);
         Assert.Empty(await db.SaleTransactions.ToListAsync());Assert.Empty(await db.Payments.ToListAsync());Assert.Empty(await db.FinancialTransactions.ToListAsync());

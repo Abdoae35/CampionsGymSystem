@@ -36,7 +36,8 @@ public sealed partial class CheckInService
         if(r.From.HasValue)q=q.Where(x=>(x.BusinessDate??(x.BusinessDay!=null?(DateOnly?)x.BusinessDay.BusinessDate:null))>=r.From);
         if(r.To.HasValue)q=q.Where(x=>(x.BusinessDate??(x.BusinessDay!=null?(DateOnly?)x.BusinessDay.BusinessDate:null))<=r.To);
         var count=await q.CountAsync(ct);var rows=await Project(q.OrderByDescending(x=>x.CheckedInAt).ThenBy(x=>x.Id).Skip((r.Page-1)*r.PageSize).Take(r.PageSize)).ToListAsync(ct);
-        return new(rows,count,r.Page,r.PageSize);
+        var names=await ActorDisplayNames.LoadAsync(db,rows.Select(x=>(Guid?)x.ActorId),ct);
+        return new(rows.Select(x=>x with{ActorName=ActorDisplayNames.Get(names,x.ActorId)}).ToList(),count,r.Page,r.PageSize);
     }
     public async Task<CheckInHistory> GetCurrentBusinessDayAsync(Guid memberId,Guid? branchId=null,int page=1,int pageSize=25,CancellationToken ct=default)
     {
@@ -55,7 +56,10 @@ public sealed partial class CheckInService
         var q=db.CheckIns.AsNoTracking().Where(x=>x.BranchId==branchId && x.MemberId==memberId
             && (x.CheckInType==CheckInType.Gym || x.CheckInType==CheckInType.BorrowedGym)
             && (x.BusinessDate??(x.BusinessDay!=null?(DateOnly?)x.BusinessDay.BusinessDate:null))==businessDate);
-        return await Project(q.OrderByDescending(x=>x.CheckedInAt).ThenBy(x=>x.Id).Take(1)).SingleOrDefaultAsync(ct);
+        var row=await Project(q.OrderByDescending(x=>x.CheckedInAt).ThenBy(x=>x.Id).Take(1)).SingleOrDefaultAsync(ct);
+        if(row is null)return null;
+        var names=await ActorDisplayNames.LoadAsync(db,[row.ActorId],ct);
+        return row with{ActorName=ActorDisplayNames.Get(names,row.ActorId)};
     }
     public async Task<CheckInMemberMatches> FindMembersAsync(CheckInMemberSearchRequest r,CancellationToken ct=default)
     {

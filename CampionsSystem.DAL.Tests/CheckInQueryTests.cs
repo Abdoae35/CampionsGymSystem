@@ -22,6 +22,23 @@ public sealed partial class CheckInTests
         await Entry();Assert.Equal(2,(await service.GetCurrentBusinessDayAsync(member.Id)).TotalCount);
         clock.Now=clock.Now.AddDays(1);Assert.Null(await service.GetCurrentGymEntryAsync(member.Id));Assert.Empty((await service.GetCurrentBusinessDayAsync(member.Id)).Items);
     }
+    [Fact] public async Task SharedCheckInDetailsResolveCurrentActorNameAcrossEntryAndReads()
+    {
+        var employee=new Employee{UserId=actor.Id,FullName="Reception Operator",Phone="checkin-operator",HireDate=today.AddYears(-1)};
+        db.Add(employee);await db.SaveChangesAsync();
+        await Period();
+        var entry=await Entry();
+        Assert.Equal("Reception Operator",entry.CheckIn!.ActorName);
+        Assert.Equal("Reception Operator",(await service.GetCurrentGymEntryAsync(member.Id))!.ActorName);
+        Assert.Equal("Reception Operator",Assert.Single((await service.GetCurrentBusinessDayAsync(member.Id)).Items).ActorName);
+        Assert.Equal("Reception Operator",Assert.Single((await service.GetHistoryAsync(new(){MemberId=member.Id,PageSize=1})).Items).ActorName);
+
+        employee.FullName="Current Reception Operator";
+        employee.EmploymentStatus=EmploymentStatus.Suspended;
+        await db.SaveChangesAsync();
+        Assert.Equal("Current Reception Operator",Assert.Single((await service.GetHistoryAsync(new(){MemberId=member.Id})).Items).ActorName);
+        Assert.Equal("Current Reception Operator",(await service.GetCurrentGymEntryAsync(member.Id))!.ActorName);
+    }
     [Fact] public async Task OperationalLookupReusesSearchAndKeepsClientCodesBranchLocal()
     {
         member.PrimaryPhone="01000000001";member.PrimaryPhoneNormalized="+201000000001";member.ClientCode=7;

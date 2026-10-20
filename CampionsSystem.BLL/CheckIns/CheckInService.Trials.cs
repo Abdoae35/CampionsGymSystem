@@ -39,7 +39,7 @@ public sealed partial class CheckInService
             {
                 if(invitation.RedeemedCheckInId!=retry.Id || retry.CheckInType!=CheckInType.Trial || retry.BranchId!=branch.Id || retry.CreatedByUserId!=context.Actor.UserId)
                     throw new BusinessRuleException("Operation identity belongs to a different Check-In request.");
-                return new(true,AccessReasons.Allowed,invitation.Id,Details(retry,member) with{MemberName=invitation.InviteeName});
+                return new(true,AccessReasons.Allowed,invitation.Id,(await DetailsWithActorAsync(retry,member,ct)) with{MemberName=invitation.InviteeName});
             }
             if(!branch.IsActive || !branch.City.IsActive)return Denied(AccessReasons.BranchInactive);
             var date=day?.BusinessDate??access.Today;
@@ -69,7 +69,7 @@ public sealed partial class CheckInService
             access.Audit(context.Actor.UserId,branch.Id,"TrialCheckIn.Created",nameof(CheckIn),row.Id,null,
                 new{InvitationId=invitation.Id,BenefitUsageId=usage?.Id,row.MemberId,row.BusinessDate,row.BusinessDayId,row.CheckInType,row.CheckInMethod,row.OperationId});
             await db.SaveChangesAsync(ct);
-            return new(true,AccessReasons.Allowed,invitation.Id,Details(row,member) with{MemberName=invitation.InviteeName});
+            return new(true,AccessReasons.Allowed,invitation.Id,(await DetailsWithActorAsync(row,member,ct)) with{MemberName=invitation.InviteeName});
         },ct);
     }
 }
