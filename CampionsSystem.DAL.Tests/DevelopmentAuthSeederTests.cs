@@ -1,8 +1,10 @@
 using CampionsSystem.BLL.Authentication;
 using CampionsSystem.BLL.Branches;
 using CampionsSystem.BLL.Shifts;
+using CampionsSystem.BLL.Sales;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
+using CampionsSystem.DAL.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +47,32 @@ public sealed class DevelopmentAuthSeederTests : IAsyncLifetime
     private Task Seed() => scope.ServiceProvider.GetRequiredService<DevelopmentAuthSeeder>().SeedAsync(password);
     private Task<CurrentUserContext?> Login(string name) => scope.ServiceProvider.GetRequiredService<IAuthenticationService>()
         .ValidateCredentialsAsync(new LoginRequest { UserNameOrEmail = name, Password = password });
+
+    [Fact]
+    public async Task FreshOwnerUsesPaymentsCreateAndExplicitDenyStillWins()
+    {
+        Assert.Equal("Payments.Create", SalesPermissions.Create);
+        Assert.DoesNotContain("Sales.Create", DevelopmentAuthSeeder.PermissionCodes);
+        Assert.False(await db.Permissions.AnyAsync(p => p.Code == "Sales.Create"));
+
+        var owner = await db.Users.SingleAsync(u => u.UserName == "dev.owner");
+        var ownerRole = await db.Roles.SingleAsync(r => r.NormalizedName == "OWNER");
+        var permission = await db.Permissions.SingleAsync(p => p.Code == SalesPermissions.Create);
+        Assert.True(await db.RolePermissions.AnyAsync(g => g.RoleId == ownerRole.Id && g.PermissionId == permission.Id));
+        Assert.Contains(SalesPermissions.Create, Assert.IsType<CurrentUserContext>(await Login("dev.owner")).Permissions);
+
+        db.UserPermissionOverrides.Add(new UserPermissionOverride
+        {
+            UserId = owner.Id,
+            PermissionId = permission.Id,
+            Effect = PermissionOverrideEffect.Deny
+        });
+        await db.SaveChangesAsync();
+        Assert.DoesNotContain(SalesPermissions.Create, Assert.IsType<CurrentUserContext>(await Login("dev.owner")).Permissions);
+
+        await Seed();
+        Assert.DoesNotContain(SalesPermissions.Create, Assert.IsType<CurrentUserContext>(await Login("dev.owner")).Permissions);
+    }
 
     [Fact]
     public async Task RepeatedSeedDoesNotDuplicateFixtures()

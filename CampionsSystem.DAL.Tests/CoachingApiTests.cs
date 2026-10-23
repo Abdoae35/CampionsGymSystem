@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using CampionsSystem.BLL.Coaching;
+using CampionsSystem.BLL.Authentication;
+using CampionsSystem.BLL.Sales;
 using CampionsSystem.DAL.Data;
 using CampionsSystem.DAL.Entities;
 using CampionsSystem.DAL.Enums;
@@ -18,6 +20,31 @@ public sealed partial class AuthenticationApiTests
     {
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync(route)).StatusCode); await Authenticate();
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync(route)).StatusCode);
+    }
+    [Fact] public async Task PrivatePurchaseUsesPaymentsCreateAndHonorsDirectDeny()
+    {
+        await GrantPermission("Owner", CoachingPermissions.PrivateManage);
+        await GrantPermission("Owner", SalesPermissions.Create);
+        await Authenticate();
+
+        var me = await client.GetFromJsonAsync<CurrentUserContext>("/api/auth/me");
+        Assert.NotNull(me);
+        Assert.Contains(SalesPermissions.Create, me.Permissions);
+        Assert.DoesNotContain("Sales.Create", me.Permissions);
+
+        var purchase = new CoachingPurchaseRequest(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), []);
+        using var allowed = await client.PostAsJsonAsync("/api/coaching/private/purchases", purchase);
+        Assert.Equal(HttpStatusCode.NotFound, allowed.StatusCode);
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var permission = await db.Permissions.SingleAsync(p => p.Code == SalesPermissions.Create);
+            db.Add(new UserPermissionOverride { UserId = userId, PermissionId = permission.Id, Effect = PermissionOverrideEffect.Deny });
+            await db.SaveChangesAsync();
+        }
+        using var denied = await client.PostAsJsonAsync("/api/coaching/private/purchases", purchase);
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
     }
     [Fact] public async Task CoachingApiPackageCatalogIsBranchScopedAndRejectsSpoofedFinancialTerms()
     {

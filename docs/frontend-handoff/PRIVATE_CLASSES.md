@@ -159,7 +159,7 @@ management pattern. No role-name shortcut or changed default grants exists.
 |---|---|
 | GET private/packages | Private.View |
 | POST private/packages; PUT private/packages/{id} | Private.Manage |
-| POST private/purchases | Private.Manage + Sales.Create + Payments.Create |
+| POST private/purchases | Private.Manage + Payments.Create |
 | GET private/members?branchId&search | Private.View |
 | GET private/subscriptions?branchId&memberId; GET private/subscriptions/{id} | Private.View |
 | POST private/subscriptions/{id}/sessions | Private.RegisterSession |
@@ -169,7 +169,7 @@ management pattern. No role-name shortcut or changed default grants exists.
 | GET private/subscriptions/{id}/expiry-settlements | Private.View |
 | GET classes/packages | Classes.View |
 | POST classes/packages; PUT classes/packages/{id} | Classes.Manage |
-| POST classes/purchases | Classes.Manage + Sales.Create + Payments.Create |
+| POST classes/purchases | Classes.Manage + Payments.Create |
 | GET classes/members?branchId&search; GET classes/subscriptions?branchId&memberId | Classes.View |
 | GET classes/members/{memberId}/attendance?branchId | Classes.View |
 | GET classes/types | Classes.View |

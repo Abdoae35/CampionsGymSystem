@@ -6421,7 +6421,7 @@
               ]
             },
             "url": "{{baseUrl}}/api/coaching/private/purchases",
-            "description": "Requires Sales.Create, Payments.Create and product Manage, active own shift and cash/account setup. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "description": "Requires Payments.Create and product Manage, active own shift and cash/account setup. SalesPermissions.Create is an alias for Payments.Create, not a separate permission. Use trusted branch scope; preserve operation and body for retries.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"operationId\": \"{{privatePurchaseOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"packageId\": \"{{privatePackageId}}\",\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1000\n    }\n  ],\n  \"purchaseMode\": 0,\n  \"coachEmployeeId\": \"{{coachEmployeeId}}\"\n}",
@@ -6621,7 +6621,7 @@
               ]
             },
             "url": "{{baseUrl}}/api/coaching/classes/purchases",
-            "description": "Requires Sales.Create, Payments.Create and product Manage, active own shift and cash/account setup. Requires explicit documented capabilities and trusted branch scope. Send deliberately against selected development records; preserve operation and body for retries.",
+            "description": "Requires Payments.Create and product Manage, active own shift and cash/account setup. SalesPermissions.Create is an alias for Payments.Create, not a separate permission. Use trusted branch scope; preserve operation and body for retries.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"operationId\": \"{{classesPurchaseOperationId}}\",\n  \"memberId\": \"{{memberId}}\",\n  \"packageId\": \"{{classesPackageId}}\",\n  \"paymentParts\": [\n    {\n      \"financialAccountId\": \"{{cashAccountId}}\",\n      \"amount\": 1000\n    }\n  ],\n  \"purchaseMode\": 0\n}",
